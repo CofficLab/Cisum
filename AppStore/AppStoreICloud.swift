@@ -54,7 +54,6 @@ struct AppStoreICloud: View {
             ContentView()
                 .inRootView()
                 .inDemoMode()
-                .hideTabView()
                 .frame(width: Config.minWidth)
                 .frame(height: 650)
                 .roundedLarge()

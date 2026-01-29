@@ -156,7 +156,6 @@ extension AppTabView {
 #Preview("App - Demo") {
     ContentView()
         .inRootView()
-        .showTabView()
         .inDemoMode()
         .withDebugBar()
 }

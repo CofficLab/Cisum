@@ -131,7 +131,6 @@ extension ContentView {
     ContentLayout()
         .showDetail()
         .inRootView()
-        .showTabView()
         .withDebugBar()
 }
 
@@ -139,7 +138,6 @@ extension ContentView {
     ContentLayout()
         .hideDetail()
         .inRootView()
-        .showTabView()
         .withDebugBar()
 }
 

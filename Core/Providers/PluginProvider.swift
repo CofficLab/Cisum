@@ -504,7 +504,6 @@ enum PluginProviderError: Error, LocalizedError {
 #Preview("App - Demo") {
     ContentView()
         .inRootView()
-        .showTabView()
         .inDemoMode()
         .withDebugBar()
 }
