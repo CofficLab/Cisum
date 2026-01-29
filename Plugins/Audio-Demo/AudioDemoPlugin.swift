@@ -15,7 +15,7 @@ actor AudioDemoPlugin: SuperPlugin {
     let iconName = "externaldrive"
 
     @MainActor
-    func addTabView(reason: String, currentSceneName: String?) -> (view: AnyView, label: String)? {
+    func addTabView(reason: String, currentSceneName: String?, demoMode: Bool = false) -> (view: AnyView, label: String)? {
         guard currentSceneName == AudioScenePlugin.sceneName else { return nil }
 
         return (AnyView(AudioListDemo()), "音乐仓库")

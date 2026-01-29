@@ -35,7 +35,7 @@ extension AppTabView {
     /// 构建 TabView（正常模式）
     func buildTabView() -> AnyView {
         // 收集所有提供的 Tab 视图及标签
-        let tabViews = p.getTabViews(reason: self.className)
+        let tabViews = p.getTabViews(reason: self.className, demoMode: isDemoMode)
 
         let tabView = TabView(selection: $tab) {
             ForEach(Array(tabViews.enumerated()), id: \.offset) { index, item in
@@ -63,7 +63,7 @@ extension AppTabView {
     
     /// 构建自定义 TabView（Demo 模式）
     func buildCustomTabView() -> some View {
-        let tabViews = p.getTabViews(reason: self.className)
+        let tabViews = p.getTabViews(reason: self.className, demoMode: isDemoMode)
         let settingTab = (view: AnyView(SettingView().environmentObject(p)), label: "设置")
         let allTabs = tabViews + [settingTab]
         

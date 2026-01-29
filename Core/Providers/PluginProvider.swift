@@ -134,11 +134,13 @@ class PluginProvider: ObservableObject, SuperLog, SuperThread {
     /// 遍历所有已注册的插件，收集它们提供的标签页视图（如果有）。
     /// 标签页视图通常用于在特定场景下显示多个标签页。
     ///
-    /// - Parameter reason: 调用原因，通常为调用者的类名
+    /// - Parameters:
+    ///   - reason: 调用原因，通常为调用者的类名
+    ///   - demoMode: 是否处于 Demo 模式，默认为 false
     /// - Returns: 包含所有插件标签页视图的数组
-    func getTabViews(reason: String) -> [(view: AnyView, label: String)] {
+    func getTabViews(reason: String, demoMode: Bool = false) -> [(view: AnyView, label: String)] {
         let tabViews = plugins.compactMap { plugin in
-            plugin.addTabView(reason: reason, currentSceneName: currentSceneName)
+            plugin.addTabView(reason: reason, currentSceneName: currentSceneName, demoMode: demoMode)
         }
 
         if Self.verbose {

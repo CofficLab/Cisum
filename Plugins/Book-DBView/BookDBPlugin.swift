@@ -18,7 +18,7 @@ actor BookDBPlugin: SuperPlugin, SuperLog {
     
 
     @MainActor
-    func addTabView(reason: String, currentSceneName: String?) -> (view: AnyView, label: String)? {
+    func addTabView(reason: String, currentSceneName: String?, demoMode: Bool = false) -> (view: AnyView, label: String)? {
         guard currentSceneName == BookScenePlugin.sceneName else { return nil }
 
         if BookDBPlugin.verbose {
