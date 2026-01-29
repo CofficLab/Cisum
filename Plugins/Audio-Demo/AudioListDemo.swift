@@ -23,6 +23,18 @@ struct AudioListDemo: View, SuperLog {
         "董小姐.m4a",
         "安和桥.flac",
         "斑马斑马.wav",
+        "平凡之路.mp3",
+        "童话镇.m4a",
+        "追光者.flac",
+        "消愁.wav",
+        "演员.mp3",
+        "体面.m4a",
+        "说散就散.flac",
+        "往后余生.wav",
+        "像我这样的人.mp3",
+        "起风了.m4a",
+        "少年.flac",
+        "岁月神偷.wav",
     ]
 
     /// 获取 demo mode 下的模拟 URL 列表

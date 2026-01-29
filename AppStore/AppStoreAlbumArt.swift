@@ -45,21 +45,48 @@ struct AppStoreAlbumArt: View {
                     )
                 }
                 .padding(.vertical, 20)
-                .shadowSm()
             }
             .inMagicVStackCenter()
 
             Spacer(minLength: 100)
 
-            ContentView()
-                .inRootView()
-                .inDemoMode()
-                .showTabView()
-                .frame(width: Config.minWidth)
-                .frame(height: 650)
-                .background(.background.opacity(0.5))
-                .roundedLarge()
-                .shadowSm()
+            ZStack {
+                // 第二个 ContentView（背景）
+                ContentView()
+                    .inRootView()
+                    .inDemoMode()
+                    .showTabView()
+                    .frame(width: Config.minWidth)
+                    .frame(height: 650)
+                    .background(.background.opacity(0.5))
+                    .roundedLarge()
+                    .rotation3DEffect(
+                        .degrees(-3),
+                        axis: (x: 0, y: 0, z: 1),
+                        anchor: .bottomLeading,
+                        perspective: 1.0
+                    )
+                    .offset(x: -60, y: -20)
+                    .shadowSm()
+
+                // 第一个 ContentView（前景）
+                ContentView()
+                    .inRootView()
+                    .inDemoMode()
+                    .hideTabView()
+                    .frame(width: Config.minWidth)
+                    .frame(height: 650)
+                    .background(.background.opacity(0.5))
+                    .roundedLarge()
+                    .shadow3xl()
+                    .rotation3DEffect(
+                        .degrees(3),
+                        axis: (x: 0, y: 0, z: 1),
+                        anchor: .bottomLeading,
+                        perspective: 1.0
+                    )
+                    .offset(x: 10, y: -20)
+            }
         }
         .magicCentered()
         .withBackgroundDecorations()
@@ -112,17 +139,11 @@ private struct AlbumFeatureItem: View {
 
             Spacer()
         }
-        .padding(16)
+        .p4()
         .frame(width: 380)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(.regularMaterial)
-                .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(color.opacity(0.3), lineWidth: 1)
-        )
+        .background(.regularMaterial)
+        .roundedMedium()
+        .shadowSm()
     }
 }
 
@@ -130,5 +151,5 @@ private struct AlbumFeatureItem: View {
 
 #Preview("App Store Album Art") {
     AppStoreAlbumArt()
-        .inMagicContainer(.macBook13, scale: 0.5)
+        .inMagicContainer(.macBook13, scale: 1)
 }

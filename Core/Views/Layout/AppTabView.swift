@@ -60,65 +60,65 @@ extension AppTabView {
 
         return AnyView(tabView)
     }
-    
+
     /// 构建自定义 TabView（Demo 模式）
     func buildCustomTabView() -> some View {
         let tabViews = p.getTabViews(reason: self.className, demoMode: isDemoMode)
         let settingTab = (view: AnyView(SettingView().environmentObject(p)), label: "设置")
         let allTabs = tabViews + [settingTab]
-        
+
         let tabBar = HStack(spacing: 0) {
             ForEach(Array(allTabs.enumerated()), id: \.offset) { index, item in
                 tabButton(for: item, at: index, isPluginTab: index < tabViews.count)
             }
         }
-        .padding(.horizontal)
-        .background(.background)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .frame(height: 1)
-                .foregroundColor(Color.secondary.opacity(0.3))
-        }
-        
+        .padding(.horizontal, 0)
+        .background(.secondary.opacity(0.1))
+        .roundedMedium()
+        .pt1()
+        .withDivider(spacing: 2)
+
         let contentView: AnyView = {
             guard selectedTabIndex < allTabs.count else {
                 return AnyView(EmptyView())
             }
             return allTabs[selectedTabIndex].view
         }()
-        
-        return VStack(spacing: 0) {
-            // 上部分：HStack 展示各个标签
-            tabBar
-            
-            // 下部分：显示选中标签对应的 view
-            contentView
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+        return GeometryReader { _ in
+            VStack(spacing: 0) {
+                // 上部分：HStack 展示各个标签
+                tabBar
+
+                // 下部分：显示选中标签对应的 view
+                contentView
+                    .frame(maxWidth: .infinity)
+                    .clipped()
+            }
+            .background(.background)
         }
-        .frame(maxHeight: .infinity)
-        .background(.background)
     }
-    
+
     /// 构建标签按钮
     private func tabButton(for item: (view: AnyView, label: String), at index: Int, isPluginTab: Bool) -> some View {
         let isSelected = selectedTabIndex == index
-        let iconName = isPluginTab ? "music.note" : "gear"
-        
+
         return Button(action: {
             withAnimation {
                 selectedTabIndex = index
             }
         }) {
             VStack(spacing: 4) {
-                Image(systemName: iconName)
-                    .font(.system(size: 20))
                 Text(item.label)
                     .font(.caption)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
             }
-            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 8)
             .padding(.vertical, 8)
             .foregroundColor(isSelected ? .accentColor : .secondary)
             .background(isSelected ? Color.accentColor.opacity(0.1) : Color.clear)
+            .roundedMedium()
         }
         .buttonStyle(.plain)
     }
@@ -163,5 +163,5 @@ extension AppTabView {
 
 #Preview("App Store Album Art") {
     AppStoreAlbumArt()
-        .inMagicContainer(.macBook13, scale: 0.4)
+        .inMagicContainer(.macBook13, scale: 1)
 }
