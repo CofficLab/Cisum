@@ -19,25 +19,25 @@ struct AppStoreAlbumArt: View {
                     .shadowSm()
 
                 VStack(spacing: 16) {
-                    AlbumFeatureItem(
+                    AppStoreFeatureItem.withCircleIcon(
                         icon: "photo.fill",
                         title: "高清封面",
                         description: "自动获取专辑封面，无需手动添加",
                         color: .purple
                     )
-                    AlbumFeatureItem(
+                    AppStoreFeatureItem.withCircleIcon(
                         icon: "square.grid.3x3.fill",
                         title: "网格布局",
                         description: "整洁的网格展示，快速浏览专辑",
                         color: .pink
                     )
-                    AlbumFeatureItem(
+                    AppStoreFeatureItem.withCircleIcon(
                         icon: "sparkles",
                         title: "毛玻璃效果",
                         description: "精美的毛玻璃质感，视觉享受",
                         color: .red
                     )
-                    AlbumFeatureItem(
+                    AppStoreFeatureItem.withCircleIcon(
                         icon: "arrow.down.circle.fill",
                         title: "封面下载",
                         description: "自动下载并缓存，离线也能查看",
@@ -102,48 +102,6 @@ struct AppStoreAlbumArt: View {
             )
         )
         .background(.background)
-    }
-}
-
-// MARK: - Album Feature Item
-
-private struct AlbumFeatureItem: View {
-    let icon: String
-    let title: String
-    let description: String
-    let color: Color
-
-    var body: some View {
-        HStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(color.opacity(0.2))
-                    .frame(width: 44, height: 44)
-
-                Image(systemName: icon)
-                    .font(.system(size: 24))
-                    .foregroundStyle(color)
-            }
-            .frame(width: 44)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.system(size: 20, weight: .semibold, design: .rounded))
-                    .foregroundColor(.primary)
-
-                Text(description)
-                    .font(.system(size: 14))
-                    .foregroundColor(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            Spacer()
-        }
-        .p4()
-        .frame(width: 380)
-        .background(.regularMaterial)
-        .roundedMedium()
-        .shadowSm()
     }
 }
 
