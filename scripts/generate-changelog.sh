@@ -39,14 +39,13 @@ cat > "$OUTPUT_FILE" << 'EOF'
 
 EOF
 
-# Get feat commits
-FEAT_COMMITS=$(git log $RANGE --pretty=format:'%h %s' --grep="^feat:" 2>/dev/null || echo "")
+# Get feat commits and deduplicate by message
+FEAT_COMMITS=$(git log $RANGE --pretty=format:'%s' --grep="^feat:" 2>/dev/null || echo "")
 if [ -z "$FEAT_COMMITS" ]; then
   echo "No new features" >> "$OUTPUT_FILE"
 else
-  echo "$FEAT_COMMITS" | while read -r commit; do
-    echo "- ${commit#* }" >> "$OUTPUT_FILE"
-  done
+  # Deduplicate while preserving order (first occurrence kept)
+  echo "$FEAT_COMMITS" | awk '!seen[$0]++ {print "- " $0}' >> "$OUTPUT_FILE"
 fi
 
 cat >> "$OUTPUT_FILE" << 'EOF'
@@ -56,14 +55,13 @@ cat >> "$OUTPUT_FILE" << 'EOF'
 
 EOF
 
-# Get fix commits
-FIX_COMMITS=$(git log $RANGE --pretty=format:'%h %s' --grep="^fix:" 2>/dev/null || echo "")
+# Get fix commits and deduplicate by message
+FIX_COMMITS=$(git log $RANGE --pretty=format:'%s' --grep="^fix:" 2>/dev/null || echo "")
 if [ -z "$FIX_COMMITS" ]; then
   echo "No bug fixes" >> "$OUTPUT_FILE"
 else
-  echo "$FIX_COMMITS" | while read -r commit; do
-    echo "- ${commit#* }" >> "$OUTPUT_FILE"
-  done
+  # Deduplicate while preserving order (first occurrence kept)
+  echo "$FIX_COMMITS" | awk '!seen[$0]++ {print "- " $0}' >> "$OUTPUT_FILE"
 fi
 
 cat >> "$OUTPUT_FILE" << 'EOF'
@@ -73,14 +71,13 @@ cat >> "$OUTPUT_FILE" << 'EOF'
 
 EOF
 
-# Get chore commits
-CHORE_COMMITS=$(git log $RANGE --pretty=format:'%h %s' --grep="^chore:" 2>/dev/null || echo "")
+# Get chore commits and deduplicate by message
+CHORE_COMMITS=$(git log $RANGE --pretty=format:'%s' --grep="^chore:" 2>/dev/null || echo "")
 if [ -z "$CHORE_COMMITS" ]; then
   echo "No maintenance updates" >> "$OUTPUT_FILE"
 else
-  echo "$CHORE_COMMITS" | while read -r commit; do
-    echo "- ${commit#* }" >> "$OUTPUT_FILE"
-  done
+  # Deduplicate while preserving order (first occurrence kept)
+  echo "$CHORE_COMMITS" | awk '!seen[$0]++ {print "- " $0}' >> "$OUTPUT_FILE"
 fi
 
 cat >> "$OUTPUT_FILE" << 'EOF'
@@ -90,14 +87,13 @@ cat >> "$OUTPUT_FILE" << 'EOF'
 
 EOF
 
-# Get refactor commits
-REFACTOR_COMMITS=$(git log $RANGE --pretty=format:'%h %s' --grep="^refactor:" 2>/dev/null || echo "")
+# Get refactor commits and deduplicate by message
+REFACTOR_COMMITS=$(git log $RANGE --pretty=format:'%s' --grep="^refactor:" 2>/dev/null || echo "")
 if [ -z "$REFACTOR_COMMITS" ]; then
   echo "No refactoring changes" >> "$OUTPUT_FILE"
 else
-  echo "$REFACTOR_COMMITS" | while read -r commit; do
-    echo "- ${commit#* }" >> "$OUTPUT_FILE"
-  done
+  # Deduplicate while preserving order (first occurrence kept)
+  echo "$REFACTOR_COMMITS" | awk '!seen[$0]++ {print "- " $0}' >> "$OUTPUT_FILE"
 fi
 
 cat >> "$OUTPUT_FILE" << 'EOF'
@@ -107,14 +103,13 @@ cat >> "$OUTPUT_FILE" << 'EOF'
 
 EOF
 
-# Get docs commits
-DOCS_COMMITS=$(git log $RANGE --pretty=format:'%h %s' --grep="^docs:" 2>/dev/null || echo "")
+# Get docs commits and deduplicate by message
+DOCS_COMMITS=$(git log $RANGE --pretty=format:'%s' --grep="^docs:" 2>/dev/null || echo "")
 if [ -z "$DOCS_COMMITS" ]; then
   echo "No documentation updates" >> "$OUTPUT_FILE"
 else
-  echo "$DOCS_COMMITS" | while read -r commit; do
-    echo "- ${commit#* }" >> "$OUTPUT_FILE"
-  done
+  # Deduplicate while preserving order (first occurrence kept)
+  echo "$DOCS_COMMITS" | awk '!seen[$0]++ {print "- " $0}' >> "$OUTPUT_FILE"
 fi
 
 cat >> "$OUTPUT_FILE" << 'EOF'
@@ -124,14 +119,13 @@ cat >> "$OUTPUT_FILE" << 'EOF'
 
 EOF
 
-# Get breaking changes (feat!, fix!, BREAKING CHANGE)
-BREAKING_COMMITS=$(git log $RANGE --pretty=format:'%h %s' --grep="^feat!:\|^fix!:\|^refactor!:\|BREAKING CHANGE:" 2>/dev/null || echo "")
+# Get breaking changes (feat!, fix!, BREAKING CHANGE) and deduplicate by message
+BREAKING_COMMITS=$(git log $RANGE --pretty=format:'%s' --grep="^feat!:\|^fix!:\|^refactor!:\|BREAKING CHANGE:" 2>/dev/null || echo "")
 if [ -z "$BREAKING_COMMITS" ]; then
   echo "No breaking changes" >> "$OUTPUT_FILE"
 else
-  echo "$BREAKING_COMMITS" | while read -r commit; do
-    echo "- ${commit#* }" >> "$OUTPUT_FILE"
-  done
+  # Deduplicate while preserving order (first occurrence kept)
+  echo "$BREAKING_COMMITS" | awk '!seen[$0]++ {print "- " $0}' >> "$OUTPUT_FILE"
 fi
 
 # Add comparison link if there's a previous tag
