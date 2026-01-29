@@ -52,7 +52,8 @@ struct AppStoreAlbumArt: View {
 
             ZStack {
                 // 第二个 ContentView（背景）
-                ContentView()
+                ContentLayout()
+                    .showDetail()
                     .inRootView()
                     .inDemoMode()
                     .showTabView()
@@ -70,7 +71,8 @@ struct AppStoreAlbumArt: View {
                     .shadowSm()
 
                 // 第一个 ContentView（前景）
-                ContentView()
+                ContentLayout()
+                    .hideDetail()
                     .inRootView()
                     .inDemoMode()
                     .hideTabView()
