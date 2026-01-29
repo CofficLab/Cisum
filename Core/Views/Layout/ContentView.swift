@@ -109,7 +109,6 @@ extension ContentView {
         height = Config.getWindowHeight()
         
         if self.isDetailVisible != app.showDB {
-            print("is defail visiblae \(self.isDetailVisible) app.showdb \(app.showDB)")
             if self.isDetailVisible {
                 app.showDBView()
             } else {
