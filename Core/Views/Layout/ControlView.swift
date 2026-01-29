@@ -1,6 +1,5 @@
 import MagicDevice
 import MagicKit
-import MagicUI
 import OSLog
 import SwiftData
 import SwiftUI
