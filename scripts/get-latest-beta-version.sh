@@ -10,8 +10,8 @@
 
 set -euo pipefail
 
-# Find all beta tags, sort by version number
-BETA_TAGS=$(git tag -l "*-beta.*" 2>/dev/null | sort -V)
+# Find all beta tags (without p prefix), sort by version number
+BETA_TAGS=$(git tag -l "*-beta.*" 2>/dev/null | grep -v '^p' | sort -V)
 
 if [ -z "$BETA_TAGS" ]; then
   # No beta tags found
@@ -22,8 +22,8 @@ fi
 # Get the latest beta tag
 LATEST_BETA_TAG=$(echo "$BETA_TAGS" | tail -n 1)
 
-# Extract base version number (remove -beta.N suffix and p prefix)
-BASE_VERSION=$(echo "$LATEST_BETA_TAG" | sed -E 's/^p?//' | sed -E 's/-beta\.[0-9]+$//')
+# Extract base version number (remove -beta.N suffix)
+BASE_VERSION=$(echo "$LATEST_BETA_TAG" | sed -E 's/-beta\.[0-9]+$//')
 
 echo "📦 Latest Beta Tag: $LATEST_BETA_TAG" >&2
 echo "🎯 Base Version for Release: $BASE_VERSION" >&2
