@@ -90,8 +90,7 @@ jobs:
         with:
           commit_message: "ci: bump a new beta version"
           commit_user_name: GitHub Action
-          tagging_message: ${{ env.tag }}
-      - name: 创建 Xcode Cloud 标签
+      - name: 创建并推送标签
         run: |
           # 配置 Git
           git config user.name "github-actions[bot]"
@@ -102,15 +101,15 @@ jobs:
           git checkout pre
           git pull origin pre
 
-          # 创建 p 前缀标签（用于 Xcode Cloud）
+          # 创建 p 前缀标签（用于 Xcode Cloud 和 GitHub Actions）
           P_TAG=${{ env.p_tag }}
-          echo "🏷️  Creating Xcode Cloud tag: $P_TAG"
-          git tag -a "$P_TAG" -m "Xcode Cloud build for ${{ env.tag }}"
+          echo "🏷️  Creating tag: $P_TAG"
+          git tag -a "$P_TAG" -m "Release ${{ env.tag }}"
 
           # 推送标签
           git push origin "$P_TAG"
 
-          echo "✅ Xcode Cloud tag pushed: $P_TAG"
+          echo "✅ Tag pushed: $P_TAG"
   rebase:
     needs:
       - bump

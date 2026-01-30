@@ -3,7 +3,7 @@ name: Pre Release
 on:
   push:
     tags:
-      - "*-beta.*"
+      - "p*-beta.*"
   workflow_run:
     workflows:
       - "Pre Bump"
