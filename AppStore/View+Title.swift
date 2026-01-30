@@ -9,8 +9,10 @@ extension View {
             .shadowSm()
     }
 
-    func asPosterSubTitle() -> some View {
-        self.font(.system(size: 50, design: .rounded))
+    func asPosterSubTitle(forMac: Bool = true) -> some View {
+        let size: CGFloat = forMac ? 50 : 30
+
+        return self.font(.system(size: size, design: .rounded))
             .foregroundStyle(.secondary)
             .shadowSm()
     }
