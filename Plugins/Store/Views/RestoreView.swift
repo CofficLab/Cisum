@@ -74,7 +74,7 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
 
                 restoreButton
                     .if(self.restoreState == .failed || self.restoreState == .idle)
-            }
+            }.inMagicVStackCenter()
         }
     }
 

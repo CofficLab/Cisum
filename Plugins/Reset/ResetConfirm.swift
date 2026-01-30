@@ -86,7 +86,7 @@ struct ResetConfirm: View, SuperLog {
                     performReset()
                 }
                 .if(!isResetting)
-            }
+            }.inMagicVStackCenter()
         }
     }
 
