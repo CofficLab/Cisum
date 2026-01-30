@@ -84,12 +84,33 @@ jobs:
           echo "🏷️  Tag: $BETA_VERSION"
           echo "🔢 Build: $BUILD"
           echo "tag=$BETA_VERSION" >> $GITHUB_ENV
+          echo "p_tag=p${BETA_VERSION}" >> $GITHUB_ENV
       - name: 打标签并推送到仓库
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "ci: bump a new beta version"
           commit_user_name: GitHub Action
           tagging_message: ${{ env.tag }}
+      - name: 创建 Xcode Cloud 标签
+        run: |
+          # 配置 Git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # 获取最新提交
+          git fetch origin pre
+          git checkout pre
+          git pull origin pre
+
+          # 创建 p 前缀标签（用于 Xcode Cloud）
+          P_TAG=${{ env.p_tag }}
+          echo "🏷️  Creating Xcode Cloud tag: $P_TAG"
+          git tag -a "$P_TAG" -m "Xcode Cloud build for ${{ env.tag }}"
+
+          # 推送标签
+          git push origin "$P_TAG"
+
+          echo "✅ Xcode Cloud tag pushed: $P_TAG"
   rebase:
     needs:
       - bump
