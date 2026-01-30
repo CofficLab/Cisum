@@ -3,18 +3,18 @@ name: Pre Release
 on:
   push:
     tags:
-      - '*-beta.*'
-  # workflow_run:
-  #   workflows:
-  #     - 'Pre Bump'
-  #   types:
-  #     - completed
+      - "*-beta.*"
+  workflow_run:
+    workflows:
+      - "Pre Bump"
+    types:
+      - completed
 
 permissions:
   contents: write
 
 env:
-  tag: '-'
+  tag: "-"
 
 jobs:
   release:
