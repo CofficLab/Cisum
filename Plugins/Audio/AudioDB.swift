@@ -294,7 +294,7 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     /// - Throws: 如果删除操作失败则抛出错误
     func deleteAudios(_ urls: [URL], verbose: Bool = false) throws {
         if verbose {
-            os_log("\(self.t)🚛 DeleteAudios \(urls.count) 🐛")
+            os_log("\(self.t)🚛 DeleteAudios \(urls.count)")
         }
 
         for url in urls {
