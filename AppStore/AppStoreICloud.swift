@@ -39,6 +39,7 @@ struct AppStoreICloud: View {
             ContentView()
                 .inRootView()
                 .inDemoMode()
+                .inDownloadingMode()
                 .frame(width: Config.minWidth)
                 .frame(height: 650)
                 .roundedLarge()
