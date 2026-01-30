@@ -44,8 +44,7 @@ struct AppStoreMinimal: View {
                 .roundedLarge()
                 .shadowSm()
         }
-        .magicCentered()
-        .withPosterDecorations()
+        .inPosterContainer()
     }
 }
 

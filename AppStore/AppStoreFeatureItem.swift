@@ -30,26 +30,14 @@ struct AppStoreFeatureItem: View {
         .padding(16)
         .frame(width: 380)
         .background(.regularMaterial)
-        .roundedSmall()
-        .shadowLg()
+        .roundedMedium()
+        .shadowMd()
     }
 }
 
 // MARK: - Preview
 
-#Preview("Features") {
-    VStack(spacing: 16) {
-        AppStoreFeatureItem(
-            icon: "icloud",
-            title: "云端同步",
-            description: "音乐库实时同步，随时随地访问"
-        )
-
-        AppStoreFeatureItem(
-            icon: "photo.fill",
-            title: "高清封面",
-            description: "自动获取专辑封面，无需手动添加"
-        )
-    }
-    .padding()
+#Preview("App Store Hero") {
+    AppStoreHero()
+        .inMagicContainer(.macBook13, scale: 0.5)
 }

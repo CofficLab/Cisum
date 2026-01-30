@@ -58,8 +58,7 @@ struct AppStoreAlbumArt: View {
                     .offset(x: 10, y: -20)
             }
         }
-        .magicCentered()
-        .withPosterDecorations()
+        .inPosterContainer()
     }
 }
 

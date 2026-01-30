@@ -44,8 +44,7 @@ struct AppStoreICloud: View {
                 .roundedLarge()
                 .shadowSm()
         }
-        .magicCentered()
-        .withPosterDecorations()
+        .inPosterContainer()
     }
 }
 

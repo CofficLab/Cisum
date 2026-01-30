@@ -52,8 +52,7 @@ struct AppStoreHero: View {
                     .offset(x: 10, y: -20)
             }
         }
-        .magicCentered()
-        .withPosterDecorations()
+        .inPosterContainer()
     }
 }
 
