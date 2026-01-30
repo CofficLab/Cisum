@@ -1,11 +1,12 @@
 import SwiftUI
+import MagicKit
 
 // MARK: - View Extension for Background Decorations
 
 extension View {
     /// 为视图添加装饰性背景元素
     /// - Returns: 带有装饰背景的视图
-    func withBackgroundDecorations() -> some View {
+    func withPosterDecorations() -> some View {
         self.background {
             GeometryReader { geo in
                 ZStack {
@@ -61,13 +62,24 @@ extension View {
                 }
             }
         }
+        .background(
+            LinearGradient(
+                colors: [
+                    Color.green.opacity(0.4),
+                    Color.teal.opacity(0.3),
+                    Color.mint.opacity(0.2),
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .background(.black)
     }
 }
 
-// MARK: Preview
+// MARK: - Preview
 
-#Preview("App") {
-    ContentView()
-        .inRootView()
-        .withDebugBar()
+#Preview("App Store Hero") {
+    AppStoreHero()
+        .inMagicContainer(.macBook13, scale: 0.4)
 }

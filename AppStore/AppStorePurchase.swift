@@ -1,5 +1,4 @@
 import MagicKit
-import MagicKit
 import SwiftUI
 
 /**
@@ -13,7 +12,7 @@ struct AppStorePurchaseView: View {
                     colors: [
                         Color.indigo.opacity(0.3),
                         Color.purple.opacity(0.2),
-                        Color.pink.opacity(0.15)
+                        Color.pink.opacity(0.15),
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -32,14 +31,14 @@ struct PurchaseViewDemo: View {
         VStack(spacing: 0) {
             // 订阅选项区域
             subscriptionSection
-            
+
             Spacer().frame(height: 40)
-            
+
             // 恢复购买区域
             restoreSection
-            
+
             Spacer().frame(height: 40)
-            
+
             // 法律条款区域
             legalSection
         }
@@ -140,13 +139,13 @@ extension PurchaseViewDemo {
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
-            
+
             Text("如果您之前在其他设备上购买过订阅,可以通过点击下方的\"恢复购买\"按钮来恢复您的订阅。请确保您使用的是购买时所用的Apple ID 账号。")
                 .font(.body)
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.leading)
                 .lineLimit(nil)
-            
+
             Button(action: {}) {
                 Text("恢复购买")
                     .font(.headline)
@@ -173,12 +172,12 @@ extension PurchaseViewDemo {
     private var legalSection: some View {
         HStack(spacing: 20) {
             Text("隐私政策")
-            .font(.body)
-            .foregroundColor(.primary)
-            
+                .font(.body)
+                .foregroundColor(.primary)
+
             Text("许可协议")
-            .font(.body)
-            .foregroundColor(.primary)
+                .font(.body)
+                .foregroundColor(.primary)
         }
     }
 }
@@ -187,5 +186,6 @@ extension PurchaseViewDemo {
 
 #Preview("App Store PurchaseView") {
     AppStorePurchaseView()
-        .inMagicContainer(CGSizeMake(1280, 800), scale:1)
+        .inMagicContainer(.macBook13, scale: 0.5)
+        .colorScheme(.light)
 }

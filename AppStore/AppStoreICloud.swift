@@ -6,46 +6,31 @@ struct AppStoreICloud: View {
         Group {
             Group {
                 Text("iCloud 云同步")
-                    .bold()
-                    .font(.system(size: 100, design: .rounded))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.blue, .cyan],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .padding(.bottom, 40)
-                    .shadowSm()
+                    .asPosterTitle()
 
                 VStack(spacing: 16) {
-                    AppStoreFeatureItem.withBackground(
+                    AppStoreFeatureItem(
                         icon: "icloud",
                         title: "云端同步",
-                        description: "音乐库实时同步，随时随地访问",
-                        color: .blue
+                        description: "音乐库实时同步，随时随地访问"
                     )
-                    AppStoreFeatureItem.withBackground(
+                    AppStoreFeatureItem(
                         icon: "ipad.and.iphone",
                         title: "多设备同步",
-                        description: "iPhone、iPad、Mac 数据无缝流转",
-                        color: .cyan
+                        description: "iPhone、iPad、Mac 数据无缝流转"
                     )
-                    AppStoreFeatureItem.withBackground(
+                    AppStoreFeatureItem(
                         icon: "shield",
                         title: "安全备份",
-                        description: "自动备份到 iCloud，数据永不丢失",
-                        color: .teal
+                        description: "自动备份到 iCloud，数据永不丢失"
                     )
-                    AppStoreFeatureItem.withBackground(
+                    AppStoreFeatureItem(
                         icon: "arrow.clockwise",
                         title: "自动同步",
-                        description: "添加或修改后自动同步，无需手动操作",
-                        color: .mint
+                        description: "添加或修改后自动同步，无需手动操作"
                     )
                 }
-                .padding(.vertical, 20)
-                .shadowSm()
+                .py4()
             }
             .inMagicVStackCenter()
 
@@ -60,18 +45,7 @@ struct AppStoreICloud: View {
                 .shadowSm()
         }
         .magicCentered()
-        .withBackgroundDecorations()
-        .background(
-            LinearGradient(
-                colors: [
-                    Color.blue.opacity(0.3),
-                    Color.cyan.opacity(0.2),
-                    Color.teal.opacity(0.1),
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
+        .withPosterDecorations()
     }
 }
 
@@ -79,5 +53,5 @@ struct AppStoreICloud: View {
 
 #Preview("App Store iCloud") {
     AppStoreICloud()
-        .inMagicContainer(.macBook13, scale: 1)
+        .inMagicContainer(.macBook13, scale: 0.5)
 }

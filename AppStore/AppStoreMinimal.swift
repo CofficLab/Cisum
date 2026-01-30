@@ -6,36 +6,31 @@ struct AppStoreMinimal: View {
         Group {
             Group {
                 Text("极简设计")
-                    .bold()
-                    .font(.system(size: 100, design: .rounded))
-                    .magicOceanGradient()
-                    .padding(.bottom, 40)
-                    .shadowSm()
+                    .asPosterTitle()
 
                 VStack(spacing: 16) {
-                    AppStoreFeatureItem.withGradient(
-                        icon: .iconTrash,
+                    AppStoreFeatureItem(
+                        icon: "trash",
                         title: "没有广告",
                         description: "纯净体验，专注音乐"
                     )
-                    AppStoreFeatureItem.withGradient(
-                        icon: .iconPhoneCall,
-                        title: "不需要注册",
+                    AppStoreFeatureItem(
+                        icon: "phone.bubble",
+                        title: "没有注册",
                         description: "打开即用，快速上手"
                     )
-                    AppStoreFeatureItem.withGradient(
-                        icon: .iconMinusCircle,
-                        title: "不需要登录",
+                    AppStoreFeatureItem(
+                        icon: "xmark.circle",
+                        title: "没有登录",
                         description: "保护隐私，无需账号"
                     )
-                    AppStoreFeatureItem.withGradient(
-                        icon: .iconShowInFinder,
+                    AppStoreFeatureItem(
+                        icon: .iconInfo,
                         title: "没有弹窗",
                         description: "简洁界面，无干扰"
                     )
                 }
-                .padding(.vertical, 20)
-                .shadowSm()
+                .py4()
             }
             .inMagicVStackCenter()
 
@@ -50,18 +45,7 @@ struct AppStoreMinimal: View {
                 .shadowSm()
         }
         .magicCentered()
-        .withBackgroundDecorations()
-        .background(
-            LinearGradient(
-                colors: [
-                    Color.orange.opacity(0.3),
-                    Color.pink.opacity(0.2),
-                    Color.purple.opacity(0.15)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
+        .withPosterDecorations()
     }
 }
 
@@ -69,5 +53,5 @@ struct AppStoreMinimal: View {
 
 #Preview("App Store Minimal") {
     AppStoreMinimal()
-        .inMagicContainer(.macBook13, scale: 1)
+        .inMagicContainer(.macBook13, scale: 0.5)
 }

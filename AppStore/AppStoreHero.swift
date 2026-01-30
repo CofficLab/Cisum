@@ -6,41 +6,54 @@ struct AppStoreHero: View {
         Group {
             Group {
                 Text("Cisum")
-                    .bold()
-                    .font(.system(size: 100, design: .rounded))
-                    .magicOceanGradient()
-                    .padding(.bottom, 20)
-                    .shadowSm()
+                    .asPosterTitle()
 
-                Text("纯净播放，简单纯粹")
-                    .font(.system(size: 50, design: .rounded))
-                    .foregroundColor(.secondary)
-                    .shadowSm()
-            }.inMagicVStackCenter()
+                Text("简单纯粹的音乐播放器")
+                    .asPosterSubTitle()
+            }
+            .inMagicVStackCenter()
 
             Spacer(minLength: 100)
 
-            ContentView()
-                .inRootView()
-                .inDemoMode()
-                .frame(width: Config.minWidth)
-                .frame(height: 650)
-                .roundedLarge()
-                .shadowSm()
+            ZStack {
+                // 第二个（背景）
+                ContentLayout()
+                    .showDetail()
+                    .inRootView()
+                    .inDemoMode()
+                    .frame(width: Config.minWidth)
+                    .frame(height: 650)
+                    .roundedLarge()
+                    .rotation3DEffect(
+                        .degrees(-8),
+                        axis: (x: 0, y: 0, z: 1),
+                        anchor: .bottomLeading,
+                        perspective: 1.0
+                    )
+                    .offset(x: -60, y: -20)
+                    .shadowSm()
+
+                // 第一个（前景）
+                ContentLayout()
+                    .hideDetail()
+                    .inRootView()
+                    .inDemoMode()
+                    .frame(width: Config.minWidth)
+                    .frame(height: 650)
+                    .background(.background.opacity(0.5))
+                    .roundedLarge()
+                    .shadowXl()
+                    .rotation3DEffect(
+                        .degrees(8),
+                        axis: (x: 0, y: 0, z: 1),
+                        anchor: .bottomLeading,
+                        perspective: 1.0
+                    )
+                    .offset(x: 10, y: -20)
+            }
         }
         .magicCentered()
-        .withBackgroundDecorations()
-        .background(
-            LinearGradient(
-                colors: [
-                    Color.green.opacity(0.4),
-                    Color.teal.opacity(0.3),
-                    Color.mint.opacity(0.2)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
+        .withPosterDecorations()
     }
 }
 
@@ -48,5 +61,5 @@ struct AppStoreHero: View {
 
 #Preview("App Store Hero") {
     AppStoreHero()
-        .inMagicContainer(.macBook13, scale: 1)
+        .inMagicContainer(.macBook13, scale: 0.5)
 }
