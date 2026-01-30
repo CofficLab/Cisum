@@ -9,8 +9,6 @@ on:
       - "Pre Bump"
     types:
       - completed
-    branches:
-      - pre
 
 permissions:
   contents: write
