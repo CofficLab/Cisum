@@ -42,14 +42,14 @@ struct WelcomeView: View, SuperLog {
 #Preview("WelcomeView") {
     WelcomeView()
         .inRootView()
-        .frame(height: 600)
+        .withDebugBar()
         .preferredColorScheme(.light)
 }
 
 #Preview("WelcomeView - Dark") {
     WelcomeView()
         .inRootView()
-        .frame(height: 600)
+        .withDebugBar()
         .preferredColorScheme(.dark)
 }
 

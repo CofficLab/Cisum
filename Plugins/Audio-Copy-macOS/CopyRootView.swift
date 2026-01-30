@@ -1,7 +1,6 @@
 #if os(macOS)
     import MagicAlert
     import MagicKit
-    import MagicUI
     import OSLog
     import SwiftData
     import SwiftUI

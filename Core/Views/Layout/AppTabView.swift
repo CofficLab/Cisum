@@ -11,53 +11,38 @@ struct AppTabView: View, SuperLog, SuperThread {
 
     @State private var tab: String = "DB"
     @State private var currentTabView: AnyView?
+    @State private var selectedTabIndex: Int = 0
 
     var body: some View {
         Group {
-            if let tabView = currentTabView {
-                #if os(macOS)
-                    tabView
-                        .tabViewStyle(GroupedTabViewStyle())
-                #else
-                    tabView
-                #endif
+            if isDemoMode {
+                buildCustomTabView()
+                    .onChange(of: p.currentSceneName, onChangeOfCurrentScene)
             } else {
-                // Demo 模式下直接显示视图，不显示加载过程
-                if isDemoMode {
-                    buildTabView()
-                    #if os(macOS)
-                        .tabViewStyle(GroupedTabViewStyle())
-                    #endif
-                } else {
-                    ProgressView("加载中...")
-                }
+                buildTabView()
+                #if os(macOS)
+                    .tabViewStyle(GroupedTabViewStyle())
+                #endif
+                    .onChange(of: p.currentSceneName, onChangeOfCurrentScene)
             }
         }
-        .onChange(of: p.currentSceneName, onChangeOfCurrentScene)
-        .onAppear(perform: onAppear)
     }
 }
 
 // MARK: - Builder
 
 extension AppTabView {
-    /// 构建 TabView
+    /// 构建 TabView（正常模式）
     func buildTabView() -> AnyView {
-        if Self.verbose {
-            os_log("\(self.t)🏗️ buildTabView() 构建新的 TabView - 当前场景: \(p.currentSceneName ?? "nil")")
-        }
-
         // 收集所有提供的 Tab 视图及标签
-        let tabViews = p.plugins.compactMap { plugin in
-            plugin.addTabView(reason: self.className, currentSceneName: p.currentSceneName)
-        }
+        let tabViews = p.getTabViews(reason: self.className, demoMode: isDemoMode)
 
         let tabView = TabView(selection: $tab) {
             ForEach(Array(tabViews.enumerated()), id: \.offset) { index, item in
                 item.view
-                    .tag("TAB\(index)")
+                    .tag(index)
                     .tabItem {
-                        Label(item.label, systemImage: "music.note.list")
+                        Label(item.label, systemImage: .iconMusicNote)
                     }
             }
 
@@ -75,6 +60,68 @@ extension AppTabView {
 
         return AnyView(tabView)
     }
+
+    /// 构建自定义 TabView（Demo 模式）
+    func buildCustomTabView() -> some View {
+        let tabViews = p.getTabViews(reason: self.className, demoMode: isDemoMode)
+        let settingTab = (view: AnyView(SettingView().environmentObject(p)), label: "设置")
+        let allTabs = tabViews + [settingTab]
+
+        let tabBar = HStack(spacing: 0) {
+            ForEach(Array(allTabs.enumerated()), id: \.offset) { index, item in
+                tabButton(for: item, at: index, isPluginTab: index < tabViews.count)
+            }
+        }
+        .padding(.horizontal, 0)
+        .background(.secondary.opacity(0.1))
+        .roundedMedium()
+        .pt1()
+        .withDivider(spacing: 2)
+
+        let contentView: AnyView = {
+            guard selectedTabIndex < allTabs.count else {
+                return AnyView(EmptyView())
+            }
+            return allTabs[selectedTabIndex].view
+        }()
+
+        return GeometryReader { _ in
+            VStack(spacing: 0) {
+                // 上部分：HStack 展示各个标签
+                tabBar
+
+                // 下部分：显示选中标签对应的 view
+                contentView
+                    .frame(maxWidth: .infinity)
+                    .clipped()
+            }
+            .background(.background)
+        }
+    }
+
+    /// 构建标签按钮
+    private func tabButton(for item: (view: AnyView, label: String), at index: Int, isPluginTab: Bool) -> some View {
+        let isSelected = selectedTabIndex == index
+
+        return Button(action: {
+            withAnimation {
+                selectedTabIndex = index
+            }
+        }) {
+            VStack(spacing: 4) {
+                Text(item.label)
+                    .font(.caption)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 8)
+            .foregroundColor(isSelected ? .accentColor : .secondary)
+            .background(isSelected ? Color.accentColor.opacity(0.1) : Color.clear)
+            .roundedMedium()
+        }
+        .buttonStyle(.plain)
+    }
 }
 
 // MARK: - Event Handler
@@ -87,22 +134,13 @@ extension AppTabView {
             os_log("\(self.t)📱 开始重新构建 TabView...")
         }
 
-        // 事件驱动：主动更新视图
-        currentTabView = buildTabView()
+        // 事件驱动：主动更新视图（仅在非 Demo 模式下）
+        if !isDemoMode {
+            currentTabView = buildTabView()
+        }
 
         if Self.verbose {
             os_log("\(self.t)✅ TabView 已更新完成")
-        }
-    }
-
-    func onAppear() {
-        if Self.verbose {
-            os_log("\(self.t)🚀 初始化 TabView")
-        }
-
-        // 初始化 TabView
-        if currentTabView == nil {
-            currentTabView = buildTabView()
         }
     }
 }
@@ -113,4 +151,16 @@ extension AppTabView {
     ContentView()
         .inRootView()
         .withDebugBar()
+}
+
+#Preview("App - Demo") {
+    ContentView()
+        .inRootView()
+        .inDemoMode()
+        .withDebugBar()
+}
+
+#Preview("App Store Album Art") {
+    AppStoreAlbumArt()
+        .inMagicContainer(.macBook13, scale: 1)
 }

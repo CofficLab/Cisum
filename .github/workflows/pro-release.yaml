@@ -37,7 +37,11 @@ jobs:
 
           echo "tag=v$version" >> $GITHUB_ENV
       - name: Generate Changelog
-        run: echo "[前往App Store](https://apps.apple.com/cn/app/cisum/id6466401036)"> ${{ github.workspace }}-CHANGELOG.txt
+        run: |
+          chmod +x scripts/generate-changelog.sh
+          ./scripts/generate-changelog.sh "${{ github.workspace }}-CHANGELOG.txt"
+      - name: Display Changelog
+        run: cat "${{ github.workspace }}-CHANGELOG.txt"
       - uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.tag }}

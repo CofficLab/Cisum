@@ -22,7 +22,6 @@ struct Guide: View, SuperLog {
                 GuideDoneView(isActive: true)
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: currentGuidePageIndex)
     }
 }
 

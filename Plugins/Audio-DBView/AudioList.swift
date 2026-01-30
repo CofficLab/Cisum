@@ -142,6 +142,7 @@ extension AudioList {
         isLoading = true
 
         guard let repo = AudioPlugin.getAudioRepo() else {
+            isLoading = false
             return
         }
 

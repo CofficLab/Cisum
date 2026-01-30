@@ -2,7 +2,8 @@ import MagicKit
 import OSLog
 import SwiftUI
 
-struct HeroView: View {
+struct HeroView: View, SuperLog {
+    nonisolated static let emoji = "🎭"
     nonisolated static let verbose = false
 
     @EnvironmentObject var app: AppProvider
@@ -10,15 +11,6 @@ struct HeroView: View {
     @Environment(\.demoMode) var isDemoMode
 
     private let titleViewHeight: CGFloat = 60
-
-    // Demo mode 的静态演示封面
-    private var demoAlbumView: some View {
-        LogoView(
-            background: .white.opacity(0.3),
-            backgroundShape: .circle,
-            size: 200
-        )
-    }
 
     var body: some View {
         GeometryReader { geo in
@@ -45,7 +37,24 @@ struct HeroView: View {
         }
         .ignoresSafeArea(edges: Config.isDesktop ? .horizontal : .all)
     }
+}
 
+// MARK: - View
+
+extension HeroView {
+    // Demo mode 的静态演示封面
+    private var demoAlbumView: some View {
+        LogoView(
+            background: .white.opacity(0.3),
+            backgroundShape: .circle,
+            size: 200
+        )
+    }
+}
+
+// MARK: - Private Helpers
+
+extension HeroView {
     // 计算专辑封面高度
     private func getAlbumHeight(_ geo: GeometryProxy) -> CGFloat {
         // 总高度减去标题高度就是封面可用空间

@@ -10,10 +10,12 @@ struct AppStoreHero: View {
                     .font(.system(size: 100, design: .rounded))
                     .magicOceanGradient()
                     .padding(.bottom, 20)
+                    .shadowSm()
 
                 Text("纯净播放，简单纯粹")
                     .font(.system(size: 50, design: .rounded))
                     .foregroundColor(.secondary)
+                    .shadowSm()
             }.inMagicVStackCenter()
 
             Spacer(minLength: 100)
@@ -21,7 +23,6 @@ struct AppStoreHero: View {
             ContentView()
                 .inRootView()
                 .inDemoMode()
-                .hideTabView()
                 .frame(width: Config.minWidth)
                 .frame(height: 650)
                 .roundedLarge()
@@ -29,7 +30,17 @@ struct AppStoreHero: View {
         }
         .magicCentered()
         .withBackgroundDecorations()
-        .background(LinearGradient.pastel)
+        .background(
+            LinearGradient(
+                colors: [
+                    Color.green.opacity(0.4),
+                    Color.teal.opacity(0.3),
+                    Color.mint.opacity(0.2)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
     }
 }
 

@@ -61,7 +61,7 @@ final class FileSystemMonitorJob: AudioJob, SuperLog, @unchecked Sendable {
         }
 
         if Self.verbose {
-            os_log("\(self.t)🔍 开始监控文件系统: \(disk.shortPath())")
+            os_log("\(self.t)👀 开始监控: \(disk.shortPath())")
         }
 
         await state.setRunning(true)
@@ -70,7 +70,7 @@ final class FileSystemMonitorJob: AudioJob, SuperLog, @unchecked Sendable {
         await withCheckedContinuation { continuation in
             monitor = disk.onDirChange(
                 verbose: Self.verbose,
-                caller: self.className,
+                caller: self.className + ".execute",
                 onChange: { @Sendable [weak self] items, isFirst, _ in
                     guard let self = self else { return }
 

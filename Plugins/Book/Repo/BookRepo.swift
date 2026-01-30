@@ -58,7 +58,7 @@ class BookRepo: ObservableObject, SuperEvent, SuperLog {
             verbose: self.verbose,
             caller: self.className,
             onChange: { items, isFirst, _ in
-                if Self.verbose {
+                if await Self.verbose {
                     os_log("\(self.t) Disk changed, with items \(items.count)")
                 }
                 if let lastTime = UserDefaults.standard.object(forKey: "BookLastUpdateTime") as? Date {

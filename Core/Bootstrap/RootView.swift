@@ -23,8 +23,13 @@ struct RootView<Content>: View, SuperEvent, SuperLog, SuperThread where Content:
     var man: PlayMan
     var cloudProvider: CloudProvider
 
-    init(@ViewBuilder content: () -> Content) {
-        let manager = ProviderManager.shared
+    /// 初始化 RootView
+    /// - Parameters:
+    ///   - providers: 可选的 Provider 管理器，如果为 nil 则创建新的实例
+    ///   - content: 内容视图
+    init(providers: ProviderManager? = nil, @ViewBuilder content: () -> Content) {
+        // 如果提供了 providers，使用提供的；否则创建新的
+        let manager = providers ?? ProviderManager()
 
         self.content = content()
         self._appProvider = StateObject(wrappedValue: manager.app)
@@ -170,9 +175,10 @@ extension RootView {
 
 extension View {
     /// 将当前视图包裹在RootView中
+    /// - Parameter providers: 可选的 Provider 管理器，如果为 nil 则创建新的实例
     /// - Returns: 被RootView包裹的视图
-    func inRootView() -> some View {
-        RootView {
+    func inRootView(providers: ProviderManager? = nil) -> some View {
+        RootView(providers: providers) {
             self
         }
     }

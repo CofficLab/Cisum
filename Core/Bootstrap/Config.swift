@@ -3,7 +3,6 @@ import Combine
 import Foundation
 import LocalAuthentication
 import MagicKit
-import MagicUI
 import MediaPlayer
 import OSLog
 import SwiftData

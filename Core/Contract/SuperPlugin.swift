@@ -55,7 +55,7 @@ protocol SuperPlugin: Actor {
     @MainActor func addPosterView() -> AnyView?
 
     /// 添加标签页视图
-    @MainActor func addTabView(reason: String, currentSceneName: String?) -> (view: AnyView, label: String)?
+    @MainActor func addTabView(reason: String, currentSceneName: String?, demoMode: Bool) -> (view: AnyView, label: String)?
 
     /// 添加设置视图
     @MainActor func addSettingView() -> AnyView?
@@ -65,9 +65,6 @@ protocol SuperPlugin: Actor {
 
     /// 添加工具栏按钮
     @MainActor func addToolBarButtons() -> [(id: String, view: AnyView)]
-
-    /// 获取磁盘路径
-    @MainActor func getDisk() -> URL?
 
     // MARK: - Lifecycle Methods
 
@@ -125,7 +122,7 @@ extension SuperPlugin {
 
     nonisolated func addStateView(currentSceneName: String?) -> AnyView? { nil }
 
-    @MainActor func addTabView(reason: String, currentSceneName: String?) -> (view: AnyView, label: String)? { nil }
+    @MainActor func addTabView(reason: String, currentSceneName: String?, demoMode: Bool = false) -> (view: AnyView, label: String)? { nil }
 
     nonisolated func addPosterView() -> AnyView? { nil }
 
@@ -134,8 +131,6 @@ extension SuperPlugin {
     nonisolated func addStatusView() -> AnyView? { nil }
 
     nonisolated func addSettingView() -> AnyView? { nil }
-
-    @MainActor func getDisk() -> URL? { nil }
 
     // MARK: - Lifecycle Defaults
 

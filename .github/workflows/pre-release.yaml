@@ -3,7 +3,7 @@ name: Pre Release
 on:
   push:
     tags:
-      - '*p_stop'
+      - '*-beta.*'
   # workflow_run:
   #   workflows:
   #     - 'Pre Bump'
@@ -25,19 +25,24 @@ jobs:
       - run: ls -alhR
       - name: 读取版本号
         run: |
-          # 读取配置文件路径
-          projectFile=$(find $(pwd) -type f -name "*.pbxproj" | head -n 1)
+          # 从 Git ref 中提取标签名称
+          TAG_NAME=${GITHUB_REF#refs/tags/}
 
-          # 读取文件中的版本号
-          version=$(grep -o 'MARKETING_VERSION = [^"]*' $projectFile | head -n 1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+          # 提取版本号（去掉 -beta.N 后缀）
+          VERSION=$(echo "$TAG_NAME" | sed -E 's/-beta\.[0-9]+$//')
 
-          echo "版本号->$version"
+          echo "标签名->$TAG_NAME"
+          echo "版本号->$VERSION"
 
           build=$(agvtool what-version -terse)
 
-          echo "tag=p$version" >> $GITHUB_ENV
+          echo "tag=$TAG_NAME" >> $GITHUB_ENV
       - name: Generate Changelog
-        run: echo ""> ${{ github.workspace }}-CHANGELOG.txt
+        run: |
+          chmod +x scripts/generate-changelog.sh
+          ./scripts/generate-changelog.sh "${{ github.workspace }}-CHANGELOG.txt"
+      - name: Display Changelog
+        run: cat "${{ github.workspace }}-CHANGELOG.txt"
       - uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.tag }}

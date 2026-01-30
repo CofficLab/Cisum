@@ -1,6 +1,5 @@
 import MagicKit
 import MagicKit
-import MagicUI
 import SwiftUI
 
 /**
@@ -8,11 +7,21 @@ import SwiftUI
  */
 struct AppStorePurchaseView: View {
     var body: some View {
-            PurchaseViewDemo()
-                .background(.background)
-                .frame(height: 500)
-                .frame(width: 500)
-                .inDesktop()
+        PurchaseViewDemo()
+            .background(
+                LinearGradient(
+                    colors: [
+                        Color.indigo.opacity(0.3),
+                        Color.purple.opacity(0.2),
+                        Color.pink.opacity(0.15)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .frame(height: 500)
+            .frame(width: 500)
+            .inDesktop()
     }
 }
 

@@ -57,45 +57,40 @@ extension AudioItemView {
         }
         .tag(url as URL?)
         .onAppear(perform: handleOnAppear)
-        .contextMenu {
-            Button(action: {
-                playAudio()
-            }) {
+        #if os(macOS)
+            .contextMenu {
                 Label("播放", systemImage: "play.fill")
-            }
+                    .inButtonWithAction(playAudio)
 
-            Button(action: {
-                showInFinder()
-            }) {
                 Label("在 Finder 中显示", systemImage: "finder")
-            }
+                    .inButtonWithAction { showInFinder() }
 
-            Button(action: {
-                exportToDownloads()
-            }) {
                 Label("导出到下载目录", systemImage: "arrow.down.doc")
-            }
+                    .inButtonWithAction {
+                        exportToDownloads()
+                    }
 
-            Divider()
+                Divider()
 
-            Button(role: .destructive, action: {
-                showDeleteConfirmation = true
-            }) {
-                Label("删除", systemImage: "trash")
+                Button(role: .destructive, action: {
+                    showDeleteConfirmation = true
+                }) {
+                    Label("删除", systemImage: "trash")
+                }
             }
-        }
-        .confirmationDialog(
-            "确定要删除这个文件吗？",
-            isPresented: $showDeleteConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("取消", role: .cancel) {}
-            Button("删除", role: .destructive) {
-                deleteFile()
+        #endif
+            .confirmationDialog(
+                "确定要删除这个文件吗？",
+                isPresented: $showDeleteConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("取消", role: .cancel) {}
+                Button("删除", role: .destructive) {
+                    deleteFile()
+                }
+            } message: {
+                Text(url.lastPathComponent)
             }
-        } message: {
-            Text(url.lastPathComponent)
-        }
     }
 }
 

@@ -3,9 +3,10 @@ import OSLog
 import SwiftUI
 
 /**
- * 音频数据库插件：提供音频仓库列表视图。
+ * 演示模式插件
  */
-actor AudioDBPlugin: SuperPlugin {
+actor AudioDemoPlugin: SuperPlugin {
+    
     static var shouldRegister: Bool { true }
     static var order: Int { 1 }
 
@@ -14,16 +15,10 @@ actor AudioDBPlugin: SuperPlugin {
     let iconName = "externaldrive"
 
     @MainActor
-    func addRootView<Content>(@ViewBuilder content: () -> Content) -> AnyView? where Content: View {
-        AnyView(AudioDBRootView { content() })
-    }
-
-    @MainActor
     func addTabView(reason: String, currentSceneName: String?, demoMode: Bool = false) -> (view: AnyView, label: String)? {
         guard currentSceneName == AudioScenePlugin.sceneName else { return nil }
-        guard demoMode == false else { return nil }
 
-        return (AnyView(AudioDBView()), "音乐仓库")
+        return (AnyView(AudioListDemo()), "音乐仓库")
     }
 }
 
@@ -40,4 +35,9 @@ actor AudioDBPlugin: SuperPlugin {
         .inRootView()
         .inDemoMode()
         .withDebugBar()
+}
+
+#Preview("App Store Album Art") {
+    AppStoreAlbumArt()
+        .inMagicContainer(.macBook13, scale: 1)
 }

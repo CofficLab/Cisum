@@ -74,10 +74,7 @@ struct StorageView: View, SuperLog {
                     }
                 }
             }
-            .onAppear {
-                // 自动设置存储位置
-                autoSetStorageLocation()
-            }
+            .onAppear(perform: onAppear)
             .onDisappear(perform: onDisappear)
         }
     }
@@ -98,6 +95,10 @@ struct StorageView: View, SuperLog {
 extension StorageView {
     func onDisappear() {
         c.updateStorageLocation(tempStorageLocation)
+    }
+
+    func onAppear() {
+        autoSetStorageLocation()
     }
 }
 

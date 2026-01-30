@@ -10,7 +10,6 @@ struct ContentView: View, SuperLog, SuperThread {
     @EnvironmentObject var app: AppProvider
     @EnvironmentObject var p: PluginProvider
     @Environment(\.demoMode) var isDemoMode
-    @Environment(\.showTabView) var showTabView
     @State private var databaseViewHeight: CGFloat = 300
 
     // 记录用户调整的窗口的高度
@@ -18,7 +17,8 @@ struct ContentView: View, SuperLog, SuperThread {
     @State private var autoResizing = false
     @State private var geo: GeometryProxy?
 
-    var showDB: Bool { app.showDB }
+    @State var isDetailVisible: Bool = false
+
     var controlViewHeightMin = Config.controlViewMinHeight
     var databaseViewHeightMin = Config.databaseViewHeightMin
 
@@ -26,9 +26,9 @@ struct ContentView: View, SuperLog, SuperThread {
         GeometryReader { geo in
             VStack(spacing: 0) {
                 ControlView()
-                    .frame(height: showDB ? Config.controlViewMinHeight : geo.size.height)
+                    .frame(height: isDetailVisible ? Config.controlViewMinHeight : geo.size.height)
 
-                if showDB {
+                if isDetailVisible {
                     AppTabView()
                 }
 
@@ -36,10 +36,10 @@ struct ContentView: View, SuperLog, SuperThread {
             }
             .frame(width: geo.size.width, height: geo.size.height)
             .onAppear { handleOnAppear(geo) }
-            .onChange(of: showDB, onChangeOfShowDB)
+            .onChange(of: app.showDB, onChangeOfShowDB)
             .onChange(of: geo.size.height, onChangeOfGeoHeight)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .infinite()
     }
 }
 
@@ -76,7 +76,6 @@ extension ContentView {
         if autoResizing == false {
             // 说明是用户主动调整
             self.height = Config.getWindowHeight()
-            // os_log("\(Logger.isMain)\(self.t)Height=\(self.height)")
         }
 
         autoResizing = false
@@ -87,16 +86,20 @@ extension ContentView {
     }
 
     func onChangeOfShowDB() {
+        withAnimation {
+            self.isDetailVisible = app.showDB
+        }
+
         guard let geo = geo else { return }
 
         // 高度被自动修改过了，重置
-        if !showDB && geo.size.height != self.height {
+        if !app.showDB && geo.size.height != self.height {
             resetHeight()
             return
         }
 
         // 高度不足，自动调整以展示数据库
-        if showDB && geo.size.height - controlViewHeightMin <= databaseViewHeightMin {
+        if app.showDB && geo.size.height - controlViewHeightMin <= databaseViewHeightMin {
             self.increaseHeightToShowDB(geo)
             return
         }
@@ -104,9 +107,13 @@ extension ContentView {
 
     func onAppear() {
         height = Config.getWindowHeight()
-
-        if !showTabView {
-            app.closeDBView()
+        
+        if self.isDetailVisible != app.showDB {
+            if self.isDetailVisible {
+                app.showDBView()
+            } else {
+                app.closeDBView()
+            }
         }
     }
 }
@@ -117,4 +124,23 @@ extension ContentView {
     ContentView()
         .inRootView()
         .withDebugBar()
+}
+
+#Preview("App - ShowTab") {
+    ContentLayout()
+        .showDetail()
+        .inRootView()
+        .withDebugBar()
+}
+
+#Preview("App - HideTab") {
+    ContentLayout()
+        .hideDetail()
+        .inRootView()
+        .withDebugBar()
+}
+
+#Preview("App Store Album Art") {
+    AppStoreAlbumArt()
+        .inMagicContainer(.macBook13, scale: 0.5)
 }

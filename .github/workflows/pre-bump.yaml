@@ -33,12 +33,31 @@ jobs:
         run: |
           chmod +x scripts/bump-version.sh
           chmod +x scripts/calculate-version.sh
-          INCREMENT=$(./scripts/bump-version.sh)
-          VERSION=$(./scripts/calculate-version.sh)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "increment=$INCREMENT" >> $GITHUB_OUTPUT
-          echo "📦 Version Increment: $INCREMENT"
-          echo "🏷️  New Version: $VERSION"
+          chmod +x scripts/should-bump-base-version.sh
+          chmod +x scripts/calculate-beta-version.sh
+
+          # Check if we need to bump the base version
+          SHOULD_BUMP=$(./scripts/should-bump-base-version.sh)
+
+          if [ "$SHOULD_BUMP" = "true" ]; then
+            # Has new features, bump base version
+            echo "🆕 New features detected, bumping base version"
+            INCREMENT=$(./scripts/bump-version.sh)
+            VERSION=$(./scripts/calculate-version.sh)
+            BETA_VERSION=$(./scripts/calculate-beta-version.sh)
+            echo "version=$BETA_VERSION" >> $GITHUB_OUTPUT
+            echo "increment=$INCREMENT" >> $GITHUB_OUTPUT
+            echo "📦 Base Version Increment: $INCREMENT"
+            echo "🏷️  New Base Version: $VERSION"
+            echo "🎯 Beta Version: $BETA_VERSION"
+          else
+            # No new features, just increment beta iteration
+            echo "🔧 Only bug fixes, keeping base version"
+            BETA_VERSION=$(./scripts/calculate-beta-version.sh)
+            echo "version=$BETA_VERSION" >> $GITHUB_OUTPUT
+            echo "increment=beta-iteration" >> $GITHUB_OUTPUT
+            echo "🏷️  Beta Version: $BETA_VERSION"
+          fi
 
       - name: 显示变更摘要
         run: |
@@ -60,15 +79,15 @@ jobs:
         uses: yanamura/ios-bump-version@v1
       - name: 生成标签
         run: |
-          VERSION=${{ steps.version.outputs.version }}
+          BETA_VERSION=${{ steps.version.outputs.version }}
           BUILD=$(agvtool what-version -terse)
-          echo "🏷️  Tag: p$VERSION"
+          echo "🏷️  Tag: $BETA_VERSION"
           echo "🔢 Build: $BUILD"
-          echo "tag=p$VERSION" >> $GITHUB_ENV
+          echo "tag=$BETA_VERSION" >> $GITHUB_ENV
       - name: 打标签并推送到仓库
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: "ci: bump a new version"
+          commit_message: "ci: bump a new beta version"
           commit_user_name: GitHub Action
           tagging_message: ${{ env.tag }}
   rebase:

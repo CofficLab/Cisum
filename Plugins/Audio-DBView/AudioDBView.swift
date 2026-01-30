@@ -11,6 +11,7 @@ struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
     nonisolated static let verbose = false
 
     @EnvironmentObject var app: AppProvider
+    @Environment(\.demoMode) var isDemoMode
 
     /// 是否正在排序
     @State private var isSorting: Bool = false
@@ -23,22 +24,28 @@ struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
             os_log("\(self.t)📺 开始渲染")
         }
 
-        return AudioList()
-            .overlay(alignment: .center) {
-                if isSorting {
-                    AudioDBTips(variant: .sorting)
-                        .transition(.opacity)
-                }
+        return Group {
+            if isDemoMode {
+                EmptyView()
+            } else {
+                AudioList()
             }
-            .frame(maxHeight: .infinity)
-            .fileImporter(
-                isPresented: $app.isImporting,
-                allowedContentTypes: [.audio],
-                allowsMultipleSelection: true,
-                onCompletion: handleFileImport
-            )
-            .onDBSorting(perform: handleSorting)
-            .onDBSortDone(perform: handleSortDone)
+        }
+        .overlay(alignment: .center) {
+            if isSorting {
+                AudioDBTips(variant: .sorting)
+                    .transition(.opacity)
+            }
+        }
+        .frame(maxHeight: .infinity)
+        .fileImporter(
+            isPresented: $app.isImporting,
+            allowedContentTypes: [.audio],
+            allowsMultipleSelection: true,
+            onCompletion: handleFileImport
+        )
+        .onDBSorting(perform: handleSorting)
+        .onDBSortDone(perform: handleSortDone)
     }
 
     /// 排序模式枚举
@@ -197,4 +204,9 @@ extension AudioDBView {
     ContentView()
         .inRootView()
         .withDebugBar()
+}
+
+#Preview("App Store Album Art") {
+    AppStoreAlbumArt()
+        .inMagicContainer(.macBook13, scale: 1)
 }

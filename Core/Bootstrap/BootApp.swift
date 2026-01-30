@@ -1,7 +1,6 @@
 import MagicAlert
 import MagicKit
 import MagicPlayMan
-import MagicUI
 import OSLog
 import SwiftUI
 
@@ -11,10 +10,10 @@ typealias PlayMode = MagicPlayMode
 typealias Logger = MagicLogger
 typealias MagicApp = MagicKit.MagicApp
 typealias SuperLog = MagicKit.SuperLog
-typealias MagicLoading = MagicUI.MagicLoading
+typealias MagicLoading = MagicKit.MagicLoading
 typealias MagicMessageProvider = MagicAlert.MagicMessageProvider
-typealias MagicSettingSection = MagicUI.MagicSettingSection
-typealias MagicSettingRow = MagicUI.MagicSettingRow
+typealias MagicSettingSection = MagicKit.MagicSettingSection
+typealias MagicSettingRow = MagicKit.MagicSettingRow
 
 @main
 struct BootApp: App, SuperLog {
