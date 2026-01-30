@@ -22,7 +22,7 @@ struct StorageView: View, SuperLog {
             VStack(spacing: 12) {
                 MagicSettingRow(
                     title: "iCloud 云盘",
-                    description: "将媒体文件存储在 iCloud 云盘中\n可在其他设备上访问\n确保 iCloud 账户已登录且存储空间足够",
+                    description: "文件存储在 iCloud 中\n可在其他设备上访问\n确保 iCloud 存储空间足够",
                     icon: .iconCloud,
                     action: {
                         if cloudManager.isSignedIn == true && c.getStorageLocation() != .icloud {
