@@ -17,6 +17,7 @@ struct iPhoneMac: View {
                 .background(Config.rootBackground)
                 .shadowSm()
                 .inIMacScreen()
+                .frame(height: 500)
         }
         .inMagicVStackCenter()
         .inPosterContainer()

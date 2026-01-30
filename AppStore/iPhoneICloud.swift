@@ -18,11 +18,12 @@ struct iPhoneICloud: View {
                 .inRootView()
                 .inDemoMode()
                 .inDownloadingMode()
-                .frame(width: Config.minWidth)
-                .frame(height: 600)
+                .frame(width: Config.minWidth, height: 600)
+                .frame(height: 500, alignment: .top)
+                .clipped()
                 .roundedLarge()
                 .shadowSm()
-                .offset(x: 0, y: 100)
+
         }
         .inMagicVStackCenter()
         .inPosterContainer()

@@ -13,8 +13,6 @@ struct iPhoneMinimal: View {
             }
             .inMagicVStackCenter()
 
-            Spacer(minLength: 80)
-
             ZStack {
                 ContentLayout()
                     .hideDetail()
