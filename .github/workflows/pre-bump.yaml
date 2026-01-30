@@ -84,13 +84,12 @@ jobs:
           echo "🏷️  Tag: $BETA_VERSION"
           echo "🔢 Build: $BUILD"
           echo "tag=$BETA_VERSION" >> $GITHUB_ENV
-          echo "p_tag=p${BETA_VERSION}" >> $GITHUB_ENV
       - name: 打标签并推送到仓库
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "ci: bump a new beta version"
           commit_user_name: GitHub Action
-      - name: 创建并推送标签
+      - name: 创建并推送 Beta 标签
         run: |
           # 配置 Git
           git config user.name "github-actions[bot]"
@@ -101,15 +100,15 @@ jobs:
           git checkout pre
           git pull origin pre
 
-          # 创建 p 前缀标签（用于 Xcode Cloud 和 GitHub Actions）
-          P_TAG=${{ env.p_tag }}
-          echo "🏷️  Creating tag: $P_TAG"
-          git tag -a "$P_TAG" -m "Release ${{ env.tag }}"
+          # 创建 Beta 标签
+          BETA_TAG=${{ env.tag }}
+          echo "🏷️  Creating tag: $BETA_TAG"
+          git tag -a "$BETA_TAG" -m "Release $BETA_TAG"
 
           # 推送标签
-          git push origin "$P_TAG"
+          git push origin "$BETA_TAG"
 
-          echo "✅ Tag pushed: $P_TAG"
+          echo "✅ Beta tag pushed: $BETA_TAG"
   rebase:
     needs:
       - bump
