@@ -12,7 +12,6 @@ struct BookProgressRootView<Content>: View, SuperLog where Content: View {
     private let verbose = true
 
     @EnvironmentObject var man: PlayMan
-    @EnvironmentObject var m: MagicMessageProvider
     @EnvironmentObject var p: PluginProvider
 
     private var content: Content
@@ -105,7 +104,7 @@ extension BookProgressRootView {
                     }
                 } catch let error {
                     os_log(.error, "\(self.t)❌ 书籍文件下载失败: \(error.localizedDescription)")
-                    m.error("下载失败: \(error.localizedDescription)")
+                    alert_error("下载失败: \(error.localizedDescription)")
                 }
             }
         }

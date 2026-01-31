@@ -14,7 +14,6 @@ struct StoreSetting: View, SuperLog, SuperEvent {
     @State private var tierDisplayName: String = "免费版"
     @State private var statusDescription: String = "当前使用免费版本"
 
-    @EnvironmentObject var m: MagicMessageProvider
 
     var body: some View {
         MagicSettingSection(title: "订阅信息") {

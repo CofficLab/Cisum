@@ -4,7 +4,6 @@ import StoreKit
 import SwiftUI
 
 struct DebugView: View, SuperLog {
-    @EnvironmentObject var m: MagicMessageProvider
     @State private var isLoading: Bool = false
     @State private var productGroups: ProductGroupsDTO?
     @State private var purchasedCars: [ProductDTO] = []
@@ -84,7 +83,7 @@ extension DebugView {
                 let groups = try await StoreService.fetchAllProducts()
                 setGroups(groups)
             } catch {
-                self.m.error(error)
+                alert_error(error)
             }
 
             self.isLoading = false
@@ -99,11 +98,11 @@ extension DebugView {
                 let result = try await StoreService.inspectSubscriptionStatus(self.className)
                 setSubscriptionInspectResult(result)
             } catch {
-                self.m.error(error)
+                alert_error(error)
             }
 
             self.isLoading = false
-            self.m.info("检查结束")
+            alert_info("检查结束")
         }
     }
 
@@ -139,9 +138,9 @@ extension DebugView {
                 )
 
                 setPurchased(result)
-                self.m.info("已更新已购清单")
+                alert_info("已更新已购清单")
             } catch {
-                self.m.error(error)
+                alert_error(error)
             }
 
             self.isLoading = false

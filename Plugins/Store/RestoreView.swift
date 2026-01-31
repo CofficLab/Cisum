@@ -8,7 +8,6 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
     @EnvironmentObject var app: AppProvider
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var m: MagicMessageProvider
 
     @State private var subscriptions: [Product] = []
     @State private var refreshing = false

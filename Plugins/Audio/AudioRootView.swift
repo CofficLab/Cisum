@@ -12,7 +12,6 @@ struct AudioRootView<Content>: View, SuperLog where Content: View {
     nonisolated static var verbose: Bool { false }
 
     @EnvironmentObject var man: PlayMan
-    @EnvironmentObject var m: MagicMessageProvider
     @EnvironmentObject var p: PluginProvider
     @EnvironmentObject var app: AppProvider
 
@@ -108,7 +107,7 @@ extension AudioRootView {
             os_log("\(self.t)📂 存储位置已变化")
         }
 
-        self.m.info("存储位置发生了变化")
+        alert_info("存储位置发生了变化")
     }
 
     /// 处理视图消失事件

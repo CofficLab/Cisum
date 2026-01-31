@@ -12,7 +12,6 @@ struct AudioProgressRootView<Content>: View, SuperLog where Content: View {
     private static var verbose: Bool { false }
 
     @EnvironmentObject var man: PlayMan
-    @EnvironmentObject var m: MagicMessageProvider
     @EnvironmentObject var p: PluginProvider
 
     private var content: Content
@@ -99,7 +98,7 @@ extension AudioProgressRootView {
                         }
 
                         await MainActor.run {
-                            m.info("上次播放的文件已不存在，自动播放第一首")
+                            alert_info("上次播放的文件已不存在，自动播放第一首")
                         }
                     }
                 }

@@ -31,7 +31,6 @@ struct AudioList: View, SuperThread, SuperLog, SuperEvent {
     nonisolated static let verbose = false
 
     @EnvironmentObject var playManController: PlayMan
-    @EnvironmentObject var m: MagicMessageProvider
 
     /// 当前选中的音频 URL
     @State private var selection: URL? = nil
@@ -490,11 +489,11 @@ extension AudioList {
 
                     // 切换回主线程更新 UI
                     await MainActor.run {
-                        self.m.info("已删除 \(url.title)")
+                        alert_info("已删除 \(url.title)")
                     }
                 } catch {
                     await MainActor.run {
-                        self.m.error(error)
+                        alert_error(error)
                     }
                 }
             }

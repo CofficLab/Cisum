@@ -1,5 +1,6 @@
 #if os(macOS)
 import MagicKit
+import MagicAlert
 import OSLog
 import SwiftData
 import SwiftUI
@@ -7,7 +8,6 @@ import SwiftUI
 struct CopyStateView: View, SuperLog, SuperThread {
     @EnvironmentObject var app: AppProvider
     @EnvironmentObject var messageManager: StateProvider
-    @EnvironmentObject var m: MagicMessageProvider
 
     @State private var showCopying = false
     @State private var taskCount: Int = 0
@@ -74,7 +74,7 @@ extension CopyStateView {
     func handleCopyTaskFinished(_ lastCount: Int) {
         // 任务完成，清零任务数量
         taskCount = 0
-        self.m.info("复制完成")
+        alert_info("复制完成")
     }
 }
 

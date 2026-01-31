@@ -11,7 +11,6 @@ struct AudioControlRootView<Content>: View, SuperLog where Content: View {
     private static var verbose: Bool { false }
 
     @EnvironmentObject var man: PlayMan
-    @EnvironmentObject var m: MagicMessageProvider
     @EnvironmentObject var p: PluginProvider
 
     private var content: Content
@@ -134,7 +133,7 @@ extension AudioControlRootView {
 
                         // 显示提示信息
                         await MainActor.run {
-                            m.info("已播放最后一首，自动播放第一首")
+                            alert_info("已播放最后一首，自动播放第一首")
                         }
 
                         // 播放第一首
@@ -148,7 +147,7 @@ extension AudioControlRootView {
                         await man.stop(reason: self.className + ".仓库为空")
 
                         await MainActor.run {
-                            m.info("仓库中没有文件")
+                            alert_info("仓库中没有文件")
                         }
                     }
                 }
@@ -212,7 +211,7 @@ extension AudioControlRootView {
 
                         // 显示提示信息
                         await MainActor.run {
-                            m.warning("正在播放的文件已被删除，自动播放第一首")
+                        alert_warning("正在播放的文件已被删除，自动播放第一首")
                         }
 
                         // 播放第一首
@@ -226,7 +225,7 @@ extension AudioControlRootView {
                         await man.stop(reason: self.className + ".仓库为空")
 
                         await MainActor.run {
-                            m.info("仓库中没有文件")
+                            alert_info("仓库中没有文件")
                         }
                     }
                 } catch {
@@ -238,7 +237,7 @@ extension AudioControlRootView {
                     await man.stop(reason: self.className + ".获取第一首失败")
 
                     await MainActor.run {
-                        m.error("无法播放下一首: \(error.localizedDescription)")
+                        alert_error("无法播放下一首: \(error.localizedDescription)")
                     }
                 }
             }

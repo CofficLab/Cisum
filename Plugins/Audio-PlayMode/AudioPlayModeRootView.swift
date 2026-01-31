@@ -11,7 +11,6 @@ struct AudioPlayModeRootView<Content>: View, SuperLog where Content: View {
     private static var verbose: Bool { false }
 
     @EnvironmentObject var man: PlayMan
-    @EnvironmentObject var m: MagicMessageProvider
     @EnvironmentObject var p: PluginProvider
 
     private var content: Content
@@ -89,20 +88,20 @@ extension AudioPlayModeRootView {
                     os_log("\(self.t)🔁 单曲循环模式")
                 }
 
-                self.m.info("单曲循环")
+                alert_info("单曲循环")
             case .sequence, .repeatAll:
                 if Self.verbose {
                     os_log("\(self.t)📋 顺序播放，重新排序")
                 }
 
-                self.m.info("顺序播放")
+                alert_info("顺序播放")
                 await repo.sort(currentURL, reason: "PlayModeChanged")
             case .shuffle:
                 if Self.verbose {
                     os_log("\(self.t)🔀 随机播放，打乱顺序")
                 }
 
-                self.m.info("随机播放")
+                alert_info("随机播放")
                 try await repo.sortRandom(currentURL, reason: "PlayModeChanged", verbose: false)
             }
         }

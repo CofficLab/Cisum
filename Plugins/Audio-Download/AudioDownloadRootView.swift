@@ -10,7 +10,6 @@ struct AudioDownloadRootView<Content>: View, SuperLog where Content: View {
     private static var verbose: Bool { true }
 
     @EnvironmentObject var man: PlayMan
-    @EnvironmentObject var m: MagicMessageProvider
     @EnvironmentObject var p: PluginProvider
 
     private var content: Content

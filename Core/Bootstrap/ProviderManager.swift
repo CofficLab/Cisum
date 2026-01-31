@@ -14,7 +14,6 @@ final class ProviderManager: SuperLog {
     // Providers
     let app: AppProvider
     let stateMessageProvider: StateProvider
-    let messageProvider: MagicMessageProvider
     let plugin: PluginProvider
     let cloud: CloudProvider
 
@@ -31,7 +30,6 @@ final class ProviderManager: SuperLog {
         // Providers
         self.app = AppProvider(uiRepo: uiRepo)
         self.stateMessageProvider = StateProvider()
-        self.messageProvider = MagicMessageProvider.shared
         self.plugin = PluginProvider(repo: pluginRepo)
         self.cloud = CloudProvider()
 
