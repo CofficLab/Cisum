@@ -10,22 +10,22 @@
 
 set -euo pipefail
 
-# Find all beta tags (without p prefix), sort by version number
-BETA_TAGS=$(git tag -l "*-beta.*" 2>/dev/null | grep -v '^p' | sort -V)
+# Find all p* tags (pre-release), sort by version number
+PRE_TAGS=$(git tag -l "p*" 2>/dev/null | sort -V)
 
-if [ -z "$BETA_TAGS" ]; then
-  # No beta tags found
-  echo "Error: No beta tags found" >&2
+if [ -z "$PRE_TAGS" ]; then
+  # No pre-release tags found
+  echo "Error: No pre-release tags found" >&2
   exit 1
 fi
 
-# Get the latest beta tag
-LATEST_BETA_TAG=$(echo "$BETA_TAGS" | tail -n 1)
+# Get the latest pre-release tag
+LATEST_PRE_TAG=$(echo "$PRE_TAGS" | tail -n 1)
 
-# Extract base version number (remove -beta.N suffix)
-BASE_VERSION=$(echo "$LATEST_BETA_TAG" | sed -E 's/-beta\.[0-9]+$//')
+# Extract base version number (remove p prefix)
+BASE_VERSION=$(echo "$LATEST_PRE_TAG" | sed 's/^p//')
 
-echo "📦 Latest Beta Tag: $LATEST_BETA_TAG" >&2
+echo "📦 Latest Pre-release Tag: $LATEST_PRE_TAG" >&2
 echo "🎯 Base Version for Release: $BASE_VERSION" >&2
 
 # Output the base version

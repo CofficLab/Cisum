@@ -3,7 +3,7 @@ name: Pre Release
 on:
   push:
     tags:
-      - "*-beta.*"
+      - "p*"
   workflow_run:
     workflows:
       - "Pre Bump"
@@ -25,11 +25,11 @@ jobs:
       - run: ls -alhR
       - name: 读取版本号
         run: |
-          # 从 Git ref 中提取标签名称
+          # 从 Git ref 中提取标签名称（带 p 前缀）
           TAG_NAME=${GITHUB_REF#refs/tags/}
 
-          # 提取版本号（去掉 -beta.N 后缀）
-          VERSION=$(echo "$TAG_NAME" | sed -E 's/-beta\.[0-9]+$//')
+          # 提取版本号（去掉 p 前缀）
+          VERSION=$(echo "$TAG_NAME" | sed 's/^p//')
 
           echo "标签名->$TAG_NAME"
           echo "版本号->$VERSION"
