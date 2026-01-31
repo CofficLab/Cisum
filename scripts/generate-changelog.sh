@@ -19,8 +19,8 @@ if [ -z "$OUTPUT_FILE" ]; then
   exit 1
 fi
 
-# Get the most recent tag
-LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+# Get the most recent tag (prefer p* tags)
+LAST_TAG=$(git describe --tags --abbrev=0 --match 'p*' 2>/dev/null || git describe --tags --abbrev=0 2>/dev/null || echo "")
 
 if [ -z "$LAST_TAG" ]; then
   # No tags found, get all commits
