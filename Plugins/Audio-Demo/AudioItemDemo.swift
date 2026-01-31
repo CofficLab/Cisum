@@ -12,7 +12,7 @@ struct AudioItemDemo: View, Equatable, SuperLog {
     let url: URL
 
     /// 可用的系统图标列表（音乐相关）
-    private static let iconNames: [String] = [
+    public static let iconNames: [String] = [
         "music.note",
         "music.note.list",
         "music.quarternote.3",
@@ -21,7 +21,6 @@ struct AudioItemDemo: View, Equatable, SuperLog {
         "waveform.circle",
         "speaker.wave.2",
         "headphones",
-        "music.meter",
     ]
 
     /// 根据 URL 获取随机但稳定的图标名称
@@ -129,3 +128,39 @@ struct AudioItemDemo: View, Equatable, SuperLog {
     AppStoreAlbumArt()
         .inMagicContainer(.macBook13, scale: 1)
 }
+
+#Preview("Icon Names Preview") {
+    VStack(spacing: 20) {
+        Text("图标预览")
+            .font(.title)
+            .bold()
+
+        LazyVGrid(columns: [
+            GridItem(.flexible()),
+            GridItem(.flexible()),
+            GridItem(.flexible()),
+        ], spacing: 16) {
+            ForEach(AudioItemDemo.iconNames, id: \.self) { iconName in
+                VStack(spacing: 8) {
+                    Image(systemName: iconName)
+                        .font(.system(size: 32))
+                        .foregroundColor(.blue)
+                        .frame(width: 60, height: 60)
+                        .background(
+                            Circle()
+                                .fill(Color.blue.opacity(0.1))
+                        )
+
+                    Text(iconName)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .frame(maxWidth: 80)
+                }
+            }
+        }
+        .padding()
+    }
+    .inMagicContainer()
+}
+

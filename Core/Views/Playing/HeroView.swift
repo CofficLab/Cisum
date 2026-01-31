@@ -9,6 +9,7 @@ struct HeroView: View, SuperLog {
     @EnvironmentObject var app: AppProvider
     @EnvironmentObject var playMan: PlayMan
     @Environment(\.demoMode) var isDemoMode
+    @Environment(\.downloadingMode) var isDownloadingMode
 
     private let titleViewHeight: CGFloat = 60
 
@@ -16,7 +17,13 @@ struct HeroView: View, SuperLog {
         GeometryReader { geo in
             VStack(spacing: 0) {
                 if shouldShowAlbum(geo) {
-                    if isDemoMode {
+                    if isDownloadingMode {
+                        // 下载中场景: 显示圆形进度
+                        downloadingAlbumView
+                            .frame(maxWidth: .infinity)
+                            .frame(height: getAlbumHeight(geo))
+                            .clipped()
+                    } else if isDemoMode {
                         // Demo mode: 显示静态演示封面
                         demoAlbumView
                             .frame(maxWidth: .infinity)
@@ -42,6 +49,43 @@ struct HeroView: View, SuperLog {
 // MARK: - View
 
 extension HeroView {
+    // 下载中场景的圆形进度视图
+    private var downloadingAlbumView: some View {
+        ZStack {
+            // 背景圆形
+            Circle()
+                .stroke(
+                    Color.secondary.opacity(0.2),
+                    lineWidth: 8
+                )
+                .frame(width: 200, height: 200)
+
+            // 进度圆形（50%）
+            Circle()
+                .trim(from: 0, to: 0.5)
+                .stroke(
+                    Color.blue,
+                    style: StrokeStyle(lineWidth: 8, lineCap: .round)
+                )
+                .frame(width: 200, height: 200)
+                .rotationEffect(.degrees(-90))
+                .animation(.easeInOut, value: 0.5)
+
+            // 中心文字
+            VStack(spacing: 8) {
+                Text("50%")
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .foregroundColor(.primary)
+
+                Text("正在从 iCloud 下载")
+                    .font(.system(size: 14))
+                    .foregroundColor(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.secondary.opacity(0.1))
+    }
+
     // Demo mode 的静态演示封面
     private var demoAlbumView: some View {
         LogoView(

@@ -24,7 +24,39 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
         SheetContainer {
             VStack(spacing: 16) {
                 // 说明文字
-                VStack {
+                VStack(spacing: 16) {
+                    // 插画区域
+                    VStack(spacing: 0) {
+                        ZStack {
+                            // 背景圆形装饰
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.blue.opacity(0.15),
+                                            Color.cyan.opacity(0.1)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 120, height: 120)
+
+                            // 主图标（云同步/恢复）
+                            Image(systemName: "icloud.and.arrow.down.fill")
+                                .font(.system(size: 60))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [.blue, .cyan],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        }
+                        .frame(height: 120)
+                    }
+                    .padding(.top, 8)
+
                     // 标题区域
                     HStack(spacing: 12) {
                         Image.restart

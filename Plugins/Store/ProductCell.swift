@@ -253,18 +253,8 @@ extension ProductCell {
 
 // MARK: - Preview
 
-#Preview("PurchaseView - All") {
+#Preview("PurchaseView") {
     PurchaseView()
-        .inRootView()
-        .frame(height: 800)
-}
-
-#Preview("PurchaseView - Subscription Only") {
-    PurchaseView(
-        showSubscription: true,
-        showOneTime: false,
-        showNonRenewable: false,
-        showConsumable: false)
         .inRootView()
         .frame(height: 800)
 }
@@ -275,61 +265,8 @@ extension ProductCell {
         .frame(width: 500, height: 700)
 }
 
-#Preview("Debug") {
-    DebugView()
+#Preview("App - Large") {
+    ContentView()
         .inRootView()
-        .frame(height: 800)
-}
-
-#Preview("Buy") {
-    PurchaseView()
-        .inRootView()
-        .frame(height: 800)
-}
-
-#if os(macOS)
-    #Preview("App - Large") {
-        ContentView()
-            .inRootView()
-            .frame(width: 600, height: 1000)
-    }
-
-    #Preview("App - Small") {
-        ContentView()
-            .inRootView()
-            .frame(width: 500, height: 800)
-    }
-#endif
-
-#if os(iOS)
-    #Preview("iPhone") {
-        ContentView()
-            .inRootView()
-    }
-#endif
-
-// MARK: - Supporting Views
-
-/// 状态徽章组件
-struct StatusBadge: View {
-    let text: String
-    let color: Color
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Circle()
-                .fill(color)
-                .frame(width: 6, height: 6)
-            Text(text)
-                .font(.caption2)
-                .fontWeight(.medium)
-                .foregroundStyle(color)
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(
-            Capsule()
-                .fill(color.opacity(0.15))
-        )
-    }
+        .withDebugBar()
 }

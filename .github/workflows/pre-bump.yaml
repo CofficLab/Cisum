@@ -33,41 +33,31 @@ jobs:
         run: |
           chmod +x scripts/bump-version.sh
           chmod +x scripts/calculate-version.sh
-          chmod +x scripts/should-bump-base-version.sh
-          chmod +x scripts/calculate-beta-version.sh
 
-          # Check if we need to bump the base version
-          SHOULD_BUMP=$(./scripts/should-bump-base-version.sh)
+          # 计算版本增量类型（major/minor/patch）
+          INCREMENT=$(./scripts/bump-version.sh)
 
-          if [ "$SHOULD_BUMP" = "true" ]; then
-            # Has new features, bump base version
-            echo "🆕 New features detected, bumping base version"
-            INCREMENT=$(./scripts/bump-version.sh)
-            VERSION=$(./scripts/calculate-version.sh)
-            BETA_VERSION=$(./scripts/calculate-beta-version.sh)
-            echo "version=$BETA_VERSION" >> $GITHUB_OUTPUT
-            echo "increment=$INCREMENT" >> $GITHUB_OUTPUT
-            echo "📦 Base Version Increment: $INCREMENT"
-            echo "🏷️  New Base Version: $VERSION"
-            echo "🎯 Beta Version: $BETA_VERSION"
-          else
-            # No new features, just increment beta iteration
-            echo "🔧 Only bug fixes, keeping base version"
-            BETA_VERSION=$(./scripts/calculate-beta-version.sh)
-            echo "version=$BETA_VERSION" >> $GITHUB_OUTPUT
-            echo "increment=beta-iteration" >> $GITHUB_OUTPUT
-            echo "🏷️  Beta Version: $BETA_VERSION"
-          fi
+          # 计算并更新新版本号
+          VERSION=$(./scripts/calculate-version.sh)
+
+          # 添加 p 前缀
+          TAG_VERSION="p${VERSION}"
+
+          echo "version=$TAG_VERSION" >> $GITHUB_OUTPUT
+          echo "increment=$INCREMENT" >> $GITHUB_OUTPUT
+          echo "📦 Version Increment: $INCREMENT"
+          echo "🏷️  New Version: $VERSION"
+          echo "🔖 Tag Version: $TAG_VERSION"
 
       - name: 显示变更摘要
         run: |
           echo "### 🎯 版本更新信息 (Pre-release)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **增量类型**: ${{ steps.version.outputs.increment }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **新版本**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **版本号**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📝 自上次标签以来的提交:" >> $GITHUB_STEP_SUMMARY
-          git log $(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")..HEAD --pretty=format:'- %s' | head -20 >> $GITHUB_STEP_SUMMARY
+          git log $(git describe --tags --abbrev=0 --match 'p*' 2>/dev/null || git describe --tags --abbrev=0 2>/dev/null || echo "p0.0.0")..HEAD --pretty=format:'- %s' | head -20 >> $GITHUB_STEP_SUMMARY
 
       - name: 验证版本更新
         run: |
@@ -89,7 +79,7 @@ jobs:
         with:
           commit_message: "ci: bump a new beta version"
           commit_user_name: GitHub Action
-      - name: 创建并推送 Beta 标签
+      - name: 创建并推送标签
         run: |
           # 配置 Git
           git config user.name "github-actions[bot]"
@@ -100,15 +90,15 @@ jobs:
           git checkout pre
           git pull origin pre
 
-          # 创建 Beta 标签
-          BETA_TAG=${{ env.tag }}
-          echo "🏷️  Creating tag: $BETA_TAG"
-          git tag -a "$BETA_TAG" -m "Release $BETA_TAG"
+          # 创建标签（p 前缀）
+          TAG=${{ steps.version.outputs.version }}
+          echo "🏷️  Creating tag: $TAG"
+          git tag -a "$TAG" -m "Release $TAG"
 
           # 推送标签
-          git push origin "$BETA_TAG"
+          git push origin "$TAG"
 
-          echo "✅ Beta tag pushed: $BETA_TAG"
+          echo "✅ Tag pushed: $TAG"
   rebase:
     needs:
       - bump

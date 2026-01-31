@@ -28,30 +28,30 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: 获取最新 Beta 版本号
+      - name: 获取最新 Pre-release 版本号
         id: version
         run: |
           chmod +x scripts/get-latest-beta-version.sh
           chmod +x scripts/bump-version.sh
           chmod +x scripts/calculate-version.sh
 
-          # 获取最新的 beta 版本号
-          LATEST_BETA_VERSION=$(./scripts/get-latest-beta-version.sh)
+          # 获取最新的 pre-release 版本号
+          LATEST_PRE_VERSION=$(./scripts/get-latest-beta-version.sh)
 
-          echo "version=$LATEST_BETA_VERSION" >> $GITHUB_OUTPUT
-          echo "increment=latest-beta" >> $GITHUB_OUTPUT
-          echo "🎯 Latest Beta Version: $LATEST_BETA_VERSION"
-          echo "🏷️  Releasing as: v$LATEST_BETA_VERSION"
+          echo "version=$LATEST_PRE_VERSION" >> $GITHUB_OUTPUT
+          echo "increment=latest-pre" >> $GITHUB_OUTPUT
+          echo "🎯 Latest Pre-release Version: $LATEST_PRE_VERSION"
+          echo "🏷️  Releasing as: v$LATEST_PRE_VERSION"
 
       - name: 显示变更摘要
         run: |
           echo "### 🎯 正式版本发布" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **发布版本**: v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **来源**: 最新 Beta 版本" >> $GITHUB_STEP_SUMMARY
+          echo "- **来源**: 最新 Pre-release 版本" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📝 所有 Beta 测试版本:" >> $GITHUB_STEP_SUMMARY
-          git tag -l "*-beta.*" | sort -V | tail -10 >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 所有 Pre-release 版本:" >> $GITHUB_STEP_SUMMARY
+          git tag -l "p*" | sort -V | tail -10 >> $GITHUB_STEP_SUMMARY
 
       - name: 更新 Xcode 版本号
         run: |
