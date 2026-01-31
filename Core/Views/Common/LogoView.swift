@@ -1,6 +1,6 @@
 import MagicKit
-import SwiftUI
 import OSLog
+import SwiftUI
 
 // MARK: - Types
 
@@ -14,15 +14,15 @@ extension LogoView {
     }
 }
 
-struct LogoView: View,SuperLog {
+struct LogoView: View, SuperLog {
     nonisolated static let verbose = false
     nonisolated static let emoji = "🎨"
 
-    var background: Color? = nil
+    var background: Color?
     var rotationSpeed: Double = 0.0
     var backgroundShape: BackgroundShape = .none
     var size: CGFloat = 200
-    
+
     @State private var rotationAngle: Double = 0.0
 
     init(
@@ -57,7 +57,7 @@ struct LogoView: View,SuperLog {
             }
         }
     }
-    
+
     @ViewBuilder
     private var backgroundShapeView: some View {
         if let background = background {
@@ -68,14 +68,14 @@ struct LogoView: View,SuperLog {
                 Circle().fill(background)
             case .rectangle:
                 Rectangle().fill(background)
-            case .roundedRectangle(let cornerRadius):
+            case let .roundedRectangle(cornerRadius):
                 RoundedRectangle(cornerRadius: cornerRadius).fill(background)
             case .capsule:
                 Capsule().fill(background)
             }
         }
     }
-    
+
     private func startRotation() {
         withAnimation(.linear(duration: 1.0 / rotationSpeed).repeatForever(autoreverses: false)) {
             rotationAngle = 360
@@ -83,7 +83,6 @@ struct LogoView: View,SuperLog {
     }
 }
 
-#if os(macOS)
 #Preview("LogoView") {
     ScrollView {
         LogoView()
@@ -100,10 +99,8 @@ struct LogoView: View,SuperLog {
     }
     .frame(height: 800)
 }
-#endif
 
-#if os(iOS)
-#Preview("LogoView - iPhone") {
-    LogoView(background: .purple.opacity(0.2), backgroundShape: .circle)
+#Preview("LogoView - Snapshot") {
+    LogoView(background: .green.opacity(0.6), size: 800)
+        .inMagicContainer(.init(width: 800, height: 800), scale: 0.4)
 }
-#endif
