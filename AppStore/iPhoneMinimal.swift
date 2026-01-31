@@ -6,10 +6,10 @@ struct iPhoneMinimal: View {
         Group {
             Group {
                 Text("Cisum")
-                    .asPosterTitle()
+                    .asPosterTitleForIPhone()
 
                 Text("极简设计")
-                    .asPosterSubTitle(forMac: false)
+                    .asPosterSubTitleForIPhone()
             }
             .inMagicVStackCenter()
 
@@ -18,8 +18,8 @@ struct iPhoneMinimal: View {
                     .hideDetail()
                     .inRootView()
                     .inDemoMode()
-                    .frame(width: Config.minWidth)
-                    .frame(height: 500)
+                    .frame(width: Config.minWidth + 100)
+                    .frame(height: 600)
                     .roundedLarge()
                     .shadowSm()
             }
@@ -33,5 +33,5 @@ struct iPhoneMinimal: View {
 
 #Preview("App Store iPhone Minimal") {
     iPhoneMinimal()
-        .inMagicContainer(.iPhone, scale: 1)
+        .inMagicContainer(CGSize(width: 621, height: 1344), scale: 1)
 }

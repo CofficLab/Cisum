@@ -6,10 +6,10 @@ struct iPhoneICloud: View {
         Group {
             Group {
                 Text("Cisum")
-                    .asPosterTitle()
+                    .asPosterTitleForIPhone()
 
                 Text("完美支持 iCloud")
-                    .asPosterSubTitle(forMac: false)
+                    .asPosterSubTitleForIPhone()
             }
             .inMagicVStackCenter()
 
@@ -18,8 +18,8 @@ struct iPhoneICloud: View {
                 .inRootView()
                 .inDemoMode()
                 .inDownloadingMode()
-                .frame(width: Config.minWidth, height: 600)
-                .frame(height: 500, alignment: .top)
+                .frame(width: Config.minWidth + 100, height: 600)
+                .frame(height: 600, alignment: .top)
                 .clipped()
                 .roundedLarge()
                 .shadowSm()
@@ -34,5 +34,5 @@ struct iPhoneICloud: View {
 
 #Preview("App Store Hero") {
     iPhoneICloud()
-        .inMagicContainer(.iPhone, scale: 1)
+        .inMagicContainer(CGSize(width: 621, height: 1344), scale: 1)
 }

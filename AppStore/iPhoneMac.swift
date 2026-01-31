@@ -6,10 +6,10 @@ struct iPhoneMac: View {
         Group {
             Group {
                 Text("Cisum")
-                    .asPosterTitle()
+                    .asPosterTitleForIPhone()
 
                 Text("macOS 上也精彩")
-                    .asPosterSubTitle(forMac: false)
+                    .asPosterSubTitleForIPhone()
             }
             .inMagicVStackCenter()
 
@@ -17,7 +17,7 @@ struct iPhoneMac: View {
                 .background(Config.rootBackground)
                 .shadowSm()
                 .inIMacScreen()
-                .frame(height: 500)
+                .frame(height: 600)
         }
         .inMagicVStackCenter()
         .inPosterContainer()
@@ -28,5 +28,5 @@ struct iPhoneMac: View {
 
 #Preview("App Store iOS") {
     iPhoneMac()
-        .inMagicContainer(.iPhone, scale: 0.9)
+        .inMagicContainer(CGSize(width: 621, height: 1344), scale: 1)
 }

@@ -6,24 +6,21 @@ struct iPhoneHero: View {
         Group {
             Group {
                 Text("Cisum")
-                    .asPosterTitle()
+                    .asPosterTitleForIPhone()
 
                 Text("简单纯粹的音乐播放器")
-                    .asPosterSubTitle(forMac: false)
+                    .asPosterSubTitleForIPhone()
             }
             .inMagicVStackCenter()
 
-            ZStack {
-                // 第二个（背景）
-                ContentLayout()
-                    .showDetail()
-                    .inRootView()
-                    .inDemoMode()
-                    .frame(width: Config.minWidth)
-                    .frame(height: 500)
-                    .roundedLarge()
-                    .shadowSm()
-            }
+            ContentLayout()
+                .showDetail()
+                .inRootView()
+                .inDemoMode()
+                .frame(width: Config.minWidth + 100)
+                .frame(height: 600)
+                .roundedLarge()
+                .shadowSm()
         }
         .inMagicVStackCenter()
         .inPosterContainer()
@@ -34,5 +31,5 @@ struct iPhoneHero: View {
 
 #Preview("App Store Hero") {
     iPhoneHero()
-        .inMagicContainer(.iPhone, scale: 1)
+        .inMagicContainer(CGSize(width: 621, height: 1344), scale: 1)
 }

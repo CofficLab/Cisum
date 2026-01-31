@@ -6,10 +6,10 @@ struct iPhoneAlbumArt: View {
         Group {
             Group {
                 Text("Cisum")
-                    .asPosterTitle()
+                    .asPosterTitleForIPhone()
 
                 Text("自动获取专辑封面")
-                    .asPosterSubTitle(forMac: false)
+                    .asPosterSubTitleForIPhone()
             }
             .inMagicVStackCenter()
 
@@ -17,8 +17,8 @@ struct iPhoneAlbumArt: View {
                 .showDetail()
                 .inRootView()
                 .inDemoMode()
-                .frame(width: Config.minWidth)
-                .frame(height: 500)
+                .frame(width: Config.minWidth + 100)
+                .frame(height: 600)
                 .roundedLarge()
                 .shadowSm()
         }
@@ -31,5 +31,5 @@ struct iPhoneAlbumArt: View {
 
 #Preview("App Store iOS") {
     iPhoneAlbumArt()
-        .inMagicContainer(.iPhone, scale: 0.9)
+        .inMagicContainer(CGSize(width: 621, height: 1344), scale: 1)
 }
