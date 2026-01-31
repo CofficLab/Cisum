@@ -96,10 +96,6 @@ extension AudioProgressRootView {
                         if Self.verbose {
                             os_log("\(self.t)✅ 播放第一首: \(firstUrl.lastPathComponent)")
                         }
-
-                        await MainActor.run {
-                            alert_info("上次播放的文件已不存在，自动播放第一首")
-                        }
                     }
                 }
             } else {

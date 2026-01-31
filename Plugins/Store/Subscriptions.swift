@@ -12,6 +12,7 @@ struct ProductsSubscription: View, SuperEvent, SuperLog, SuperThread {
     @State private var error: Error? = nil
 
     nonisolated static let emoji = "🖥️"
+    nonisolated static var verbose: Bool { false }
 
     /// 是否展示头部
     var showHeader: Bool = true
@@ -84,9 +85,9 @@ struct ProductsSubscription: View, SuperEvent, SuperLog, SuperThread {
 
     // MARK: 获取可用的订阅
 
-    private func getProducts(_ reason: String, verbose: Bool = true) {
-        if verbose {
-            os_log("\(self.t)GetProducts because of \(reason)")
+    private func getProducts(_ reason: String) {
+        if Self.verbose {
+            os_log("\(self.t)🚀 (\(reason)) GetProducts")
         }
 
         refreshing = true
