@@ -14,7 +14,39 @@ struct ResetConfirm: View, SuperLog {
         SheetContainer {
             VStack(spacing: 16) {
                 // 说明文字
-                VStack {
+                VStack(spacing: 16) {
+                    // 插画区域
+                    VStack(spacing: 0) {
+                        ZStack {
+                            // 背景圆形装饰
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.orange.opacity(0.15),
+                                            Color.red.opacity(0.1)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 120, height: 120)
+
+                            // 主图标（重置/警告）
+                            Image(systemName: "arrow.clockwise.circle.fill")
+                                .font(.system(size: 60))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [.green, .red],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        }
+                        .frame(height: 120)
+                    }
+                    .padding(.top, 8)
+
                     // 标题区域
                     HStack(spacing: 12) {
                         Image(systemName: .iconReset)
