@@ -13,6 +13,13 @@ struct ProductsSubscription: View, SuperEvent, SuperLog, SuperThread {
 
     nonisolated static let emoji = "🖥️"
 
+    /// 是否展示头部
+    var showHeader: Bool = true
+
+    init(showHeader: Bool = true) {
+        self.showHeader = showHeader
+    }
+
     var body: some View {
         Group {
             if !refreshing && subscriptionGroups.isEmpty {
@@ -22,24 +29,26 @@ struct ProductsSubscription: View, SuperEvent, SuperLog, SuperThread {
                     ForEach(subscriptionGroups, id: \.id) { group in
                         VStack(alignment: .leading, spacing: 16) {
                             // 订阅组头部
-                            HStack(alignment: .center, spacing: 12) {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(group.name)
-                                        .font(.title3)
-                                        .fontWeight(.semibold)
-                                        .if(group.name.isNotEmpty)
+                            if showHeader {
+                                HStack(alignment: .center, spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Text(group.name)
+                                            .font(.title3)
+                                            .fontWeight(.semibold)
+                                            .if(group.name.isNotEmpty)
 
-                                    Text("\(group.subscriptions.count) 个订阅选项")
-                                        .font(.caption)
+                                        Text("\(group.subscriptions.count) 个订阅选项")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+
+                                    Spacer()
+
+                                    // 订阅组ID标签
+                                    Text("ID: \(group.id)")
+                                        .font(.system(.caption2, design: .monospaced))
                                         .foregroundStyle(.secondary)
                                 }
-
-                                Spacer()
-
-                                // 订阅组ID标签
-                                Text("ID: \(group.id)")
-                                    .font(.system(.caption2, design: .monospaced))
-                                    .foregroundStyle(.secondary)
                             }
 
                             // 订阅产品列表
@@ -49,10 +58,6 @@ struct ProductsSubscription: View, SuperEvent, SuperLog, SuperThread {
                                 }
                             }
                         }
-                        .padding()
-                        .background(.regularMaterial)
-                        .roundedMedium()
-                        .shadowSm()
                     }
                 }
                 .inScrollView()
@@ -123,18 +128,8 @@ extension ProductsSubscription {
 
 // MARK: - Preview
 
-#Preview("PurchaseView - All") {
+#Preview("PurchaseView") {
     PurchaseView()
-        .inRootView()
-        .frame(height: 800)
-}
-
-#Preview("PurchaseView - Subscription Only") {
-    PurchaseView(
-        showSubscription: true,
-        showOneTime: false,
-        showNonRenewable: false,
-        showConsumable: false)
         .inRootView()
         .frame(height: 800)
 }
@@ -143,18 +138,6 @@ extension ProductsSubscription {
     DebugView()
         .inRootView()
         .frame(width: 500, height: 700)
-}
-
-#Preview("Debug") {
-    DebugView()
-        .inRootView()
-        .frame(height: 800)
-}
-
-#Preview("Buy") {
-    PurchaseView()
-        .inRootView()
-        .frame(height: 800)
 }
 
 #Preview("App - Large") {

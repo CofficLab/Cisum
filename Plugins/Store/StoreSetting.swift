@@ -84,7 +84,7 @@ struct StoreSetting: View, SuperLog, SuperEvent {
             })
         }
         .sheet(isPresented: $showBuySheet) {
-            PurchaseView()
+            PurchaseView(showSubscription: true)
         }
         .sheet(isPresented: $showRestoreSheet) {
             RestoreView()
