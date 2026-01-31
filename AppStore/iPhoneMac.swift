@@ -13,7 +13,7 @@ struct iPhoneMac: View {
             }
             .inMagicVStackCenter()
 
-            LogoView(size: .infinity)
+            LogoView()
                 .background(Config.rootBackground)
                 .shadowSm()
                 .inIMacScreen()

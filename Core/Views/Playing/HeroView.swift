@@ -90,8 +90,7 @@ extension HeroView {
     private var demoAlbumView: some View {
         LogoView(
             background: .white.opacity(0.3),
-            backgroundShape: .circle,
-            size: 200
+            backgroundShape: .circle
         )
     }
 }

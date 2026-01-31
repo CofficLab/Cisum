@@ -15,7 +15,7 @@ struct AppStoreiOS: View {
 
             ZStack {
                 // 第二个 ContentView（背景）
-                LogoView(size: .infinity)
+                LogoView()
                     .background(Config.rootBackground)
                     .inIPadScreen()
                     .frame(width: Config.minWidth)
@@ -31,7 +31,7 @@ struct AppStoreiOS: View {
                     .shadowSm()
 
                 // 第一个 ContentView（前景）
-                LogoView(size: .infinity)
+                LogoView()
                     .background(Config.rootBackground)
                     .inIPhoneScreen()
                     .shadowXl()

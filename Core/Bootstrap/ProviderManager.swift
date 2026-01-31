@@ -41,9 +41,7 @@ final class ProviderManager: SuperLog {
             defaultArtworkBuilder: {
                 LogoView(
                     background: .white.opacity(0.3),
-                    backgroundShape: .circle,
-                    size: 200
-                )
+                    backgroundShape: .circle,                )
             }
         )
 

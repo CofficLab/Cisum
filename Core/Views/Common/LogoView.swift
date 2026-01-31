@@ -21,20 +21,17 @@ struct LogoView: View, SuperLog {
     var background: Color?
     var rotationSpeed: Double = 0.0
     var backgroundShape: BackgroundShape = .none
-    var size: CGFloat = 200
 
     @State private var rotationAngle: Double = 0.0
 
     init(
         background: Color? = nil,
         rotationSpeed: Double = 0.0,
-        backgroundShape: BackgroundShape = .none,
-        size: CGFloat = 200
+        backgroundShape: BackgroundShape = .none
     ) {
         self.background = background
         self.rotationSpeed = rotationSpeed
         self.backgroundShape = backgroundShape
-        self.size = size
     }
 
     var body: some View {
@@ -45,9 +42,9 @@ struct LogoView: View, SuperLog {
         return Image.makeCoffeeReelIcon(
             useDefaultBackground: false,
             // x版本指向x点钟方向
-            handleRotation: 0,
-            size: size
+            handleRotation: 0
         )
+        .infinite()
         .background(backgroundShapeView)
         .shadow3xl()
         .rotationEffect(.degrees(rotationAngle))
@@ -101,6 +98,6 @@ struct LogoView: View, SuperLog {
 }
 
 #Preview("LogoView - Snapshot") {
-    LogoView(background: .green.opacity(0.6), size: 800)
-        .inMagicContainer(.init(width: 800, height: 800), scale: 1)
+    LogoView(background: .green.opacity(0.6))
+        .inMagicContainer(.init(width: 500, height: 500), scale: 1)
 }
