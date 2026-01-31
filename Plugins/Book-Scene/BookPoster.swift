@@ -1,10 +1,10 @@
 import SwiftUI
+import MagicAlert
 import MagicKit
 
 /// 有声书海报视图，展示示例书目。
 struct BookPoster: View {
     @EnvironmentObject private var pluginProvider: PluginProvider
-    @EnvironmentObject private var m: MagicMessageProvider
     @Environment(\.posterDismissAction) private var dismissAction
 
     var books: [String] = [
@@ -33,7 +33,7 @@ struct BookPoster: View {
                         try pluginProvider.setCurrentScene("有声书")
                         dismissAction()
                     } catch {
-                        m.error(error)
+                        alert_error(error)
                     }
                 }
             }) {
