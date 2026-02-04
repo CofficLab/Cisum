@@ -43,6 +43,9 @@ struct PurchaseView: View, SuperLog {
                     }
                     .padding(.top, 8)
 
+                    // 版本对比
+                    VersionComparisonView()
+
                     // 商品
                     ProductsSubscription(showHeader: false)
                 }
