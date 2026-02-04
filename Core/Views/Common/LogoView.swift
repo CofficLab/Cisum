@@ -98,6 +98,7 @@ struct LogoView: View, SuperLog {
 }
 
 #Preview("LogoView - Snapshot") {
-    LogoView(background: .green.opacity(0.6))
-        .inMagicContainer(.init(width: 500, height: 500), scale: 1)
+    LogoView()
+        .background(LinearGradient.green2teal)
+        .inMagicContainer(.init(width: 1024, height: 1024), scale: 0.5)
 }
