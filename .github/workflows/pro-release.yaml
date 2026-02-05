@@ -2,47 +2,54 @@ name: Pro Release
 
 on:
   push:
-    tags:
-      - '*v'
-  workflow_run:
-    workflows:
-      - 'Pro Bump'
-    types:
-      - completed
+    branches:
+      - main
 
 permissions:
   contents: write
 
 env:
-  tag: '-'
+  tag: ${{ github.event.head_commit.id }}
 
 jobs:
   release:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v5
-      - run: ls -alhR
+        with:
+          fetch-depth: 0
+
       - name: 读取版本号
+        id: version
         run: |
           # 读取配置文件路径
           projectFile=$(find $(pwd) -type f -name "*.pbxproj" | head -n 1)
 
           # 读取文件中的版本号
-          version=$(grep -o 'MARKETING_VERSION = [^"]*' $projectFile | head -n 1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+          version=$(grep -o 'MARKETING_VERSION = [^"]*' "$projectFile" | head -n 1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
 
-          echo "版本号->$version"
-
-          build=$(agvtool what-version -terse)
-
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "📦 Current Version: $version"
+          echo "🏷️  Releasing as: v$version"
           echo "tag=v$version" >> $GITHUB_ENV
+
+      - name: 显示变更摘要
+        run: |
+          echo "### 🎯 正式版本发布" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **发布版本**: v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **来源**: Xcode 配置文件中的版本号" >> $GITHUB_STEP_SUMMARY
+
       - name: Generate Changelog
         run: |
-          chmod +x scripts/generate-changelog.sh
-          ./scripts/generate-changelog.sh "${{ github.workspace }}-CHANGELOG.txt"
+          chmod +x .github/scripts/generate-changelog.sh
+          ./.github/scripts/generate-changelog.sh "${{ github.workspace }}-CHANGELOG.txt"
+
       - name: Display Changelog
         run: cat "${{ github.workspace }}-CHANGELOG.txt"
-      - uses: softprops/action-gh-release@v1
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.tag }}
           body_path: ${{ github.workspace }}-CHANGELOG.txt
@@ -55,3 +62,5 @@ jobs:
             ./**/*.ipa
             ./**/*.AppImage
             ./**/*.snap
+          draft: false
+          prerelease: false

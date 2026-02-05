@@ -31,14 +31,14 @@ jobs:
       - name: 计算新版本号
         id: version
         run: |
-          chmod +x scripts/bump-version.sh
-          chmod +x scripts/calculate-version.sh
+          chmod +x .github/scripts/bump-version.sh
+          chmod +x .github/scripts/calculate-version.sh
 
           # 计算版本增量类型（major/minor/patch）
-          INCREMENT=$(./scripts/bump-version.sh)
+          INCREMENT=$(./.github/scripts/bump-version.sh)
 
           # 计算并更新新版本号
-          VERSION=$(./scripts/calculate-version.sh)
+          VERSION=$(./.github/scripts/calculate-version.sh)
 
           # 添加 p 前缀
           TAG_VERSION="p${VERSION}"

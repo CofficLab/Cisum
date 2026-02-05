@@ -39,8 +39,8 @@ jobs:
           echo "tag=$TAG_NAME" >> $GITHUB_ENV
       - name: Generate Changelog
         run: |
-          chmod +x scripts/generate-changelog.sh
-          ./scripts/generate-changelog.sh "${{ github.workspace }}-CHANGELOG.txt"
+          chmod +x .github/scripts/generate-changelog.sh
+          ./.github/scripts/generate-changelog.sh "${{ github.workspace }}-CHANGELOG.txt"
       - name: Display Changelog
         run: cat "${{ github.workspace }}-CHANGELOG.txt"
       - uses: softprops/action-gh-release@v1
