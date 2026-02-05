@@ -6,14 +6,17 @@
 # increment type determined by bump-version.sh and updates
 # the Xcode project file.
 #
-# Usage: ./scripts/calculate-version.sh
+# Usage: ./.github/scripts/calculate-version.sh
 # Output: <version> (e.g., 1.2.3)
 #
 
 set -euo pipefail
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Get the increment type (major, minor, or patch)
-INCREMENT_TYPE=$(./scripts/bump-version.sh)
+INCREMENT_TYPE=$("$SCRIPT_DIR/bump-version.sh")
 
 # Find the Xcode project file
 PROJECT_FILE=$(find $(pwd) -type f -name "*.pbxproj" | head -n 1)
