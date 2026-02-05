@@ -1,67 +1,67 @@
 {
   "images" : [
     {
-      "filename" : "20250904225158-iOS-1024x1024.png",
+      "filename" : "20260204223940-legacy-ios-1024x1024.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
     },
     {
-      "filename" : "20250904225158-macOS-16x16.png",
+      "filename" : "20260204223940-legacy-macos-16x16.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "16x16"
     },
     {
-      "filename" : "20250904225158-macOS-16x16@2x.png",
+      "filename" : "20260204223940-legacy-macos-16x16@2x.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "16x16"
     },
     {
-      "filename" : "20250904225158-macOS-32x32.png",
+      "filename" : "20260204223940-legacy-macos-32x32.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "32x32"
     },
     {
-      "filename" : "20250904225158-macOS-32x32@2x.png",
+      "filename" : "20260204223940-legacy-macos-32x32@2x.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "32x32"
     },
     {
-      "filename" : "20250904225158-macOS-128x128.png",
+      "filename" : "20260204223940-legacy-macos-128x128.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "128x128"
     },
     {
-      "filename" : "20250904225158-macOS-128x128@2x.png",
+      "filename" : "20260204223940-legacy-macos-128x128@2x.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "128x128"
     },
     {
-      "filename" : "20250904225158-macOS-256x256.png",
+      "filename" : "20260204223940-legacy-macos-256x256.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "256x256"
     },
     {
-      "filename" : "20250904225158-macOS-256x256@2x.png",
+      "filename" : "20260204223940-legacy-macos-256x256@2x.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "256x256"
     },
     {
-      "filename" : "20250904225158-macOS-512x512.png",
+      "filename" : "20260204223940-legacy-macos-512x512.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "512x512"
     },
     {
-      "filename" : "20250904225158-macOS-512x512@2x.png",
+      "filename" : "20260204223940-legacy-macos-512x512@2x.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "512x512"

@@ -11,15 +11,11 @@ struct GuideDoneView: View, SuperLog {
     @State private var hasScheduledNotification = false
 
     var body: some View {
-        VStack {
-            Spacer()
-            MagicLoading(showProgress: false) {
-                LogoView(background: .orange.opacity(0.8), rotationSpeed: 0.02, backgroundShape: .circle)
-            }
-            Spacer()
-        }
-        .onChange(of: isActive, handleActiveChange)
-        .onAppear(perform: handleOnAppear)
+        LogoView(rotationSpeed: 0.1)
+            .padding()
+            .inMagicVStackCenter()
+            .onChange(of: isActive, handleActiveChange)
+            .onAppear(perform: handleOnAppear)
     }
 }
 
@@ -55,8 +51,6 @@ extension GuideDoneView {
         }
     }
 }
-
-
 
 // MARK: Preview
 

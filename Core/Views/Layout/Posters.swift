@@ -22,7 +22,6 @@ struct Posters: View, SuperLog {
     nonisolated static let verbose = true
 
     @EnvironmentObject var p: PluginProvider
-    @EnvironmentObject var m: MagicMessageProvider
     @EnvironmentObject var man: PlayMan
 
     @Binding var isPresented: Bool

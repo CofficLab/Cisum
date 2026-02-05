@@ -1,54 +1,24 @@
 import MagicKit
-import SwiftUI
 import OSLog
+import SwiftUI
 
-// MARK: - Types
-
-extension LogoView {
-    enum BackgroundShape {
-        case none
-        case circle
-        case rectangle
-        case roundedRectangle(cornerRadius: CGFloat)
-        case capsule
-    }
-}
-
-struct LogoView: View,SuperLog {
-    nonisolated static let verbose = false
-    nonisolated static let emoji = "🎨"
-
-    var background: Color? = nil
+struct LogoView: View {
     var rotationSpeed: Double = 0.0
-    var backgroundShape: BackgroundShape = .none
-    var size: CGFloat = 200
-    
+
     @State private var rotationAngle: Double = 0.0
 
     init(
-        background: Color? = nil,
-        rotationSpeed: Double = 0.0,
-        backgroundShape: BackgroundShape = .none,
-        size: CGFloat = 200
+        rotationSpeed: Double = 0.0
     ) {
-        self.background = background
         self.rotationSpeed = rotationSpeed
-        self.backgroundShape = backgroundShape
-        self.size = size
     }
 
     var body: some View {
-        if Self.verbose {
-            os_log("\(self.t)开始渲染")
-        }
-
-        return Image.makeCoffeeReelIcon(
+        Image.makeCoffeeReelIcon(
             useDefaultBackground: false,
-            // x版本指向x点钟方向
-            handleRotation: 0,
-            size: size
+            handleRotation: 0
         )
-        .background(backgroundShapeView)
+        .infinite()
         .shadow3xl()
         .rotationEffect(.degrees(rotationAngle))
         .onAppear {
@@ -57,25 +27,7 @@ struct LogoView: View,SuperLog {
             }
         }
     }
-    
-    @ViewBuilder
-    private var backgroundShapeView: some View {
-        if let background = background {
-            switch backgroundShape {
-            case .none:
-                background
-            case .circle:
-                Circle().fill(background)
-            case .rectangle:
-                Rectangle().fill(background)
-            case .roundedRectangle(let cornerRadius):
-                RoundedRectangle(cornerRadius: cornerRadius).fill(background)
-            case .capsule:
-                Capsule().fill(background)
-            }
-        }
-    }
-    
+
     private func startRotation() {
         withAnimation(.linear(duration: 1.0 / rotationSpeed).repeatForever(autoreverses: false)) {
             rotationAngle = 360
@@ -83,27 +35,27 @@ struct LogoView: View,SuperLog {
     }
 }
 
-#if os(macOS)
 #Preview("LogoView") {
     ScrollView {
         LogoView()
-            .frame(width: 400, height: 250)
+            .frame(width: 250, height: 250)
 
-        LogoView(background: .blue.opacity(0.2), backgroundShape: .circle)
-            .frame(width: 400, height: 250)
+        LogoView()
+            .background(.blue.opacity(0.2))
+            .roundedFull()
+            .frame(width: 250, height: 250)
 
-        LogoView(background: .green.opacity(0.2), backgroundShape: .roundedRectangle(cornerRadius: 20))
-            .frame(width: 400, height: 250)
-
-        LogoView(background: .orange.opacity(0.2), rotationSpeed: 0.5, backgroundShape: .capsule)
-            .frame(width: 400, height: 250)
+        LogoView(rotationSpeed: 0.05)
+            .background(.green.opacity(0.2))
+            .roundedFull()
+            .frame(width: 250, height: 250)
     }
     .frame(height: 800)
+    .frame(width: 500)
 }
-#endif
 
-#if os(iOS)
-#Preview("LogoView - iPhone") {
-    LogoView(background: .purple.opacity(0.2), backgroundShape: .circle)
+#Preview("LogoView - Snapshot") {
+    LogoView()
+        .background(LinearGradient.green2teal)
+        .inMagicContainer(.init(width: 1024, height: 1024), scale: 0.5)
 }
-#endif

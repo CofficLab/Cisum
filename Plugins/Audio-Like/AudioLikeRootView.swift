@@ -12,7 +12,6 @@ struct AudioLikeRootView<Content>: View, SuperLog where Content: View {
     private static var verbose: Bool { false }
 
     @EnvironmentObject var man: PlayMan
-    @EnvironmentObject var m: MagicMessageProvider
     @EnvironmentObject var p: PluginProvider
 
     private var content: Content
@@ -104,7 +103,7 @@ extension AudioLikeRootView {
 
             } catch {
                 os_log(.error, "\(self.t)❌ 保存喜欢状态失败: \(error.localizedDescription)")
-                m.error("保存喜欢状态失败: \(error.localizedDescription)")
+                alert_error("保存喜欢状态失败: \(error.localizedDescription)")
             }
         }
     }

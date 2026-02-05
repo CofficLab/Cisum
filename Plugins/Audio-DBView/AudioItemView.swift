@@ -1,5 +1,6 @@
 import Foundation
 import MagicKit
+import MagicAlert
 import OSLog
 import SwiftUI
 
@@ -9,7 +10,6 @@ struct AudioItemView: View, Equatable, SuperLog {
     nonisolated static let emoji = "🎵"
     nonisolated static let verbose = false
 
-    @EnvironmentObject var m: MagicMessageProvider
     @EnvironmentObject var playMan: PlayMan
 
     let url: URL
@@ -153,12 +153,12 @@ extension AudioItemView {
                 try await url.copyTo(finalDestinationURL, caller: self.className)
                 if Self.verbose {
                     os_log("\(Self.t)✅ 文件已导出到: \(finalDestinationURL.path)")
-                    self.m.info("文件已复制到下载目录")
+                    alert_info("文件已复制到下载目录")
                 }
             } catch {
                 if Self.verbose {
                     os_log("\(Self.t)❌ 导出文件失败: \(error.localizedDescription)")
-                    self.m.error("导出文件失败: \(error.localizedDescription)")
+                    alert_error("导出文件失败: \(error.localizedDescription)")
                 }
             }
         }
@@ -202,7 +202,7 @@ extension AudioItemView {
                 if Self.verbose {
                     os_log("\(Self.t)🗑️ 文件已删除: \(url.path)")
                 }
-                self.m.info("文件已删除")
+                alert_info("文件已删除")
 
                 // 发送通知刷新列表
                 NotificationCenter.default.post(
@@ -213,7 +213,7 @@ extension AudioItemView {
                 if Self.verbose {
                     os_log("\(Self.t)❌ 删除文件失败: \(error.localizedDescription)")
                 }
-                self.m.error("删除文件失败: \(error.localizedDescription)")
+                alert_error("删除文件失败: \(error.localizedDescription)")
             }
         }
     }

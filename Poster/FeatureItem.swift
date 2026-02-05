@@ -8,36 +8,36 @@ struct AppStoreFeatureItem: View {
     let description: String
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 32) {
             Image(systemName: icon)
-                .font(.system(size: 24))
+                .font(.system(size: 48))
                 .foregroundStyle(.primary)
-                .frame(width: 44)
+                .frame(width: 56)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text(title)
-                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .font(.system(size: 40, weight: .semibold, design: .rounded))
                     .foregroundColor(.primary)
 
                 Text(description)
-                    .font(.system(size: 14))
+                    .font(.system(size: 28))
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer()
         }
-        .padding(16)
-        .frame(width: 380)
+        .padding(.vertical, 32)
+        .padding(.horizontal, 64)
         .background(.regularMaterial)
-        .roundedMedium()
+        .roundedExtraLarge()
         .shadowMd()
     }
 }
 
 // MARK: - Preview
 
-#Preview("App Store Hero") {
-    AppStoreHero()
+#Preview("App Store iCloud") {
+    AppStoreICloud()
         .inMagicContainer(.macBook13, scale: 0.5)
 }

@@ -7,11 +7,8 @@ import SwiftUI
 typealias PlayMan = MagicPlayMan
 typealias PlayAsset = MagicAsset
 typealias PlayMode = MagicPlayMode
-typealias Logger = MagicLogger
 typealias MagicApp = MagicKit.MagicApp
 typealias SuperLog = MagicKit.SuperLog
-typealias MagicLoading = MagicKit.MagicLoading
-typealias MagicMessageProvider = MagicAlert.MagicMessageProvider
 typealias MagicSettingSection = MagicKit.MagicSettingSection
 typealias MagicSettingRow = MagicKit.MagicSettingRow
 

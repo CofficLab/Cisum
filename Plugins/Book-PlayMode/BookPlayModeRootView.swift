@@ -11,7 +11,6 @@ struct BookPlayModeRootView<Content>: View, SuperLog where Content: View {
     private let verbose = false
 
     @EnvironmentObject var man: PlayMan
-    @EnvironmentObject var m: MagicMessageProvider
     @EnvironmentObject var p: PluginProvider
 
     private var content: Content

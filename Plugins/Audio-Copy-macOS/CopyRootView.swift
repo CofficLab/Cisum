@@ -83,7 +83,7 @@
 
             guard let disk = await MainActor.run(body: { AudioPlugin.getAudioDisk() }) else {
                 os_log(.error, "\(self.t)No Disk")
-                await MainActor.run { self.m.error("No Disk") }
+                await MainActor.run { alert_error("No Disk") }
                 return false
             }
 

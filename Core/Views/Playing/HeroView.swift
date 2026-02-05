@@ -26,9 +26,8 @@ struct HeroView: View, SuperLog {
                     } else if isDemoMode {
                         // Demo mode: 显示静态演示封面
                         demoAlbumView
-                            .frame(maxWidth: .infinity)
+                            .frame(width: geo.size.width * 0.6)
                             .frame(height: getAlbumHeight(geo))
-                            .clipped()
                     } else {
                         playMan.makeHeroView(verbose: Self.verbose, avatarShape: .roundedRectangle(cornerRadius: 8))
                             .frame(maxWidth: .infinity)
@@ -88,11 +87,7 @@ extension HeroView {
 
     // Demo mode 的静态演示封面
     private var demoAlbumView: some View {
-        LogoView(
-            background: .white.opacity(0.3),
-            backgroundShape: .circle,
-            size: 200
-        )
+        LogoView()
     }
 }
 
@@ -115,5 +110,12 @@ extension HeroView {
 #Preview("App") {
     ContentView()
         .inRootView()
+        .withDebugBar()
+}
+
+#Preview("App Demo") {
+    ContentView()
+        .inRootView()
+        .inDemoMode()
         .withDebugBar()
 }

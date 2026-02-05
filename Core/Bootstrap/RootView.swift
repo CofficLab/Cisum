@@ -16,7 +16,6 @@ struct RootView<Content>: View, SuperEvent, SuperLog, SuperThread where Content:
     @State var iCloudAvailable = true
 
     @StateObject var appProvider: AppProvider
-    @StateObject var messageProvider: MagicMessageProvider
     @StateObject var pluginProvider: PluginProvider
     @StateObject var stateProvider: StateProvider
 
@@ -33,7 +32,6 @@ struct RootView<Content>: View, SuperEvent, SuperLog, SuperThread where Content:
 
         self.content = content()
         self._appProvider = StateObject(wrappedValue: manager.app)
-        self._messageProvider = StateObject(wrappedValue: manager.messageProvider)
         self._stateProvider = StateObject(wrappedValue: manager.stateMessageProvider)
         self._pluginProvider = StateObject(wrappedValue: manager.plugin)
         self.man = manager.man
@@ -88,7 +86,6 @@ struct RootView<Content>: View, SuperEvent, SuperLog, SuperThread where Content:
         .environmentObject(man)
         .environmentObject(appProvider)
         .environmentObject(pluginProvider)
-        .environmentObject(messageProvider)
         .environmentObject(stateProvider)
     }
 

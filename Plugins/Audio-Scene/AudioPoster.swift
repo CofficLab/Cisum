@@ -1,10 +1,10 @@
 import MagicKit
 import SwiftUI
+import MagicAlert
 
 /// 音频海报视图，展示示例曲目列表。
 struct AudioPoster: View {
     @EnvironmentObject private var pluginProvider: PluginProvider
-    @EnvironmentObject private var m: MagicMessageProvider
     @Environment(\.posterDismissAction) private var dismissAction
 
     var books: [String] = [
@@ -71,7 +71,7 @@ struct AudioPoster: View {
                         try pluginProvider.setCurrentScene("音乐库")
                         dismissAction()
                     } catch {
-                        m.error(error)
+                        alert_error(error)
                     }
                 }
             }) {
