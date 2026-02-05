@@ -4,26 +4,18 @@ on:
   push:
     tags:
       - "p*"
-  workflow_run:
-    workflows:
-      - "Pre Bump"
-    types:
-      - completed
 
 permissions:
   contents: write
-
-env:
-  tag: "-"
 
 jobs:
   release:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v5
-      - run: ls -alhR
+
       - name: 读取版本号
+        id: version
         run: |
           # 从 Git ref 中提取标签名称（带 p 前缀）
           TAG_NAME=${GITHUB_REF#refs/tags/}
@@ -31,23 +23,33 @@ jobs:
           # 提取版本号（去掉 p 前缀）
           VERSION=$(echo "$TAG_NAME" | sed 's/^p//')
 
-          echo "标签名->$TAG_NAME"
-          echo "版本号->$VERSION"
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Tag: $TAG_NAME"
+          echo "🔢 Version: $VERSION"
 
-          build=$(agvtool what-version -terse)
+      - name: 显示变更摘要
+        run: |
+          echo "### 🚀 Pre-release 版本发布" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **发布版本**: ${{ steps.version.outputs.tag_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **版本号**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
 
-          echo "tag=$TAG_NAME" >> $GITHUB_ENV
       - name: Generate Changelog
         run: |
           chmod +x .github/scripts/generate-changelog.sh
           ./.github/scripts/generate-changelog.sh "${{ github.workspace }}-CHANGELOG.txt"
+
       - name: Display Changelog
         run: cat "${{ github.workspace }}-CHANGELOG.txt"
-      - uses: softprops/action-gh-release@v1
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ env.tag }}
+          tag_name: ${{ steps.version.outputs.tag_name }}
           body_path: ${{ github.workspace }}-CHANGELOG.txt
           prerelease: true
+          draft: false
           files: |
             ./**/*.dmg
             ./**/*.zip
