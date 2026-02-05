@@ -3,9 +3,10 @@ import SwiftUI
 
 extension View {
     func inPosterContainer() -> some View {
-        self.magicCentered()
-            .background {
-                GeometryReader { geo in
+        GeometryReader { geo in
+            self.magicCentered()
+                .padding(.horizontal, geo.size.width * 0.05)
+                .background {
                     ZStack {
                         // 左上角大圆形装饰
                         Circle()
@@ -58,20 +59,21 @@ extension View {
                             .rotationEffect(.degrees(-10))
                     }
                 }
-            }
-            .background(
-                LinearGradient(
-                    colors: [
-                        Color.green.opacity(0.4),
-                        Color.teal.opacity(0.3),
-                        Color.mint.opacity(0.2),
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+                .clipped()
+        }
+        .background(
+            LinearGradient(
+                colors: [
+                    Color.green.opacity(0.4),
+                    Color.teal.opacity(0.3),
+                    Color.mint.opacity(0.2),
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
             )
-            .background(.black)
-            .colorScheme(.dark)
+        )
+        .background(.black)
+        .colorScheme(.dark)
     }
 }
 

@@ -3,36 +3,49 @@ import SwiftUI
 
 struct iPhoneICloud: View {
     var body: some View {
-        Group {
-            Group {
-                Text("Cisum")
-                    .asPosterTitleForIPhone()
+        GeometryReader { geo in
+            VStack {
+                Group {
+                    Text("Cisum")
+                        .asPosterTitleForIPhone()
 
-                Text("完美支持 iCloud")
-                    .asPosterSubTitleForIPhone()
-            }
-            .inMagicVStackCenter()
+                    Text("完美支持 iCloud")
+                        .asPosterSubTitleForIPhone()
+                }
+                .inMagicVStackCenter()
+                .frame(height: geo.size.height * 0.3)
 
-            ContentLayout()
-                .hideDetail()
-                .inRootView()
-                .inDemoMode()
-                .inDownloadingMode()
-                .frame(width: Config.minWidth + 100, height: 600)
-                .frame(height: 600, alignment: .top)
-                .clipped()
-                .roundedLarge()
-                .shadowSm()
-
+                ContentLayout()
+                    .hideDetail()
+                    .inRootView()
+                    .inDemoMode()
+                    .inDownloadingMode()
+                    .frame(width: Config.minWidth + 100)
+                    .frame(height: geo.size.height * 0.3)
+                    .clipped()
+                    .roundedLarge()
+                    .shadowSm()
+                    .scaleEffect(2)
+                    .frame(height: geo.size.height * 0.7)
+            }.inMagicHStackCenter()
         }
-        .inMagicVStackCenter()
         .inPosterContainer()
     }
 }
 
 // MARK: - Preview
 
-#Preview("App Store Hero") {
+#Preview("App Store iOS - iCloud - iPhone 5.5") {
     iPhoneICloud()
-        .inMagicContainer(CGSize(width: 621, height: 1344), scale: 1)
+        .inMagicContainer(.iPhone55, scale: 0.45)
+}
+
+#Preview("App Store iOS - iCloud - iPhone 6.5") {
+    iPhoneICloud()
+        .inMagicContainer(.iPhone65, scale: 0.45)
+}
+
+#Preview("App Store iOS - iCloud - iPhone 6.9") {
+    iPhoneICloud()
+        .inMagicContainer(.iPhone69, scale: 0.45)
 }

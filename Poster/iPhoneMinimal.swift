@@ -3,35 +3,49 @@ import SwiftUI
 
 struct iPhoneMinimal: View {
     var body: some View {
-        Group {
-            Group {
-                Text("Cisum")
-                    .asPosterTitleForIPhone()
+        GeometryReader { geo in
+            VStack {
+                Group {
+                    Text("Cisum")
+                        .asPosterTitleForIPhone()
 
-                Text("极简设计")
-                    .asPosterSubTitleForIPhone()
-            }
-            .inMagicVStackCenter()
+                    Text("极简设计")
+                        .asPosterSubTitleForIPhone()
+                }
+                .inMagicVStackCenter()
+                .frame(height: geo.size.height * 0.3)
 
-            ZStack {
-                ContentLayout()
-                    .hideDetail()
-                    .inRootView()
-                    .inDemoMode()
-                    .frame(width: Config.minWidth + 100)
-                    .frame(height: 600)
-                    .roundedLarge()
-                    .shadowSm()
-            }
+                ZStack {
+                    ContentLayout()
+                        .hideDetail()
+                        .inRootView()
+                        .inDemoMode()
+                        .frame(width: Config.minWidth + 100)
+                        .frame(height: geo.size.height * 0.3)
+                        .roundedLarge()
+                        .shadowSm()
+                        .scaleEffect(2)
+                }
+                .frame(height: geo.size.height * 0.7)
+            }.inMagicHStackCenter()
         }
-        .inMagicVStackCenter()
         .inPosterContainer()
     }
 }
 
 // MARK: - Preview
 
-#Preview("App Store iPhone Minimal") {
+#Preview("App Store iOS - Minimal - iPhone 5.5") {
     iPhoneMinimal()
-        .inMagicContainer(CGSize(width: 621, height: 1344), scale: 1)
+        .inMagicContainer(.iPhone55, scale: 0.45)
+}
+
+#Preview("App Store iOS - Minimal - iPhone 6.5") {
+    iPhoneMinimal()
+        .inMagicContainer(.iPhone65, scale: 0.45)
+}
+
+#Preview("App Store iOS - Minimal - iPhone 6.9") {
+    iPhoneMinimal()
+        .inMagicContainer(.iPhone69, scale: 0.45)
 }

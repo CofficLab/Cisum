@@ -3,46 +3,71 @@ import SwiftUI
 
 struct AppStoreiOS: View {
     var body: some View {
-        Group {
-            Group {
-                Text("iOS 完美适配")
-                    .asPosterTitle()
-            }
-            .inMagicVStackCenter()
-            .offset(x: 60, y: -20)
+        GeometryReader { geo in
+            HStack {
+                Group {
+                    Text("适配 iOS")
+                        .asPosterTitle()
 
-            Spacer(minLength: 0)
+                    VStack(spacing: 16) {
+                        AppStoreFeatureItem(
+                            icon: "icloud",
+                            title: "云端同步",
+                            description: "音乐库实时同步，随时随地访问"
+                        )
+                        AppStoreFeatureItem(
+                            icon: "ipad.and.iphone",
+                            title: "多设备同步",
+                            description: "iPhone、iPad、Mac 数据无缝流转"
+                        )
+                        AppStoreFeatureItem(
+                            icon: "shield",
+                            title: "安全备份",
+                            description: "自动备份到 iCloud，数据永不丢失"
+                        )
+                        AppStoreFeatureItem(
+                            icon: "arrow.clockwise",
+                            title: "自动同步",
+                            description: "添加或修改后自动同步，无需手动操作"
+                        )
+                    }
+                    .frame(width: geo.size.width * 0.4)
+                    .py4()
+                }
+                .frame(width: geo.size.width * 0.5)
+                .inMagicVStackCenter()
 
-            ZStack {
-                // 第二个 ContentView（背景）
-                LogoView()
-                    .background(Config.rootBackground)
-                    .inIPadScreen()
-                    .frame(width: Config.minWidth)
-                    .frame(height: 650)
-                    .roundedLarge()
-                    .rotation3DEffect(
-                        .degrees(-8),
-                        axis: (x: 0, y: 0, z: 1),
-                        anchor: .bottomLeading,
-                        perspective: 1.0
-                    )
-                    .offset(x: -60, y: 0)
-                    .shadowSm()
+                Spacer()
 
-                // 第一个 ContentView（前景）
-                LogoView()
-                    .background(Config.rootBackground)
-                    .inIPhoneScreen()
-                    .shadowXl()
-                    .rotation3DEffect(
-                        .degrees(4),
-                        axis: (x: 0, y: 0, z: 1),
-                        anchor: .bottomLeading,
-                        perspective: 1.0
-                    )
-                    .offset(x: 80, y: -20)
-                    .shadowSm()
+                ZStack {
+                    LogoView()
+                        .background(Config.rootBackground)
+                        .inIPadScreen()
+                        .shadowSm()
+                        .frame(height: geo.size.height * 0.8)
+                        .roundedLarge()
+                        .rotation3DEffect(
+                            .degrees(-8),
+                            axis: (x: 0, y: 0, z: 1),
+                            anchor: .bottomLeading,
+                            perspective: 1.0
+                        )
+                        .offset(x: -50, y: 0)
+
+                    LogoView()
+                        .background(Config.rootBackground)
+                        .inIPhoneScreen()
+                        .shadow3xl()
+                        .frame(height: geo.size.height * 0.8)
+                        .rotation3DEffect(
+                            .degrees(4),
+                            axis: (x: 0, y: 0, z: 1),
+                            anchor: .bottomLeading,
+                            perspective: 1.0
+                        )
+                        .offset(x: 150, y: -20)
+                }
+                .frame(width: geo.size.width * 0.5)
             }
         }
         .inPosterContainer()
