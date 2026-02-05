@@ -1,4 +1,3 @@
-import MagicDevice
 import MagicKit
 import OSLog
 import SwiftData
@@ -135,7 +134,7 @@ struct ControlView: View, SuperLog {
     // MARK: 是否显示右侧的封面图
 
     private func shouldShowRightAlbum(_ geo: GeometryProxy) -> Bool {
-        geo.size.width > MagicDevice.iPad_mini.width
+        geo.size.width > CGSize.iPadMini.width
     }
 }
 

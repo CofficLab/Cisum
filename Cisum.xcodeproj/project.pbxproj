@@ -42,7 +42,6 @@
 		F5A9A65D2F1F088400506C45 /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = F5A9A65C2F1F088400506C45 /* MagicPlayMan */; };
 		F5C4A3052F10FADB0005C730 /* MagicKit in Frameworks */ = {isa = PBXBuildFile; productRef = F5C4A3042F10FADB0005C730 /* MagicKit */; };
 		F5C4A3082F11003D0005C730 /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = F5C4A3072F11003D0005C730 /* MagicPlayMan */; };
-		F5D179F62F10D996005CA21F /* MagicDevice in Frameworks */ = {isa = PBXBuildFile; productRef = F5D179F52F10D996005CA21F /* MagicDevice */; };
 		F5DBAB0B2F21F03E00E09965 /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = F5DBAB0A2F21F03E00E09965 /* MagicPlayMan */; };
 		F5E34E562E67D9D800DAF78A /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = F5E34E552E67D9D800DAF78A /* MagicPlayMan */; };
 		F5E41B332E5ED11D0072FBE3 /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = F5E41B322E5ED11D0072FBE3 /* MagicPlayMan */; };
@@ -64,7 +63,7 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F54D53832D223ED000CA53BE /* Plugins */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Plugins; sourceTree = "<group>"; };
 		F54D54552D223F2400CA53BE /* Core */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Core; sourceTree = "<group>"; };
-		F58CBB4C2E7BBC2F00522F75 /* AppStore */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = AppStore; sourceTree = "<group>"; };
+		F58CBB4C2E7BBC2F00522F75 /* Poster */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Poster; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,7 +84,6 @@
 				0B55531C2F23AB1900F585EE /* MagicPlayMan in Frameworks */,
 				F520CDFE2F1DD69600D18E0D /* MagicPlayMan in Frameworks */,
 				0BE0A5FF2E5E037700A9BE9C /* MagicPlayMan in Frameworks */,
-				F5D179F62F10D996005CA21F /* MagicDevice in Frameworks */,
 				F5A9A65D2F1F088400506C45 /* MagicPlayMan in Frameworks */,
 				F5A9A65A2F1F087C00506C45 /* MagicKit in Frameworks */,
 				F520CE072F1DDF3900D18E0D /* MagicKit in Frameworks */,
@@ -121,7 +119,7 @@
 		0B9C1C342AAF18FE001A26AF = {
 			isa = PBXGroup;
 			children = (
-				F58CBB4C2E7BBC2F00522F75 /* AppStore */,
+				F58CBB4C2E7BBC2F00522F75 /* Poster */,
 				0BB5871C2AD820FA0071AEBD /* Assets.xcassets */,
 				F54D54552D223F2400CA53BE /* Core */,
 				0B1D5A8B2AB305D70010DDF2 /* Info.plist */,
@@ -151,7 +149,7 @@
 			fileSystemSynchronizedGroups = (
 				F54D53832D223ED000CA53BE /* Plugins */,
 				F54D54552D223F2400CA53BE /* Core */,
-				F58CBB4C2E7BBC2F00522F75 /* AppStore */,
+				F58CBB4C2E7BBC2F00522F75 /* Poster */,
 			);
 			name = Cisum;
 			packageProductDependencies = (
@@ -167,7 +165,6 @@
 				0BD3F81B2E67255A00E533B7 /* MagicPlayMan */,
 				F5E34E552E67D9D800DAF78A /* MagicPlayMan */,
 				F5F38B1A2E6A837E00BE9CAE /* MagicPlayMan */,
-				F5D179F52F10D996005CA21F /* MagicDevice */,
 				F51DF0962F10E1E6002BA38B /* MagicKit */,
 				F5C4A3042F10FADB0005C730 /* MagicKit */,
 				F5C4A3072F11003D0005C730 /* MagicPlayMan */,
@@ -227,7 +224,6 @@
 			);
 			mainGroup = 0B9C1C342AAF18FE001A26AF;
 			packageReferences = (
-				F5D179F42F10D996005CA21F /* XCRemoteSwiftPackageReference "MagicDevice" */,
 				0BBE77992F2BA051009C6AC6 /* XCRemoteSwiftPackageReference "MagicPlayMan" */,
 				F51482C72F2C6A6700CEB80D /* XCRemoteSwiftPackageReference "MagicKit" */,
 			);
@@ -543,14 +539,6 @@
 				minimumVersion = 1.5.11;
 			};
 		};
-		F5D179F42F10D996005CA21F /* XCRemoteSwiftPackageReference "MagicDevice" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/nookery/MagicDevice";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -683,11 +671,6 @@
 		F5C4A3072F11003D0005C730 /* MagicPlayMan */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MagicPlayMan;
-		};
-		F5D179F52F10D996005CA21F /* MagicDevice */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F5D179F42F10D996005CA21F /* XCRemoteSwiftPackageReference "MagicDevice" */;
-			productName = MagicDevice;
 		};
 		F5DBAB0A2F21F03E00E09965 /* MagicPlayMan */ = {
 			isa = XCSwiftPackageProductDependency;

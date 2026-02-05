@@ -53,5 +53,5 @@ struct AppStoreICloud: View {
 
 #Preview("App Store iCloud") {
     AppStoreICloud()
-        .inMagicContainer(.macBook13, scale: 0.5)
+        .inMagicContainer(.macBook13_50Percent, scale: 0.5)
 }
