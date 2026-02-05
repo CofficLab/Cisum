@@ -177,19 +177,16 @@
         }
       }
     },
-    "iCloud 云同步" : {
+    "iCloud 值: %@" : {
 
     },
-    "iCloud 值: %@" : {
+    "iCloud 同步" : {
 
     },
     "ID: %@" : {
 
     },
     "ID: CISUM001" : {
-
-    },
-    "iOS 完美适配" : {
 
     },
     "macOS 上也精彩" : {
@@ -1153,6 +1150,9 @@
           }
         }
       }
+    },
+    "适配 iOS" : {
+
     },
     "选择" : {
       "extractionState" : "stale",

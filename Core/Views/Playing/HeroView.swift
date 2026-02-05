@@ -87,10 +87,7 @@ extension HeroView {
 
     // Demo mode 的静态演示封面
     private var demoAlbumView: some View {
-        LogoView(
-            background: .white.opacity(0.3),
-            backgroundShape: .circle
-        )
+        LogoView()
     }
 }
 

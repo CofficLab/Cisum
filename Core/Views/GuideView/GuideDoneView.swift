@@ -11,7 +11,7 @@ struct GuideDoneView: View, SuperLog {
     @State private var hasScheduledNotification = false
 
     var body: some View {
-        LogoView(background: .orange.opacity(0.8), rotationSpeed: 0.1, backgroundShape: .circle)
+        LogoView(rotationSpeed: 0.1)
             .padding()
             .inMagicVStackCenter()
             .onChange(of: isActive, handleActiveChange)

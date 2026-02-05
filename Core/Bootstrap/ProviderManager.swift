@@ -39,9 +39,7 @@ final class ProviderManager: SuperLog {
             locale: .current,
             defaultArtwork: Image.musicFill,
             defaultArtworkBuilder: {
-                LogoView(
-                    background: .white.opacity(0.3),
-                    backgroundShape: .circle,                )
+                LogoView()
             }
         )
 
@@ -49,7 +47,7 @@ final class ProviderManager: SuperLog {
             os_log("\(Self.t)✅ 服务提供者初始化完成")
         }
     }
-    
+
     /// 兼容旧代码：提供 shared 单例（已废弃，建议使用 App 层面的 Provider）
     @available(*, deprecated, message: "使用 App 层面的 Provider 替代单例")
     @MainActor
