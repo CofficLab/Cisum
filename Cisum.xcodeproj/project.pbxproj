@@ -37,6 +37,9 @@
 		F53E1A842E5E8BD800253866 /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = F53E1A832E5E8BD800253866 /* MagicPlayMan */; };
 		F54883EC2E5DA4B00017949F /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = F54883EB2E5DA4B00017949F /* MagicPlayMan */; };
 		F54D180D2F29BA55004D4A65 /* MagicKit in Frameworks */ = {isa = PBXBuildFile; productRef = F54D180C2F29BA55004D4A65 /* MagicKit */; };
+		F5826E6B2F3578070079B285 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5826E6A2F3578070079B285 /* WidgetKit.framework */; };
+		F5826E6D2F3578070079B285 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5826E6C2F3578070079B285 /* SwiftUI.framework */; };
+		F5826E782F3578080079B285 /* CisumWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F5826E682F3578070079B285 /* CisumWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		F595C5AA2F26F25E0086876A /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = F595C5A92F26F25E0086876A /* MagicPlayMan */; };
 		F5A9A65A2F1F087C00506C45 /* MagicKit in Frameworks */ = {isa = PBXBuildFile; productRef = F5A9A6592F1F087C00506C45 /* MagicKit */; };
 		F5A9A65D2F1F088400506C45 /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = F5A9A65C2F1F088400506C45 /* MagicPlayMan */; };
@@ -51,6 +54,30 @@
 		F5F38B1B2E6A837E00BE9CAE /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = F5F38B1A2E6A837E00BE9CAE /* MagicPlayMan */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		F5826E762F3578080079B285 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0B9C1C352AAF18FE001A26AF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F5826E672F3578070079B285;
+			remoteInfo = CisumWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		F5826E7D2F3578080079B285 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				F5826E782F3578080079B285 /* CisumWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		0B1D5A5D2AB3025E0010DDF2 /* Signing.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = Signing.entitlements; sourceTree = "<group>"; };
 		0B1D5A8B2AB305D70010DDF2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -58,11 +85,25 @@
 		0B7792452D15ADF500D78FF4 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		0B92ACC92BBA80F300F1A74F /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		0BB5871C2AD820FA0071AEBD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F5826E682F3578070079B285 /* CisumWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CisumWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F5826E6A2F3578070079B285 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = /System/Library/Frameworks/WidgetKit.framework; sourceTree = "<absolute>"; };
+		F5826E6C2F3578070079B285 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = /System/Library/Frameworks/SwiftUI.framework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		F5826E792F3578080079B285 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = F5826E672F3578070079B285 /* CisumWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F54D53832D223ED000CA53BE /* Plugins */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Plugins; sourceTree = "<group>"; };
 		F54D54552D223F2400CA53BE /* Core */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Core; sourceTree = "<group>"; };
+		F5826E6E2F3578070079B285 /* CisumWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (F5826E792F3578080079B285 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = CisumWidget; sourceTree = "<group>"; };
 		F58CBB4C2E7BBC2F00522F75 /* Poster */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Poster; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -113,6 +154,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F5826E652F3578070079B285 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F5826E6D2F3578070079B285 /* SwiftUI.framework in Frameworks */,
+				F5826E6B2F3578070079B285 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -128,7 +178,19 @@
 				0B92ACC92BBA80F300F1A74F /* README.md */,
 				0B1D5A5D2AB3025E0010DDF2 /* Signing.entitlements */,
 				0B53A6CC2F1C734B00169AF2 /* Cisum.app */,
+				F5826E682F3578070079B285 /* CisumWidgetExtension.appex */,
+				F5826E6E2F3578070079B285 /* CisumWidget */,
+				F5826E692F3578070079B285 /* Frameworks */,
 			);
+			sourceTree = "<group>";
+		};
+		F5826E692F3578070079B285 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F5826E6A2F3578070079B285 /* WidgetKit.framework */,
+				F5826E6C2F3578070079B285 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -141,10 +203,12 @@
 				0B1D5A472AB301AD0010DDF2 /* Sources */,
 				0B1D5A482AB301AD0010DDF2 /* Frameworks */,
 				0B1D5A492AB301AD0010DDF2 /* Resources */,
+				F5826E7D2F3578080079B285 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				F5826E772F3578080079B285 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				F54D53832D223ED000CA53BE /* Plugins */,
@@ -197,6 +261,28 @@
 			productReference = 0B53A6CC2F1C734B00169AF2 /* Cisum.app */;
 			productType = "com.apple.product-type.application";
 		};
+		F5826E672F3578070079B285 /* CisumWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F5826E7A2F3578080079B285 /* Build configuration list for PBXNativeTarget "CisumWidgetExtension" */;
+			buildPhases = (
+				F5826E642F3578070079B285 /* Sources */,
+				F5826E652F3578070079B285 /* Frameworks */,
+				F5826E662F3578070079B285 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				F5826E6E2F3578070079B285 /* CisumWidget */,
+			);
+			name = CisumWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = CisumWidgetExtension;
+			productReference = F5826E682F3578070079B285 /* CisumWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -204,12 +290,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1430;
+				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
 					0B1D5A4A2AB301AD0010DDF2 = {
 						CreatedOnToolsVersion = 14.3.1;
 						LastSwiftMigration = 1430;
+					};
+					F5826E672F3578070079B285 = {
+						CreatedOnToolsVersion = 26.2;
 					};
 				};
 			};
@@ -232,6 +321,7 @@
 			projectRoot = "";
 			targets = (
 				0B1D5A4A2AB301AD0010DDF2 /* Cisum */,
+				F5826E672F3578070079B285 /* CisumWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -247,6 +337,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F5826E662F3578070079B285 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -257,7 +354,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F5826E642F3578070079B285 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F5826E772F3578080079B285 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F5826E672F3578070079B285 /* CisumWidgetExtension */;
+			targetProxy = F5826E762F3578080079B285 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		0B1D5A572AB301AE0010DDF2 /* Debug */ = {
@@ -499,6 +611,95 @@
 			};
 			name = Release;
 		};
+		F5826E7B2F3578080079B285 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CisumWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CisumWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yueyi.cisum.CisumWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.2;
+			};
+			name = Debug;
+		};
+		F5826E7C2F3578080079B285 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CisumWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CisumWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yueyi.cisum.CisumWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.2;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -516,6 +717,15 @@
 			buildConfigurations = (
 				0B9C1C4F2AAF18FF001A26AF /* Debug */,
 				0B9C1C502AAF18FF001A26AF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F5826E7A2F3578080079B285 /* Build configuration list for PBXNativeTarget "CisumWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F5826E7B2F3578080079B285 /* Debug */,
+				F5826E7C2F3578080079B285 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
