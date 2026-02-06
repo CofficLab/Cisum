@@ -29,6 +29,22 @@ struct AudioControlRootView<Content>: View, SuperLog where Content: View {
             .onAppear(perform: handleOnAppear)
             .onDBDeleted(perform: handleDBDeleted)
             .onStorageLocationDidReset(perform: handleStorageLocationDidReset)
+            .onReceive(NotificationCenter.default.publisher(for: .widgetTogglePlayPause)) { _ in
+                os_log("\(self.t)📱 Widget: Play/Pause received")
+                handleWidgetPlayPause()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .widgetPlayNext)) { _ in
+                os_log("\(self.t)📱 Widget: Next received")
+                if let asset = man.currentAsset {
+                    handleNextRequested(asset, ignoreSceneCheck: true)
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .widgetPlayPrevious)) { _ in
+                os_log("\(self.t)📱 Widget: Previous received")
+                if let asset = man.currentAsset {
+                    handlePreviousRequested(asset, ignoreSceneCheck: true)
+                }
+            }
     }
 
     /// 检查是否应该激活播放控制功能
@@ -69,8 +85,8 @@ extension AudioControlRootView {
 
     /// 处理上一首请求
     /// - Parameter asset: 当前播放的音频资源
-    func handlePreviousRequested(_ asset: URL) {
-        guard shouldActivateControl else { return }
+    func handlePreviousRequested(_ asset: URL, ignoreSceneCheck: Bool = false) {
+        guard shouldActivateControl || ignoreSceneCheck else { return }
 
         if Self.verbose {
             os_log("\(self.t)⏮️ 请求上一首")
@@ -96,8 +112,8 @@ extension AudioControlRootView {
 
     /// 处理下一首请求
     /// - Parameter asset: 当前播放的音频资源
-    func handleNextRequested(_ asset: URL) {
-        guard shouldActivateControl else { return }
+    func handleNextRequested(_ asset: URL, ignoreSceneCheck: Bool = false) {
+        guard shouldActivateControl || ignoreSceneCheck else { return }
 
         if Self.verbose {
             os_log("\(self.t)⏭️ [\(asset.lastPathComponent)] 请求下一首")
@@ -156,6 +172,14 @@ extension AudioControlRootView {
                     os_log("\(self.t)❌ 获取下一首失败: \(error.localizedDescription)")
                 }
             }
+        }
+    }
+
+    func handleWidgetPlayPause() {
+        if man.state == .playing {
+            man.pause(reason: "Widget")
+        } else {
+            man.playCurrent(reason: "Widget")
         }
     }
 

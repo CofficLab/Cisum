@@ -30,7 +30,7 @@ struct BootApp: App, SuperLog {
         #if os(macOS)
             Window("", id: "Cisum") {
                 ContentView()
-                    .inRootView()
+                    .inRootView(providers: ProviderManager.shared)
                     .frame(minWidth: Config.minWidth, minHeight: Config.minHeight)
             }
             .windowToolbarStyle(.unifiedCompact(showsTitle: false))
@@ -42,7 +42,7 @@ struct BootApp: App, SuperLog {
         #else
             WindowGroup {
                 ContentView()
-                    .inRootView()
+                    .inRootView(providers: ProviderManager.shared)
             }
         #endif
     }

@@ -48,18 +48,9 @@ final class ProviderManager: SuperLog {
         }
     }
 
-    /// 兼容旧代码：提供 shared 单例（已废弃，建议使用 App 层面的 Provider）
-    @available(*, deprecated, message: "使用 App 层面的 Provider 替代单例")
+    /// 共享单例，用于 App Intent 和其他需要全局访问的场景
     @MainActor
-    static var shared: ProviderManager {
-        // 为了向后兼容，仍然提供单例
-        // 但建议在 App 层面创建 Provider 并通过环境传递
-        struct SharedHolder {
-            @MainActor
-            static let instance = ProviderManager()
-        }
-        return SharedHolder.instance
-    }
+    static let shared = ProviderManager()
 }
 
 // MARK: Preview
