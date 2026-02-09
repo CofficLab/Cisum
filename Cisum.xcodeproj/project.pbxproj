@@ -51,6 +51,7 @@
 		F5EFA8EF2F2C389A000A0054 /* MagicKit in Frameworks */ = {isa = PBXBuildFile; productRef = F5EFA8EE2F2C389A000A0054 /* MagicKit */; };
 		F5EFA8F52F2C5634000A0054 /* MagicKit in Frameworks */ = {isa = PBXBuildFile; productRef = F5EFA8F42F2C5634000A0054 /* MagicKit */; };
 		F5F38B1B2E6A837E00BE9CAE /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = F5F38B1A2E6A837E00BE9CAE /* MagicPlayMan */; };
+		F5F6D2522F396F1200857743 /* MagicKit in Frameworks */ = {isa = PBXBuildFile; productRef = F5F6D2512F396F1200857743 /* MagicKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -97,11 +98,11 @@
 			);
 			target = F5826E672F3578070079B285 /* CisumWidgetExtension */;
 		};
-		F5F6D1012F396BCC00857743 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		F5F6D2502F396D7A00857743 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Core/Shared/AudioIntents.swift,
-				Core/Shared/WidgetData.swift,
+				AudioIntents.swift,
+				WidgetData.swift,
 			);
 			target = F5826E672F3578070079B285 /* CisumWidgetExtension */;
 		};
@@ -109,7 +110,8 @@
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F5826E6E2F3578070079B285 /* CisumWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (F5826E792F3578080079B285 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = CisumWidget; sourceTree = "<group>"; };
-		F5F6D0682F396BC700857743 /* CisumApp */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (F5F6D1012F396BCC00857743 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = CisumApp; sourceTree = "<group>"; };
+		F5F6D0682F396BC700857743 /* CisumApp */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = CisumApp; sourceTree = "<group>"; };
+		F5F6D24B2F396D7A00857743 /* Shared */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (F5F6D2502F396D7A00857743 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Shared; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,6 +165,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F5F6D2522F396F1200857743 /* MagicKit in Frameworks */,
 				F5826E6D2F3578070079B285 /* SwiftUI.framework in Frameworks */,
 				F5826E6B2F3578070079B285 /* WidgetKit.framework in Frameworks */,
 			);
@@ -174,6 +177,7 @@
 		0B9C1C342AAF18FE001A26AF = {
 			isa = PBXGroup;
 			children = (
+				F5F6D24B2F396D7A00857743 /* Shared */,
 				F5F6D0682F396BC700857743 /* CisumApp */,
 				F5826E6E2F3578070079B285 /* CisumWidget */,
 				0BB5871C2AD820FA0071AEBD /* Assets.xcassets */,
@@ -215,6 +219,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				F5F6D0682F396BC700857743 /* CisumApp */,
+				F5F6D24B2F396D7A00857743 /* Shared */,
 			);
 			name = Cisum;
 			packageProductDependencies = (
@@ -279,6 +284,7 @@
 			);
 			name = CisumWidgetExtension;
 			packageProductDependencies = (
+				F5F6D2512F396F1200857743 /* MagicKit */,
 			);
 			productName = CisumWidgetExtension;
 			productReference = F5826E682F3578070079B285 /* CisumWidgetExtension.appex */;
@@ -915,6 +921,11 @@
 		F5F38B1A2E6A837E00BE9CAE /* MagicPlayMan */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MagicPlayMan;
+		};
+		F5F6D2512F396F1200857743 /* MagicKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F51482C72F2C6A6700CEB80D /* XCRemoteSwiftPackageReference "MagicKit" */;
+			productName = MagicKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

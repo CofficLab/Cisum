@@ -1,11 +1,13 @@
 import AppIntents
+import MagicKit
 import Foundation
 import WidgetKit
 import OSLog
 
-private let logger = Logger(subsystem: "com.yueyi.cisum", category: "AudioIntents")
-
-struct PlayPauseIntent: AppIntent {
+struct PlayPauseIntent: AppIntent, SuperLog {
+    nonisolated static let emoji = "🎵"
+    nonisolated static let verbose = false
+    
     static var title: LocalizedStringResource { "Play/Pause" }
     static var description: IntentDescription { IntentDescription("Toggles playback state.") }
     static var openAppWhenRun: Bool { false }
@@ -13,13 +15,16 @@ struct PlayPauseIntent: AppIntent {
     init() {}
 
     func perform() async throws -> some IntentResult {
-        logger.info("PlayPauseIntent performed")
+        os_log("\(Self.t)PlayPauseIntent performed")
         NotificationCenter.default.post(name: .widgetPlayPause, object: nil)
         return .result()
     }
 }
 
-struct NextTrackIntent: AppIntent {
+struct NextTrackIntent: AppIntent, SuperLog {
+    nonisolated static let emoji = "🎵"
+    nonisolated static let verbose = false
+    
     static var title: LocalizedStringResource { "Next Track" }
     static var description: IntentDescription { IntentDescription("Skips to the next track.") }
     static var openAppWhenRun: Bool { false }
@@ -27,13 +32,16 @@ struct NextTrackIntent: AppIntent {
     init() {}
 
     func perform() async throws -> some IntentResult {
-        logger.info("NextTrackIntent performed")
+        os_log("\(Self.t)NextTrackIntent performed")
         NotificationCenter.default.post(name: .widgetNext, object: nil)
         return .result()
     }
 }
 
-struct PreviousTrackIntent: AppIntent {
+struct PreviousTrackIntent: AppIntent, SuperLog {
+    nonisolated static let emoji = "🎵"
+    nonisolated static let verbose = false
+    
     static var title: LocalizedStringResource { "Previous Track" }
     static var description: IntentDescription { IntentDescription("Skips to the previous track.") }
     static var openAppWhenRun: Bool { false }
@@ -41,7 +49,7 @@ struct PreviousTrackIntent: AppIntent {
     init() {}
 
     func perform() async throws -> some IntentResult {
-        logger.info("PreviousTrackIntent performed")
+        os_log("\(Self.t)PreviousTrackIntent performed")
         NotificationCenter.default.post(name: .widgetPrevious, object: nil)
         return .result()
     }
