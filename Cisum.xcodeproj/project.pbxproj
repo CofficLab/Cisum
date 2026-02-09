@@ -98,20 +98,12 @@
 			);
 			target = F5826E672F3578070079B285 /* CisumWidgetExtension */;
 		};
-		F5F6D2502F396D7A00857743 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				AudioIntents.swift,
-				WidgetData.swift,
-			);
-			target = F5826E672F3578070079B285 /* CisumWidgetExtension */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F5826E6E2F3578070079B285 /* CisumWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (F5826E792F3578080079B285 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = CisumWidget; sourceTree = "<group>"; };
 		F5F6D0682F396BC700857743 /* CisumApp */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = CisumApp; sourceTree = "<group>"; };
-		F5F6D24B2F396D7A00857743 /* Shared */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (F5F6D2502F396D7A00857743 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Shared; sourceTree = "<group>"; };
+		F5F6D24B2F396D7A00857743 /* Shared */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Shared; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -281,6 +273,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				F5826E6E2F3578070079B285 /* CisumWidget */,
+				F5F6D24B2F396D7A00857743 /* Shared */,
 			);
 			name = CisumWidgetExtension;
 			packageProductDependencies = (
@@ -649,7 +642,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.7;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yueyi.cisum.CisumWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yueyi.cisum.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -696,7 +689,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.7;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yueyi.cisum.CisumWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yueyi.cisum.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;

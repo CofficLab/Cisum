@@ -1,45 +1,53 @@
 import Foundation
+import MagicKit
+import OSLog
 import SwiftUI
 import WidgetKit
-import OSLog
 
-struct WidgetData: Codable {
+struct WidgetData: Codable, SuperLog {
     static let suiteName = "group.com.yueyi.cisum"
-    private static let logger = Logger(subsystem: "com.yueyi.cisum", category: "WidgetData")
-    
+    static let emoji = "🐶"
+    static let verbose = true
+
     var title: String
     var artist: String
     var isPlaying: Bool
     var coverArtData: Data?
-    
+
     static let empty = WidgetData(title: "Not Playing", artist: "Cisum", isPlaying: false, coverArtData: nil)
-    
+
     struct Keys {
         static let data = "widgetData"
     }
-    
+
     static var sharedDefaults: UserDefaults? {
         UserDefaults(suiteName: suiteName)
     }
-    
+
     static func save(title: String, artist: String, isPlaying: Bool, coverArt: Data?) {
         let data = WidgetData(title: title, artist: artist, isPlaying: isPlaying, coverArtData: coverArt)
         if let encoded = try? JSONEncoder().encode(data) {
             sharedDefaults?.set(encoded, forKey: Keys.data)
-            logger.info("Saved widget data to \(suiteName): \(title) - \(artist) (Playing: \(isPlaying))")
+            if Self.verbose {
+                os_log("\(Self.t)💾 已保存小组件数据到 \(suiteName)：\(title) - \(artist)（播放中：\(isPlaying)）")
+            }
             WidgetCenter.shared.reloadAllTimelines()
         } else {
-            logger.error("Failed to encode widget data")
+            os_log(.error, "\(Self.t)编码小组件数据失败")
         }
     }
-    
+
     static func load() -> WidgetData {
         guard let data = sharedDefaults?.data(forKey: Keys.data),
               let decoded = try? JSONDecoder().decode(WidgetData.self, from: data) else {
-            logger.warning("Failed to load widget data from \(suiteName), returning empty")
+            if Self.verbose {
+                os_log("\(Self.t)从 \(suiteName) 加载小组件数据失败，返回空数据")
+            }
             return .empty
         }
-        logger.info("Loaded widget data: \(decoded.title) - \(decoded.artist)")
+        if Self.verbose {
+            os_log("\(Self.t)已加载小组件数据：\(decoded.title) - \(decoded.artist)")
+        }
         return decoded
     }
 }

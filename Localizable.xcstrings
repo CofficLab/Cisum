@@ -270,6 +270,9 @@
         }
       }
     },
+    "Goes to the previous track." : {
+
+    },
     "Highest Product:" : {
       "localizations" : {
         "en" : {
@@ -454,6 +457,7 @@
       }
     },
     "Skips to the previous track." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
