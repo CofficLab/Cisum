@@ -3,6 +3,7 @@ import AVKit
 import MediaPlayer
 import OSLog
 import SwiftUI
+import CoreFoundation
 
 #if os(macOS)
     typealias ApplicationDelegate = NSApplicationDelegate

@@ -69,8 +69,8 @@ extension AudioControlRootView {
 
     /// 处理上一首请求
     /// - Parameter asset: 当前播放的音频资源
-    func handlePreviousRequested(_ asset: URL) {
-        guard shouldActivateControl else { return }
+    func handlePreviousRequested(_ asset: URL, ignoreSceneCheck: Bool = false) {
+        guard shouldActivateControl || ignoreSceneCheck else { return }
 
         if Self.verbose {
             os_log("\(self.t)⏮️ 请求上一首")
@@ -96,8 +96,8 @@ extension AudioControlRootView {
 
     /// 处理下一首请求
     /// - Parameter asset: 当前播放的音频资源
-    func handleNextRequested(_ asset: URL) {
-        guard shouldActivateControl else { return }
+    func handleNextRequested(_ asset: URL, ignoreSceneCheck: Bool = false) {
+        guard shouldActivateControl || ignoreSceneCheck else { return }
 
         if Self.verbose {
             os_log("\(self.t)⏭️ [\(asset.lastPathComponent)] 请求下一首")

@@ -106,6 +106,7 @@ enum Config: SuperLog {
     static let minWidth: CGFloat = 350
     static let minHeight: CGFloat = 250
     static let defaultHeight: CGFloat = 360
+    static let idealHeight: CGFloat = 650
 
     /// 大于此高度，可展示封面图
     static let minHeightToShowAlbum: CGFloat = 450

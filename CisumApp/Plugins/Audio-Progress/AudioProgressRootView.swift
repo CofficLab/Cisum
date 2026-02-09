@@ -1,3 +1,4 @@
+import AVFoundation
 import Foundation
 import MagicAlert
 import MagicKit
@@ -6,6 +7,7 @@ import OSLog
 import SwiftData
 import SwiftUI
 import UniformTypeIdentifiers
+import WidgetKit
 
 struct AudioProgressRootView<Content>: View, SuperLog where Content: View {
     nonisolated static var emoji: String { "💾" }
@@ -145,6 +147,9 @@ extension AudioProgressRootView {
     func handlePlayManStateChanged(_ isPlaying: Bool) {
         guard shouldActivateProgress else { return }
 
+        // Sync to Widget
+        syncToWidget(url: man.currentAsset, isPlaying: isPlaying)
+
         if self.man.state == .paused {
             AudioStateRepo.storeCurrentTime(man.currentTime)
 
@@ -162,12 +167,43 @@ extension AudioProgressRootView {
     func handlePlayManAssetChanged(_ url: URL?) {
         guard shouldActivateProgress else { return }
 
+        // Sync to Widget
+        syncToWidget(url: url, isPlaying: man.state == .playing)
+
         guard let url = url else {
             return
         }
 
         Task {
             AudioStateRepo.storeCurrent(url)
+        }
+    }
+    
+    private func syncToWidget(url: URL?, isPlaying: Bool) {
+        guard let url = url else {
+            WidgetData.save(title: "Not Playing", artist: "Cisum", isPlaying: false, coverArt: nil)
+            return
+        }
+        
+        let title = url.deletingPathExtension().lastPathComponent
+        let artist = "Cisum" // Placeholder
+        
+        Task {
+            var coverArt: Data? = nil
+            let asset = AVAsset(url: url)
+            do {
+                let metadata = try await asset.load(.commonMetadata)
+                if let artworkItem = metadata.first(where: { $0.commonKey == .commonKeyArtwork }),
+                   let data = try await artworkItem.load(.value) as? Data {
+                    coverArt = data
+                }
+            } catch {
+                if Self.verbose {
+                    os_log(.error, "\(self.t) Failed to load artwork: \(error.localizedDescription)")
+                }
+            }
+            
+            WidgetData.save(title: title, artist: artist, isPlaying: isPlaying, coverArt: coverArt)
         }
     }
 
