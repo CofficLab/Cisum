@@ -21,6 +21,7 @@ struct ContentLayout: View, SuperLog {
 
     var body: some View {
         ContentView(isDetailVisible: isDetailVisible)
+            .frame(idealHeight: Config.idealHeight)
     }
 }
 
