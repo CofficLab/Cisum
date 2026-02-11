@@ -56,13 +56,13 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
                     }
                     .padding(.top, 8)
 
-                    // 标题区域
+                    // Title area
                     HStack(spacing: 12) {
                         Image.restart
                             .font(.title2)
                             .foregroundStyle(.blue)
 
-                        Text("恢复购买")
+                        Text("Restore Purchase")
                             .font(.title3)
                             .fontWeight(.semibold)
 
@@ -71,20 +71,20 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
                     VStack(alignment: .leading, spacing: 12) {
                         InfoRow(
                             icon: "iphone.and.arrow.forward",
-                            title: "跨设备恢复",
-                            description: "在其他设备上购买后，可在此恢复"
+                            title: "Cross-Device Restore",
+                            description: "Restore purchases made on other devices"
                         )
 
                         InfoRow(
                             icon: "person.circle",
-                            title: "Apple ID 验证",
-                            description: "请使用购买时的 Apple ID 账号"
+                            title: "Apple ID Verification",
+                            description: "Use the same Apple ID used for purchase"
                         )
 
                         InfoRow(
                             icon: "checkmark.circle",
-                            title: "功能恢复",
-                            description: "恢复成功后将获得所有已购买的功能"
+                            title: "Feature Restore",
+                            description: "Get all purchased features after successful restore"
                         )
                     }
                     .padding(.vertical, 8)
@@ -94,12 +94,12 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
                 .roundedMedium()
                 .shadowSm()
 
-                // 状态提示区域
+                // Status banner area
                 if restoreState != .idle {
                     statusBanner
                 }
 
-                // 按钮区域
+                // Button area
                 successButtons
                     .if(self.restoreState == .success)
 
@@ -122,10 +122,10 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
                     .progressViewStyle(.circular)
                     .scaleEffect(0.9)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("正在恢复购买")
+                    Text("Restoring Purchase")
                         .font(.subheadline)
                         .fontWeight(.medium)
-                    Text("请稍候，正在验证您的购买记录...")
+                    Text("Please wait, verifying your purchase records...")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -141,10 +141,10 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
                     .font(.title3)
                     .foregroundStyle(.green)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("恢复成功")
+                    Text("Restore Successful")
                         .font(.subheadline)
                         .fontWeight(.medium)
-                    Text("已成功恢复您的购买记录，所有功能已解锁")
+                    Text("Successfully restored your purchase records, all features unlocked")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -160,7 +160,7 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
                     .font(.title3)
                     .foregroundStyle(.red)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("恢复失败")
+                    Text("Restore Failed")
                         .font(.subheadline)
                         .fontWeight(.medium)
                     if let error = error {
@@ -168,7 +168,7 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     } else {
-                        Text("恢复购买时发生错误，请稍后重试")
+                        Text("An error occurred while restoring, please try again later")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -189,16 +189,16 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
             case .idle:
                 Image.reset
                     .fontWeight(.semibold)
-                Text("恢复购买")
+                Text("Restore Purchase")
                     .fontWeight(.semibold)
             case .restoring:
                 EmptyView()
             case .success:
-                EmptyView() // 成功状态使用 successButtons
+                EmptyView() // Use successButtons for success state
             case .failed:
                 Image.reset
                     .fontWeight(.semibold)
-                Text("重试恢复")
+                Text("Retry Restore")
                     .fontWeight(.semibold)
             }
         }
@@ -214,11 +214,11 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
     @ViewBuilder
     private var successButtons: some View {
         HStack(spacing: 12) {
-            // 完成按钮
+            // Done button
             HStack(spacing: 8) {
                 Image(systemName: "checkmark.circle.fill")
                     .fontWeight(.semibold)
-                Text("完成")
+                Text("Done")
                     .fontWeight(.semibold)
             }
             .inCard(.regularMaterial)
@@ -228,11 +228,11 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
                 dismiss()
             }
 
-            // 再试一次按钮
+            // Try again button
             HStack(spacing: 8) {
                 Image.reset
                     .fontWeight(.semibold)
-                Text("再试一次")
+                Text("Try Again")
                     .fontWeight(.semibold)
             }
             .inCard(.regularMaterial)

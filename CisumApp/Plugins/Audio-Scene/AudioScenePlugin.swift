@@ -7,12 +7,12 @@ import SwiftUI
 actor AudioScenePlugin: SuperPlugin {
     static var shouldRegister: Bool { true }
     static var order: Int { 0 }
-    let title = "音乐场景"
-    let description = "提供音乐库场景"
+    let title = "Music Scene"
+    let description = "Provides music library scene"
     let iconName = "music.note.list"
-    static let sceneName = "音乐库"
+    static let sceneName = "Music Library"
 
-    /// 提供"音乐库"场景
+    /// Provides "Music Library" scene
     @MainActor func addSceneItem() -> String? {
         return Self.sceneName
     }

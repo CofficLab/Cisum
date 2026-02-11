@@ -23,16 +23,16 @@ enum StorageLocation: String, Codable {
     var title: String {
         switch self {
         case .icloud: return "iCloud"
-        case .local: return "本地"
-        case .custom: return "自定义"
+        case .local: return "Local"
+        case .custom: return "Custom"
         }
     }
 
     var description: String {
         switch self {
-        case .icloud: return "使用iCloud存储数据"
-        case .local: return "使用本地存储数据"
-        case .custom: return "使用自定义存储数据"
+        case .icloud: return "Use iCloud for data storage"
+        case .local: return "Use local storage for data"
+        case .custom: return "Use custom storage location for data"
         }
     }
 }

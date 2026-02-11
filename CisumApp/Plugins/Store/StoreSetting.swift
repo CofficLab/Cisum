@@ -11,44 +11,44 @@ struct StoreSetting: View, SuperLog, SuperEvent {
     @State private var showBuySheet = false
     @State private var showRestoreSheet = false
     @State private var purchaseInfo: PurchaseInfo = .none
-    @State private var tierDisplayName: String = "免费版"
-    @State private var statusDescription: String = "当前使用免费版本"
+    @State private var tierDisplayName: String = "Free"
+    @State private var statusDescription: String = "Currently using free version"
 
 
     var body: some View {
-        MagicSettingSection(title: "订阅信息") {
-            // 当前版本
-            MagicSettingRow(title: "当前版本", description: "您正在使用的版本", icon: "star.fill", content: {
+        MagicSettingSection(title: "Subscription Information") {
+            // Current version
+            MagicSettingRow(title: "Current Version", description: "Version you are using", icon: "star.fill", content: {
                 HStack {
                     Text(tierDisplayName)
                         .font(.footnote)
                 }
             })
 
-            // 订阅状态
-            MagicSettingRow(title: "订阅状态", description: statusDescription, icon: "info.circle", content: {
+            // Subscription status
+            MagicSettingRow(title: "Subscription Status", description: statusDescription, icon: "info.circle", content: {
                 HStack {
                     if purchaseInfo.isProOrHigher {
                         if purchaseInfo.isExpired {
-                            Text("已过期")
+                            Text("Expired")
                                 .font(.footnote)
                                 .foregroundStyle(.red)
                         } else {
-                            Text("有效")
+                            Text("Active")
                                 .font(.footnote)
                                 .foregroundStyle(.green)
                         }
                     } else {
-                        Text("免费版")
+                        Text("Free")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
                 }
             })
 
-            // 到期时间（如果有订阅）
+            // Expiration date (if has subscription)
             if let expiresAt = purchaseInfo.expiresAt {
-                MagicSettingRow(title: "到期时间", description: "订阅到期日期", icon: "calendar", content: {
+                MagicSettingRow(title: "Expiration Date", description: "Subscription expiration date", icon: "calendar", content: {
                     HStack {
                         Text(expiresAt.fullDateTime)
                             .font(.footnote)
@@ -56,8 +56,8 @@ struct StoreSetting: View, SuperLog, SuperEvent {
                 })
             }
 
-            // 购买入口
-            MagicSettingRow(title: "应用内购买", description: "订阅专业版，解锁所有功能", icon: "cart", content: {
+            // Purchase entry
+            MagicSettingRow(title: "In-App Purchase", description: "Subscribe to Pro to unlock all features", icon: "cart", content: {
                 Image.appStore
                     .frame(width: 28)
                     .frame(height: 28)
@@ -69,8 +69,8 @@ struct StoreSetting: View, SuperLog, SuperEvent {
                     })
             })
 
-            // 恢复购买
-            MagicSettingRow(title: "恢复购买", description: "在其他设备上购买后可在此恢复", icon: "arrow.clockwise", content: {
+            // Restore purchase
+            MagicSettingRow(title: "Restore Purchase", description: "Restore purchases made on other devices", icon: "arrow.clockwise", content: {
                 Image.reset
                     .frame(width: 28)
                     .frame(height: 28)
@@ -109,12 +109,12 @@ extension StoreSetting {
 
         if purchaseInfo.isProOrHigher {
             if purchaseInfo.isExpired {
-                statusDescription = "订阅已过期，请续费"
+                statusDescription = "Subscription expired, please renew"
             } else {
-                statusDescription = "订阅有效，享受完整功能"
+                statusDescription = "Subscription active, enjoy full features"
             }
         } else {
-            statusDescription = "当前使用免费版本"
+            statusDescription = "Currently using free version"
         }
     }
 }

@@ -7,12 +7,12 @@ import SwiftUI
 actor BookScenePlugin: SuperPlugin {
     static var shouldRegister: Bool { false }
     static var order: Int { 0 }
-    let title = "有声书场景"
-    let description = "提供有声书场景"
+    let title = "Audiobook Scene"
+    let description = "Provides audiobook scene"
     let iconName = "book.closed"
-    static let sceneName = "有声书"
+    static let sceneName = "Audiobooks"
 
-    /// 提供"有声书"场景
+    /// Provides "Audiobooks" scene
     @MainActor func addSceneItem() -> String? {
         return Self.sceneName
     }

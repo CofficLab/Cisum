@@ -15,10 +15,10 @@ class CloudProvider: NSObject, ObservableObject, SuperLog, SuperThread, SuperEve
     
     var isSignedInDescription: String {
         if let isSignedIn = isSignedIn {
-            return isSignedIn ? "已登录" : "未登录"
+            return isSignedIn ? "Signed In" : "Not Signed In"
         }
-        
-        return "未知"
+
+        return "Unknown"
     }
     
     init(verbose: Bool = false) {
@@ -44,7 +44,7 @@ class CloudProvider: NSObject, ObservableObject, SuperLog, SuperThread, SuperEve
             let status = MagicApp.isICloudAvailable()
             await MainActor.run {
                 self.isSignedIn = status
-                self.accountStatus = status ? "已登录" : "未登录"
+                self.accountStatus = status ? "Signed In" : "Not Signed In"
                 
                 if verbose {
                     os_log("\(self.t)🍋🍋🍋 iCloud 状态更新: isSignedIn=\(status), accountStatus=\(self.accountStatus)")

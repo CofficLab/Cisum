@@ -30,13 +30,13 @@ struct UserDefaultsDebugView: View, SuperLog {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("UserDefaults 调试视图").font(.headline)
-            
+            Text("UserDefaults Debug View").font(.headline)
+
             HStack {
-                TextField("搜索键或值", text: $searchText)
+                TextField("Search keys or values", text: $searchText)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                
-                Toggle("显示 iCloud 值", isOn: $showingICloudValues)
+
+                Toggle("Show iCloud values", isOn: $showingICloudValues)
                     .onChange(of: showingICloudValues) {
                         refreshData()
                     }
@@ -45,7 +45,7 @@ struct UserDefaultsDebugView: View, SuperLog {
             Divider()
             
             if filteredPairs.isEmpty {
-                Text("没有找到匹配的键值对")
+                Text("No matching key-value pairs found")
                     .foregroundColor(.secondary)
                     .padding()
             } else {
@@ -70,14 +70,14 @@ struct UserDefaultsDebugView: View, SuperLog {
             Divider()
             
             HStack {
-                Button("刷新数据") {
+                Button("Refresh Data") {
                     refreshData()
                 }
                 .buttonStyle(.borderedProminent)
-                
+
                 Spacer()
-                
-                Text("共 \(filteredPairs.count) 项")
+
+                Text("Total: \(filteredPairs.count) items")
                     .foregroundColor(.secondary)
                     .font(.caption)
             }
@@ -128,13 +128,13 @@ struct UserDefaultsDebugView: View, SuperLog {
         .withDebugBar()
 }
 
-#Preview("UserDefaults 调试") {
+#Preview("UserDefaults Debug") {
     UserDefaultsDebugView()
         .frame(width: 600)
         .frame(height: 800)
 }
 
-#Preview("带默认搜索值") {
+#Preview("With Default Search Value") {
     UserDefaultsDebugView(defaultSearchText: "UI.")
         .frame(width: 600)
         .frame(height: 800)

@@ -18,11 +18,11 @@ struct StorageView: View, SuperLog {
     }
 
     var body: some View {
-        MagicSettingSection(title: "媒体仓库位置", titleAlignment: .center) {
+        MagicSettingSection(title: "Media Storage Location", titleAlignment: .center) {
             VStack(spacing: 12) {
                 MagicSettingRow(
-                    title: "iCloud 云盘",
-                    description: "文件存储在 iCloud 中\n可在其他设备上访问\n确保 iCloud 存储空间足够",
+                    title: "iCloud Drive",
+                    description: "Files stored in iCloud\nAccessible on other devices\nEnsure sufficient iCloud storage",
                     icon: .iconCloud,
                     action: {
                         if cloudManager.isSignedIn == true && c.getStorageLocation() != .icloud {
@@ -35,7 +35,7 @@ struct StorageView: View, SuperLog {
                             Image(systemName: .iconCheckmarkSimple)
                                 .foregroundColor(.accentColor)
                         } else {
-                            Text("推荐").font(.footnote)
+                            Text("Recommended").font(.footnote)
                                 .foregroundColor(.secondary)
                         }
                     }
@@ -48,7 +48,7 @@ struct StorageView: View, SuperLog {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundColor(.orange)
                             .imageScale(.small)
-                        Text("在系统设置中登录 iCloud 账户后，此选项可用")
+                        Text("Sign in to iCloud in System Settings to use this option")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -59,8 +59,8 @@ struct StorageView: View, SuperLog {
                 Divider()
 
                 MagicSettingRow(
-                    title: "APP 内部存储",
-                    description: "存储在 APP 中，删除 APP 后数据将丢失",
+                    title: "App Local Storage",
+                    description: "Stored within the app, data will be lost if app is deleted",
                     icon: .iconFolder,
                     action: {
                         tempStorageLocation = .local

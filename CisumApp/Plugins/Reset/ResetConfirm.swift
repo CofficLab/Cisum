@@ -47,13 +47,13 @@ struct ResetConfirm: View, SuperLog {
                     }
                     .padding(.top, 8)
 
-                    // 标题区域
+                    // Title area
                     HStack(spacing: 12) {
                         Image(systemName: .iconReset)
                             .font(.title2)
                             .foregroundStyle(.orange)
 
-                        Text("重置设置")
+                        Text("Reset Settings")
                             .font(.title3)
                             .fontWeight(.semibold)
 
@@ -61,16 +61,16 @@ struct ResetConfirm: View, SuperLog {
                     }
 
                     if isResetting {
-                        // 重置中状态
+                        // Resetting state
                         HStack(spacing: 12) {
                             ProgressView()
                                 .progressViewStyle(.circular)
                                 .scaleEffect(0.9)
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("正在重置…")
+                                Text("Resetting…")
                                     .font(.subheadline)
                                     .fontWeight(.medium)
-                                Text("正在恢复默认设置，请稍候")
+                                Text("Restoring default settings, please wait")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -78,24 +78,24 @@ struct ResetConfirm: View, SuperLog {
                         }
                         .padding(.vertical, 8)
                     } else {
-                        // 重置说明
+                        // Reset description
                         VStack(alignment: .leading, spacing: 12) {
                             ResetInfoRow(
                                 icon: "externaldrive.fill",
-                                title: "数据仓库重置",
-                                description: "数据仓库将恢复为默认位置"
+                                title: "Data Storage Reset",
+                                description: "Data storage will be restored to default location"
                             )
 
                             ResetInfoRow(
                                 icon: "slider.horizontal.3",
-                                title: "偏好设置重置",
-                                description: "所有用户偏好将被重置"
+                                title: "Preferences Reset",
+                                description: "All user preferences will be reset"
                             )
 
                             ResetInfoRow(
                                 icon: "exclamationmark.triangle.fill",
-                                title: "不可撤销",
-                                description: "此操作不可撤销，请谨慎操作"
+                                title: "Irreversible",
+                                description: "This action cannot be undone, proceed with caution"
                             )
                         }
                         .padding(.vertical, 8)
@@ -106,10 +106,10 @@ struct ResetConfirm: View, SuperLog {
                 .roundedMedium()
                 .shadowSm()
 
-                // 确认按钮
+                // Confirm button
                 HStack(spacing: 8) {
                     Image.checkmark
-                    Text("继续重置")
+                    Text("Continue Reset")
                 }
                 .inCard(.regularMaterial)
                 .hoverScale(105)

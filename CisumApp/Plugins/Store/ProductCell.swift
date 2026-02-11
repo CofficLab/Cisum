@@ -87,7 +87,7 @@ struct ProductCell: View, SuperLog {
         )
         .shadowSm()
         .alert(isPresented: $isShowingError, content: {
-            Alert(title: Text(errorTitle), message: nil, dismissButton: .default(Text("好")))
+            Alert(title: Text(errorTitle), message: nil, dismissButton: .default(Text("OK")))
         })
     }
 
@@ -119,13 +119,13 @@ struct ProductCell: View, SuperLog {
         let plural = 1 < period.value
         switch period.unit {
         case "day":
-            return plural ? "\(period.value) 天" : "天"
+            return plural ? "\(period.value) days" : "day"
         case "week":
-            return plural ? "\(period.value) 周" : "周"
+            return plural ? "\(period.value) weeks" : "week"
         case "month":
-            return plural ? "\(period.value) 月" : "月"
+            return plural ? "\(period.value) months" : "month"
         case "year":
-            return plural ? "\(period.value) 年" : "年"
+            return plural ? "\(period.value) years" : "year"
         default:
             return "period"
         }
@@ -139,26 +139,26 @@ struct ProductCell: View, SuperLog {
 
         switch offer.subscriptionPeriod.unit {
         case "day":
-            periodText = plural ? "\(offer.subscriptionPeriod.value) 天" : "天"
+            periodText = plural ? "\(offer.subscriptionPeriod.value) days" : "day"
         case "week":
-            periodText = plural ? "\(offer.subscriptionPeriod.value) 周" : "周"
+            periodText = plural ? "\(offer.subscriptionPeriod.value) weeks" : "week"
         case "month":
-            periodText = plural ? "\(offer.subscriptionPeriod.value) 月" : "月"
+            periodText = plural ? "\(offer.subscriptionPeriod.value) months" : "month"
         case "year":
-            periodText = plural ? "\(offer.subscriptionPeriod.value) 年" : "年"
+            periodText = plural ? "\(offer.subscriptionPeriod.value) years" : "year"
         default:
             periodText = "period"
         }
 
         switch offer.paymentMode {
         case "FreeTrial":
-            return "首\(periodText)免费"
+            return "Free for \(periodText)"
         case "PayAsYouGo":
-            return "首\(periodText)仅\(offer.displayPrice)"
+            return "\(offer.displayPrice) for first \(periodText)"
         case "PayUpFront":
-            return "首\(periodText)预付\(offer.displayPrice)"
+            return "Pay \(offer.displayPrice) for first \(periodText)"
         default:
-            return "首\(periodText)优惠"
+            return "Special offer for \(periodText)"
         }
     }
 
@@ -169,11 +169,11 @@ struct ProductCell: View, SuperLog {
             if purchasing {
                 ProgressView()
                     .scaleEffect(0.8)
-                Text("处理中...")
+                Text("Processing...")
             } else if isPurchased {
-                Text(product.kind == .autoRenewable ? "已订阅" : "已购买")
+                Text(product.kind == .autoRenewable ? "Subscribed" : "Purchased")
             } else {
-                Text(product.kind == .autoRenewable ? "订阅" : "购买")
+                Text(product.kind == .autoRenewable ? "Subscribe" : "Purchase")
             }
         }
         .fontWeight(.semibold)
@@ -207,7 +207,7 @@ struct ProductCell: View, SuperLog {
                     os_log("\(self.t)购买回调，结果为空，表示取消了")
                 }
             } catch StoreError.failedVerification {
-                errorTitle = "App Store 验证失败"
+                errorTitle = "App Store verification failed"
                 isShowingError = true
             } catch {
                 errorTitle = error.localizedDescription

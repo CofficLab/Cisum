@@ -7,8 +7,8 @@ actor StorePlugin: SuperPlugin {
     static var shouldRegister: Bool { true }
     static var order: Int { 80 }
 
-    let title = "商店"
-    let description = "应用内购买和订阅"
+    let title = "Store"
+    let description = "In-App purchases and subscriptions"
     let iconName = "cart"
 
     @MainActor

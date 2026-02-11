@@ -26,6 +26,6 @@ extension View {
 // MARK: Preview
 
 #Preview("Downloading Mode") {
-    Text("下载中场景示例")
+    Text("Downloading Mode Example")
         .inDownloadingMode()
 }

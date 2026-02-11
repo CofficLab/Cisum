@@ -14,8 +14,8 @@ struct AudioSettings: View, SuperLog {
     var body: some View {
         Group {
             if let disk = disk {
-                MagicSettingSection(title: "歌曲仓库") {
-                    MagicSettingRow(title: "仓库大小", description: description, icon: .iconMusicLibrary, content: {
+                MagicSettingSection(title: "Music Library") {
+                    MagicSettingRow(title: "Library Size", description: description, icon: .iconMusicLibrary, content: {
                         HStack {
                             if let diskSize = diskSize {
                                 Text(diskSize)
@@ -25,7 +25,7 @@ struct AudioSettings: View, SuperLog {
 
                     })
 
-                    MagicSettingRow(title: "打开仓库", description: "在Finder中查看", icon: .iconShowInFinder, content: {
+                    MagicSettingRow(title: "Open Library", description: "View in Finder", icon: .iconShowInFinder, content: {
                         Image(systemName: .iconShowInFinder)
                             .frame(width: 28)
                             .frame(height: 28)
@@ -38,17 +38,17 @@ struct AudioSettings: View, SuperLog {
                     })
                     .if(Config.isDesktop)
 
-                    MagicSettingRow(title: "文件数量", description: "当前仓库内的文件总数", icon: .iconDocument, content: {
+                    MagicSettingRow(title: "File Count", description: "Total files in library", icon: .iconDocument, content: {
                         HStack {
-                            Text("\(fileCount) 个文件")
+                            Text("\(fileCount) files")
                                 .font(.footnote)
                         }
                     })
                 }
             } else {
-                MagicSettingSection(title: "歌曲仓库") {
-                    MagicSettingRow(title: "出现错误", description: description, icon: .iconMusicLibrary, content: {
-                        Text("暂时不能获取歌曲仓库信息")
+                MagicSettingSection(title: "Music Library") {
+                    MagicSettingRow(title: "Error", description: description, icon: .iconMusicLibrary, content: {
+                        Text("Cannot get music library information")
                             .font(.footnote)
                     })
                 }
@@ -98,9 +98,9 @@ extension AudioSettings {
         }
 
         if disk.checkIsICloud(verbose: false) {
-            description = "是 iCloud 云盘，会同步"
+            description = "iCloud Drive, will sync"
         } else {
-            description = "是本地目录，不会同步"
+            description = "Local directory, will not sync"
         }
     }
 }

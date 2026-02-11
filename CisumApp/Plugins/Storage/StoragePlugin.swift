@@ -9,11 +9,11 @@ actor StoragePlugin: SuperPlugin, SuperLog {
     static let verbose = true
     static var shouldRegister: Bool { false }
 
-    /// 注册顺序设为 10，在其他插件之后执行
+    /// Registration order set to 10, execute after other plugins
     static var order: Int { 10 }
 
-    let title = "存储设置"
-    let description = "存储设置"
+    let title = "Storage Settings"
+    let description = "Storage Settings"
     let iconName = "internaldrive"
     
 

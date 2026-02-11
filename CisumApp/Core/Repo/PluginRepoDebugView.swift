@@ -1,27 +1,27 @@
 import SwiftUI
 
-/// 用于预览当前插件ID值的视图
+/// View for previewing current plugin ID values
 struct PluginRepoDebugView: View {
     @State private var currentPluginId: String = ""
     @State private var userDefaultsValue: String = ""
     @State private var iCloudValue: String = ""
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("插件仓库调试视图").font(.headline)
-            
+            Text("Plugin Repo Debug View").font(.headline)
+
             Divider()
-            
+
             Group {
-                Text("当前插件ID: \(currentPluginId)").bold()
-                Text("UserDefaults 值: \(userDefaultsValue)")
-                Text("iCloud 值: \(iCloudValue)")
+                Text("Current Plugin ID: \(currentPluginId)").bold()
+                Text("UserDefaults value: \(userDefaultsValue)")
+                Text("iCloud value: \(iCloudValue)")
             }
             .font(.system(.body, design: .monospaced))
             
             Divider()
-            
-            Button("刷新数据") {
+
+            Button("Refresh Data") {
                 refreshData()
             }
             .buttonStyle(.borderedProminent)
@@ -39,11 +39,11 @@ struct PluginRepoDebugView: View {
         let repo = PluginRepo()
         currentPluginId = repo.getCurrentPluginId()
         
-        // 直接从 UserDefaults 获取值
-        userDefaultsValue = UserDefaults.standard.string(forKey: PluginRepo.keyOfCurrentPluginID) ?? "未设置"
-        
-        // 直接从 iCloud 获取值
-        iCloudValue = NSUbiquitousKeyValueStore.default.string(forKey: PluginRepo.keyOfCurrentPluginID) ?? "未设置"
+        // Directly get value from UserDefaults
+        userDefaultsValue = UserDefaults.standard.string(forKey: PluginRepo.keyOfCurrentPluginID) ?? "Not Set"
+
+        // Directly get value from iCloud
+        iCloudValue = NSUbiquitousKeyValueStore.default.string(forKey: PluginRepo.keyOfCurrentPluginID) ?? "Not Set"
     }
 }
 
@@ -55,6 +55,6 @@ struct PluginRepoDebugView: View {
         .withDebugBar()
 }
 
-#Preview("插件仓库调试") {
+#Preview("Plugin Repo Debug") {
     PluginRepoDebugView()
 }
