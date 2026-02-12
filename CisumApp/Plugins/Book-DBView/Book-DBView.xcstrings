@@ -1,102 +1,24 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "上次播放": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "上次播放"
-          }
-        },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "上次播放"
-          }
-        }
-      }
+  "sourceLanguage" : "en",
+  "strings" : {
+    "上次播放" : {
+
     },
-    "共 %lld": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "共 %lld"
-          }
-        },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "共 %lld"
-          }
-        }
-      }
+    "共 %lld" : {
+
     },
-    "或": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "或"
-          }
-        },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "或"
-          }
-        }
-      }
+    "或" : {
+
     },
-    "打开仓库目录并放入文件": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "打开仓库目录并放入文件"
-          }
-        },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "打開倉庫目錄並放入文件"
-          }
-        }
-      }
+    "打开仓库目录并放入文件" : {
+
     },
-    "支持的格式：%@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "支持的格式：%@"
-          }
-        },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "支持的格式：%@"
-          }
-        }
-      }
+    "支持的格式：%@" : {
+
     },
-    "正在读取仓库": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在读取仓库"
-          }
-        },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在讀取倉庫"
-          }
-        }
-      }
+    "正在读取仓库" : {
+
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

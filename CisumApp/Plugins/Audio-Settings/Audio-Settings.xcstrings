@@ -9,6 +9,12 @@
             "state" : "translated",
             "value" : "%d 个文件"
           }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d 個文件"
+          }
         }
       }
     },
@@ -23,6 +29,12 @@
             "state" : "translated",
             "value" : "无法获取音乐库信息"
           }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法獲取音樂庫信息"
+          }
         }
       }
     },
@@ -33,6 +45,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "错误"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錯誤"
           }
         }
       }
@@ -45,6 +63,12 @@
             "state" : "translated",
             "value" : "文件数量"
           }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件數量"
+          }
         }
       }
     },
@@ -55,6 +79,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "库大小"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "庫大小"
           }
         }
       }
@@ -67,6 +97,12 @@
             "state" : "translated",
             "value" : "音乐库"
           }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂庫"
+          }
         }
       }
     },
@@ -77,6 +113,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打开库"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開庫"
           }
         }
       }
@@ -89,6 +131,12 @@
             "state" : "translated",
             "value" : "库中的文件总数"
           }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "庫中的文件總數"
+          }
         }
       }
     },
@@ -96,6 +144,12 @@
       "extractionState" : "manual",
       "localizations" : {
         "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Finder 中查看"
+          }
+        },
+        "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "在 Finder 中查看"
