@@ -307,6 +307,7 @@
 				en,
 				Base,
 				"zh-Hans",
+				"zh-HK",
 			);
 			mainGroup = 0B9C1C342AAF18FE001A26AF;
 			packageReferences = (

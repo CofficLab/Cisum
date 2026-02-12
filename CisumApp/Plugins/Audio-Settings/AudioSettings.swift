@@ -14,8 +14,8 @@ struct AudioSettings: View, SuperLog {
     var body: some View {
         Group {
             if let disk = disk {
-                MagicSettingSection(title: "Music Library") {
-                    MagicSettingRow(title: "Library Size", description: description, icon: .iconMusicLibrary, content: {
+                MagicSettingSection(title: String(localized: "Music Library", table: "Audio-Settings")) {
+                    MagicSettingRow(title: String(localized: "Library Size", table: "Audio-Settings"), description: description, icon: .iconMusicLibrary, content: {
                         HStack {
                             if let diskSize = diskSize {
                                 Text(diskSize)
@@ -25,7 +25,7 @@ struct AudioSettings: View, SuperLog {
 
                     })
 
-                    MagicSettingRow(title: "Open Library", description: "View in Finder", icon: .iconShowInFinder, content: {
+                    MagicSettingRow(title: String(localized: "Open Library", table: "Audio-Settings"), description: String(localized: "View in Finder", table: "Audio-Settings"), icon: .iconShowInFinder, content: {
                         Image(systemName: .iconShowInFinder)
                             .frame(width: 28)
                             .frame(height: 28)
@@ -38,17 +38,17 @@ struct AudioSettings: View, SuperLog {
                     })
                     .if(Config.isDesktop)
 
-                    MagicSettingRow(title: "File Count", description: "Total files in library", icon: .iconDocument, content: {
+                    MagicSettingRow(title: String(localized: "File Count", table: "Audio-Settings"), description: String(localized: "Total files in library", table: "Audio-Settings"), icon: .iconDocument, content: {
                         HStack {
-                            Text("\(fileCount) files")
+                            Text("\(fileCount) files", tableName: "Audio-Settings")
                                 .font(.footnote)
                         }
                     })
                 }
             } else {
-                MagicSettingSection(title: "Music Library") {
-                    MagicSettingRow(title: "Error", description: description, icon: .iconMusicLibrary, content: {
-                        Text("Cannot get music library information")
+                MagicSettingSection(title: String(localized: "Music Library", table: "Audio-Settings")) {
+                    MagicSettingRow(title: String(localized: "Error", table: "Audio-Settings"), description: description, icon: .iconMusicLibrary, content: {
+                        Text("Cannot get music library information", tableName: "Audio-Settings")
                             .font(.footnote)
                     })
                 }
