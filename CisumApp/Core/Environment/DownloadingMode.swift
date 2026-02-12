@@ -26,6 +26,6 @@ extension View {
 // MARK: Preview
 
 #Preview("Downloading Mode") {
-    Text("Downloading Mode Example")
+    Text("Downloading Mode Example", tableName: "Core")
         .inDownloadingMode()
 }

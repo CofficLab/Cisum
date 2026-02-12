@@ -32,7 +32,9 @@ struct BookRootView<Content>: View, SuperLog where Content: View {
             if let error = bookRepoState.error {
                 error.makeView()
             } else if bookRepoState.isLoading {
-                ProgressView("正在初始化...")
+                ProgressView {
+                    Text("正在初始化...", tableName: "Book")
+                }
             } else if let container = bookRepoState.container, let repo = bookRepoState.repo {
                 ZStack {
                     content
@@ -43,7 +45,7 @@ struct BookRootView<Content>: View, SuperLog where Content: View {
                     self.initAll()
                 }
             } else {
-                Text("初始化失败")
+                Text("初始化失败", tableName: "Book")
             }
         }
         .onAppear {

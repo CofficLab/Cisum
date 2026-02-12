@@ -16,9 +16,9 @@ struct StoreSetting: View, SuperLog, SuperEvent {
 
 
     var body: some View {
-        MagicSettingSection(title: "Subscription Information") {
+        MagicSettingSection(title: String(localized: "Subscription Information", table: "Store")) {
             // Current version
-            MagicSettingRow(title: "Current Version", description: "Version you are using", icon: "star.fill", content: {
+            MagicSettingRow(title: String(localized: "Current Version", table: "Store"), description: String(localized: "Version you are using", table: "Store"), icon: "star.fill", content: {
                 HStack {
                     Text(tierDisplayName)
                         .font(.footnote)
@@ -26,20 +26,20 @@ struct StoreSetting: View, SuperLog, SuperEvent {
             })
 
             // Subscription status
-            MagicSettingRow(title: "Subscription Status", description: statusDescription, icon: "info.circle", content: {
+            MagicSettingRow(title: String(localized: "Subscription Status", table: "Store"), description: statusDescription, icon: "info.circle", content: {
                 HStack {
                     if purchaseInfo.isProOrHigher {
                         if purchaseInfo.isExpired {
-                            Text("Expired")
+                            Text("Expired", tableName: "Store")
                                 .font(.footnote)
                                 .foregroundStyle(.red)
                         } else {
-                            Text("Active")
+                            Text("Active", tableName: "Store")
                                 .font(.footnote)
                                 .foregroundStyle(.green)
                         }
                     } else {
-                        Text("Free")
+                        Text("Free", tableName: "Store")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -48,7 +48,7 @@ struct StoreSetting: View, SuperLog, SuperEvent {
 
             // Expiration date (if has subscription)
             if let expiresAt = purchaseInfo.expiresAt {
-                MagicSettingRow(title: "Expiration Date", description: "Subscription expiration date", icon: "calendar", content: {
+                MagicSettingRow(title: String(localized: "Expiration Date", table: "Store"), description: String(localized: "Subscription expiration date", table: "Store"), icon: "calendar", content: {
                     HStack {
                         Text(expiresAt.fullDateTime)
                             .font(.footnote)
@@ -57,7 +57,7 @@ struct StoreSetting: View, SuperLog, SuperEvent {
             }
 
             // Purchase entry
-            MagicSettingRow(title: "In-App Purchase", description: "Subscribe to Pro to unlock all features", icon: "cart", content: {
+            MagicSettingRow(title: String(localized: "In-App Purchase", table: "Store"), description: String(localized: "Subscribe to Pro to unlock all features", table: "Store"), icon: "cart", content: {
                 Image.appStore
                     .frame(width: 28)
                     .frame(height: 28)
@@ -70,7 +70,7 @@ struct StoreSetting: View, SuperLog, SuperEvent {
             })
 
             // Restore purchase
-            MagicSettingRow(title: "Restore Purchase", description: "Restore purchases made on other devices", icon: "arrow.clockwise", content: {
+            MagicSettingRow(title: String(localized: "Restore Purchase", table: "Store"), description: String(localized: "Restore purchases made on other devices", table: "Store"), icon: "arrow.clockwise", content: {
                 Image.reset
                     .frame(width: 28)
                     .frame(height: 28)
@@ -104,17 +104,22 @@ struct StoreSetting: View, SuperLog, SuperEvent {
 
 extension StoreSetting {
     private func updatePurchaseInfo() {
-        purchaseInfo = StoreService.cachedPurchaseInfo()
-        tierDisplayName = purchaseInfo.effectiveTier.displayName
+        Task {
+            let info = await StoreService.getPurchaseInfo()
+            await MainActor.run {
+                self.purchaseInfo = info
+                self.tierDisplayName = StoreService.tierCached().displayName
 
-        if purchaseInfo.isProOrHigher {
-            if purchaseInfo.isExpired {
-                statusDescription = "Subscription expired, please renew"
-            } else {
-                statusDescription = "Subscription active, enjoy full features"
+                if info.isProOrHigher {
+                    if info.isExpired {
+                        self.statusDescription = String(localized: "Subscription has expired, please renew to continue using Pro features", table: "Store")
+                    } else {
+                        self.statusDescription = String(localized: "Subscription is active, thank you for your support", table: "Store")
+                    }
+                } else {
+                    self.statusDescription = String(localized: "Currently using free version", table: "Store")
+                }
             }
-        } else {
-            statusDescription = "Currently using free version"
         }
     }
 }

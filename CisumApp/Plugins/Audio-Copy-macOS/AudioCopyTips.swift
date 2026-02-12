@@ -23,7 +23,7 @@ struct AudioCopyTips: View {
                         .font(.system(size: 48))
                         .foregroundStyle(.blue.opacity(0.6))
 
-                    Text(Config.isDesktop ? "拖放音乐文件到这里" : "仓库为空")
+                    Text(Config.isDesktop ? "拖放音乐文件到这里" : "仓库为空", tableName: "Audio-Copy-macOS")
                         .font(.title3)
                         .foregroundStyle(.primary)
 
@@ -48,7 +48,7 @@ struct AudioCopyTips: View {
                     HStack {
                         Image.info
                             .foregroundStyle(.blue)
-                        Text("基础版本最多支持 \(AudioPlugin.maxAudioCount) 个文件")
+                        Text("基础版本最多支持 \(AudioPlugin.maxAudioCount) 个文件", tableName: "Audio-Copy-macOS")
                             .font(.title3)
                     }
 
@@ -56,7 +56,7 @@ struct AudioCopyTips: View {
                     formatChipsView
 
                     HStack {
-                        Text("当前订阅：" + StoreService.tierCached().displayName)
+                        Text("当前订阅：", tableName: "Audio-Copy-macOS") + Text(StoreService.tierCached().displayName)
                     }
                 }
             }
@@ -68,7 +68,7 @@ struct AudioCopyTips: View {
     /// 格式标签视图
     private var formatChipsView: some View {
         VStack(spacing: 8) {
-            Text("支持的格式")
+            Text("支持的格式", tableName: "Audio-Copy-macOS")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.bottom, 8)

@@ -62,7 +62,7 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
                             .font(.title2)
                             .foregroundStyle(.blue)
 
-                        Text("Restore Purchase")
+                        Text("Restore Purchase", tableName: "Store")
                             .font(.title3)
                             .fontWeight(.semibold)
 
@@ -71,20 +71,20 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
                     VStack(alignment: .leading, spacing: 12) {
                         InfoRow(
                             icon: "iphone.and.arrow.forward",
-                            title: "Cross-Device Restore",
-                            description: "Restore purchases made on other devices"
+                            title: String(localized: "Cross-Device Restore", table: "Store"),
+                            description: String(localized: "Restore purchases made on other devices", table: "Store")
                         )
 
                         InfoRow(
                             icon: "person.circle",
-                            title: "Apple ID Verification",
-                            description: "Use the same Apple ID used for purchase"
+                            title: String(localized: "Apple ID Verification", table: "Store"),
+                            description: String(localized: "Use the same Apple ID used for purchase", table: "Store")
                         )
 
                         InfoRow(
                             icon: "checkmark.circle",
-                            title: "Feature Restore",
-                            description: "Get all purchased features after successful restore"
+                            title: String(localized: "Feature Restore", table: "Store"),
+                            description: String(localized: "Get all purchased features after successful restore", table: "Store")
                         )
                     }
                     .padding(.vertical, 8)
@@ -122,10 +122,10 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
                     .progressViewStyle(.circular)
                     .scaleEffect(0.9)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Restoring Purchase")
+                    Text("Restoring Purchase", tableName: "Store")
                         .font(.subheadline)
                         .fontWeight(.medium)
-                    Text("Please wait, verifying your purchase records...")
+                    Text("Please wait, verifying your purchase records...", tableName: "Store")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -141,10 +141,10 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
                     .font(.title3)
                     .foregroundStyle(.green)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Restore Successful")
+                    Text("Restore Successful", tableName: "Store")
                         .font(.subheadline)
                         .fontWeight(.medium)
-                    Text("Successfully restored your purchase records, all features unlocked")
+                    Text("Successfully restored your purchase records, all features unlocked", tableName: "Store")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -160,7 +160,7 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
                     .font(.title3)
                     .foregroundStyle(.red)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Restore Failed")
+                    Text("Restore Failed", tableName: "Store")
                         .font(.subheadline)
                         .fontWeight(.medium)
                     if let error = error {
@@ -168,7 +168,7 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     } else {
-                        Text("An error occurred while restoring, please try again later")
+                        Text("An error occurred while restoring, please try again later", tableName: "Store")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -189,7 +189,7 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
             case .idle:
                 Image.reset
                     .fontWeight(.semibold)
-                Text("Restore Purchase")
+                Text("Restore Purchase", tableName: "Store")
                     .fontWeight(.semibold)
             case .restoring:
                 EmptyView()
@@ -198,7 +198,7 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
             case .failed:
                 Image.reset
                     .fontWeight(.semibold)
-                Text("Retry Restore")
+                Text("Retry Restore", tableName: "Store")
                     .fontWeight(.semibold)
             }
         }
@@ -218,7 +218,7 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
             HStack(spacing: 8) {
                 Image(systemName: "checkmark.circle.fill")
                     .fontWeight(.semibold)
-                Text("Done")
+                Text("Done", tableName: "Store")
                     .fontWeight(.semibold)
             }
             .inCard(.regularMaterial)
@@ -232,7 +232,7 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
             HStack(spacing: 8) {
                 Image.reset
                     .fontWeight(.semibold)
-                Text("Try Again")
+                Text("Try Again", tableName: "Store")
                     .fontWeight(.semibold)
             }
             .inCard(.regularMaterial)

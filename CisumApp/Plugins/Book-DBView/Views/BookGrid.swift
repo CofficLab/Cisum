@@ -71,13 +71,13 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
             } else {
                 VStack(spacing: 0) {
                     HStack {
-                        Text("共 \(total)")
+                        Text("共 \(total)", tableName: "Book-DBView")
                         Spacer()
                         if isSyncing {
                             HStack(spacing: 6) {
                                 ProgressView()
                                     .controlSize(.small)
-                                Text("正在读取仓库")
+                                Text("正在读取仓库", tableName: "Book-DBView")
                                     .font(.footnote)
                                     .foregroundStyle(.secondary)
                             }

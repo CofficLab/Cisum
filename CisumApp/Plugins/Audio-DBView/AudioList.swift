@@ -83,13 +83,13 @@ struct AudioList: View, SuperThread, SuperLog, SuperEvent {
     private var audioListView: some View {
         List(selection: $selection) {
             Section(header: HStack {
-                Text("共 \(totalCount.description)")
+                Text("共 \(totalCount.description)", tableName: "Audio-DBView")
                 Spacer()
                 if isSyncing {
                     HStack(spacing: 6) {
                         ProgressView()
                             .controlSize(.small)
-                        Text("正在读取仓库")
+                        Text("正在读取仓库", tableName: "Audio-DBView")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -118,7 +118,7 @@ struct AudioList: View, SuperThread, SuperLog, SuperEvent {
                         Spacer()
                         ProgressView()
                             .controlSize(.small)
-                        Text("正在加载更多...")
+                        Text("正在加载更多...", tableName: "Audio-DBView")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                         Spacer()

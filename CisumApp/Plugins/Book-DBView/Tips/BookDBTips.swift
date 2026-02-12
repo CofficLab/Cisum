@@ -28,16 +28,16 @@ struct BookDBTips: View {
                     HStack {
                         Image(systemName: "info.circle.fill")
                             .foregroundStyle(.yellow)
-                        Text(Config.isDesktop ? "将有声书文件夹拖到这里可添加" : "仓库为空")
+                        Text(Config.isDesktop ? "将有声书文件夹拖到这里可添加" : "仓库为空", tableName: "Book-DBView")
                             .font(.title3)
                             .foregroundStyle(.white)
                     }
-                    Text("支持的格式：\(supportedFormats)")
+                    Text("支持的格式：\(supportedFormats)", tableName: "Book-DBView")
                         .font(.subheadline)
                         .foregroundStyle(.white)
 
                     #if os(macOS)
-                        HStack { Text("或").foregroundStyle(.white) }
+                        HStack { Text("或", tableName: "Book-DBView").foregroundStyle(.white) }
                         Button(
                             action: {
                                 if let disk = BookPlugin.getBookDisk() {
@@ -45,7 +45,7 @@ struct BookDBTips: View {
                                 }
                             },
                             label: {
-                                Label { Text("打开仓库目录并放入文件") } icon: { Image(systemName: "doc.viewfinder.fill") }
+                                Label { Text("打开仓库目录并放入文件", tableName: "Book-DBView") } icon: { Image(systemName: "doc.viewfinder.fill") }
                             }
                         )
                     #endif
@@ -59,18 +59,18 @@ struct BookDBTips: View {
                     HStack {
                         Image(systemName: "info.circle.fill")
                             .foregroundStyle(.yellow)
-                        Text(Config.isDesktop ? "将有声书文件夹拖到这里可添加" : "有声书仓库为空")
+                        Text(Config.isDesktop ? "将有声书文件夹拖到这里可添加" : "有声书仓库为空", tableName: "Book-DBView")
                             .font(.title3)
                             .foregroundStyle(.white)
                     }
                     ProgressView()
                         .controlSize(.large)
                         .tint(.white)
-                    Text("正在读取仓库")
+                    Text("正在读取仓库", tableName: "Book-DBView")
                         .font(.headline)
                         .foregroundStyle(.white)
                     VStack(spacing: 10) {
-                        Text("支持的格式：\(supportedFormats)")
+                        Text("支持的格式：\(supportedFormats)", tableName: "Book-DBView")
                             .font(.footnote)
                             .foregroundStyle(.white.opacity(0.9))
                     }

@@ -19,7 +19,6 @@
 		0B3CCAAD2DF1C94000E22263 /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = F59E30CD2DF1870D00F794A7 /* MagicPlayMan */; };
 		0B51AF372F29013A0049B4E4 /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = 0B51AF362F29013A0049B4E4 /* MagicPlayMan */; };
 		0B55531C2F23AB1900F585EE /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = 0B55531B2F23AB1900F585EE /* MagicPlayMan */; };
-		0B7792462D15ADF500D78FF4 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 0B7792452D15ADF500D78FF4 /* Localizable.xcstrings */; };
 		0BB37EE82F2491DE00889426 /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = 0BB37EE72F2491DE00889426 /* MagicPlayMan */; };
 		0BB5871D2AD820FA0071AEBD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0BB5871C2AD820FA0071AEBD /* Assets.xcassets */; };
 		0BBE779B2F2BA051009C6AC6 /* MagicPlayMan in Frameworks */ = {isa = PBXBuildFile; productRef = 0BBE779A2F2BA051009C6AC6 /* MagicPlayMan */; };
@@ -82,7 +81,6 @@
 		0B1D5A5D2AB3025E0010DDF2 /* Signing.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = Signing.entitlements; sourceTree = "<group>"; };
 		0B1D5A8B2AB305D70010DDF2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0B53A6CC2F1C734B00169AF2 /* Cisum.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cisum.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		0B7792452D15ADF500D78FF4 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		0BB5871C2AD820FA0071AEBD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F52F17E82F3585980008EF9F /* CisumWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CisumWidgetExtension.entitlements; sourceTree = "<group>"; };
 		F5826E682F3578070079B285 /* CisumWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CisumWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -174,7 +172,6 @@
 				F5826E6E2F3578070079B285 /* CisumWidget */,
 				0BB5871C2AD820FA0071AEBD /* Assets.xcassets */,
 				0B1D5A8B2AB305D70010DDF2 /* Info.plist */,
-				0B7792452D15ADF500D78FF4 /* Localizable.xcstrings */,
 				0B1D5A5D2AB3025E0010DDF2 /* Signing.entitlements */,
 				F52F17E82F3585980008EF9F /* CisumWidgetExtension.entitlements */,
 				0B53A6CC2F1C734B00169AF2 /* Cisum.app */,
@@ -331,7 +328,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0B7792462D15ADF500D78FF4 /* Localizable.xcstrings in Resources */,
 				0BB5871D2AD820FA0071AEBD /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

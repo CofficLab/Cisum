@@ -59,13 +59,13 @@ extension AudioItemView {
         .onAppear(perform: handleOnAppear)
         #if os(macOS)
             .contextMenu {
-                Label("播放", systemImage: "play.fill")
+                Label(title: { Text("播放", tableName: "Audio-DBView") }, icon: { Image(systemName: "play.fill") })
                     .inButtonWithAction(playAudio)
 
-                Label("在 Finder 中显示", systemImage: "finder")
+                Label(title: { Text("在 Finder 中显示", tableName: "Audio-DBView") }, icon: { Image(systemName: "finder") })
                     .inButtonWithAction { showInFinder() }
 
-                Label("导出到下载目录", systemImage: "arrow.down.doc")
+                Label(title: { Text("导出到下载目录", tableName: "Audio-DBView") }, icon: { Image(systemName: "arrow.down.doc") })
                     .inButtonWithAction {
                         exportToDownloads()
                     }
@@ -75,18 +75,22 @@ extension AudioItemView {
                 Button(role: .destructive, action: {
                     showDeleteConfirmation = true
                 }) {
-                    Label("删除", systemImage: "trash")
+                    Label(title: { Text("删除", tableName: "Audio-DBView") }, icon: { Image(systemName: "trash") })
                 }
             }
         #endif
             .confirmationDialog(
-                "确定要删除这个文件吗？",
+                Text("确定要删除这个文件吗？", tableName: "Audio-DBView"),
                 isPresented: $showDeleteConfirmation,
                 titleVisibility: .visible
             ) {
-                Button("取消", role: .cancel) {}
-                Button("删除", role: .destructive) {
+                Button(role: .cancel) {} label: {
+                    Text("取消", tableName: "Audio-DBView")
+                }
+                Button(role: .destructive) {
                     deleteFile()
+                } label: {
+                    Text("删除", tableName: "Audio-DBView")
                 }
             } message: {
                 Text(url.lastPathComponent)

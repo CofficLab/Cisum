@@ -75,7 +75,13 @@ public enum StoreService: SuperLog {
 
     // MARK: - Public State Accessors
 
-    static func cachedPurchaseInfo() -> PurchaseInfo {
+    /// 获取当前购买信息（会触发一次云端权益同步）
+    public static func getPurchaseInfo() async -> PurchaseInfo {
+        await StoreState.calibrateFromCurrentEntitlements()
+        return cachedPurchaseInfo()
+    }
+
+    public static func cachedPurchaseInfo() -> PurchaseInfo {
         return StoreState.cachedPurchaseInfo()
     }
 

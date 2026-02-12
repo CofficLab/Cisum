@@ -21,17 +21,17 @@ struct AudioDBTips: View {
             case .empty:
                 HStack {
                     Image(systemName: "info.circle.fill").foregroundStyle(.blue)
-                    Text(Config.isDesktop ? "将音乐文件拖到这里可添加" : "歌曲仓库为空")
+                    Text(Config.isDesktop ? "将音乐文件拖到这里可添加" : "歌曲仓库为空", tableName: "Audio-DBView")
                         .font(.title3)
                 }
-                Text("支持的格式：\(supportedFormats)")
+                Text("支持的格式：\(supportedFormats)", tableName: "Audio-DBView")
                     .font(.subheadline)
 
                 #if os(macOS)
                     if let disk = AudioPlugin.getAudioDisk() {
-                        HStack { Text("或") }
+                        HStack { Text("或", tableName: "Audio-DBView") }
 
-                        Label { Text("打开仓库目录并放入文件") } icon: { Image(systemName: "doc.viewfinder.fill") }
+                        Label { Text("打开仓库目录并放入文件", tableName: "Audio-DBView") } icon: { Image(systemName: "doc.viewfinder.fill") }
                             .inCard(.regularMaterial)
                             .shadowSm()
                             .hoverScale(105)
@@ -47,15 +47,15 @@ struct AudioDBTips: View {
                 HStack {
                     Image(systemName: "info.circle.fill")
                         .foregroundStyle(.yellow)
-                    Text(Config.isDesktop ? "将音乐文件拖到这里可添加" : "歌曲仓库为空")
+                    Text(Config.isDesktop ? "将音乐文件拖到这里可添加" : "歌曲仓库为空", tableName: "Audio-DBView")
                         .font(.title3)
                 }
                 ProgressView()
                     .controlSize(.large)
-                Text("正在读取仓库")
+                Text("正在读取仓库", tableName: "Audio-DBView")
                     .font(.headline)
                 VStack(spacing: 10) {
-                    Text("支持的格式：\(supportedFormats)")
+                    Text("支持的格式：\(supportedFormats)", tableName: "Audio-DBView")
                         .font(.footnote)
                 }
                 .padding(.top, 6)
@@ -64,15 +64,15 @@ struct AudioDBTips: View {
                 HStack {
                     Image(systemName: "info.circle.fill")
                         .foregroundStyle(.yellow)
-                    Text(Config.isDesktop ? "将音乐文件拖到这里可添加" : "歌曲仓库为空")
+                    Text(Config.isDesktop ? "将音乐文件拖到这里可添加" : "歌曲仓库为空", tableName: "Audio-DBView")
                         .font(.title3)
                 }
                 ProgressView()
                     .controlSize(.large)
-                Text("正在排序")
+                Text("正在排序", tableName: "Audio-DBView")
                     .font(.headline)
                 VStack(spacing: 10) {
-                    Text("支持的格式：\(supportedFormats)")
+                    Text("支持的格式：\(supportedFormats)", tableName: "Audio-DBView")
                         .font(.footnote)
                 }
                 .padding(.top, 6)

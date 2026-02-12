@@ -30,22 +30,26 @@ struct UserDefaultsDebugView: View, SuperLog {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("UserDefaults Debug View").font(.headline)
+            Text("UserDefaults Debug View", tableName: "Core").font(.headline)
 
             HStack {
-                TextField("Search keys or values", text: $searchText)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                TextField(text: $searchText) {
+                    Text("Search keys or values", tableName: "Core")
+                }
+                .textFieldStyle(RoundedBorderTextFieldStyle())
 
-                Toggle("Show iCloud values", isOn: $showingICloudValues)
-                    .onChange(of: showingICloudValues) {
-                        refreshData()
-                    }
+                Toggle(isOn: $showingICloudValues) {
+                    Text("Show iCloud values", tableName: "Core")
+                }
+                .onChange(of: showingICloudValues) {
+                    refreshData()
+                }
             }
             
             Divider()
             
             if filteredPairs.isEmpty {
-                Text("No matching key-value pairs found")
+                Text("No matching key-value pairs found", tableName: "Core")
                     .foregroundColor(.secondary)
                     .padding()
             } else {
@@ -70,14 +74,16 @@ struct UserDefaultsDebugView: View, SuperLog {
             Divider()
             
             HStack {
-                Button("Refresh Data") {
+                Button {
                     refreshData()
+                } label: {
+                    Text("Refresh Data", tableName: "Core")
                 }
                 .buttonStyle(.borderedProminent)
 
                 Spacer()
 
-                Text("Total: \(filteredPairs.count) items")
+                Text("Total: \(filteredPairs.count) items", tableName: "Core")
                     .foregroundColor(.secondary)
                     .font(.caption)
             }

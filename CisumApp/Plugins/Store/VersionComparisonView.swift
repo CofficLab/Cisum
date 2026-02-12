@@ -9,7 +9,7 @@ struct VersionComparisonView: View {
             HStack {
                 Image(systemName: "sparkles")
                     .foregroundStyle(.yellow)
-                Text("解锁完整体验")
+                Text("解锁完整体验", tableName: "Store")
                     .font(.headline)
                     .fontWeight(.semibold)
             }
@@ -19,24 +19,24 @@ struct VersionComparisonView: View {
             HStack(spacing: 12) {
                 // 免费版卡片
                 VersionCard(
-                    title: "免费版",
+                    title: String(localized: "免费版", table: "Store"),
                     icon: "person.fill",
                     color: .gray,
                     features: [
-                        ("maxAudioCount", "最多 \(AudioPlugin.maxAudioCount) 首音频", "music.note"),
+                        ("maxAudioCount", String(localized: "最多 \(AudioPlugin.maxAudioCount) 首音频", table: "Store"), "music.note"),
                     ],
                     isPro: false
                 )
 
                 // 专业版卡片
                 VersionCard(
-                    title: "专业版",
+                    title: String(localized: "专业版", table: "Store"),
                     icon: "crown.fill",
                     color: .blue,
                     features: [
-                        ("unlimited", "无限制音频", "infinity"),
-                        ("future", "未来新功能优先体验", "star.fill"),
-                        ("support", "支持我们做得更好", "heart.fill"),
+                        ("unlimited", String(localized: "无限制音频", table: "Store"), "infinity"),
+                        ("future", String(localized: "未来新功能优先体验", table: "Store"), "star.fill"),
+                        ("support", String(localized: "支持我们做得更好", table: "Store"), "heart.fill"),
                     ],
                     isPro: true
                 )

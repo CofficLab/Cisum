@@ -1,24 +1,24 @@
 import MagicKit
 import SwiftUI
 
-struct PurchaseInfo: Codable, Equatable {
-    let tier: SubscriptionTier
-    let expiresAt: Date?
+public struct PurchaseInfo: Codable, Equatable, Sendable {
+    public let tier: SubscriptionTier
+    public let expiresAt: Date?
 
-    var isProOrHigher: Bool {
+    public var isProOrHigher: Bool {
         guard tier >= .pro else { return false }
         return self.isExpired == false
     }
 
-    var isNotProOrHigher: Bool {
+    public var isNotProOrHigher: Bool {
         !isProOrHigher
     }
 
-    var effectiveTier: SubscriptionTier {
+    public var effectiveTier: SubscriptionTier {
         isProOrHigher ? tier : .none
     }
 
-    var expiresAtString: String {
+    public var expiresAtString: String {
         guard let expiresAt = self.expiresAt else {
             return "nil"
         }
@@ -31,7 +31,7 @@ struct PurchaseInfo: Codable, Equatable {
         return timeStr + isExpired
     }
 
-    var isExpired: Bool {
+    public var isExpired: Bool {
         guard let expiresAt = self.expiresAt else {
             return true
         }
@@ -40,7 +40,7 @@ struct PurchaseInfo: Codable, Equatable {
         return expiresAt.distance(to: .now) > 60 ? true : false
     }
 
-    static let none: PurchaseInfo = PurchaseInfo(tier: .none, expiresAt: nil)
+    public static let none: PurchaseInfo = PurchaseInfo(tier: .none, expiresAt: nil)
 }
 
 public enum SubscriptionTier: Int, Comparable, Sendable, Codable {

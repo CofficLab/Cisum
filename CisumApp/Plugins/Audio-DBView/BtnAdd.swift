@@ -9,7 +9,7 @@ struct BtnAdd: View {
             action: { app.isImporting = true },
             label: {
                 Label(
-                    title: { Text("添加") },
+                    title: { Text("添加", tableName: "Audio-DBView") },
                     icon: { Image(systemName: "plus.circle") }
                 )
             }

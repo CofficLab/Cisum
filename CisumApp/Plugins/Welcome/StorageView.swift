@@ -18,11 +18,11 @@ struct StorageView: View, SuperLog {
     }
 
     var body: some View {
-        MagicSettingSection(title: "Media Storage Location", titleAlignment: .center) {
+        MagicSettingSection(title: String(localized: "Media Storage Location", table: "Welcome"), titleAlignment: .center) {
             VStack(spacing: 12) {
                 MagicSettingRow(
-                    title: "iCloud Drive",
-                    description: "Files stored in iCloud\nAccessible on other devices\nEnsure sufficient iCloud storage",
+                    title: String(localized: "iCloud Drive", table: "Welcome"),
+                    description: String(localized: "Files stored in iCloud\nAccessible on other devices\nEnsure sufficient iCloud storage", table: "Welcome"),
                     icon: .iconCloud,
                     action: {
                         if cloudManager.isSignedIn == true && c.getStorageLocation() != .icloud {
@@ -35,7 +35,7 @@ struct StorageView: View, SuperLog {
                             Image(systemName: .iconCheckmarkSimple)
                                 .foregroundColor(.accentColor)
                         } else {
-                            Text("Recommended").font(.footnote)
+                            Text("Recommended", tableName: "Welcome").font(.footnote)
                                 .foregroundColor(.secondary)
                         }
                     }
@@ -48,7 +48,7 @@ struct StorageView: View, SuperLog {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundColor(.orange)
                             .imageScale(.small)
-                        Text("Sign in to iCloud in System Settings to use this option")
+                        Text("Sign in to iCloud in System Settings to use this option", tableName: "Welcome")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -59,8 +59,8 @@ struct StorageView: View, SuperLog {
                 Divider()
 
                 MagicSettingRow(
-                    title: "App Local Storage",
-                    description: "Stored within the app, data will be lost if app is deleted",
+                    title: String(localized: "App Local Storage", table: "Welcome"),
+                    description: String(localized: "Stored within the app, data will be lost if app is deleted", table: "Welcome"),
                     icon: .iconFolder,
                     action: {
                         tempStorageLocation = .local

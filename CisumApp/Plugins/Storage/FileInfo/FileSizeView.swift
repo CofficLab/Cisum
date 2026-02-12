@@ -14,7 +14,7 @@ struct FileSizeView: View, SuperLog {
             if let size = size {
                 Text(formatFileSize(size))
             } else {
-                Text("计算中...")
+                Text("计算中...", tableName: "Storage")
                     .foregroundStyle(.secondary)
             }
         }

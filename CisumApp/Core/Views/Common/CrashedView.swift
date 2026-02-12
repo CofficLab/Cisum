@@ -25,7 +25,7 @@ struct CrashedView: View {
                 Spacer()
 
                 VStack {
-                    Text("遇到问题无法继续运行")
+                    Text("遇到问题无法继续运行", tableName: "Core")
                         .font(.title)
                         .padding(.bottom, 10)
 
@@ -35,7 +35,7 @@ struct CrashedView: View {
                             .padding(.bottom, 20)
                             .font(.title2)
 
-                        Text("\(error.localizedDescription)")
+                        Text("\(error.localizedDescription)", tableName: "Core")
                             .font(.subheadline)
                             .foregroundStyle(.red)
                             .padding(.bottom, 10)
@@ -47,7 +47,7 @@ struct CrashedView: View {
                             HStack {
                                 Image(systemName: isCopied ? "checkmark.circle.fill" : "doc.on.doc")
                                     .foregroundColor(isCopied ? .green : .blue)
-                                Text(isCopied ? "已复制" : "复制错误信息")
+                                Text(isCopied ? "已复制" : "复制错误信息", tableName: "Core")
                                     .foregroundColor(isCopied ? .green : .blue)
                             }
                             .padding(.horizontal, 16)
@@ -70,8 +70,10 @@ struct CrashedView: View {
                     debugView
 
                     #if os(macOS)
-                        Button("退出") {
+                        Button {
                             NSApplication.shared.terminate(self)
+                        } label: {
+                            Text("退出", tableName: "Core")
                         }.controlSize(.extraLarge)
 
                         Spacer()
@@ -87,44 +89,46 @@ struct CrashedView: View {
         VStack(spacing: 10) {
             Section(content: {
                 GroupBox {
-                    makeKeyValueItem(key: "启用iCloud云盘", value: MagicApp.isICloudAvailable() ? "是" : "否")
+                    makeKeyValueItem(key: String(localized: "启用iCloud云盘", table: "Core"), value: MagicApp.isICloudAvailable() ? String(localized: "是", table: "Core") : String(localized: "否", table: "Core"))
                     Divider()
-                    makeKeyValueItem(key: "登录 iCloud", value: cloud.isSignedInDescription)
+                    makeKeyValueItem(key: String(localized: "登录 iCloud", table: "Core"), value: cloud.isSignedInDescription)
                 }
             }, header: { makeTitle("iCloud") })
 
             Section(content: {
                 GroupBox {
-                    makeKeyValueItem(key: "仓库位置", value: Config.getStorageLocation()?.title ?? "未设置")
+                    makeKeyValueItem(key: String(localized: "仓库位置", table: "Core"), value: Config.getStorageLocation()?.title ?? String(localized: "未设置", table: "Core"))
                 }
             }, header: { makeTitle("设置") })
 
             Section(content: {
                 GroupBox {
-                    makeKeyValueItem(key: "APP 容器", value: MagicApp.getContainerDirectory().path(percentEncoded: false))
-                    makeKeyValueItem(key: "数据库文件夹", value: MagicApp.getDatabaseDirectory().path(percentEncoded: false))
+                    makeKeyValueItem(key: String(localized: "APP 容器", table: "Core"), value: MagicApp.getContainerDirectory().path(percentEncoded: false))
+                    makeKeyValueItem(key: String(localized: "数据库文件夹", table: "Core"), value: MagicApp.getDatabaseDirectory().path(percentEncoded: false))
                 }
             }, header: { makeTitle("文件夹") })
 
             GroupBox {
-                Button("恢复默认设置") {
+                Button {
                     Config.resetStorageLocation()
                     showAlert = true
+                } label: {
+                    Text("恢复默认设置", tableName: "Core")
                 }
                 .alert(isPresented: $showAlert) {
                     Alert(
-                        title: Text("提示"),
-                        message: Text("请退出 APP，再重新打开"),
-                        dismissButton: .default(Text("确定"))
+                        title: Text("提示", tableName: "Core"),
+                        message: Text("请退出 APP，再重新打开", tableName: "Core"),
+                        dismissButton: .default(Text("确定", tableName: "Core"))
                     )
                 }
             }
         }.padding(20)
     }
 
-    private func makeTitle(_ title: String) -> some View {
+    private func makeTitle(_ title: LocalizedStringKey) -> some View {
         HStack {
-            Text(title).font(.headline).padding(.leading, 10)
+            Text(title, tableName: "Core").font(.headline).padding(.leading, 10)
             Spacer()
         }
     }

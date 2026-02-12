@@ -8,21 +8,23 @@ struct PluginRepoDebugView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Plugin Repo Debug View").font(.headline)
+            Text("Plugin Repo Debug View", tableName: "Core").font(.headline)
 
             Divider()
 
             Group {
-                Text("Current Plugin ID: \(currentPluginId)").bold()
-                Text("UserDefaults value: \(userDefaultsValue)")
-                Text("iCloud value: \(iCloudValue)")
+                Text("Current Plugin ID: \(currentPluginId)", tableName: "Core").bold()
+                Text("UserDefaults value: \(userDefaultsValue)", tableName: "Core")
+                Text("iCloud value: \(iCloudValue)", tableName: "Core")
             }
             .font(.system(.body, design: .monospaced))
             
             Divider()
 
-            Button("Refresh Data") {
+            Button {
                 refreshData()
+            } label: {
+                Text("Refresh Data", tableName: "Core")
             }
             .buttonStyle(.borderedProminent)
         }

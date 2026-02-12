@@ -53,7 +53,7 @@ struct ResetConfirm: View, SuperLog {
                             .font(.title2)
                             .foregroundStyle(.orange)
 
-                        Text("Reset Settings")
+                        Text("Reset Settings", tableName: "Reset")
                             .font(.title3)
                             .fontWeight(.semibold)
 
@@ -67,10 +67,10 @@ struct ResetConfirm: View, SuperLog {
                                 .progressViewStyle(.circular)
                                 .scaleEffect(0.9)
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Resetting…")
+                                Text("Resetting…", tableName: "Reset")
                                     .font(.subheadline)
                                     .fontWeight(.medium)
-                                Text("Restoring default settings, please wait")
+                                Text("Restoring default settings, please wait", tableName: "Reset")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -82,20 +82,20 @@ struct ResetConfirm: View, SuperLog {
                         VStack(alignment: .leading, spacing: 12) {
                             ResetInfoRow(
                                 icon: "externaldrive.fill",
-                                title: "Data Storage Reset",
-                                description: "Data storage will be restored to default location"
+                                title: String(localized: "Data Storage Reset", table: "Reset"),
+                                description: String(localized: "Data storage will be restored to default location", table: "Reset")
                             )
 
                             ResetInfoRow(
                                 icon: "slider.horizontal.3",
-                                title: "Preferences Reset",
-                                description: "All user preferences will be reset"
+                                title: String(localized: "Preferences Reset", table: "Reset"),
+                                description: String(localized: "All user preferences will be reset", table: "Reset")
                             )
 
                             ResetInfoRow(
                                 icon: "exclamationmark.triangle.fill",
-                                title: "Irreversible",
-                                description: "This action cannot be undone, proceed with caution"
+                                title: String(localized: "Irreversible", table: "Reset"),
+                                description: String(localized: "This action cannot be undone, proceed with caution", table: "Reset")
                             )
                         }
                         .padding(.vertical, 8)
@@ -109,7 +109,7 @@ struct ResetConfirm: View, SuperLog {
                 // Confirm button
                 HStack(spacing: 8) {
                     Image.checkmark
-                    Text("Continue Reset")
+                    Text("Continue Reset", tableName: "Reset")
                 }
                 .inCard(.regularMaterial)
                 .hoverScale(105)

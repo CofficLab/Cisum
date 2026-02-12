@@ -79,11 +79,11 @@ struct AudioRootView<Content>: View, SuperLog where Content: View {
                 .symbolRenderingMode(.hierarchical)
 
             VStack(spacing: 8) {
-                Text("存储位置未设置")
+                Text("存储位置未设置", tableName: "Audio")
                     .font(.title2.bold())
                     .foregroundStyle(.primary)
 
-                Text("请先设置媒体仓库的存储位置")
+                Text("请先设置媒体仓库的存储位置", tableName: "Audio")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

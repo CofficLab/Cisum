@@ -87,7 +87,7 @@ struct ProductCell: View, SuperLog {
         )
         .shadowSm()
         .alert(isPresented: $isShowingError, content: {
-            Alert(title: Text(errorTitle), message: nil, dismissButton: .default(Text("OK")))
+            Alert(title: Text(LocalizedStringKey(errorTitle), tableName: "Store"), message: nil, dismissButton: .default(Text("OK", tableName: "Store")))
         })
     }
 
@@ -119,15 +119,15 @@ struct ProductCell: View, SuperLog {
         let plural = 1 < period.value
         switch period.unit {
         case "day":
-            return plural ? "\(period.value) days" : "day"
+            return plural ? String(localized: "\(period.value) days", table: "Store") : String(localized: "day", table: "Store")
         case "week":
-            return plural ? "\(period.value) weeks" : "week"
+            return plural ? String(localized: "\(period.value) weeks", table: "Store") : String(localized: "week", table: "Store")
         case "month":
-            return plural ? "\(period.value) months" : "month"
+            return plural ? String(localized: "\(period.value) months", table: "Store") : String(localized: "month", table: "Store")
         case "year":
-            return plural ? "\(period.value) years" : "year"
+            return plural ? String(localized: "\(period.value) years", table: "Store") : String(localized: "year", table: "Store")
         default:
-            return "period"
+            return String(localized: "period", table: "Store")
         }
     }
 
@@ -139,26 +139,26 @@ struct ProductCell: View, SuperLog {
 
         switch offer.subscriptionPeriod.unit {
         case "day":
-            periodText = plural ? "\(offer.subscriptionPeriod.value) days" : "day"
+            periodText = plural ? String(localized: "\(offer.subscriptionPeriod.value) days", table: "Store") : String(localized: "day", table: "Store")
         case "week":
-            periodText = plural ? "\(offer.subscriptionPeriod.value) weeks" : "week"
+            periodText = plural ? String(localized: "\(offer.subscriptionPeriod.value) weeks", table: "Store") : String(localized: "week", table: "Store")
         case "month":
-            periodText = plural ? "\(offer.subscriptionPeriod.value) months" : "month"
+            periodText = plural ? String(localized: "\(offer.subscriptionPeriod.value) months", table: "Store") : String(localized: "month", table: "Store")
         case "year":
-            periodText = plural ? "\(offer.subscriptionPeriod.value) years" : "year"
+            periodText = plural ? String(localized: "\(offer.subscriptionPeriod.value) years", table: "Store") : String(localized: "year", table: "Store")
         default:
-            periodText = "period"
+            periodText = String(localized: "period", table: "Store")
         }
 
         switch offer.paymentMode {
         case "FreeTrial":
-            return "Free for \(periodText)"
+            return String(localized: "Free for \(periodText)", table: "Store")
         case "PayAsYouGo":
-            return "\(offer.displayPrice) for first \(periodText)"
+            return String(localized: "\(offer.displayPrice) for first \(periodText)", table: "Store")
         case "PayUpFront":
-            return "Pay \(offer.displayPrice) for first \(periodText)"
+            return String(localized: "Pay \(offer.displayPrice) for first \(periodText)", table: "Store")
         default:
-            return "Special offer for \(periodText)"
+            return String(localized: "Special offer for \(periodText)", table: "Store")
         }
     }
 
@@ -169,11 +169,11 @@ struct ProductCell: View, SuperLog {
             if purchasing {
                 ProgressView()
                     .scaleEffect(0.8)
-                Text("Processing...")
+                Text("Processing...", tableName: "Store")
             } else if isPurchased {
-                Text(product.kind == .autoRenewable ? "Subscribed" : "Purchased")
+                Text(product.kind == .autoRenewable ? "Subscribed" : "Purchased", tableName: "Store")
             } else {
-                Text(product.kind == .autoRenewable ? "Subscribe" : "Purchase")
+                Text(product.kind == .autoRenewable ? "Subscribe" : "Purchase", tableName: "Store")
             }
         }
         .fontWeight(.semibold)

@@ -10,7 +10,7 @@ struct MigrateView: View, SuperThread {
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
-                Text("Migrate")
+                Text("Migrate", tableName: "Migrate")
             }
         }
     }

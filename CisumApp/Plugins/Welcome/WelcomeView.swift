@@ -16,12 +16,12 @@ struct WelcomeView: View, SuperLog {
                     .foregroundStyle(.white.opacity(0.95))
                     .shadow(color: .black.opacity(0.2), radius: 10, y: 8)
 
-                Text("Good Things Are Coming")
+                Text("Good Things Are Coming", tableName: "Welcome")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                     .accessibilityAddTraits(.isHeader)
 
-                Text("Ready to explore your music world")
+                Text("Ready to explore your music world", tableName: "Welcome")
                     .font(.title3)
                     .foregroundStyle(.white.opacity(0.9))
                     .multilineTextAlignment(.center)

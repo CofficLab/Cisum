@@ -55,7 +55,7 @@ struct CopyList: View, SuperLog, SuperThread {
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
 
-            Text("暂无复制任务")
+            Text("暂无复制任务", tableName: "Audio-Copy-macOS")
                 .font(.title3)
                 .foregroundStyle(.primary)
         }
@@ -85,7 +85,7 @@ struct CopyList: View, SuperLog, SuperThread {
 
     private var listHeader: some View {
         HStack {
-            Text("正在复制 \(tasks.count)")
+            Text("正在复制 \(tasks.count)", tableName: "Audio-Copy-macOS")
             Spacer()
         }
     }

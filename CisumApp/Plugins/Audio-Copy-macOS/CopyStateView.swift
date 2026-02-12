@@ -25,7 +25,7 @@ struct CopyStateView: View, SuperLog, SuperThread {
             if shouldShow {
                 HStack {
                     Image(systemName: "info.circle")
-                    Text("正在复制 \(taskCount) 个文件")
+                    Text("正在复制 \(taskCount) 个文件", tableName: "Audio-Copy-macOS")
                     Image.list.inButtonWithAction {
                         self.showCopying.toggle()
                     }

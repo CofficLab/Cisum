@@ -53,7 +53,11 @@ struct PurchaseView: View, SuperLog {
                 // Bottom links
                 HStack(spacing: 20) {
                     Link(destination: URL(string: "https://www.kuaiyizhi.cn/privacy")!) {
-                        Label("Privacy Policy", systemImage: "hand.raised.fill")
+                        Label {
+                            Text("Privacy Policy", tableName: "Store")
+                        } icon: {
+                            Image(systemName: "hand.raised.fill")
+                        }
                             .font(.footnote)
                     }
 
@@ -61,7 +65,11 @@ struct PurchaseView: View, SuperLog {
                         .frame(height: 12)
 
                     Link(destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!) {
-                        Label("License Agreement", systemImage: "doc.text.fill")
+                        Label {
+                            Text("License Agreement", tableName: "Store")
+                        } icon: {
+                            Image(systemName: "doc.text.fill")
+                        }
                             .font(.footnote)
                     }
                 }
