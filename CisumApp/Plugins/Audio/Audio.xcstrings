@@ -1,0 +1,38 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "存储位置未设置": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "存储位置未设置"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "存儲位置未設置"
+          }
+        }
+      }
+    },
+    "请先设置媒体仓库的存储位置": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先设置媒体仓库的存储位置"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請先設置媒體倉庫的存儲位置"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -18,15 +18,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Get the increment type (major, minor, or patch)
 INCREMENT_TYPE=$("$SCRIPT_DIR/bump-version.sh")
 
-# Find the Xcode project file
-PROJECT_FILE=$(find $(pwd) -type f -name "*.pbxproj" | head -n 1)
+# Find the Xcode project file (exclude .build directory)
+PROJECT_FILE=$(find $(pwd) -type f -name "*.pbxproj" -not -path "*/.build/*" | head -n 1)
 
 if [ -z "$PROJECT_FILE" ]; then
   echo "Error: Cannot find .pbxproj file" >&2
   exit 1
 fi
 
-# Get current version from MARKETING_VERSION
+# Get current version from MARKETING_VERSION (use main app version)
 CURRENT_VERSION=$(grep -o 'MARKETING_VERSION = [^"]*' "$PROJECT_FILE" | head -n 1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
 
 if [ -z "$CURRENT_VERSION" ]; then
@@ -62,10 +62,16 @@ esac
 
 echo "🆕 New Version: $NEW_VERSION" >&2
 
-# Update the Xcode project file
-sed -i '' "s/MARKETING_VERSION = $CURRENT_VERSION/MARKETING_VERSION = $NEW_VERSION/" "$PROJECT_FILE"
+# Update ALL MARKETING_VERSION entries in the Xcode project file
+# This ensures both main app and widget extension are updated
+# Matches both x.y and x.y.z version formats
+sed -i '' -E "s/MARKETING_VERSION = [0-9]+\.[0-9]+(\.[0-9]+)?/MARKETING_VERSION = $NEW_VERSION/g" "$PROJECT_FILE"
 
-# Verify the update
+# Verify the update - check all occurrences
+VERSION_COUNT=$(grep -c "MARKETING_VERSION = $NEW_VERSION" "$PROJECT_FILE")
+echo "✅ Updated $VERSION_COUNT version entries in project file" >&2
+
+# Verify at least one entry was updated
 UPDATED_VERSION=$(grep -o 'MARKETING_VERSION = [^"]*' "$PROJECT_FILE" | head -n 1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
 
 if [ "$UPDATED_VERSION" != "$NEW_VERSION" ]; then
@@ -73,7 +79,7 @@ if [ "$UPDATED_VERSION" != "$NEW_VERSION" ]; then
   exit 1
 fi
 
-echo "✅ Version updated successfully in project file" >&2
+echo "✅ All versions updated successfully" >&2
 
 # Output the new version
 echo "$NEW_VERSION"

@@ -1,0 +1,234 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "All user preferences will be reset": {
+      "localizations": {
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有用戶偏好設置將被重置"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有用户偏好设置将被重置"
+          }
+        }
+      }
+    },
+    "App Information": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用信息"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "應用資訊"
+          }
+        }
+      }
+    },
+    "App version": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用版本"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "應用版本"
+          }
+        }
+      }
+    },
+    "Continue Reset": {
+      "localizations": {
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "繼續重置"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续重置"
+          }
+        }
+      }
+    },
+    "Current Version": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "當前版本"
+          }
+        }
+      }
+    },
+    "Data Storage Reset": {
+      "localizations": {
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "數據存儲重置"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据存储重置"
+          }
+        }
+      }
+    },
+    "Data storage will be restored to default location": {
+      "localizations": {
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "數據存儲將恢復到默認位置"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据存储将恢复到默认位置"
+          }
+        }
+      }
+    },
+    "Irreversible": {
+      "localizations": {
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不可撤銷"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不可撤销"
+          }
+        }
+      }
+    },
+    "Preferences Reset": {
+      "localizations": {
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "偏好設置重置"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "偏好设置重置"
+          }
+        }
+      }
+    },
+    "Reset Settings": {
+      "localizations": {
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置設置"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置设置"
+          }
+        }
+      }
+    },
+    "Reset settings to system default state": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将设置重置为系统默认状态"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "將設置重置為系統默認狀態"
+          }
+        }
+      }
+    },
+    "Resetting…": {
+      "localizations": {
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在重置…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在重置…"
+          }
+        }
+      }
+    },
+    "Restoring default settings, please wait": {
+      "localizations": {
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在恢復默認設置，請稍候"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在恢复默认设置，请稍候"
+          }
+        }
+      }
+    },
+    "This action cannot be undone, proceed with caution": {
+      "localizations": {
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作無法撤銷，請謹慎操作"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作无法撤销，请谨慎操作"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
