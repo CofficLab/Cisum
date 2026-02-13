@@ -1,0 +1,37 @@
+Cisum - A Clean, Ad-Free Audio Player
+
+A pure music player for ad-free, focused listening. Supports local music and audiobooks.
+
+Cisum is a player designed for those who truly love music. No annoying ads, no shake-to-navigate, no endless popups—just a pure music experience.
+
+Key Features
+• Local music playback - Supports MP3, M4A, FLAC, WAV and other mainstream formats
+• Audiobook management - Independent book library, easily manage audio content
+• iCloud sync - Music library stays synchronized across all devices
+• Clean interface - Following Apple design guidelines for a native experience
+
+Why Choose Cisum?
+
+Most music apps seem to care more about ads and monetization than your listening experience. Cisum is different—we believe a good player should make you forget its existence and focus only on the music itself.
+
+Perfect For
+• Music lovers tired of ads
+• Users with large local music collections
+• Audiobook/podcast heavy users
+• People seeking a simple, efficient experience
+
+【Auto-Renewal】
+-- Pro benefits: Unlimited audio tracks
+-- Subscription period: 1 month, 1 year
+-- Subscription price: The price displayed in your software at purchase prevails, e.g.: annual subscription, ¥78/year
+-- Cancel subscription: To cancel subscription, please go to "Media and Purchases" in your Apple ID settings
+-- Renewal: Your Apple account will automatically charge when due, and upon successful charge, your subscription will extend for one cycle
+
+【License Agreement】
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+【Privacy Policy】
+https://www.kuaiyizhi.cn/privacy
+
+【App Registration Number】
+Lu ICP备2022009149A-4
