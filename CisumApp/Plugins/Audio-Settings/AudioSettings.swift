@@ -98,9 +98,9 @@ extension AudioSettings {
         }
 
         if disk.checkIsICloud(verbose: false) {
-            description = "iCloud Drive, will sync"
+            description = String(localized: "iCloud Drive, will sync", table: "Audio-Settings")
         } else {
-            description = "Local directory, will not sync"
+            description = String(localized: "Local directory, will not sync", table: "Audio-Settings")
         }
     }
 }

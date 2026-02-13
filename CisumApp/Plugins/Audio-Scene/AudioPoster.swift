@@ -68,7 +68,7 @@ struct AudioPoster: View {
             Button(action: {
                 Task { @MainActor in
                     do {
-                        try pluginProvider.setCurrentScene("音乐库")
+                        try pluginProvider.setCurrentScene(String(localized: "Music Library"))
                         dismissAction()
                     } catch {
                         alert_error(error)
@@ -77,7 +77,7 @@ struct AudioPoster: View {
             }) {
                 HStack(spacing: 4) {
                     Image(systemName: "arrow.up.circle")
-                    Text("进入音乐仓库")
+                    Text(String(localized: "Enter Music Repository"))
                 }
                 .frame(width: 130, height: 40)
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))

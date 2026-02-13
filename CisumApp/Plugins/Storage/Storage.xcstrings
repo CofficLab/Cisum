@@ -1,87 +1,438 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "• 取消操作：保持原位置不变" : {
-
+  "sourceLanguage": "en",
+  "strings": {
+    "• 取消操作：保持原位置不变": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• 取消操作：保持原位置不变"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• 取消操作：保持原位置不變"
+          }
+        }
+      }
     },
-    "• 如果源数据在 iCloud 中且有未下载的文件，需要等待下载完成，可能需要较长时间" : {
-
+    "• 如果源数据在 iCloud 中且有未下载的文件，需要等待下载完成，可能需要较长时间": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• 如果源数据在 iCloud 中且有未下载的文件，需要等待下载完成，可能需要较长时间"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• 如果源資料在 iCloud 中且有未下載的檔案，需要等待下載完成，可能需要較長時間"
+          }
+        }
+      }
     },
-    "• 直接使用：直接使用新位置，原有数据保持不变" : {
-
+    "• 直接使用：直接使用新位置，原有数据保持不变": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• 直接使用：直接使用新位置，原有数据保持不变"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• 直接使用：直接使用新位置，原有資料保持不變"
+          }
+        }
+      }
     },
-    "• 迁移数据：将现有数据迁移到新位置" : {
-
+    "• 迁移数据：将现有数据迁移到新位置": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• 迁移数据：将现有数据迁移到新位置"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• 遷移資料：將現有資料遷移到新位置"
+          }
+        }
+      }
     },
-    "• 迁移过程中请勿关闭应用，取消迁移可能导致数据不完整" : {
-
+    "• 迁移过程中请勿关闭应用，取消迁移可能导致数据不完整": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• 迁移过程中请勿关闭应用，取消迁移可能导致数据不完整"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• 遷移過程中請勿關閉應用，取消遷移可能導致資料不完整"
+          }
+        }
+      }
     },
-    "⚠️ 重要提示：" : {
-
+    "⚠️ 重要提示：": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⚠️ 重要提示："
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⚠️ 重要提示："
+          }
+        }
+      }
     },
-    "保持原位置不变" : {
-
+    "保持原位置不变": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持原位置不变"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持原位置不變"
+          }
+        }
+      }
     },
-    "取消操作" : {
-
+    "取消操作": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消操作"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消操作"
+          }
+        }
+      }
     },
-    "取消迁移" : {
-
+    "取消迁移": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消迁移"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消遷移"
+          }
+        }
+      }
     },
-    "取消迁移能会导致数据不完整，建议等待迁移完成。" : {
-
+    "取消迁移能会导致数据不完整，建议等待迁移完成。": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消迁移能会导致数据不完整，建议等待迁移完成。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消遷移可能會導致資料不完整，建議等待遷移完成。"
+          }
+        }
+      }
     },
-    "完成" : {
-
+    "完成": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
+        }
+      }
     },
-    "将现有数据迁移到新位置" : {
-
+    "将现有数据迁移到新位置": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将现有数据迁移到新位置"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "將現有資料遷移到新位置"
+          }
+        }
+      }
     },
-    "放弃" : {
-
+    "放弃": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放棄"
+          }
+        }
+      }
     },
-    "直接使用" : {
-
+    "直接使用": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直接使用"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直接使用"
+          }
+        }
+      }
     },
-    "直接使用新位置，原有数据保持不变" : {
-
+    "直接使用新位置，原有数据保持不变": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直接使用新位置，原有数据保持不变"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直接使用新位置，原有資料保持不變"
+          }
+        }
+      }
     },
-    "确定取消" : {
-
+    "确定取消": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确定取消"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確定取消"
+          }
+        }
+      }
     },
-    "确要取消迁移吗？" : {
-
+    "确要取消迁移吗？": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确要取消迁移吗？"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確要取消遷移嗎？"
+          }
+        }
+      }
     },
-    "继续迁移" : {
-
+    "继续迁移": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续迁移"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "繼續遷移"
+          }
+        }
+      }
     },
-    "计算中..." : {
-
+    "计算中...": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计算中..."
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "計算中..."
+          }
+        }
+      }
     },
-    "迁移中..." : {
-
+    "迁移中...": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "迁移中..."
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "遷移中..."
+          }
+        }
+      }
     },
-    "迁移出现问题: %@" : {
-
+    "迁移出现问题: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "迁移出现问题: %@"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "遷移出現問題: %@"
+          }
+        }
+      }
     },
-    "迁移已取消" : {
-
+    "迁移已取消": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "迁移已取消"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "遷移已取消"
+          }
+        }
+      }
     },
-    "迁移已完成" : {
-
+    "迁移已完成": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "迁移已完成"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "遷移已完成"
+          }
+        }
+      }
     },
-    "迁移数据" : {
-
+    "迁移数据": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "迁移数据"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "遷移資料"
+          }
+        }
+      }
     },
-    "迁移状态" : {
-
+    "迁移状态": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "迁移状态"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "遷移狀態"
+          }
+        }
+      }
     },
-    "重试" : {
-
+    "重试": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重試"
+          }
+        }
+      }
     },
-    "重试迁移" : {
-
+    "重试迁移": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试迁移"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重試遷移"
+          }
+        }
+      }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

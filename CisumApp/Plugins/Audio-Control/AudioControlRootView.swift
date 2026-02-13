@@ -33,7 +33,7 @@ struct AudioControlRootView<Content>: View, SuperLog where Content: View {
 
     /// 检查是否应该激活播放控制功能
     private var shouldActivateControl: Bool {
-        p.currentSceneName == "音乐库"
+        p.currentSceneName == AudioScenePlugin.sceneName
     }
 }
 

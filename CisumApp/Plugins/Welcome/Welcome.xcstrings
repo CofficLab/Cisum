@@ -1,33 +1,150 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "App Local Storage" : {
-
+  "sourceLanguage": "en",
+  "strings": {
+    "App Local Storage": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用本地存储"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "應用本地儲存"
+          }
+        }
+      }
     },
-    "Files stored in iCloud\nAccessible on other devices\nEnsure sufficient iCloud storage" : {
-
+    "Files stored in iCloud\nAccessible on other devices\nEnsure sufficient iCloud storage": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件存储在 iCloud 中\n可在其他设备上访问\n请确保有足够的 iCloud 存储空间"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檔案儲存在 iCloud 中\n可在其他裝置上存取\n請確保有足夠的 iCloud 儲存空間"
+          }
+        }
+      }
     },
-    "Good Things Are Coming" : {
-
+    "Good Things Are Coming": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "精彩即将呈现"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "精彩即將呈現"
+          }
+        }
+      }
     },
-    "iCloud Drive" : {
-
+    "iCloud Drive": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud 云盘"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud 雲端硬碟"
+          }
+        }
+      }
     },
-    "Media Storage Location" : {
-
+    "Media Storage Location": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "媒体存储位置"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "媒體儲存位置"
+          }
+        }
+      }
     },
-    "Ready to explore your music world" : {
-
+    "Ready to explore your music world": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备好探索你的音乐世界"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "準備好探索你的音樂世界"
+          }
+        }
+      }
     },
-    "Recommended" : {
-
+    "Recommended": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "推荐"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "推薦"
+          }
+        }
+      }
     },
-    "Sign in to iCloud in System Settings to use this option" : {
-
+    "Sign in to iCloud in System Settings to use this option": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请在系统设置中登录 iCloud 以使用此选项"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請在系統設定中登入 iCloud 以使用此選項"
+          }
+        }
+      }
     },
-    "Stored within the app, data will be lost if app is deleted" : {
-
+    "Stored within the app, data will be lost if app is deleted": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "存储在应用内，删除应用后数据将丢失"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儲存在應用內，刪除應用後資料將遺失"
+          }
+        }
+      }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

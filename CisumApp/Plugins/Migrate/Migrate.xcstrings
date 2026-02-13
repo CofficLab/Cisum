@@ -1,9 +1,22 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "Migrate" : {
-
+  "sourceLanguage": "en",
+  "strings": {
+    "Migrate": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "迁移"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "遷移"
+          }
+        }
+      }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

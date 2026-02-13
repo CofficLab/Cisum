@@ -76,7 +76,7 @@
         "zh-HK": {
           "stringUnit": {
             "state": "translated",
-            "value": "導出到下載目錄"
+            "value": "匯出到下載目錄"
           }
         }
       }
@@ -108,7 +108,7 @@
         "zh-HK": {
           "stringUnit": {
             "state": "translated",
-            "value": "打開倉庫目錄並放入文件"
+            "value": "打開倉庫目錄並放入檔案"
           }
         }
       }
@@ -140,7 +140,7 @@
         "zh-HK": {
           "stringUnit": {
             "state": "translated",
-            "value": "支持的格式：%@"
+            "value": "支援的格式：%@"
           }
         }
       }
@@ -156,7 +156,7 @@
         "zh-HK": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加載更多..."
+            "value": "正在載入更多..."
           }
         }
       }
@@ -220,7 +220,7 @@
         "zh-HK": {
           "stringUnit": {
             "state": "translated",
-            "value": "確定要刪除這個文件嗎？"
+            "value": "確定要刪除這個檔案嗎？"
           }
         }
       }

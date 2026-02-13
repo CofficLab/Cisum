@@ -1,24 +1,102 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "基础版本最多支持 %lld 个文件" : {
-
+  "sourceLanguage": "en",
+  "strings": {
+    "基础版本最多支持 %lld 个文件": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基础版本最多支持 %lld 个文件"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基礎版本最多支援 %lld 個檔案"
+          }
+        }
+      }
     },
-    "当前订阅：" : {
-
+    "当前订阅：": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前订阅："
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "當前訂閱："
+          }
+        }
+      }
     },
-    "支持的格式" : {
-
+    "支持的格式": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支持的格式"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支援的格式"
+          }
+        }
+      }
     },
-    "暂无复制任务" : {
-
+    "暂无复制任务": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无复制任务"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暫無複製任務"
+          }
+        }
+      }
     },
-    "正在复制 %lld" : {
-
+    "正在复制 %lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在复制 %lld"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在複製 %lld"
+          }
+        }
+      }
     },
-    "正在复制 %lld 个文件" : {
-
+    "正在复制 %lld 个文件": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在复制 %lld 个文件"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在複製 %lld 個檔案"
+          }
+        }
+      }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

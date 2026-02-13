@@ -7,10 +7,11 @@ import SwiftUI
 actor AudioScenePlugin: SuperPlugin {
     static var shouldRegister: Bool { true }
     static var order: Int { 0 }
-    let title = "Music Scene"
-    let description = "Provides music library scene"
+
+    nonisolated var title: String { String(localized: "Music Scene") }
+    nonisolated var description: String { String(localized: "Provides music library scene") }
     let iconName = "music.note.list"
-    static let sceneName = "Music Library"
+    static let sceneName = String(localized: "Music Library")
 
     /// Provides "Music Library" scene
     @MainActor func addSceneItem() -> String? {
