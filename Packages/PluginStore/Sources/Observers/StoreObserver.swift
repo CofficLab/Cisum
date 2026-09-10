@@ -9,6 +9,7 @@ import ProviderStore
 /// 的两个 `.onReceive` 直接订阅。
 @MainActor
 final class StoreObserver: SuperLog {
+    nonisolated static let emoji = "🛒"
     nonisolated static let verbose = false
 
     private weak var viewModel: StoreViewModel?

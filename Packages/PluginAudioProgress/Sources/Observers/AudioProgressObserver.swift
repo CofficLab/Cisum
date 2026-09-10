@@ -10,6 +10,7 @@ import MagicKit
 /// `.onReceive` 与 `AudioProgressStorageResetModifier`。
 @MainActor
 final class AudioProgressObserver: SuperLog {
+    nonisolated static let emoji = "⏱️"
     nonisolated static let verbose = false
 
     private weak var viewModel: AudioProgressViewModel?

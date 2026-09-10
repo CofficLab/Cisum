@@ -15,6 +15,7 @@ import MagicKit
 /// - 持有 `currentScene`，供插件在播放文件变化时写入对应场景的槽位。
 @MainActor
 final class PlaybackSceneObserver: SuperLog {
+    nonisolated static let emoji = "🎭"
     nonisolated static let verbose = false
 
     private weak var player: MagicPlayMan?

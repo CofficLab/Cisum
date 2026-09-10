@@ -3,6 +3,7 @@ import MagicKit
 import OSLog
 
 public actor AudioJobScheduler: SuperLog {
+    public nonisolated static let emoji = "⏰"
     public static let shared = AudioJobScheduler()
 
     public nonisolated static let verbose = false

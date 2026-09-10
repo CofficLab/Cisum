@@ -3,6 +3,7 @@ import MagicKit
 import OSLog
 
 public actor AudioJobManager: SuperLog {
+    public nonisolated static let emoji = "📝"
     public static let shared = AudioJobManager()
 
     public nonisolated static let verbose = false

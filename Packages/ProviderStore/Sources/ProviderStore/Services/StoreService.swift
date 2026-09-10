@@ -12,6 +12,7 @@ public typealias RenewalState = StoreKit.Product.SubscriptionInfo.RenewalState
 public typealias PaymentMode = StoreKit.Product.SubscriptionOffer.PaymentMode
 
 public enum StoreService: SuperLog {
+    public static let emoji = "💰"
     static let verbose = false
 
     struct SubscriptionStatusSnapshot: Equatable, Sendable {

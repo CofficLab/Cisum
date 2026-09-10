@@ -402,6 +402,7 @@
       }
     },
     "Initialization Failed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

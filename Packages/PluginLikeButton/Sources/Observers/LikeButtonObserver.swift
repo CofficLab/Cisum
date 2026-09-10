@@ -4,6 +4,7 @@ import MagicKit
 
 @MainActor
 final class LikeButtonObserver: SuperLog {
+    nonisolated static let emoji = "👍"
     nonisolated static let verbose = false
 
     private weak var viewModel: LikeButtonViewModel?

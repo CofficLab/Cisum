@@ -5,6 +5,7 @@ import ProviderScene
 
 @MainActor
 final class AudioDownloadViewModel: SuperLog {
+    static let emoji = "⬇️"
     private static let verbose = false
     private let playbackCapability: (any AudioDownloadPlaybackCapability)?
     private var currentScene: AppScene?

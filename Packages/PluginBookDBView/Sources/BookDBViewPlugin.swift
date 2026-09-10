@@ -24,8 +24,8 @@ public actor BookDBViewPlugin: SuperPlugin, SuperLog {
     nonisolated(unsafe) private let sceneBox = SceneBox()
     nonisolated(unsafe) private weak var kernel: CisumKernel?
     nonisolated(unsafe) private var gridViewModel: BookGridViewModel?
-    nonisolated(unsafe) private var databaseObserver: BookDatabaseObserver?
-    nonisolated(unsafe) private var playbackObserver: BookDBPlaybackObserver?
+    nonisolated(unsafe) private var databaseObserver: DBObserver?
+    nonisolated(unsafe) private var playbackObserver: PlaybackObserver?
 
     @MainActor
     public func onRegister(kernel: CisumKernel) async throws {
@@ -159,8 +159,8 @@ public actor BookDBViewPlugin: SuperPlugin, SuperLog {
             playbackCapability: makePlaybackCapability(from: kernel.playback)
         )
         guard let provider = kernel.resolveProvider(BookDatabaseProviding.self) else { return }
-        let observer = BookDatabaseObserver(viewModel: viewModel, provider: provider)
-        let playbackObserver = BookDBPlaybackObserver(playback: kernel.playback, viewModel: viewModel)
+        let observer = DBObserver(viewModel: viewModel, provider: provider)
+        let playbackObserver = PlaybackObserver(playback: kernel.playback, viewModel: viewModel)
         gridViewModel = viewModel
         databaseObserver = observer
         self.playbackObserver = playbackObserver

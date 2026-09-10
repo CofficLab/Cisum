@@ -9,6 +9,7 @@ import MagicKit
 /// `BookSettingsStorageChangeModifier` 的多通知 `.onReceive`。
 @MainActor
 final class BookSettingsObserver: SuperLog {
+    nonisolated static let emoji = "🔧"
     nonisolated static let verbose = false
 
     private weak var viewModel: BookSettingsViewModel?

@@ -9,6 +9,7 @@ import MagicKit
 /// `.onReceive(NotificationCenter...)` 的订阅。
 @MainActor
 final class AudioDatabaseObserver: SuperLog {
+    nonisolated static let emoji = "🗃️"
     nonisolated static let verbose = false
 
     private weak var listViewModel: AudioListViewModel?

@@ -5,6 +5,7 @@ import MagicKit
 /// `PluginPlayBackSettingsViewModel` 的当前场景高亮与各场景文件列表联动。
 @MainActor
 final class PlaybackSettingsSceneObserver: SuperLog {
+    nonisolated static let emoji = "🖼️"
     nonisolated static let verbose = false
 
     private weak var viewModel: PluginPlayBackSettingsViewModel?

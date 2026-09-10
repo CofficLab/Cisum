@@ -7,6 +7,7 @@ import MagicKit
 /// `BookControlViewModel`（状态 / 播放模式 / 上下章节请求）。
 @MainActor
 final class BookControlPlaybackObserver: SuperLog {
+    nonisolated static let emoji = "🎧"
     nonisolated static let verbose = false
 
     private weak var viewModel: BookControlViewModel?

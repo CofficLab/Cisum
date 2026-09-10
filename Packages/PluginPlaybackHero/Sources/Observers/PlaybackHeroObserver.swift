@@ -4,6 +4,7 @@ import MagicKit
 /// 播放封面观察者：订阅 `PlaybackProviding` 并驱动封面 ViewModel。
 @MainActor
 final class PlaybackHeroObserver: SuperLog {
+    nonisolated static let emoji = "🎤"
     nonisolated static let verbose = false
 
     private weak var viewModel: PlaybackHeroViewModel?

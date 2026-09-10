@@ -9,6 +9,7 @@ import MagicKit
 /// `AudioSettingsStorageChangeModifier` 的多通知 `.onReceive`。
 @MainActor
 final class AudioSettingsObserver: SuperLog {
+    nonisolated static let emoji = "🔧"
     nonisolated static let verbose = false
 
     private weak var viewModel: AudioSettingsViewModel?

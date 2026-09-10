@@ -10,7 +10,8 @@ import MagicKit
 /// `BookGridViewModel`；取代 `BookGrid` 的 `onBookDB*` 修饰符与
 /// `BookTile` 的 `.onReceive(.bookStateUpdated)` 直接订阅。
 @MainActor
-final class BookDatabaseObserver: SuperLog {
+final class DBObserver: SuperLog {
+    nonisolated static let emoji = "🗃️"
     nonisolated static let verbose = true
 
     private weak var viewModel: BookGridViewModel?

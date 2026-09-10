@@ -10,6 +10,7 @@ import MagicKit
 /// 多通知 `.onReceive` 订阅。
 @MainActor
 final class BookStorageObserver: SuperLog {
+    nonisolated static let emoji = "📦"
     nonisolated static let verbose = false
 
     private weak var viewModel: BookRootViewModel?

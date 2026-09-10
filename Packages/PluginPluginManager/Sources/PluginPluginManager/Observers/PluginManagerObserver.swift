@@ -9,6 +9,7 @@ import MagicKit
 /// 的直接 `.onReceive` 订阅与对 `.cisumEnabledPluginsDidChange` 通知的直接监听。
 @MainActor
 final class PluginManagerObserver: SuperLog {
+    nonisolated static let emoji = "🧩"
     nonisolated static let verbose = false
 
     private weak var viewModel: PluginManagementViewModel?

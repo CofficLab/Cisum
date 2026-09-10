@@ -8,6 +8,7 @@ import MagicKit
 /// 透传内容区；切回音乐库时恢复外壳。
 @MainActor
 final class AudioDBSceneObserver: SuperLog {
+    nonisolated static let emoji = "🎬"
     nonisolated static let verbose = false
 
     private let sceneState: AudioDBSceneState

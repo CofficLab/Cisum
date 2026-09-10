@@ -3,6 +3,7 @@ import MagicKit
 
 @MainActor
 final class SceneProvidingObserver: SuperLog {
+    nonisolated static let emoji = "🖼️"
     nonisolated static let verbose = false
 
     private weak var viewModel: SceneSettingsViewModel?

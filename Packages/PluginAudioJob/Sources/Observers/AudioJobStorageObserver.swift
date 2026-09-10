@@ -11,6 +11,7 @@ import MagicKit
 /// Combine 订阅。
 @MainActor
 final class AudioJobStorageObserver: SuperLog {
+    nonisolated static let emoji = "💾"
     nonisolated static let verbose = false
 
     private var cancellables: Set<AnyCancellable> = []
