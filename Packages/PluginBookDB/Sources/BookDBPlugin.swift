@@ -81,12 +81,13 @@ public actor BookDBPlugin: SuperPlugin, SuperLog {
             return (AnyView(view), label)
         }
 
+        let provider = kernel?.resolveProvider(BookDatabaseProviding.self)
         let dependencies = BookDBViewDependencies(
             dbRoot: databaseRootProvider(),
             bookDisk: bookDiskProvider(),
+            bookProvider: provider,
             isDesktop: ConfigShim.isDesktop,
-            isNotDesktop: ConfigShim.isNotDesktop,
-            bookRepo: bookRepoProvider
+            isNotDesktop: ConfigShim.isNotDesktop
         )
         let viewModel = resolveViewModel()
         let view = BookDBView()
@@ -101,7 +102,9 @@ public actor BookDBPlugin: SuperPlugin, SuperLog {
         // 设置页使用独立的 BookListViewModel，避免与主窗口内容区（BookGrid）
         // 共享同一实例——否则设置页 onAppear 触发重载时，共享状态变化会传播
         // 到主窗口内容区，导致其闪动。
-        let settingList = BookListViewModel(bookRepo: bookRepoProvider)
+        let settingList = BookListViewModel(
+            bookProvider: kernel?.resolveProvider(BookDatabaseProviding.self)
+        )
         let settingTree = BookTreeViewModel(disk: bookDiskProvider)
         return PluginSettingNavigationItem(
             id: "bookdb",
@@ -122,7 +125,7 @@ public actor BookDBPlugin: SuperPlugin, SuperLog {
     @MainActor
     private var settingDependencies: BookDBDependencies {
         BookDBDependencies(
-            bookRepo: bookRepoProvider,
+            bookProvider: kernel?.resolveProvider(BookDatabaseProviding.self),
             bookDisk: bookDiskProvider
         )
     }
@@ -146,15 +149,6 @@ public actor BookDBPlugin: SuperPlugin, SuperLog {
         }
     }
 
-    /// 仓库由数据层 Provider 创建并缓存，View 插件不再组装 SwiftData。
-    @MainActor
-    private var bookRepoProvider: @MainActor @Sendable () async -> BookRepo? {
-        { @MainActor [weak self] in
-            guard let provider = self?.kernel?.resolveProvider(BookDatabaseProviding.self) else { return nil }
-            return await provider.repository()
-        }
-    }
-
     @MainActor
     private func installState(kernel: CisumKernel) {
         guard gridViewModel == nil else { return }
@@ -166,7 +160,8 @@ public actor BookDBPlugin: SuperPlugin, SuperLog {
         let viewModel = BookGridViewModel(
             playbackCapability: makePlaybackCapability(from: kernel.playback)
         )
-        let observer = BookDatabaseObserver(viewModel: viewModel)
+        guard let provider = kernel.resolveProvider(BookDatabaseProviding.self) else { return }
+        let observer = BookDatabaseObserver(viewModel: viewModel, provider: provider)
         let playbackObserver = BookDBPlaybackObserver(playback: kernel.playback, viewModel: viewModel)
         gridViewModel = viewModel
         databaseObserver = observer

@@ -24,6 +24,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     private static let tag = "⏭️"
 
     private let playbackCapability: (any BookControlPlaybackCapability)?
+    private let bookDisk: @MainActor () -> URL?
     @Published private(set) var isPlaying = false
     @Published private(set) var playMode: MagicPlayMode = .sequence
     private let toastProvider: (any ToastProviding)?
@@ -34,11 +35,13 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     init(
         targetScene: AppScene,
         playbackCapability: (any BookControlPlaybackCapability)?,
-        toastProvider: (any ToastProviding)? = nil
+        toastProvider: (any ToastProviding)? = nil,
+        bookDisk: @escaping @MainActor () -> URL? = { nil }
     ) {
         self.targetScene = targetScene
         self.playbackCapability = playbackCapability
         self.toastProvider = toastProvider
+        self.bookDisk = bookDisk
         if let playbackCapability {
             isPlaying = playbackCapability.isPlaying
             playMode = playbackCapability.playMode
@@ -131,7 +134,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
             Self.log.debug("\(Self.tag)⏮️ Previous chapter requested")
         }
 
-        let bookDisk = BookPluginHost.getBookDisk()
+        let bookDisk = bookDisk()
         guard BookControlPlaybackRequestPolicy.shouldNavigateBookAsset(asset, bookDisk: bookDisk) else {
             return
         }
@@ -173,7 +176,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
             Self.log.debug("\(Self.tag)⏭️ Next chapter requested")
         }
 
-        let bookDisk = BookPluginHost.getBookDisk()
+        let bookDisk = bookDisk()
         guard BookControlPlaybackRequestPolicy.shouldNavigateBookAsset(asset, bookDisk: bookDisk) else {
             return
         }

@@ -14,40 +14,29 @@ final class BookDatabaseObserver: SuperLog {
     nonisolated static let verbose = true
 
     private weak var viewModel: BookGridViewModel?
-    private var tokens: [NSObjectProtocol] = []
+    private var providerHandle: (any BookProvidingObserverHandle)?
 
-    init(viewModel: BookGridViewModel) {
+    init(viewModel: BookGridViewModel, provider: any BookDatabaseProviding) {
         self.viewModel = viewModel
         if Self.verbose { os_log("\(Self.t)👀 BookDatabaseObserver 初始化") }
-
-        let center = NotificationCenter.default
-        tokens.append(center.addObserver(forName: .bookDBSyncing, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.viewModel?.handleBookDBSyncing() }
-        })
-        tokens.append(center.addObserver(forName: .bookDBSynced, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.viewModel?.handleBookDBSynced() }
-        })
-        tokens.append(center.addObserver(forName: .bookDBUpdated, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.viewModel?.handleBookDBUpdated() }
-        })
-        tokens.append(center.addObserver(forName: .bookDBDeleted, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.viewModel?.handleBookDBDeleted() }
-        })
-        tokens.append(center.addObserver(forName: .bookDBSorting, object: nil, queue: .main) { [weak self] _ in
-            // 排序开始暂无需 ViewModel 动作（与音频不同，书籍排序无 UI 状态）
-        })
-        tokens.append(center.addObserver(forName: .bookDBSortDone, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.viewModel?.handleBookDBSortDone() }
-        })
-        tokens.append(center.addObserver(forName: .bookStateUpdated, object: nil, queue: .main) { [weak self] notification in
-            let url = notification.userInfo?["url"] as? URL
-            Task { @MainActor in self?.viewModel?.handleBookStateUpdated(url) }
-        })
+        providerHandle = provider.addObserver { [weak self] event in
+            Task { @MainActor in
+                switch event {
+                case .librarySyncing: self?.viewModel?.handleBookDBSyncing()
+                case .librarySynced: self?.viewModel?.handleBookDBSynced()
+                case .libraryChanged: self?.viewModel?.handleBookDBUpdated()
+                case .libraryDeleted: self?.viewModel?.handleBookDBDeleted()
+                case .librarySorted: self?.viewModel?.handleBookDBSortDone()
+                case let .playbackStateChanged(url): self?.viewModel?.handleBookStateUpdated(url)
+                case .storageLocationChanged: break
+                }
+            }
+        }
     }
 
     func cancel() {
         if Self.verbose { os_log("\(Self.t)🧹 BookDatabaseObserver 取消") }
-        tokens.forEach { NotificationCenter.default.removeObserver($0) }
-        tokens.removeAll()
+        providerHandle?.cancel()
+        providerHandle = nil
     }
 }

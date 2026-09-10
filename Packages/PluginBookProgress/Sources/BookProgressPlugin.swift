@@ -6,7 +6,6 @@ import ProviderBook
 import ProviderBook
 import ProviderPlayback
 import ProviderScene
-import SwiftData
 import SwiftUI
 import MagicKit
 
@@ -87,34 +86,34 @@ public actor BookProgressPlugin: SuperPlugin, SuperLog {
         guard let scene = kernel.resolveProvider((any SceneProviding).self),
               let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
         sceneBox.scene = scene
+        let bookProvider = kernel.resolveProvider(BookDatabaseProviding.self)
 
         let viewModel = BookProgressViewModel(
             targetScene: .audiobooks,
             playbackCapability: makePlaybackCapability(from: playback),
-            currentBookURL: { BookSettingRepo.getCurrent() },
-            currentBookTime: { BookSettingRepo.getCurrentTime() },
-            storeCurrentBookURL: { BookSettingRepo.storeCurrent($0) },
-            storeCurrentBookTime: { BookSettingRepo.storeCurrentTime($0) },
+            currentBookURL: { bookProvider?.currentBookURL() },
+            currentBookTime: { bookProvider?.currentBookTime() },
+            storeCurrentBookURL: { bookProvider?.storeCurrentBookURL($0) },
+            storeCurrentBookTime: { bookProvider?.storeCurrentBookTime($0) },
+            bookDisk: { bookProvider?.bookDisk },
             saveBookState: { bookURL, currentURL, time in
                 do {
-                    let dbRootURL = try await MainActor.run {
-                        try BookPluginHost.getDBRootDir()
-                    }
-                    try await Task.detached(priority: .utility) {
-                        let container = try BookConfig.getContainer(dbRootURL: dbRootURL)
-                        try BookProgressStatePersistence.save(
-                            bookURL: bookURL,
-                            currentURL: currentURL,
-                            time: time,
-                            container: container
-                        )
-                    }
+                    try await bookProvider?.savePlaybackState(
+                        for: bookURL,
+                        currentURL: currentURL,
+                        time: time
+                    )
                 } catch {
                     os_log(.error, "BookProgressPlugin failed to save book state: \(error.localizedDescription)")
                 }
             }
         )
-        let observer = BookProgressObserver(scene: scene, playback: playback, viewModel: viewModel)
+        let observer = BookProgressObserver(
+            scene: scene,
+            playback: playback,
+            bookProvider: bookProvider,
+            viewModel: viewModel
+        )
         progressViewModel = viewModel
         progressObserver = observer
     }
@@ -136,10 +135,11 @@ public actor BookProgressPlugin: SuperPlugin, SuperLog {
         let viewModel = BookProgressViewModel(
             targetScene: .audiobooks,
             playbackCapability: makePlaybackCapability(from: kernel?.playback),
-            currentBookURL: { BookSettingRepo.getCurrent() },
-            currentBookTime: { BookSettingRepo.getCurrentTime() },
-            storeCurrentBookURL: { BookSettingRepo.storeCurrent($0) },
-            storeCurrentBookTime: { BookSettingRepo.storeCurrentTime($0) },
+            currentBookURL: { nil },
+            currentBookTime: { nil },
+            storeCurrentBookURL: { _ in },
+            storeCurrentBookTime: { _ in },
+            bookDisk: { nil },
             saveBookState: { _, _, _ in }
         )
         progressViewModel = viewModel

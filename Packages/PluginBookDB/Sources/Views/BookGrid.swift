@@ -2,7 +2,6 @@ import CisumUIComponents
 import OSLog
 import ProviderBook
 import ProviderBook
-import SwiftData
 import SwiftUI
 
 enum BookGridUpdatePolicy {
@@ -102,19 +101,6 @@ enum BookGridPlayableChildrenLoader {
     }
 }
 
-enum BookDBViewBookStateLookup {
-    static func findBookState(for bookURL: URL, in context: ModelContext) throws -> BookState? {
-        let descriptor = BookState.descriptorOf(bookURL)
-        if let state = try context.fetch(descriptor).first {
-            return state
-        }
-
-        return try context.fetch(BookState.descriptorAll).first { state in
-            BookState.representsSameBookURL(state.url, as: bookURL)
-        }
-    }
-}
-
 struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
     @LumiTheme private var appTheme
     nonisolated static let emoji = "📖"
@@ -194,9 +180,8 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
         .onAppear {
             if Self.verbose { os_log("\(Self.t)📖 BookGrid onAppear") }
             Task { @MainActor in
-                let repo = await dependencies.bookRepo()
-                if Self.verbose { os_log("\(Self.t)📖 BookGrid repo: \(repo == nil ? "nil" : "available")") }
-                viewModel.bind(repo: repo, dbRoot: dependencies.dbRoot, bookDisk: dependencies.bookDisk)
+                if Self.verbose { os_log("\(Self.t)📖 BookGrid provider: \(dependencies.bookProvider == nil ? "nil" : "available")") }
+                viewModel.bind(provider: dependencies.bookProvider)
                 viewModel.handleOnAppear()
             }
         }

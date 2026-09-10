@@ -50,6 +50,7 @@ let package = Package(
             dependencies: [
                 "PluginBook",
                 .product(name: "ProviderBook", package: "ProviderBook"),
+                .product(name: "ProviderBookData", package: "ProviderBook"),
             ],
             path: "Tests"
         )

@@ -3,7 +3,6 @@ import CisumUIComponents
 import OSLog
 import ProviderBook
 import ProviderBook
-import SwiftData
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -104,12 +103,12 @@ extension BookDBView {
                     return
                 }
 
-                guard let repo = await dependencies.bookRepo() else {
+                guard let bookProvider = dependencies.bookProvider else {
                     alert_error(String(localized: "Book repository is unavailable", bundle: .module))
                     return
                 }
 
-                try await repo.syncImportedItems(copiedItems)
+                try await bookProvider.syncImportedItems(copiedItems)
             } catch {
                 Self.cleanUpCopiedItems(copiedItems)
                 os_log(.error, "\(self.t)❌ Failed to copy book files: \(error.localizedDescription)")

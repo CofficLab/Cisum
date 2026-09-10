@@ -1,4 +1,5 @@
 import Foundation
+import ProviderBook
 import SwiftData
 import OSLog
 import SwiftUI

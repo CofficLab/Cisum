@@ -1,5 +1,6 @@
 import Foundation
 import OSLog
+import ProviderBook
 import SwiftUI
 import MagicKit
 
@@ -13,6 +14,11 @@ final class BookSettingsViewModel: ObservableObject, SuperLog {
     nonisolated static let verbose = false
 
     @Published private(set) var refreshToken = 0
+    let bookDisk: @MainActor () -> URL?
+
+    init(bookDisk: @escaping @MainActor () -> URL?) {
+        self.bookDisk = bookDisk
+    }
 
     func handleStorageLocationChanged() {
         refreshToken += 1

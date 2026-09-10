@@ -1,4 +1,5 @@
 import Foundation
+import ProviderBook
 import OSLog
 
 class BookWorker {

@@ -2,6 +2,7 @@ import Testing
 @testable import PluginBookDB
 import Foundation
 import ProviderBook
+import ProviderBookData
 import ProviderBook
 import SwiftData
 import UniformTypeIdentifiers

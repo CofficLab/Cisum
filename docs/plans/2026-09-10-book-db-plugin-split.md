@@ -4,7 +4,7 @@
 
 **Goal:** Split audiobook database ownership from the audiobook database UI while keeping the existing library, import, settings, and playback behavior working.
 
-**Architecture:** `PluginBookDBData` owns storage resolution, SwiftData container creation, the cached `BookRepo`, and the `BookDatabaseProviding` service. `PluginBookDB` becomes the View plugin and resolves that service through the Kernel. `ProviderBook` contains the cross-plugin contract and DTOs; the existing concrete repository remains available during this migration so dependent book plugins can be migrated incrementally.
+**Architecture:** `PluginBookDBData` owns storage resolution, SwiftData container creation, the cached `BookRepo`, and the `BookDatabaseProviding` service. `PluginBookDB` becomes the View plugin and resolves that service through the Kernel. `ProviderBook` exposes the cross-plugin contract, DTOs, and events to consumers, while its separate `ProviderBookData` target contains the concrete database implementation. No View/Feature plugin may use the implementation target directly.
 
 **Tech Stack:** Swift 6, Swift Package Manager, SwiftData, SwiftUI, Cisum Kernel Provider registry, Swift Testing.
 
@@ -16,7 +16,7 @@
 - Modify: `Packages/ProviderBook/Sources/ProviderBook/BookProviding.swift`
 - Test: `Packages/ProviderBook/Tests/ProviderBookTests.swift`
 
-Add a `BookDatabaseProviding` protocol that exposes the book disk, database root, availability, cached repository resolution, and storage reset hook without exposing Kernel or plugin lifecycle types.
+Add a `BookDatabaseProviding` protocol that exposes book DTO reads, imports, playback state, cover data, storage paths, and provider events without exposing Kernel or plugin lifecycle types.
 
 Verify the protocol can be implemented by a lightweight test double and that the default unavailable behavior is safe.
 
@@ -40,7 +40,7 @@ Verify the new package builds independently and its provider reports unavailable
 - Modify: `Packages/PluginBookDB/Sources/Views/BookDBDependencies.swift`
 - Modify: `Packages/PluginBookDB/Sources/Views/BookDBViewDependencies.swift`
 
-Remove storage and SwiftData construction from the View plugin. Resolve the data provider from the Kernel and use it for repository, disk, and database-root access. Keep all UI, ViewModel, playback, and scene responsibilities here.
+Remove storage and SwiftData construction from the View plugin. Resolve the data provider from the Kernel and use it for DTO reads, imports, playback state, cover data, disk, and database-root access. Keep all UI, ViewModel, playback, and scene responsibilities here.
 
 Verify the View plugin still produces the tab and settings contribution when the data provider is present, and degrades to the existing unavailable view when absent.
 
@@ -61,6 +61,10 @@ Verify the factory package resolves all products and the default plugin list con
 - Create or modify: `Packages/PluginBookDBData/Tests/BookDBDataPluginTests.swift`
 - Modify: package README files as needed
 
-Add tests for provider registration, cache reuse, storage reset, and View-plugin fallback behavior. Run targeted package tests first, then the complete relevant package test set.
+Migrate the remaining feature observers from raw book database notifications to Provider events. Keep SwiftData-only persistence helpers in test targets. Add tests for provider registration, cache reuse, storage reset, and View-plugin fallback behavior. Run targeted package tests first, then the complete relevant package test set.
+
+### Completed extraction step
+
+The concrete `BookConfig` / `BookDB` / `BookRepo` / SwiftData model implementation now lives in the data-only `ProviderBookData` target. `ProviderBook` is limited to contracts, DTOs, events, constants, and errors. `PluginBookDBData` is the only production plugin importing `ProviderBookData`; View/Feature plugins resolve the contract through the Kernel instead.
 
 ---

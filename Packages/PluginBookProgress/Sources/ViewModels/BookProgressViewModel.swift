@@ -31,6 +31,7 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
     private let currentBookTime: BookProgressTimeProvider
     private let storeCurrentBookURL: BookProgressStoreCurrentURL
     private let storeCurrentBookTime: BookProgressStoreCurrentTime
+    private let bookDisk: BookProgressDiskProvider
     private let saveBookState: BookProgressSaveBookState
 
     init(
@@ -40,6 +41,7 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
         currentBookTime: @escaping BookProgressTimeProvider,
         storeCurrentBookURL: @escaping BookProgressStoreCurrentURL,
         storeCurrentBookTime: @escaping BookProgressStoreCurrentTime,
+        bookDisk: @escaping BookProgressDiskProvider,
         saveBookState: @escaping BookProgressSaveBookState
     ) {
         self.targetScene = targetScene
@@ -48,6 +50,7 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
         self.currentBookTime = currentBookTime
         self.storeCurrentBookURL = storeCurrentBookURL
         self.storeCurrentBookTime = storeCurrentBookTime
+        self.bookDisk = bookDisk
         self.saveBookState = saveBookState
     }
 
@@ -158,7 +161,7 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
     }
 
     private func isPlayableBookURL(_ url: URL) -> Bool {
-        BookProgressPersistencePolicy.shouldAcceptBookURL(url, bookDisk: BookPluginHost.getBookDisk())
+        BookProgressPersistencePolicy.shouldAcceptBookURL(url, bookDisk: bookDisk())
     }
 
     // MARK: - URL change & persistence
@@ -182,7 +185,7 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
         }
 
         let url = snapshot.currentURL
-        let bookDisk = BookPluginHost.getBookDisk()
+        let bookDisk = bookDisk()
 
         if Self.verbose {
             Self.log.debug("\(Self.tag)📖 URL changed -> \(url.shortPath())")
@@ -262,7 +265,7 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
         guard let playback = playbackCapability else { return }
         guard BookProgressPersistencePolicy.shouldPersistPlaybackProgress(
             currentURL: playback.currentAsset,
-            bookDisk: BookPluginHost.getBookDisk()
+            bookDisk: bookDisk()
         ) else { return }
 
         guard let snapshot = BookProgressPersistencePolicy.snapshot(
@@ -302,7 +305,7 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
     }
 
     private func findBookForURL(_ url: URL) async -> URL? {
-        if let bookURL = BookProgressBookLookup.bookURL(for: url, bookDisk: BookPluginHost.getBookDisk()) {
+        if let bookURL = BookProgressBookLookup.bookURL(for: url, bookDisk: bookDisk()) {
             return bookURL
         }
 
@@ -321,6 +324,6 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
     }
 
     private func bookRoot(containing url: URL) -> URL {
-        BookProgressBookRootResolver.bookRoot(containing: url, bookDisk: BookPluginHost.getBookDisk())
+        BookProgressBookRootResolver.bookRoot(containing: url, bookDisk: bookDisk())
     }
 }

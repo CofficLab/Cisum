@@ -1,4 +1,5 @@
 import Foundation
+import ProviderBook
 import CisumUIComponents
 import OSLog
 import SwiftUI
@@ -152,6 +153,16 @@ public final class BookCoverRepo: ObservableObject, SuperLog, @unchecked Sendabl
         }
     }
 
+    /// Returns the first matching cover file as raw data so a View plugin can
+    /// perform platform-specific image decoding without depending on this
+    /// repository type.
+    public func getCoverData(for url: URL) async -> Data? {
+        await Task.detached(priority: .background) {
+            guard let coverURL = Self.findCoverURL(in: url) else { return nil }
+            return try? Data(contentsOf: coverURL)
+        }.value
+    }
+
     /// Clears the cover cache. Call when books are refreshed or deleted.
     public static func clearCache() {
         coverCache.clear()
@@ -213,6 +224,18 @@ public final class BookCoverRepo: ObservableObject, SuperLog, @unchecked Sendabl
                 }
             }
         }
+    }
+
+    private static func findCoverURL(in url: URL) -> URL? {
+        let candidates = coverCandidates(in: url)
+        for file in candidates.files {
+            if file.checkIsICloud(verbose: false) && file.isNotDownloaded { continue }
+            if let data = try? Data(contentsOf: file), !data.isEmpty { return file }
+        }
+        for folder in candidates.folders {
+            if let coverURL = findCoverURL(in: folder) { return coverURL }
+        }
+        return nil
     }
 
     static func coverCandidates(in url: URL) -> (files: [URL], folders: [URL]) {

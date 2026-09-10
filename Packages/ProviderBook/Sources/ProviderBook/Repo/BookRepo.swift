@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import ProviderBook
 import CisumUIComponents
 import OSLog
 import SwiftUI
@@ -151,6 +152,22 @@ extension BookRepo {
         await self.db.hasBook(url) ? url : nil
     }
 
+    public func playbackState(for bookURL: URL) async -> BookPlaybackStateDTO? {
+        try? await db.playbackState(for: bookURL)
+    }
+
+    public func savePlaybackState(
+        for bookURL: URL,
+        currentURL: URL?,
+        time: TimeInterval?
+    ) async throws {
+        try await db.savePlaybackState(
+            for: bookURL,
+            currentURL: currentURL,
+            time: time
+        )
+    }
+
     /// 获取书籍封面图
     /// - Parameters:
     ///   - url: 书籍URL
@@ -158,6 +175,10 @@ extension BookRepo {
     /// - Returns: 封面图，如果未找到则返回nil
     public nonisolated func getCover(for url: URL, thumbnailSize: CGSize) async -> Image? {
         return await coverRepo.getCover(for: url, thumbnailSize: thumbnailSize)
+    }
+
+    public nonisolated func getCoverData(for url: URL) async -> Data? {
+        await coverRepo.getCoverData(for: url)
     }
     
     /// 获取所有集合类型的书籍（文件夹）

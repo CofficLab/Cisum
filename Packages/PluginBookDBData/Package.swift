@@ -26,6 +26,7 @@ let package = Package(
             dependencies: [
                 .product(name: "KernelCore", package: "KernelCore"),
                 .product(name: "ProviderBook", package: "ProviderBook"),
+                .product(name: "ProviderBookData", package: "ProviderBook"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
             ],
             path: "Sources"

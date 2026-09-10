@@ -2,7 +2,6 @@ import CisumUIComponents
 import KernelCore
 import ProviderDocsView
 import ProviderBook
-import ProviderBook
 import OSLog
 import SwiftUI
 import MagicKit
@@ -19,6 +18,7 @@ public actor BookSettingsPlugin: SuperPlugin, SuperLog {
         category: .settings,
     )
 
+    nonisolated(unsafe) private weak var kernel: CisumKernel?
     nonisolated(unsafe) private var settingsViewModel: BookSettingsViewModel?
     nonisolated(unsafe) private var settingsObserver: BookSettingsObserver?
 
@@ -33,12 +33,14 @@ public actor BookSettingsPlugin: SuperPlugin, SuperLog {
 
     @MainActor
     public func onBoot(kernel: CisumKernel) async throws {
+        self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
         installState()
     }
 
     @MainActor
     public func onEnable(kernel: CisumKernel) async throws {
+        self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)✅ onEnable") }
         installState()
     }
@@ -53,6 +55,7 @@ public actor BookSettingsPlugin: SuperPlugin, SuperLog {
     public func onShutdown(kernel: CisumKernel) async throws {
         if Self.verbose { os_log("\(Self.t)🛑 onShutdown") }
         teardownState()
+        self.kernel = nil
     }
 
     @MainActor
@@ -74,8 +77,11 @@ public actor BookSettingsPlugin: SuperPlugin, SuperLog {
     private func installState() {
         guard settingsViewModel == nil else { return }
         if Self.verbose { os_log("\(Self.t)🔧 installState") }
-        let viewModel = BookSettingsViewModel()
-        let observer = BookSettingsObserver(viewModel: viewModel)
+        guard let provider = kernel?.resolveProvider(BookDatabaseProviding.self) else {
+            return
+        }
+        let viewModel = BookSettingsViewModel(bookDisk: { provider.bookDisk })
+        let observer = BookSettingsObserver(viewModel: viewModel, provider: provider)
         settingsViewModel = viewModel
         settingsObserver = observer
     }

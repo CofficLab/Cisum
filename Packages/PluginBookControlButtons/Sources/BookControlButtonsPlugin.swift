@@ -4,7 +4,6 @@ import KernelCore
 import MagicKit
 import OSLog
 import ProviderBook
-import ProviderBook
 import ProviderDocsView
 import ProviderPlayback
 import ProviderRootView
@@ -36,7 +35,7 @@ public actor BookControlButtonsPlugin: SuperPlugin, SuperLog {
     private nonisolated(unsafe) var controlViewModel: BookControlViewModel?
     private nonisolated(unsafe) var sceneObserver: BookControlSceneObserver?
     private nonisolated(unsafe) var playbackObserver: BookControlPlaybackObserver?
-    private nonisolated(unsafe) var notificationTokens: [NSObjectProtocol] = []
+    private nonisolated(unsafe) var bookProviderObserver: (any BookProvidingObserverHandle)?
 
     @MainActor
     public func onRegister(kernel: CisumKernel) async throws {
@@ -107,31 +106,39 @@ public actor BookControlButtonsPlugin: SuperPlugin, SuperLog {
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
             playbackCapability: makePlaybackCapability(from: playback),
-            toastProvider: kernel.toast
+            toastProvider: kernel.toast,
+            bookDisk: { kernel.resolveProvider(BookDatabaseProviding.self)?.bookDisk }
         )
         sceneObserver = BookControlSceneObserver(scene: scene, viewModel: viewModel)
         playbackObserver = BookControlPlaybackObserver(playback: playback, viewModel: viewModel)
-        installDatabaseObservers(viewModel: viewModel)
+        installDatabaseObservers(
+            viewModel: viewModel,
+            provider: kernel.resolveProvider(BookDatabaseProviding.self)
+        )
         controlViewModel = viewModel
     }
 
     /// 订阅书籍数据库与存储重置通知，转发到 ViewModel。
     @MainActor
-    private func installDatabaseObservers(viewModel: BookControlViewModel) {
-        let center = NotificationCenter.default
-        notificationTokens.append(center.addObserver(forName: .bookDBDeleted, object: nil, queue: .main) { [weak viewModel] notification in
-            let urls = notification.userInfo?["urls"] as? [URL] ?? []
-            Task { @MainActor in viewModel?.handleBookDBDeleted(deletedURLs: urls) }
-        })
-        notificationTokens.append(center.addObserver(forName: .bookDBSynced, object: nil, queue: .main) { [weak viewModel] _ in
-            Task { @MainActor in viewModel?.handleBookDBRefreshed() }
-        })
-        notificationTokens.append(center.addObserver(forName: .bookDBUpdated, object: nil, queue: .main) { [weak viewModel] _ in
-            Task { @MainActor in viewModel?.handleBookDBRefreshed() }
-        })
-        notificationTokens.append(center.addObserver(forName: Notification.Name("storageLocationDidReset"), object: nil, queue: .main) { [weak viewModel] _ in
-            Task { @MainActor in viewModel?.handleStorageLocationDidReset() }
-        })
+    private func installDatabaseObservers(
+        viewModel: BookControlViewModel,
+        provider: (any BookDatabaseProviding)?
+    ) {
+        guard let provider else { return }
+        bookProviderObserver = provider.addObserver { [weak viewModel] event in
+            Task { @MainActor in
+                switch event {
+                case .libraryChanged:
+                    viewModel?.handleBookDBRefreshed()
+                case .librarySyncing, .librarySynced, .librarySorted, .playbackStateChanged:
+                    break
+                case let .libraryDeleted(urls):
+                    viewModel?.handleBookDBDeleted(deletedURLs: urls)
+                case .storageLocationChanged:
+                    viewModel?.handleStorageLocationDidReset()
+                }
+            }
+        }
     }
 
     @MainActor
@@ -141,8 +148,8 @@ public actor BookControlButtonsPlugin: SuperPlugin, SuperLog {
         sceneObserver = nil
         playbackObserver?.cancel()
         playbackObserver = nil
-        notificationTokens.forEach { NotificationCenter.default.removeObserver($0) }
-        notificationTokens.removeAll()
+        bookProviderObserver?.cancel()
+        bookProviderObserver = nil
         controlViewModel = nil
     }
 
@@ -156,7 +163,10 @@ public actor BookControlButtonsPlugin: SuperPlugin, SuperLog {
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
             playbackCapability: makePlaybackCapability(from: kernel?.playback),
-            toastProvider: kernel?.toast
+            toastProvider: kernel?.toast,
+            bookDisk: { [weak self] in
+                self?.kernel?.resolveProvider(BookDatabaseProviding.self)?.bookDisk
+            }
         )
         controlViewModel = viewModel
         return viewModel

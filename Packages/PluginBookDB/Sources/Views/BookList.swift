@@ -2,7 +2,6 @@ import CisumUIComponents
 import OSLog
 import ProviderBook
 import ProviderBook
-import SwiftData
 import SwiftUI
 
 struct BookList: View, SuperLog, SuperThread {
@@ -10,25 +9,9 @@ struct BookList: View, SuperLog, SuperThread {
 
     @Environment(\.bookDBViewDependencies) private var dependencies
 
-    @Query(
-        sort: \BookModel.order,
-        animation: .default
-    ) var books: [BookModel]
+    @State private var books: [BookDTO] = []
 
-    private var displayableBooks: [BookModel] {
-        guard let bookDisk = dependencies.bookDisk else {
-            return []
-        }
-
-        return books.filter {
-            BookRepo.isDisplayableLibraryItem(
-                url: $0.url,
-                isCollection: $0.isCollection,
-                childCount: $0.childCount,
-                libraryRoot: bookDisk
-            )
-        }
-    }
+    private var displayableBooks: [BookDTO] { books }
 
     var total: Int { displayableBooks.count }
     var showTips: Bool {
@@ -38,6 +21,9 @@ struct BookList: View, SuperLog, SuperThread {
     var body: some View {
         return List(displayableBooks) { item in
             BookTile(url: item.url, title: item.bookTitle, childCount: item.childCount)
+        }
+        .task {
+            books = await dependencies.bookProvider?.books(reason: "BookList") ?? []
         }
     }
 }

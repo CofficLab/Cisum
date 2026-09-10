@@ -1,7 +1,7 @@
+import Foundation
 import ProviderBook
-import ProviderBook
+import ProviderBookData
 import SwiftData
-import SwiftUI
 
 enum BookProgressStatePersistence {
     static func save(

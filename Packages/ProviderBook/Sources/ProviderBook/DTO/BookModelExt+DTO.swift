@@ -1,4 +1,5 @@
 import Foundation
+import ProviderBook
 import CisumUIComponents
 import OSLog
 import SwiftUI
@@ -32,4 +33,3 @@ extension Array where Element == BookModel {
         return self.map { $0.toDTO() }
     }
 }
-

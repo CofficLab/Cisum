@@ -1,4 +1,5 @@
 import Foundation
+import ProviderBook
 import CisumUIComponents
 import OSLog
 import SwiftData
@@ -183,6 +184,39 @@ extension BookDB {
     public func allBookDTOs() throws -> [BookDTO] {
         let books: [BookModel] = try context.fetch(FetchDescriptor<BookModel>())
         return books.toDTOs()
+    }
+
+    func playbackState(for bookURL: URL) throws -> BookPlaybackStateDTO? {
+        let state = try context.fetch(BookState.descriptorOf(bookURL)).first
+            ?? context.fetch(BookState.descriptorAll).first { state in
+                BookState.representsSameBookURL(state.url, as: bookURL)
+            }
+        guard let state else { return nil }
+        return BookPlaybackStateDTO(currentURL: state.currentURL, time: state.time)
+    }
+
+    func savePlaybackState(
+        for bookURL: URL,
+        currentURL: URL?,
+        time: TimeInterval?
+    ) throws {
+        let existingState = try context.fetch(BookState.descriptorOf(bookURL)).first
+            ?? context.fetch(BookState.descriptorAll).first { state in
+                BookState.representsSameBookURL(state.url, as: bookURL)
+            }
+
+        if let existingState {
+            existingState.currentURL = currentURL
+            if let time {
+                existingState.time = time
+            }
+            existingState.updateAt = .now
+        } else {
+            context.insert(BookState(url: bookURL, currentURL: currentURL, time: time ?? 0))
+        }
+
+        try context.save()
+        NotificationCenter.postBookStateUpdated(bookURL: bookURL)
     }
 }
 

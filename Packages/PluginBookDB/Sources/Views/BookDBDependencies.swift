@@ -2,22 +2,21 @@ import ProviderBook
 import ProviderBook
 import SwiftUI
 
-/// 有声书仓库设置页依赖：仓库路径 / 仓库均由 `BookDBPlugin` 自持
-/// （直接从内核存储服务解析，不依赖 `BookPlugin` 静态入口）。
+/// 有声书仓库设置页依赖：通过 Provider 访问书籍数据。
 public struct BookDBDependencies: @unchecked Sendable {
-    public var bookRepo: @MainActor @Sendable () async -> BookRepo?
+    public var bookProvider: (any BookDatabaseProviding)?
     public var bookDisk: @MainActor @Sendable () -> URL?
 
     public init(
-        bookRepo: @escaping @MainActor @Sendable () async -> BookRepo?,
+        bookProvider: (any BookDatabaseProviding)?,
         bookDisk: @escaping @MainActor @Sendable () -> URL?
     ) {
-        self.bookRepo = bookRepo
+        self.bookProvider = bookProvider
         self.bookDisk = bookDisk
     }
 
     public static let empty = BookDBDependencies(
-        bookRepo: { nil },
+        bookProvider: nil,
         bookDisk: { nil }
     )
 }

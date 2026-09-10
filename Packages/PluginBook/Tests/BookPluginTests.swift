@@ -1,7 +1,9 @@
 @testable import PluginBook
-@testable import ProviderBook
+import ProviderBook
+import ProviderBookData
 import Foundation
 import Testing
+@testable import ProviderBookData
 import SwiftData
 import SwiftUI
 
@@ -49,7 +51,9 @@ import SwiftUI
         storageLocationDidChangeNotifications: []
     )
 
-    let preparedDisk = try #require(BookPlugin.getBookDisk())
+    let preparedDisk = try #require(
+        try BookPluginHost.getStorageRoot()?.appendingPathComponent(BookPlugin.dirName, isDirectory: true).ensureDirectory()
+    )
     var isDirectory: ObjCBool = false
 
     #expect(preparedDisk == bookDisk)

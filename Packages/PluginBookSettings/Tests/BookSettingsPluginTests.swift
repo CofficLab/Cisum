@@ -1,5 +1,5 @@
 import Foundation
-@testable import BookSettingsPlugin
+@testable import PluginBookSettings
 import Testing
 
 @Test func pluginInfoExportsRegistrationMetadata() {

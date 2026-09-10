@@ -1,5 +1,6 @@
 import Foundation
 import ProviderBook
+import ProviderBookData
 import ProviderBook
 import SwiftData
 @testable import PluginBookProgress

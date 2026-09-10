@@ -1,4 +1,5 @@
 import Foundation
+import ProviderBook
 
 public enum BookPluginHost {
     public typealias DBRootProvider = @MainActor () throws -> URL
