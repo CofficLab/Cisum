@@ -6,7 +6,7 @@ import MagicKit
 /// 有声书库需要的最小播放能力。
 ///
 /// ViewModel 只依赖这条能力边界，不直接依赖 Kernel 或 `PlaybackProviding`；
-/// 具体 Adapter 由 `BookDBPlugin` 在生命周期组装阶段创建。
+/// 具体 Adapter 由 `BookDBViewPlugin` 在生命周期组装阶段创建。
 @MainActor
 protocol BookDBPlaybackCapability: AnyObject {
     func play(_ url: URL, startTime: TimeInterval?) async

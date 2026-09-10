@@ -8,14 +8,14 @@ import ProviderScene
 import SwiftUI
 import MagicKit
 
-public actor BookDBPlugin: SuperPlugin, SuperLog {
+public actor BookDBViewPlugin: SuperPlugin, SuperLog {
     nonisolated static let verbose = true
 
-    public static let shared = BookDBPlugin()
+    public static let shared = BookDBViewPlugin()
     public static let metadata = PluginMetadata(
-        displayName: String(localized: String.LocalizationValue(BookDBPluginInfo.titleKey), bundle: .module),
-        description: String(localized: String.LocalizationValue(BookDBPluginInfo.descriptionKey), bundle: .module),
-        iconName: BookDBPluginInfo.iconName,
+        displayName: String(localized: String.LocalizationValue(BookDBViewPluginInfo.titleKey), bundle: .module),
+        description: String(localized: String.LocalizationValue(BookDBViewPluginInfo.descriptionKey), bundle: .module),
+        iconName: BookDBViewPluginInfo.iconName,
         order: 12,
         policy: .alwaysOn,
         category: .library,
@@ -31,8 +31,8 @@ public actor BookDBPlugin: SuperPlugin, SuperLog {
     public func onRegister(kernel: CisumKernel) async throws {
         if Self.verbose { os_log("\(Self.t)🔌 onRegister") }
         if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { BookDBPluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { BookDBPluginManualView() })
+            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { BookDBViewPluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { BookDBViewPluginManualView() })
         }
     }
 
@@ -40,8 +40,6 @@ public actor BookDBPlugin: SuperPlugin, SuperLog {
     public func onBoot(kernel: CisumKernel) async throws {
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
-        // 跨插件 Provider（Scene / Playback）在 onReady 中解析，
-        // 不假设其他插件已完成 Provider 注册。
     }
 
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
@@ -74,9 +72,9 @@ public actor BookDBPlugin: SuperPlugin, SuperLog {
     @MainActor
     public func addTabView(reason: String, demoMode: Bool = false) -> (view: AnyView, label: String)? {
         guard sceneBox.scene?.currentScene == .audiobooks else { return nil }
-        let label = String(localized: String.LocalizationValue(BookDBPluginInfo.titleKey), bundle: .module)
+        let label = String(localized: String.LocalizationValue(BookDBViewPluginInfo.titleKey), bundle: .module)
         guard kernel?.resolveProvider(BookDatabaseProviding.self) != nil else {
-            os_log(.error, "BookDBPlugin failed to resolve database data service")
+            os_log(.error, "BookDBViewPlugin failed to resolve database data service")
             let view = BookDBUnavailableView(errorDescription: String(localized: "Storage service is unavailable", bundle: .module))
             return (AnyView(view), label)
         }
@@ -108,7 +106,7 @@ public actor BookDBPlugin: SuperPlugin, SuperLog {
         let settingTree = BookTreeViewModel(disk: bookDiskProvider)
         return PluginSettingNavigationItem(
             id: "bookdb",
-            title: String(localized: String.LocalizationValue(BookDBPluginInfo.titleKey), bundle: .module),
+            title: String(localized: String.LocalizationValue(BookDBViewPluginInfo.titleKey), bundle: .module),
             description: Self.metadata.description,
             iconName: Self.metadata.iconName,
             order: Self.metadata.order,

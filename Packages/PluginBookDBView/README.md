@@ -16,8 +16,8 @@ create the SwiftData container or `BookRepo` itself.
 BookDBViewPlugin/
 ├── Package.swift
 ├── Sources/BookDBViewPlugin/
-│   ├── BookDBPlugin.swift
-│   ├── BookDBPluginInfo.swift
+│   ├── BookDBViewPlugin.swift
+│   ├── BookDBViewPluginInfo.swift
 │   ├── BookDBView.swift
 │   ├── BookDBViewDependencies.swift
 │   ├── BookDBEventViews.swift

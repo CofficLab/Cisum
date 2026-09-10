@@ -168,7 +168,7 @@ struct BookDBSettingView: View {
 
     private func row(book: BookDTO) -> some View {
         HStack(spacing: 10) {
-            Image(systemName: BookDBPluginInfo.iconName)
+            Image(systemName: BookDBViewPluginInfo.iconName)
                 .foregroundStyle(theme.primary)
                 .frame(width: 18)
             Text(book.bookTitle)

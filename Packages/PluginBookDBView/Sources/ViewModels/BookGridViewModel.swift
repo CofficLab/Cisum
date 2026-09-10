@@ -9,7 +9,7 @@ import SwiftUI
 ///
 /// 持有书籍列表、加载/同步状态、选中高亮、播放代际与防抖任务，
 /// 统一处理数据库事件与播放资产变化；取代原 `BookGrid` 内的全部
-/// `@State` 与事件 handler。由 `BookDBPlugin` 入口持有并注入
+/// `@State` 与事件 handler。由 `BookDBViewPlugin` 入口持有并注入
 /// `BookDatabaseObserver`；View 只展示与转发意图。
 @MainActor
 final class BookGridViewModel: ObservableObject, SuperLog {

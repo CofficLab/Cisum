@@ -46,7 +46,7 @@
 ### Task 3: Migrate every book feature package
 
 **Files:**
-- Modify: `Packages/PluginBookDB/Package.swift` and sources
+- Modify: `Packages/PluginBookDBView/Package.swift` and sources
 - Modify: `Packages/PluginBookProgress/Package.swift` and sources/tests
 - Modify: `Packages/PluginBookSettings/Package.swift` and sources
 - Modify: `Packages/PluginBookControlButtons/Package.swift` and sources
@@ -89,6 +89,6 @@
 
 **Steps:**
 
-1. Build and test `ProviderBook`, `PluginBook`, `PluginBookDB`, `PluginBookProgress`, `PluginBookSettings`, `PluginBookControlButtons`, `ProviderAudioLike`, `ProviderAudioLibrary`, and `ProviderStore`.
+1. Build and test `ProviderBook`, `PluginBook`, `PluginBookDBView`, `PluginBookProgress`, `PluginBookSettings`, `PluginBookControlButtons`, `ProviderAudioLike`, `ProviderAudioLibrary`, and `ProviderStore`.
 2. Run `git diff --check`.
 3. Confirm the working tree contains only the intended strict-boundary changes.

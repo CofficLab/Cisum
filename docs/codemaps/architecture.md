@@ -156,7 +156,7 @@ protocol SuperPlugin: Actor {
 |--------|-------|----------------|
 | BookScenePlugin | - | Provides "书籍库" scene |
 | BookPlugin | - | Core book functionality |
-| BookDBPlugin | - | Database view integration |
+| BookDBViewPlugin | - | Database view integration |
 | BookProgressPlugin | - | Reading progress |
 | BookPosterPlugin | - | Poster view |
 | BookLikePlugin | - | Like/favorite management |

@@ -14,7 +14,7 @@ import PluginAudioSettings
 import PluginAudioWidgetControl
 import PluginBook
 import PluginBookControlButtons
-import PluginBookDB
+import PluginBookDBView
 import PluginBookDBData
 import PluginBookLike
 import PluginBookPlayMode
@@ -88,7 +88,7 @@ public struct DefaultPluginFactory: PluginFactory {
             AudioWidgetControlPlugin.shared,
             BookControlButtonsPlugin.shared,
             BookDBDataPlugin.shared,
-            BookDBPlugin.shared,
+            BookDBViewPlugin.shared,
             BookLikePlugin.shared,
             BookPlayModePlugin.shared,
             BookPlugin.shared,

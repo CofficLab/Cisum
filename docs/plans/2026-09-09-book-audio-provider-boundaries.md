@@ -42,7 +42,7 @@ Completed on 2026-09-09:
 ### Task 2: Migrate book feature plugins to `ProviderBook`
 
 **Files:**
-- Modify: `Packages/PluginBookDB/Package.swift` and book DB sources
+- Modify: `Packages/PluginBookDBView/Package.swift` and book DB sources
 - Modify: `Packages/PluginBookProgress/Package.swift` and progress sources
 - Modify: `Packages/PluginBookSettings/Package.swift` and settings sources
 - Modify: `Packages/PluginBookControlButtons/Package.swift` and control sources

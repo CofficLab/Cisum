@@ -1,5 +1,5 @@
 import Testing
-@testable import PluginBookDB
+@testable import PluginBookDBView
 import Foundation
 import ProviderBook
 import ProviderBookData
@@ -8,7 +8,7 @@ import SwiftData
 import UniformTypeIdentifiers
 
 @Test func bookDBInfoExportsMetadata() {
-    #expect(BookDBPluginInfo.iconName == "books.vertical")
+    #expect(BookDBViewPluginInfo.iconName == "books.vertical")
 }
 
 @Test func bookTilePlaceholderColorIsStableAndTitleDependent() {
@@ -783,14 +783,14 @@ import UniformTypeIdentifiers
 
 @MainActor
 @Test func bookDBPluginProvidesSettingsNavigationItem() {
-    let item = BookDBPlugin.shared.addSettingNavigationItem()
+    let item = BookDBViewPlugin.shared.addSettingNavigationItem()
 
     #expect(item != nil)
     #expect(item?.id == "bookdb")
-    #expect(item?.title == BookDBPluginInfo.titleKey)
-    #expect(item?.description == BookDBPlugin.metadata.description)
-    #expect(item?.iconName == BookDBPluginInfo.iconName)
-    #expect(item?.order == BookDBPlugin.metadata.order)
+    #expect(item?.title == BookDBViewPluginInfo.titleKey)
+    #expect(item?.description == BookDBViewPlugin.metadata.description)
+    #expect(item?.iconName == BookDBViewPluginInfo.iconName)
+    #expect(item?.order == BookDBViewPlugin.metadata.order)
 }
 
 // MARK: - Book tree builder

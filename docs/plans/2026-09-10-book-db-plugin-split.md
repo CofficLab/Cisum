@@ -4,7 +4,7 @@
 
 **Goal:** Split audiobook database ownership from the audiobook database UI while keeping the existing library, import, settings, and playback behavior working.
 
-**Architecture:** `PluginBookDBData` owns storage resolution, SwiftData container creation, the cached `BookRepo`, and the `BookDatabaseProviding` service. `PluginBookDB` becomes the View plugin and resolves that service through the Kernel. `ProviderBook` exposes the cross-plugin contract, DTOs, and events to consumers, while its separate `ProviderBookData` target contains the concrete database implementation. No View/Feature plugin may use the implementation target directly.
+**Architecture:** `PluginBookDBData` owns storage resolution, SwiftData container creation, the cached `BookRepo`, and the `BookDatabaseProviding` service. `PluginBookDBView` becomes the View plugin and resolves that service through the Kernel. `ProviderBook` exposes the cross-plugin contract, DTOs, and events to consumers, while its separate `ProviderBookData` target contains the concrete database implementation. No View/Feature plugin may use the implementation target directly.
 
 **Tech Stack:** Swift 6, Swift Package Manager, SwiftData, SwiftUI, Cisum Kernel Provider registry, Swift Testing.
 
@@ -32,13 +32,13 @@ Move database-container/repository construction and caching into a new always-on
 
 Verify the new package builds independently and its provider reports unavailable state before storage is configured.
 
-### Task 3: Convert `PluginBookDB` into the View plugin
+### Task 3: Convert `PluginBookDBView` into the View plugin
 
 **Files:**
-- Modify: `Packages/PluginBookDB/Sources/BookDBPlugin.swift`
-- Modify: `Packages/PluginBookDB/Package.swift`
-- Modify: `Packages/PluginBookDB/Sources/Views/BookDBDependencies.swift`
-- Modify: `Packages/PluginBookDB/Sources/Views/BookDBViewDependencies.swift`
+- Modify: `Packages/PluginBookDBView/Sources/BookDBViewPlugin.swift`
+- Modify: `Packages/PluginBookDBView/Package.swift`
+- Modify: `Packages/PluginBookDBView/Sources/Views/BookDBDependencies.swift`
+- Modify: `Packages/PluginBookDBView/Sources/Views/BookDBViewDependencies.swift`
 
 Remove storage and SwiftData construction from the View plugin. Resolve the data provider from the Kernel and use it for DTO reads, imports, playback state, cover data, disk, and database-root access. Keep all UI, ViewModel, playback, and scene responsibilities here.
 
@@ -50,14 +50,14 @@ Verify the View plugin still produces the tab and settings contribution when the
 - Modify: `Packages/FactoryCisum/Package.swift`
 - Modify: `Packages/FactoryCisum/Sources/FactoryCisum/PluginFactory.swift`
 
-Add the new package to the factory and start the data plugin before the View plugin. Keep the existing `PluginBook` temporarily for compatibility while preventing `PluginBookDB` from being the second owner of its repository.
+Add the new package to the factory and start the data plugin before the View plugin. Keep the existing `PluginBook` temporarily for compatibility while preventing `PluginBookDBView` from being the second owner of its repository.
 
 Verify the factory package resolves all products and the default plugin list contains both new roles.
 
 ### Task 5: Tests and migration checks
 
 **Files:**
-- Modify: `Packages/PluginBookDB/Tests/BookDBViewPluginTests.swift`
+- Modify: `Packages/PluginBookDBView/Tests/BookDBViewPluginTests.swift`
 - Create or modify: `Packages/PluginBookDBData/Tests/BookDBDataPluginTests.swift`
 - Modify: package README files as needed
 

@@ -2,7 +2,7 @@ import CisumUIComponents
 import SwiftUI
 
 /// 有声书数据库 关于视图 —— Landing 落地页。
-struct BookDBPluginAboutView: View {
+struct BookDBViewPluginAboutView: View {
     @LumiTheme private var theme
 
     var body: some View {

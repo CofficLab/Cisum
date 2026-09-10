@@ -3,7 +3,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "PluginBookDB",
+    name: "PluginBookDBView",
     defaultLocalization: "en",
     platforms: [
         .macOS(.v14),
@@ -11,8 +11,8 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "PluginBookDB",
-            targets: ["PluginBookDB"]
+            name: "PluginBookDBView",
+            targets: ["PluginBookDBView"]
         ),
     ],
     dependencies: [
@@ -26,7 +26,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "PluginBookDB",
+            name: "PluginBookDBView",
             dependencies: [
                 .product(name: "MagicKit", package: "MagicKit"),
                 "CisumUIComponents",
@@ -45,7 +45,7 @@ let package = Package(
         .testTarget(
             name: "BookDBViewPluginTests",
             dependencies: [
-                "PluginBookDB",
+                "PluginBookDBView",
                 .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "ProviderBookData", package: "ProviderBook"),
             ],

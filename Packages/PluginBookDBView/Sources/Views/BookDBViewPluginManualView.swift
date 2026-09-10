@@ -2,7 +2,7 @@ import CisumUIComponents
 import SwiftUI
 
 /// 有声书数据库 说明书 —— 章节式文档。
-struct BookDBPluginManualView: View {
+struct BookDBViewPluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
             ManualHeader(title: String(localized: "Audiobook Database", bundle: .module), subtitle: "User Manual")
