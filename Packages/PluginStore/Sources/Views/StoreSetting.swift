@@ -29,7 +29,7 @@ public struct StoreSetting: View, SuperLog, SuperEvent {
     }
 
     public var body: some View {
-        AppSettingsContentScaffold {
+        AppSettingsContentScaffold(maxContentWidth: nil) {
             VStack(alignment: .leading, spacing: 16) {
                 AppSettingSection(title: String(localized: "Subscription Information", bundle: .module)) {
                     // Current version
@@ -116,6 +116,7 @@ public struct StoreSetting: View, SuperLog, SuperEvent {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .sheet(isPresented: $viewModel.showBuySheet) {
             PurchaseView()
