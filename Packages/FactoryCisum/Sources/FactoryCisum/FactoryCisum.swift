@@ -76,28 +76,28 @@ public enum CisumBuilder: SuperLog {
 
         // 2. 注册基础设施 Provider
         let appState = BasicAppStateService()
-        kernel.registerAppStateService(appState)
+        try kernel.registerAppStateService(appState)
 
         let pluginService = PluginContributionService(manager: kernel.pluginManager)
-        kernel.registerPluginService(pluginService)
+        try kernel.registerPluginService(pluginService)
 
         // 播放引擎由 PluginPlayBack 插件在 onBoot 阶段创建并注册为 PlaybackProviding。
 
         let themeService = ThemeService(contributionsProvider: { [weak kernel] in
             kernel?.plugin?.getThemeContributions() ?? []
         })
-        kernel.registerThemeService(themeService)
+        try kernel.registerThemeService(themeService)
 
-        kernel.registerCloudService(CloudService())
-        kernel.registerDeviceService(DeviceService())
-        kernel.registerDocsService(DefaultDocsViewProvider())
+        try kernel.registerCloudService(CloudService())
+        try kernel.registerDeviceService(DeviceService())
+        try kernel.registerDocsService(DefaultDocsViewProvider())
         // 提示 Provider 必须在插件 onBoot 前存在；ToastPlugin 随后替换为真实实现。
         let defaultToast = DefaultToastProvider()
-        kernel.registerToastService(defaultToast)
+        try kernel.registerToastService(defaultToast)
         CisumToastBridge.install(defaultToast)
 
         // 视图 Provider 也要在插件 onBoot 前注册，供 ToastPlugin 挂载根覆盖层。
-        registerViewProviders(into: kernel)
+        try registerViewProviders(into: kernel)
 
         // 3. 启动内核（插件 onBoot 注册 Storage 等服务 → 校验 → onReady → 贡献聚合）
         try await kernel.startup()
@@ -176,16 +176,16 @@ public enum CisumBuilder: SuperLog {
     /// 各视图区域（根布局 / 播放控制区 / 内容区 / 工具栏）是独立的
     /// Provider 契约，默认实现注册进内核；Factory 组装时只做解析 + 注入 +
     /// makeRootView。
-    private static func registerViewProviders(into kernel: CisumKernel) {
-        kernel.registerProvider((any RootViewProviding).self, DefaultRootViewProvider(kernel: kernel))
-        kernel.registerProvider(
+    private static func registerViewProviders(into kernel: CisumKernel) throws {
+        try kernel.registerProvider((any RootViewProviding).self, DefaultRootViewProvider(kernel: kernel))
+        try kernel.registerProvider(
             (any ControlViewProviding).self,
             DefaultControlViewProvider(
                 stateViews: { kernel.plugin?.getStateViews() ?? [] },
                 stateMessage: { kernel.appState?.stateMessage ?? "" }
             )
         )
-        kernel.registerProvider((any ContentViewProviding).self, DefaultContentViewProvider())
+        try kernel.registerProvider((any ContentViewProviding).self, DefaultContentViewProvider())
     }
 
     /// 组装主视图（对齐 Lumi `DefaultViewFactory.makeMainView(kernel:)`）。

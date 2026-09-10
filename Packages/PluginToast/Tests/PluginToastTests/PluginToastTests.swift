@@ -25,7 +25,7 @@ final class PluginToastTests: XCTestCase {
     func testPluginRegistersProviderAndRootOverlay() async throws {
         let kernel = CisumKernel()
         let root = DefaultRootViewProvider(kernel: kernel)
-        kernel.registerProvider((any RootViewProviding).self, root)
+        try kernel.registerProvider((any RootViewProviding).self, root)
         let plugin = ToastPlugin()
 
         try await plugin.onBoot(kernel: kernel)

@@ -21,18 +21,40 @@ public final class SceneProvider: ObservableObject, SceneProviding {
     private static let legacyPluginIDKey = "currentPluginID"
     private static let persistenceFileName = "current-scene.json"
 
-    private let persistenceURL: URL?
+    private var persistenceURL: URL?
     private var observers: [WeakObserver] = []
 
     @Published public private(set) var currentScene: AppScene?
 
+    /// 无持久化目录的临时实例（`onBoot` 阶段使用，此时 StoragePlugin 可能尚未就绪）。
+    /// 后续由 `ScenePlugin.onReady` 调用 `enablePersistence(pluginDataDirectory:)`
+    /// 挂上目录并恢复上次场景 —— 同一个实例全程存活，身份稳定，
+    /// 避免替换实例导致消费方持有的弱引用变成空号。
+    public init() {
+        self.persistenceURL = nil
+        self.currentScene = nil
+    }
+
     /// - Parameter pluginDataDirectory: 插件专属数据目录
     ///   （由 `StorageProviding.pluginDataDirectory(for: pluginID)` 解析得到）。
     ///   传 `nil` 时禁用磁盘持久化（仅内存态，用于 onBoot 阶段 Storage 尚未就绪时）。
+    ///
+    /// 主要供测试场景直接构造已挂载目录的实例；生产代码推荐使用 `init()` +
+    /// `enablePersistence(pluginDataDirectory:)` 的两阶段初始化。
     public init(pluginDataDirectory: URL?) {
         self.persistenceURL = pluginDataDirectory?
             .appendingPathComponent(Self.persistenceFileName, isDirectory: false)
         self.currentScene = nil
+    }
+
+    /// 在已有实例上挂载持久化目录，并立即触发 `restoreCurrentScene()`。
+    ///
+    /// 对齐 Lumi `DefaultThemeProviding.setStorageDirectory(_:)`：实例身份保持稳定，
+    /// 只把"何时知道目录"这件事延迟到 Storage 就绪之后。
+    public func enablePersistence(pluginDataDirectory: URL) {
+        persistenceURL = pluginDataDirectory
+            .appendingPathComponent(Self.persistenceFileName, isDirectory: false)
+        restoreCurrentScene()
     }
 
     public var scenes: [AppScene] {

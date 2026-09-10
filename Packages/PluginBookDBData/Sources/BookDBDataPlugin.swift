@@ -24,18 +24,18 @@ public actor BookDBDataPlugin: SuperPlugin {
     @MainActor
     public func onBoot(kernel: CisumKernel) async throws {
         self.kernel = kernel
-        installProvider(kernel: kernel)
+        try installProvider(kernel: kernel)
     }
 
     @MainActor
     public func onReady(kernel: CisumKernel) async throws {
-        installProvider(kernel: kernel)
+        try installProvider(kernel: kernel)
     }
 
     @MainActor
     public func onEnable(kernel: CisumKernel) async throws {
         self.kernel = kernel
-        installProvider(kernel: kernel)
+        try installProvider(kernel: kernel)
     }
 
     @MainActor
@@ -50,11 +50,11 @@ public actor BookDBDataPlugin: SuperPlugin {
     }
 
     @MainActor
-    private func installProvider(kernel: CisumKernel) {
+    private func installProvider(kernel: CisumKernel) throws {
         guard provider == nil, let storage = kernel.storage else { return }
         let provider = BookDatabaseProvider(storage: storage)
         self.provider = provider
-        kernel.registerProvider(BookDatabaseProviding.self, provider)
+        try kernel.registerProvider(BookDatabaseProviding.self, provider)
     }
 
     @MainActor

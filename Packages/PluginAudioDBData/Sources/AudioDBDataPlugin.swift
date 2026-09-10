@@ -30,18 +30,18 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
     @MainActor
     public func onBoot(kernel: CisumKernel) async throws {
         self.kernel = kernel
-        installProviders(kernel: kernel)
+        try installProviders(kernel: kernel)
     }
 
     @MainActor
     public func onReady(kernel: CisumKernel) async throws {
-        installProviders(kernel: kernel)
+        try installProviders(kernel: kernel)
     }
 
     @MainActor
     public func onEnable(kernel: CisumKernel) async throws {
         self.kernel = kernel
-        installProviders(kernel: kernel)
+        try installProviders(kernel: kernel)
     }
 
     @MainActor
@@ -58,9 +58,9 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
     // MARK: - Provider installation
 
     @MainActor
-    private func installProviders(kernel: CisumKernel) {
-        installLibraryProvider(kernel: kernel)
-        installNavigationProvider(kernel: kernel)
+    private func installProviders(kernel: CisumKernel) throws {
+        try installLibraryProvider(kernel: kernel)
+        try installNavigationProvider(kernel: kernel)
     }
 
     @MainActor
@@ -72,11 +72,11 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
     // MARK: - AudioLibraryProviding
 
     @MainActor
-    private func installLibraryProvider(kernel: CisumKernel) {
+    private func installLibraryProvider(kernel: CisumKernel) throws {
         guard libraryProvider == nil, let storage = kernel.storage else { return }
         let provider = AudioLibraryProvider(storage: storage)
         self.libraryProvider = provider
-        kernel.registerAudioLibrary(provider)
+        try kernel.registerAudioLibrary(provider)
     }
 
     @MainActor
@@ -94,7 +94,7 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
     /// Provider 由本插件组装；消费插件只依赖协议，不依赖
     /// `AudioRepo` 或本插件的具体实现。
     @MainActor
-    private func installNavigationProvider(kernel: CisumKernel) {
+    private func installNavigationProvider(kernel: CisumKernel) throws {
         guard navigationProvider == nil else { return }
         let repoProvider: @MainActor @Sendable () async -> AudioRepo? = { [weak self] in
             await self?.currentRepo()
@@ -158,7 +158,7 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
             }
         )
         navigationProvider = provider
-        kernel.registerAudioTrackNavigation(provider)
+        try kernel.registerAudioTrackNavigation(provider)
     }
 
     @MainActor

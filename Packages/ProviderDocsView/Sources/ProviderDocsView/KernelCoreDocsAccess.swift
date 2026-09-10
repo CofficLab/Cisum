@@ -9,7 +9,9 @@ public extension CisumKernelContainer {
     }
 
     /// 注册文档视图服务。
-    func registerDocsService(_ docs: any DocsViewProviding) {
-        registerProvider(DocsViewProviding.self, docs)
+    ///
+    /// - Throws: `CisumKernelError.providerAlreadyRegistered` 重复注册。
+    func registerDocsService(_ docs: any DocsViewProviding) throws {
+        try registerProvider(DocsViewProviding.self, docs)
     }
 }

@@ -22,7 +22,7 @@ public actor ToastPlugin: SuperPlugin {
     @MainActor
     public func onBoot(kernel: CisumKernel) async throws {
         kernel.unregisterProvider((any ToastProviding).self)
-        kernel.registerProvider((any ToastProviding).self, center)
+        try kernel.registerProvider((any ToastProviding).self, center)
         CisumToastBridge.install(center)
 
         kernel.resolveProvider((any RootViewProviding).self)?.addOverlays([

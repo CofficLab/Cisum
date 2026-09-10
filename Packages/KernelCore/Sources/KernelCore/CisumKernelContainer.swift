@@ -43,6 +43,19 @@ public final class CisumKernelContainer: ObservableObject {
     /// 服务变化订阅（用于转发 ObservableObject 的 objectWillChange）。
     private var serviceSubscriptions: [ObjectIdentifier: AnyCancellable] = [:]
 
+    /// Provider → 注册它的插件 ID。宿主在插件启动前注册的基础设施 Provider
+    /// （activePluginID 为 nil 时）不写此表，表示不归任何插件所有。
+    /// 用于诊断「某个 Provider 是被谁注入的」，以及为未来"插件禁用时自动撤回"
+    /// 预留归属信息。
+    private var providerOwners: [ObjectIdentifier: String] = [:]
+
+    /// 当前正在执行生命周期的插件 ID。由 `BuiltinPluginManager` 在每次调用
+    /// 插件 `onRegister` / `onBoot` / `onReady` / `onEnable` / `onDisable` /
+    /// `onShutdown` 前后设置/清空；`registerProvider` 据此记录归属。
+    ///
+    /// 对齐 Lumi `KernelCore+Plugin` 的 `activePluginID` 机制。
+    public var activePluginID: String?
+
     /// 内置插件管理器。
     public let pluginManager: BuiltinPluginManager
 
@@ -70,12 +83,27 @@ public final class CisumKernelContainer: ObservableObject {
     /// 如果服务实现了 `ObservableObject`，内核会自动将其 `objectWillChange`
     /// 转发到自身，使得依赖该服务的 SwiftUI 视图能正确刷新。
     ///
+    /// 重复注册同一协议类型时抛 `CisumKernelError.providerAlreadyRegistered`
+    /// （对齐 Lumi 语义）。要替换已有 Provider，必须先显式调用
+    /// `unregisterProvider(_:)`，避免「静默换人」把依赖旧实例的弱引用打成
+    /// 空号——这是 `ScenePlugin` 曾经踩过的那类 bug。
+    ///
     /// - Parameters:
     ///   - type: 协议类型。
-    ///   - instance: 服务实例。
-    public func registerProvider<T>(_ type: T.Type, _ provider: T) {
+    ///   - provider: 服务实例。
+    /// - Throws: `CisumKernelError.providerAlreadyRegistered` 重复注册。
+    public func registerProvider<T>(_ type: T.Type, _ provider: T) throws {
         let key = ObjectIdentifier(type)
+        if services[key] != nil {
+            throw CisumKernelError.providerAlreadyRegistered(
+                type: type,
+                owner: providerOwners[key]
+            )
+        }
         services[key] = provider
+        if let owner = activePluginID {
+            providerOwners[key] = owner
+        }
         subscribeToObjectWillChange(observable: provider, key: key)
     }
 
@@ -94,13 +122,14 @@ public final class CisumKernelContainer: ObservableObject {
         let key = ObjectIdentifier(type)
         services.removeValue(forKey: key)
         serviceSubscriptions.removeValue(forKey: key)
+        providerOwners.removeValue(forKey: key)
     }
 
     // MARK: - 兼容别名（对齐 Lumi KernelCore 命名；旧名保留为薄封装）
 
     @available(*, deprecated, renamed: "registerProvider")
-    public func registerService<T>(_ type: T.Type, _ instance: T) {
-        registerProvider(type, instance)
+    public func registerService<T>(_ type: T.Type, _ instance: T) throws {
+        try registerProvider(type, instance)
     }
 
     @available(*, deprecated, renamed: "resolveProvider")

@@ -7,7 +7,10 @@ public extension CisumKernelContainer {
         resolveProvider(SceneProviding.self)
     }
 
-    func registerSceneService(_ scene: any SceneProviding) {
-        registerProvider(SceneProviding.self, scene)
+    /// 注册场景服务。
+    ///
+    /// - Throws: `CisumKernelError.providerAlreadyRegistered` 重复注册。
+    func registerSceneService(_ scene: any SceneProviding) throws {
+        try registerProvider(SceneProviding.self, scene)
     }
 }

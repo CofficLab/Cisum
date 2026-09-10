@@ -66,7 +66,7 @@ public actor PluginPlayBack: SuperPlugin {
     public func onBoot(kernel: CisumKernel) async throws {
         let player = MagicPlayMan()
         magicPlayMan = player
-        kernel.registerPlayback(player)
+        try kernel.registerPlayback(player)
 
         // 持久化存储（order 12 在 StoragePlugin 之后，kernel.storage 已可用）
         guard let storage = kernel.storage else { return }

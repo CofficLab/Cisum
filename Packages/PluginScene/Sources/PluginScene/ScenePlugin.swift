@@ -33,6 +33,7 @@ public actor ScenePlugin: SuperPlugin, SuperLog {
     )
 
     nonisolated(unsafe) private weak var kernel: CisumKernel?
+    nonisolated(unsafe) private var sceneProvider: SceneProvider?
     nonisolated(unsafe) private var settingsViewModel: SceneSettingsViewModel?
     nonisolated(unsafe) private var settingsObserver: SceneProvidingObserver?
 
@@ -52,17 +53,20 @@ public actor ScenePlugin: SuperPlugin, SuperLog {
         self.kernel = kernel
         // onBoot 阶段 StoragePlugin 可能尚未启动（ScenePlugin order=-1000 优先），
         // 先注册无持久化的 SceneProvider 保证下游插件可访问 SceneProviding。
-        kernel.registerSceneService(SceneProvider(pluginDataDirectory: nil))
+        // 同一个实例全程存活，身份稳定，消费方弱引用不会因后续替换而失效。
+        let provider = SceneProvider()
+        self.sceneProvider = provider
+        try kernel.registerSceneService(provider)
     }
 
     @MainActor
     public func onReady(kernel: CisumKernel) async throws {
         // onReady 在所有插件 onBoot 完成后执行，此时 StoragePlugin 已注入 storage。
-        // 用带持久化的 SceneProvider 替换临时实例，恢复上次场景。
-        if let storage = kernel.storage {
+        // 不再替换实例，只给同一个 SceneProvider 挂上持久化目录并恢复上次场景
+        // （对齐 Lumi `DefaultThemeProviding.setStorageDirectory`）。
+        if let storage = kernel.storage, let sceneProvider {
             let pluginDir = storage.pluginDataDirectory(for: self.id)
-            let persisted = SceneProvider(pluginDataDirectory: pluginDir)
-            kernel.registerSceneService(persisted)
+            sceneProvider.enablePersistence(pluginDataDirectory: pluginDir)
         }
         kernel.scene?.restoreCurrentScene()
         installSettingsState(kernel: kernel)
@@ -111,6 +115,7 @@ public actor ScenePlugin: SuperPlugin, SuperLog {
     @MainActor
     public func onShutdown(kernel: CisumKernel) async throws {
         teardownSettingsState()
+        sceneProvider = nil
         kernel.unregisterProvider((any SceneProviding).self)
     }
 

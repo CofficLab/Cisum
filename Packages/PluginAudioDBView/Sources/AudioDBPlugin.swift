@@ -42,16 +42,21 @@ public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
     @MainActor
     public func onBoot(kernel: CisumKernel) async throws {
         self.kernel = kernel
-        guard let scene = kernel.resolveProvider((any SceneProviding).self) else {
-            throw CisumKernelError.serviceNotAvailable(service: "SceneProviding")
-        }
-        sceneBox.scene = scene
+        // 跨插件 Provider（Scene / Playback）一律在 onReady 中解析，不假设其他插件
+        // 已完成 Provider 注册（对齐 `BookDBViewPlugin`）。
+        //
+        // 尤其不能在 onBoot 捕获 `SceneProviding`：`ScenePlugin`（order -1000）会在
+        // 自己的 onReady 里用带持久化的新实例替换 onBoot 阶段注册的临时实例
+        // （见 `ScenePlugin.onReady`）。onBoot 捕获到的旧实例随后失去唯一强引用被
+        // 释放，`sceneBox.scene`（weak）变成 nil，`addTabView` 的场景守卫将恒为
+        // false，音乐库内容区会退化成「当前场景暂无可用内容」。
     }
 
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
     ///
     /// `PluginPlayBack` 同样在 onBoot 注册 PlaybackProviding，因此 AudioDB 不能
-    /// 在自己的 onBoot 中假设播放服务已经存在。
+    /// 在自己的 onBoot 中假设播放服务已经存在；`SceneProviding` 则因为实例会在
+    /// `ScenePlugin.onReady` 被替换，必须在此处（onReady）解析。
     @MainActor
     public func onReady(kernel: CisumKernel) async throws {
         installState(kernel: kernel)
@@ -202,6 +207,12 @@ public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
     /// 创建并持有音频数据库的 ViewModel 与数据库观察者（幂等）。
     @MainActor
     private func installState(kernel: CisumKernel) {
+        // 场景 Provider 必须在 onReady（或运行期 enable）之后解析：此时
+        // `ScenePlugin` 已把带持久化的实例注册进内核并恢复了上次场景，得到的
+        // 引用才是长期存活、且 `currentScene` 有效的那个。
+        // 放在幂等 guard 之前，保证 `onEnable` 重新装配时也会刷新引用。
+        sceneBox.scene = kernel.resolveProvider((any SceneProviding).self)
+
         guard listViewModel == nil else { return }
 
         guard let playback = kernel.playback else { return }
@@ -265,9 +276,12 @@ public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
     @MainActor
     private func resolveSceneState() -> AudioDBSceneState {
         if let sceneState { return sceneState }
-        let state = AudioDBSceneState(isMusicScene: sceneBox.scene?.currentScene == .music)
+        // `sceneBox` 为空（onReady 之前被请求）时回落到内核当前场景，避免把一个
+        // 永远收不到事件、且初始值恒为 false 的失效状态缓存下来。
+        let scene = sceneBox.scene ?? kernel?.scene
+        let state = AudioDBSceneState(isMusicScene: scene?.currentScene == .music)
         sceneState = state
-        sceneObserver = AudioDBSceneObserver(scene: sceneBox.scene, sceneState: state)
+        sceneObserver = AudioDBSceneObserver(scene: scene, sceneState: state)
         return state
     }
 

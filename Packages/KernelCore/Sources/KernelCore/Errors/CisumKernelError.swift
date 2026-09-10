@@ -50,34 +50,50 @@ public enum CisumKernelError: Error, LocalizedError {
     /// 存储路径无效。
     case invalidStoragePath(path: String)
 
+    /// Provider 重复注册。
+    ///
+    /// 对齐 Lumi `KernelCore+Provider` 的语义：Provider 必须显式 `unregisterProvider`
+    /// 之后才能被替换，禁止静默覆盖。这样能尽早暴露"onReady 替换 onBoot 实例"
+    /// 这类隐性 bug（见 `ScenePlugin` 的 enablePersistence 重构）。
+    ///
+    /// - Parameters:
+    ///   - type: 被重复注册的协议类型。
+    ///   - owner: 原注册来源的插件 ID（由 `activePluginID` 在注册时捕获），未
+    ///            知时为 `nil`。
+    case providerAlreadyRegistered(type: Any.Type, owner: String?)
+
     // MARK: - LocalizedError
 
     public var errorDescription: String? {
         switch self {
         case .pluginAlreadyRegistered(let id):
-            "Plugin '\(id)' is already registered"
+            return "Plugin '\(id)' is already registered"
         case .pluginNotFound(let id):
-            "Plugin '\(id)' not found"
+            return "Plugin '\(id)' not found"
         case .pluginNotConfigurable(let id):
-            "Plugin '\(id)' cannot be toggled by user"
+            return "Plugin '\(id)' cannot be toggled by user"
         case .missingRequiredServices(let services):
-            "Missing required services: \(services.joined(separator: ", "))"
+            return "Missing required services: \(services.joined(separator: ", "))"
         case .serviceNotAvailable(let service):
-            "\(service) service is not available"
+            return "\(service) service is not available"
         case .pluginFailed(let pluginID, let message):
-            "\(message) (plugin: \(pluginID))"
+            return "\(message) (plugin: \(pluginID))"
         case .sceneNotFound(let sceneName):
-            "Scene '\(sceneName)' not found"
+            return "Scene '\(sceneName)' not found"
         case .pluginIDIsEmpty:
-            "Plugin has an empty ID"
+            return "Plugin has an empty ID"
         case .duplicatePluginID(let pluginID, _):
-            "Duplicate plugin ID: \(pluginID)"
+            return "Duplicate plugin ID: \(pluginID)"
         case .playbackNotReady:
-            "Playback manager is not ready — no playable asset loaded"
+            return "Playback manager is not ready — no playable asset loaded"
         case .invalidTheme(let themeID):
-            "Invalid or unknown theme: \(themeID)"
+            return "Invalid or unknown theme: \(themeID)"
         case .invalidStoragePath(let path):
-            "Invalid storage path: \(path)"
+            return "Invalid storage path: \(path)"
+        case .providerAlreadyRegistered(let type, let owner):
+            let typeName = String(reflecting: type)
+            let suffix = owner.map { " by plugin '\($0)'" } ?? ""
+            return "Provider '\(typeName)' is already registered\(suffix); unregister it first"
         }
     }
 }
