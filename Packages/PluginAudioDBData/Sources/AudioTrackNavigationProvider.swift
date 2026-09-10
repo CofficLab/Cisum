@@ -3,10 +3,10 @@ import MagicKit
 import OSLog
 import ProviderAudioNavigation
 
-/// AudioDB 对音频曲目导航能力的具体实现。
+/// 音频曲目导航能力的具体实现。
 ///
-/// 公共 Provider 包只定义跨插件协议；仓库查询和数据源绑定属于 AudioDB 插件，
-/// 因此实现放在本插件的 Providers 目录中，由插件入口负责组装和注册。
+/// 公共 Provider 包只定义跨插件协议；仓库查询和数据源绑定属于数据层插件，
+/// 因此实现放在本插件中，由插件入口负责组装和注册。
 @MainActor
 final class AudioTrackNavigationProvider: AudioTrackNavigationProviding, SuperLog {
     nonisolated static let emoji = "🎵"

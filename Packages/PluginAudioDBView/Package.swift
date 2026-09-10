@@ -21,9 +21,9 @@ let package = Package(
         .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(name: "ProviderAudioLibrary", path: "../ProviderAudioLibrary"),
-        .package(path: "../ProviderAudioNavigation"),
         .package(path: "../ProviderScene"),
         .package(path: "../ProviderStorage"),
+        .package(name: "PluginAudioDBData", path: "../PluginAudioDBData"),
     ],
     targets: [
         .target(
@@ -35,9 +35,9 @@ let package = Package(
                 .product(name: "ProviderDocsView", package: "ProviderDocsView"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
-                .product(name: "ProviderAudioNavigation", package: "ProviderAudioNavigation"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
+                .product(name: "PluginAudioDBData", package: "PluginAudioDBData"),
             ],
             path: ".",
             sources: ["Sources"],

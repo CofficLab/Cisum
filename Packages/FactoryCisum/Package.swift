@@ -33,6 +33,7 @@ let package = Package(
         // MARK: - Plugin Dependencies (直接由 Factory 装配)
         .package(name: "PluginAudio", path: "../PluginAudio"),
         .package(name: "PluginAudioCopy", path: "../PluginAudioCopy"),
+        .package(name: "PluginAudioDBData", path: "../PluginAudioDBData"),
         .package(name: "PluginAudioDBView", path: "../PluginAudioDBView"),
         .package(name: "PluginAudioDemo", path: "../PluginAudioDemo"),
         .package(name: "PluginAudioDownload", path: "../PluginAudioDownload"),
@@ -103,6 +104,7 @@ let package = Package(
                 .product(name: "ProviderToast", package: "ProviderToast"),
                 .product(name: "PluginAudio", package: "PluginAudio"),
                 .product(name: "PluginAudioCopy", package: "PluginAudioCopy"),
+                .product(name: "PluginAudioDBData", package: "PluginAudioDBData"),
                 .product(name: "PluginAudioDBView", package: "PluginAudioDBView"),
                 .product(name: "PluginAudioDemo", package: "PluginAudioDemo"),
                 .product(name: "PluginAudioDownload", package: "PluginAudioDownload"),

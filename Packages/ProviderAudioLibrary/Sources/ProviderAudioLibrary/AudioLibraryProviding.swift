@@ -16,6 +16,9 @@ public protocol AudioLibraryProvidingObserverHandle: AnyObject {
 /// 音频插件模块。具体的音频插件可以在 `onBoot` 阶段注册实现。
 @MainActor
 public protocol AudioLibraryProviding: AnyObject, ObservableObject {
+    /// 音频仓库；由数据层插件构造并提供给视图层消费。
+    var audioRepo: AudioRepo? { get async }
+
     /// 当前音频文件所在的目录。
     var audioDisk: URL? { get }
 

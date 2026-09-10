@@ -2,6 +2,7 @@ import CisumUIComponents
 import KernelCore
 import PluginAudio
 import PluginAudioCopy
+import PluginAudioDBData
 import PluginAudioDBView
 import PluginAudioDemo
 import PluginAudioDownload
@@ -75,7 +76,8 @@ public struct DefaultPluginFactory: PluginFactory {
 
     public func makePlugins() -> [any SuperPlugin] {
         var plugins: [any SuperPlugin] = [
-            AudioDBPlugin.shared,
+            AudioDBDataPlugin.shared,
+            AudioDBViewPlugin.shared,
             AudioDemoPlugin.shared,
             AudioDownloadPlugin.shared,
             AudioJobPlugin.shared,
