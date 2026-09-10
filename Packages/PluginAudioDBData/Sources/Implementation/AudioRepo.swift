@@ -2,7 +2,6 @@ import Combine
 import Foundation
 import CisumUIComponents
 import OSLog
-import ProviderAudioLike
 import SwiftData
 import SwiftUI
 
@@ -88,34 +87,6 @@ public class AudioRepo: ObservableObject, SuperLog, @unchecked Sendable {
 
     public func getStorageRoot() async -> URL {
         self.disk
-    }
-
-    public func isLiked(_ url: URL) async -> Bool {
-        await AudioLikeRepo.shared.isLiked(url: url)
-    }
-
-    public func like(_ url: URL?, liked: Bool) async {
-        guard let url = url else { return }
-
-        do {
-            let audioId = url.absoluteString
-            try await AudioLikeRepo.shared.updateLikeStatus(
-                audioId: audioId,
-                liked: liked,
-                url: url,
-                title: url.lastPathComponent
-            )
-
-            if liked {
-                os_log("\(self.t)👍 Like \(url.lastPathComponent)")
-            } else {
-                if Self.verbose {
-                    os_log("\(self.t)😁 Cancel like \(url.lastPathComponent)")
-                }
-            }
-        } catch {
-            os_log(.error, "\(self.t)❌ 更新喜欢状态失败: \(error.localizedDescription)")
-        }
     }
 
     public func sort(_ sticky: AudioModel?, reason: String) async {

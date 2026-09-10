@@ -1,5 +1,4 @@
 import CisumUIComponents
-import SwiftData
 import SwiftUI
 import ProviderAudioLike
 
@@ -58,7 +57,7 @@ public struct AudioLikeSettingsView: View, SuperLog {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func row(_ audio: AudioLikeModel) -> some View {
+    private func row(_ audio: AudioLikeItem) -> some View {
         HStack {
             VStack(alignment: .leading) {
                 Text(audio.title ?? audio.url?.lastPathComponent ?? String(localized: "Unknown audio", bundle: .module))

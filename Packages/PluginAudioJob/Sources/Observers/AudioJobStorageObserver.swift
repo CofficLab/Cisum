@@ -1,7 +1,6 @@
-import Combine
 import Foundation
-import ProviderAudioLibrary
 import MagicKit
+import ProviderStorage
 
 /// 音频后台任务的存储位置变化观察者（迁移 Phase 4）。
 ///
@@ -14,21 +13,16 @@ final class AudioJobStorageObserver: SuperLog {
     nonisolated static let emoji = "💾"
     nonisolated static let verbose = true
 
-    private var cancellables: Set<AnyCancellable> = []
+    private var handle: (any StorageProvidingObserverHandle)?
     private let onChange: () -> Void
 
-    init(onChange: @escaping () -> Void) {
+    init(provider: any StorageProviding, onChange: @escaping () -> Void) {
         self.onChange = onChange
-        for notification in AudioPluginHost.storageLocationDidChangeNotifications {
-            NotificationCenter.default.publisher(for: notification)
-                .sink { [weak self] _ in
-                    self?.onChange()
-                }
-                .store(in: &cancellables)
-        }
+        handle = provider.addObserver { [weak self] _ in self?.onChange() }
     }
 
     func cancel() {
-        cancellables.removeAll()
+        handle?.cancel()
+        handle = nil
     }
 }

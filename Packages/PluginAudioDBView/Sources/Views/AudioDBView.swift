@@ -83,12 +83,6 @@ extension AudioDBView {
             os_log("\(self.t)📋 Preparing to copy \(urls.count) files")
         }
 
-        // 发送复制文件事件
-        self.emit(name: .CopyFiles, object: self, userInfo: [
-            "urls": urls,
-            "folder": storageRoot,
-        ])
-
         return try await Task.detached(priority: .userInitiated) {
             try await Self.copyFilesInBackground(urls, to: storageRoot)
         }.value
@@ -356,13 +350,13 @@ extension AudioDBView {
 
         do {
             let copiedURLs = try await copyFiles(importableURLs, to: storageRoot)
-            guard let repo = await dependencies.audioRepo() else {
+            guard let library = dependencies.audioLibrary() else {
                 Self.cleanUpCopiedFiles(copiedURLs)
                 alert_error(String(localized: "Import failed: audio repository is unavailable", bundle: .module))
                 return
             }
 
-            await repo.sync(copiedURLs, isFirst: false)
+            await library.sync(urls: copiedURLs, verbose: false, isFirst: false)
         } catch {
             os_log(.error, "\(self.t)❌ Failed to copy files: \(error.localizedDescription)")
             alert_error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))

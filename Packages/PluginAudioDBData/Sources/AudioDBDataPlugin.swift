@@ -96,17 +96,18 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
     @MainActor
     private func installNavigationProvider(kernel: CisumKernel) throws {
         guard navigationProvider == nil else { return }
-        let repoProvider: @MainActor @Sendable () async -> AudioRepo? = { [weak self] in
-            await self?.currentRepo()
+        let provider = libraryProvider
+        let repoProvider: @MainActor @Sendable () async -> AudioLibraryProvider? = {
+            provider
         }
-        let provider = AudioTrackNavigationProvider(
+        let navigation = AudioTrackNavigationProvider(
             nextURL: { current, verbose in
-                guard let repo = await repoProvider() else {
+                guard let provider = await repoProvider() else {
                     os_log(.error, "\(Self.t)❌ Cannot find next audio: repository is unavailable")
                     throw AudioPluginError.hostNotConfigured
                 }
                 do {
-                    let result = try await repo.getNextOf(current, verbose: verbose)
+                    let result = try await provider.nextURL(after: current, verbose: verbose)
                     if result == nil {
                         os_log("\(Self.t)ℹ️ No next audio for current item: \(current?.lastPathComponent ?? "<none>")")
                     }
@@ -117,12 +118,12 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
                 }
             },
             previousURL: { current, verbose in
-                guard let repo = await repoProvider() else {
+                guard let provider = await repoProvider() else {
                     os_log(.error, "\(Self.t)❌ Cannot find previous audio: repository is unavailable")
                     throw AudioPluginError.hostNotConfigured
                 }
                 do {
-                    let result = try await repo.getPrevOf(current, verbose: verbose)
+                    let result = try await provider.previousURL(before: current, verbose: verbose)
                     if result == nil {
                         os_log("\(Self.t)ℹ️ No previous audio for current item: \(current?.lastPathComponent ?? "<none>")")
                     }
@@ -133,32 +134,32 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
                 }
             },
             firstURL: {
-                guard let repo = await repoProvider() else {
+                guard let provider = await repoProvider() else {
                     os_log(.error, "\(Self.t)❌ Cannot find first audio: repository is unavailable")
                     throw AudioPluginError.hostNotConfigured
                 }
                 do {
-                    return try await repo.getFirst()
+                    return try await provider.firstURL()
                 } catch {
                     os_log(.error, "\(Self.t)❌ Failed to resolve first audio: \(error.localizedDescription)")
                     throw error
                 }
             },
             lastURL: {
-                guard let repo = await repoProvider() else {
+                guard let provider = await repoProvider() else {
                     os_log(.error, "\(Self.t)❌ Cannot find last audio: repository is unavailable")
                     throw AudioPluginError.hostNotConfigured
                 }
                 do {
-                    return try await repo.getLast()
+                    return try await provider.lastURL()
                 } catch {
                     os_log(.error, "\(Self.t)❌ Failed to resolve last audio: \(error.localizedDescription)")
                     throw error
                 }
             }
         )
-        navigationProvider = provider
-        try kernel.registerAudioTrackNavigation(provider)
+        navigationProvider = navigation
+        try kernel.registerAudioTrackNavigation(navigation)
     }
 
     @MainActor
@@ -168,10 +169,4 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
         navigationProvider = nil
     }
 
-    // MARK: - Repo access
-
-    @MainActor
-    private func currentRepo() async -> AudioRepo? {
-        await libraryProvider?.audioRepo
-    }
 }

@@ -81,7 +81,8 @@ public actor AudioProgressPlugin: SuperPlugin, SuperLog {
         let viewModel = AudioProgressViewModel(
             audioScene: .music,
             playbackCapability: makePlaybackCapability(from: playback),
-            audioRepo: { await AudioPluginHost.getAudioRepoAsync() },
+            audioLibrary: { kernel.audioLibrary },
+            audioLike: { kernel.audioLike },
             saveWidgetData: { title, artist, isPlaying, coverArt in
                 AudioProgressHost.saveWidgetData(title: title, artist: artist, isPlaying: isPlaying, coverArt: coverArt)
             }
@@ -89,8 +90,9 @@ public actor AudioProgressPlugin: SuperPlugin, SuperLog {
         let observer = AudioProgressObserver(
             scene: scene,
             playback: playback,
+            library: kernel.audioLibrary,
+            storage: kernel.storage,
             viewModel: viewModel,
-            storageResetNotifications: [Notification.Name("storageLocationDidReset")]
         )
         progressViewModel = viewModel
         progressObserver = observer
@@ -113,7 +115,8 @@ public actor AudioProgressPlugin: SuperPlugin, SuperLog {
         let viewModel = AudioProgressViewModel(
             audioScene: .music,
             playbackCapability: makePlaybackCapability(from: kernel?.playback),
-            audioRepo: { await AudioPluginHost.getAudioRepoAsync() },
+            audioLibrary: { self.kernel?.audioLibrary },
+            audioLike: { self.kernel?.audioLike },
             saveWidgetData: { title, artist, isPlaying, coverArt in
                 AudioProgressHost.saveWidgetData(title: title, artist: artist, isPlaying: isPlaying, coverArt: coverArt)
             }

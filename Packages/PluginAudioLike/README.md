@@ -9,16 +9,8 @@ This plugin registers with ID `AudioLikePlugin` and provides audio like/favorite
 ## Architecture
 
 ```
-AudioLikePlugin/
-├── Package.swift
-├── Sources/AudioLikePlugin/
-│   ├── AudioLikePlugin.swift
-│   ├── AudioLikePluginInfo.swift
-│   ├── AudioLikeModel.swift
-│   ├── AudioLikeRepo.swift
-│   ├── AudioLikeRootView.swift
-│   └── AudioLikeSettingsView.swift
-└── Tests/
+ProviderAudioLike → `AudioLikeProviding` and `AudioLikeItem`
+PluginAudioLike   → SwiftData model, repository, provider adapter, UI
 ```
 
 ## Features

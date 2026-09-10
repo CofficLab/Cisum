@@ -30,18 +30,21 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
     private var restoreGeneration = 0
     private var currentScene: AppScene?
     private let audioScene: AppScene
-    private let audioRepo: @MainActor () async -> AudioRepo?
+    private let audioLibrary: @MainActor () -> (any AudioLibraryProviding)?
+    private let audioLike: @MainActor () -> (any AudioLikeProviding)?
     private let saveWidgetData: @Sendable (String, String, Bool, Data?) -> Void
 
     init(
         audioScene: AppScene,
         playbackCapability: (any AudioProgressPlaybackCapability)?,
-        audioRepo: @escaping @MainActor () async -> AudioRepo?,
+        audioLibrary: @escaping @MainActor () -> (any AudioLibraryProviding)?,
+        audioLike: @escaping @MainActor () -> (any AudioLikeProviding)?,
         saveWidgetData: @escaping @Sendable (String, String, Bool, Data?) -> Void
     ) {
         self.audioScene = audioScene
         self.playbackCapability = playbackCapability
-        self.audioRepo = audioRepo
+        self.audioLibrary = audioLibrary
+        self.audioLike = audioLike
         self.saveWidgetData = saveWidgetData
     }
 
@@ -98,7 +101,7 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
         Task { @MainActor in
             guard isCurrentRestoreRequest(generation) else { return }
 
-            guard let repo = await audioRepo() else {
+            guard let library = audioLibrary() else {
                 if Self.verbose {
                     Self.log.error("\(Self.tag)❌ Failed to get AudioRepo")
                 }
@@ -106,11 +109,11 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
             }
 
             if let url = AudioStateRepo.getCurrent() {
-                let isPlayable = await repo.find(url) != nil && isPlayableAudioURL(url)
+                let isPlayable = await library.contains(url) && isPlayableAudioURL(url)
 
                 if isPlayable {
                     assetTarget = url
-                    liked = await AudioLikeRepo.shared.isLiked(url: url)
+                    liked = await audioLike()?.isLiked(url: url) ?? false
 
                     if let time = AudioStateRepo.getCurrentTime() {
                         timeTarget = time
@@ -131,9 +134,9 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
                         Self.log.debug("\(Self.tag)⚠️ Last played file no longer exists: \(url.lastPathComponent)")
                     }
 
-                    if let firstUrl = await firstPlayableAudio(in: repo) {
+                    if let firstUrl = await firstPlayableAudio(in: library) {
                         assetTarget = firstUrl
-                        liked = await AudioLikeRepo.shared.isLiked(url: firstUrl)
+                        liked = await audioLike()?.isLiked(url: firstUrl) ?? false
 
                         if Self.verbose {
                             Self.log.debug("\(Self.tag)✅ Playing first track: \(firstUrl.lastPathComponent)")
@@ -193,8 +196,8 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
         )
     }
 
-    private func firstPlayableAudio(in repo: AudioRepo) async -> URL? {
-        let urls = await repo.getAll(reason: "AudioProgressViewModel.firstPlayableAudio")
+    private func firstPlayableAudio(in library: any AudioLibraryProviding) async -> URL? {
+        let urls = await library.allURLs(reason: "AudioProgressViewModel.firstPlayableAudio")
         return urls.first(where: isPlayableAudioURL)
     }
 

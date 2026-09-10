@@ -1,3 +1,3 @@
 # ProviderAudioLike
 
-音频收藏能力协议包：定义 `AudioLikeModel` 数据模型与 `AudioLikeRepo` 仓库层，抽象音频收藏/喜欢管理能力。
+音频收藏能力协议包：只定义 `AudioLikeProviding` 和 `AudioLikeItem`。SwiftData 模型、仓库和持久化策略由 `PluginAudioLike` 实现。

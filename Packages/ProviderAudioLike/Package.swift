@@ -11,20 +11,18 @@ let package = Package(
     products: [
         .library(name: "ProviderAudioLike", targets: ["ProviderAudioLike"]),
     ],
-    dependencies: [
-        .package(path: "../CisumUIComponents"),
-    ],
+    dependencies: [],
     targets: [
         .target(
             name: "ProviderAudioLike",
-            dependencies: [
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
-            ],
-            path: ".",
-            sources: ["Sources/ProviderAudioLike"],
-            resources: [
-                .process("Resources/Localizable.xcstrings"),
-            ]
+            dependencies: [],
+            path: "Sources/ProviderAudioLike",
+            resources: []
+        ),
+        .testTarget(
+            name: "ProviderAudioLikeTests",
+            dependencies: ["ProviderAudioLike"],
+            path: "Tests"
         ),
     ],
     swiftLanguageModes: [.v5]

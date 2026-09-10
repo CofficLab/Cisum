@@ -10,25 +10,25 @@ import MagicKit
 final class AudioDBRootViewModel: ObservableObject, SuperLog {
     nonisolated static let verbose = true
 
-    private let audioRepoProvider: @MainActor () async -> AudioRepo?
+    private let audioLibraryProvider: @MainActor () -> (any AudioLibraryProviding)?
     private let showDBViewAction: @MainActor () -> Void
 
     init(
-        audioRepo: @escaping @MainActor () async -> AudioRepo?,
+        audioLibrary: @escaping @MainActor () -> (any AudioLibraryProviding)?,
         showDBView: @escaping @MainActor () -> Void
     ) {
-        self.audioRepoProvider = audioRepo
+        self.audioLibraryProvider = audioLibrary
         self.showDBViewAction = showDBView
     }
 
     /// 检查仓库是否为空；为空或无仓库时请求显示数据库视图。
     func checkAudioRepo() async {
-        guard let repo = await audioRepoProvider() else {
+        guard let library = audioLibraryProvider() else {
             showDBViewAction()
             return
         }
 
-        let count = await repo.getTotalCount()
+        let count = await library.totalCount()
         if count == 0 {
             showDBViewAction()
         }

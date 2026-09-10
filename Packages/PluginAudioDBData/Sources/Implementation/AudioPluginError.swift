@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 private func audioErrorString(_ keyAndValue: String.LocalizationValue) -> String {
-    String(localized: keyAndValue, bundle: .module)
+    String(localized: keyAndValue)
 }
 
 /// 音频插件的所有错误类型

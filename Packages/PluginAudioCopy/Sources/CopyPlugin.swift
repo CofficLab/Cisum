@@ -18,9 +18,12 @@ import MagicKit
         category: .tool,
         )
 
+        nonisolated(unsafe) private weak var kernel: CisumKernel?
+
 
     @MainActor
     public func onRegister(kernel: CisumKernel) async throws {
+        self.kernel = kernel
         if let docs = kernel.docs {
             docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { CopyPluginAboutView() })
             docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { CopyPluginManualView() })
@@ -43,13 +46,13 @@ import MagicKit
         private func configureService() {
             AudioCopyService.configure(
                 audioDiskProvider: {
-                    AudioPluginHost.getAudioDisk()
+                    self.kernel?.audioLibrary?.audioDisk
                 },
                 audioCountProvider: {
-                    guard let repo = await AudioPluginHost.getAudioRepoAsync() else {
+                    guard let library = self.kernel?.audioLibrary else {
                         return 0
                     }
-                    return await repo.getTotalCount()
+                    return await library.totalCount()
                 }
             )
         }

@@ -3,6 +3,7 @@ import CisumUIComponents
 import OSLog
 import SwiftData
 import SwiftUI
+import ProviderAudioLibrary
 
 /// 音频记录数据库，负责管理音频模型的持久化存储和检索
 /// 实现了 ModelActor 协议以支持 SwiftData 操作

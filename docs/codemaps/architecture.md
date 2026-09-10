@@ -232,7 +232,9 @@ Plugin1(
 ### Repository Pattern
 
 ```
-AudioRepo      → Audio data access
+ProviderAudioLibrary → audio catalog contract/events
+PluginAudioDBData    → AudioModel/AudioDB/AudioRepo implementation
+PluginAudioLike      → like persistence implementation
 BookRepo       → Book data access
 UIRepo         → UI state persistence
 PluginRepo     → Plugin configuration

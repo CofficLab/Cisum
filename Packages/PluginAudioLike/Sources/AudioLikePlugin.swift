@@ -2,6 +2,7 @@ import KernelCore
 import ProviderDocsView
 import CisumUIComponents
 import ProviderAudioLike
+import ProviderStorage
 import ProviderPlayback
 import ProviderScene
 import SwiftUI
@@ -24,6 +25,7 @@ public actor AudioLikePlugin: SuperPlugin, SuperLog {
     nonisolated(unsafe) private weak var kernel: CisumKernel?
     nonisolated(unsafe) private var viewModel: AudioLikeViewModel?
     nonisolated(unsafe) private var observer: AudioLikeObserver?
+    nonisolated(unsafe) private var likeProvider: AudioLikeProvider?
 
     @MainActor
     public func onRegister(kernel: CisumKernel) async throws {
@@ -43,24 +45,29 @@ public actor AudioLikePlugin: SuperPlugin, SuperLog {
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
     @MainActor
     public func onReady(kernel: CisumKernel) async throws {
+        try installProvider(kernel: kernel)
         installState(kernel: kernel)
     }
 
     @MainActor
     public func onEnable(kernel: CisumKernel) async throws {
         self.kernel = kernel
+        try installProvider(kernel: kernel)
         installState(kernel: kernel)
     }
 
     @MainActor
     public func onDisable(kernel: CisumKernel) async throws {
         teardownState()
+        removeProvider(from: kernel)
     }
 
     @MainActor
     public func onShutdown(kernel: CisumKernel) async throws {
         sceneBox.scene = nil
         teardownState()
+        removeProvider(from: kernel)
+        self.kernel = nil
     }
 
     @MainActor
@@ -109,6 +116,21 @@ public actor AudioLikePlugin: SuperPlugin, SuperLog {
     }
 
     @MainActor
+    private func installProvider(kernel: CisumKernel) throws {
+        guard likeProvider == nil, let storage = kernel.storage else { return }
+        let provider = AudioLikeProvider(storage: storage)
+        likeProvider = provider
+        try kernel.registerAudioLike(provider)
+    }
+
+    @MainActor
+    private func removeProvider(from kernel: CisumKernel) {
+        likeProvider?.shutdown()
+        likeProvider = nil
+        kernel.unregisterProvider(AudioLikeProviding.self)
+    }
+
+    @MainActor
     private func teardownState() {
         observer?.cancel()
         observer = nil
@@ -144,7 +166,7 @@ public actor AudioLikePlugin: SuperPlugin, SuperLog {
     @MainActor
     private func makeLoadLikedAudios() -> AudioLikeLoadProvider {
         { @MainActor in
-            await AudioLikeRepo.shared.getAllLiked()
+            await self.kernel?.audioLike?.allLiked() ?? []
         }
     }
 
@@ -152,7 +174,8 @@ public actor AudioLikePlugin: SuperPlugin, SuperLog {
     @MainActor
     private func makeSaveLikeStatus() -> AudioLikeSaveProvider {
         { @MainActor audioId, liked, url, title in
-            try await AudioLikeRepo.shared.updateLikeStatus(
+            guard let provider = self.kernel?.audioLike else { return }
+            try await provider.updateLikeStatus(
                 audioId: audioId,
                 liked: liked,
                 url: url,

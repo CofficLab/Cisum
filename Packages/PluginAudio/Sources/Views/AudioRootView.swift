@@ -1,7 +1,5 @@
 import Foundation
 import CisumUIComponents
-import ProviderAudioLibrary
-import SwiftData
 import SwiftUI
 
 struct AudioRootErrorPresentation: Equatable {
@@ -9,7 +7,7 @@ struct AudioRootErrorPresentation: Equatable {
     let message: String
     let detail: String?
 
-    static func make(error: AudioPluginError?) -> AudioRootErrorPresentation {
+    static func make(error: AudioRootError?) -> AudioRootErrorPresentation {
         guard let error else {
             return AudioRootErrorPresentation(
                 title: String(localized: "Audio Library Initialization Failed", bundle: .module),
@@ -19,17 +17,17 @@ struct AudioRootErrorPresentation: Equatable {
         }
 
         switch error {
-        case .initialization(let reason) where reason == AudioContainerLoadError.storageMissingReason:
+        case .storageMissing:
             return AudioRootErrorPresentation(
                 title: String(localized: "Storage Location Not Set", bundle: .module),
                 message: String(localized: "Set the media library storage location first.", bundle: .module),
                 detail: nil
             )
-        default:
+        case .initialization(let reason):
             return AudioRootErrorPresentation(
                 title: String(localized: "Audio Library Initialization Failed", bundle: .module),
-                message: error.recoverySuggestion ?? String(localized: "Try reopening the app or checking media library settings.", bundle: .module),
-                detail: error.localizedDescription
+                message: String(localized: "Try reopening the app or checking media library settings.", bundle: .module),
+                detail: reason
             )
         }
     }
@@ -53,11 +51,10 @@ public struct AudioRootView<Content>: View where Content: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if viewModel.error != nil {
                 storageErrorView
-            } else if let container = viewModel.container {
+            } else if viewModel.error == nil {
                 ZStack {
                     content
                 }
-                .modelContainer(container)
                 .onDisappear(perform: handleOnDisappear)
             } else {
                 storageErrorView

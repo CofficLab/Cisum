@@ -38,7 +38,6 @@ let package = Package(
             path: ".",
             sources: [
                 "Sources/AudioPlugin.swift",
-                "Sources/CoreExports.swift",
                 "Sources/Observers",
                 "Sources/ViewModels",
                 "Sources/Views"
@@ -49,10 +48,7 @@ let package = Package(
         ),
         .testTarget(
             name: "AudioPluginTests",
-            dependencies: [
-                "PluginAudio",
-                .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary")
-            ],
+            dependencies: ["PluginAudio"],
             path: "Tests"
         )
     ]

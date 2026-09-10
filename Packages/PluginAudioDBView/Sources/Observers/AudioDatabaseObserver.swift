@@ -1,4 +1,3 @@
-import Foundation
 import ProviderAudioLibrary
 import MagicKit
 
@@ -15,57 +14,40 @@ final class AudioDatabaseObserver: SuperLog {
     private weak var listViewModel: AudioListViewModel?
     private weak var rootViewModel: AudioDBRootViewModel?
     private weak var dbViewModel: AudioDBViewModel?
-    private var tokens: [NSObjectProtocol] = []
+    private var handle: (any AudioLibraryProvidingObserverHandle)?
 
     init(
         list: AudioListViewModel,
         root: AudioDBRootViewModel?,
-        db: AudioDBViewModel?
+        db: AudioDBViewModel?,
+        library: (any AudioLibraryProviding)?
     ) {
         self.listViewModel = list
         self.rootViewModel = root
         self.dbViewModel = db
-
-        let center = NotificationCenter.default
-        tokens.append(center.addObserver(forName: .dbSynced, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in
-                self?.listViewModel?.handleDBSynced()
-                await self?.rootViewModel?.checkAudioRepo()
-            }
-        })
-        tokens.append(center.addObserver(forName: .dbSyncing, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in
+        handle = library?.addObserver { [weak self] event in
+            switch event {
+            case .syncing:
                 self?.listViewModel?.handleDBSyncing()
-            }
-        })
-        tokens.append(center.addObserver(forName: .dbUpdated, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in
+            case .synced:
+                self?.listViewModel?.handleDBSynced()
+                Task { @MainActor in await self?.rootViewModel?.checkAudioRepo() }
+            case .updated:
                 self?.listViewModel?.handleDBUpdated()
-                await self?.rootViewModel?.checkAudioRepo()
-            }
-        })
-        tokens.append(center.addObserver(forName: .dbDeleted, object: nil, queue: .main) { [weak self] notification in
-            let urls = notification.userInfo?["urls"] as? [URL] ?? []
-            Task { @MainActor in
+                Task { @MainActor in await self?.rootViewModel?.checkAudioRepo() }
+            case .deleted(let urls, _):
                 self?.listViewModel?.handleDBDeleted(urlsToDelete: urls)
-            }
-        })
-        tokens.append(center.addObserver(forName: .DBSorting, object: nil, queue: .main) { [weak self] notification in
-            let mode = notification.userInfo?["mode"] as? String
-            Task { @MainActor in
-                self?.dbViewModel?.handleSorting(mode: mode)
-            }
-        })
-        tokens.append(center.addObserver(forName: .DBSortDone, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in
+            case .sorting:
+                self?.dbViewModel?.handleSorting(mode: nil)
+            case .sortCompleted:
                 self?.dbViewModel?.handleSortDone()
                 self?.listViewModel?.handleDBSortDone()
             }
-        })
+        }
     }
 
     func cancel() {
-        tokens.forEach { NotificationCenter.default.removeObserver($0) }
-        tokens.removeAll()
+        handle?.cancel()
+        handle = nil
     }
 }

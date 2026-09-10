@@ -18,6 +18,7 @@ let package = Package(
         .package(path: "../MagicKit"),
         .package(path: "../CisumUIComponents"),
         .package(path: "../ProviderAudioLike"),
+        .package(path: "../ProviderStorage"),
         .package(path: "../MagicPlayMan"),
         .package(path: "../KernelCore"),
         .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
@@ -29,6 +30,7 @@ let package = Package(
             name: "PluginAudioLike",
             dependencies: [
                 .product(name: "ProviderAudioLike", package: "ProviderAudioLike"),
+                .product(name: "ProviderStorage", package: "ProviderStorage"),
                 .product(name: "MagicKit", package: "MagicKit"),
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
                 .product(name: "MagicPlayMan", package: "MagicPlayMan"),
@@ -43,7 +45,9 @@ let package = Package(
                 "Sources/Capabilities",
                 "Sources/Events",
                 "Sources/Models/AudioLikePluginInfo.swift",
+                "Sources/Models/AudioLikeModel.swift",
                 "Sources/Observers",
+                "Sources/Services",
                 "Sources/ViewModels",
                 "Sources/Views"
             ],

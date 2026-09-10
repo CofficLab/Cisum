@@ -10,7 +10,7 @@ struct AudioDBPluginRootView<Content>: View where Content: View {
     let dbViewModel: AudioDBViewModel
     @ObservedObject var sceneState: AudioDBSceneState
 
-    private let audioRepo: @MainActor @Sendable () async -> AudioRepo?
+    private let audioLibrary: @MainActor @Sendable () -> (any AudioLibraryProviding)?
     private let audioDisk: @MainActor @Sendable () -> URL?
     private let audioDiagnostics: @MainActor @Sendable () -> AudioStorageDiagnostics
 
@@ -21,7 +21,7 @@ struct AudioDBPluginRootView<Content>: View where Content: View {
         rootViewModel: AudioDBRootViewModel,
         dbViewModel: AudioDBViewModel,
         sceneState: AudioDBSceneState,
-        audioRepo: @escaping @MainActor @Sendable () async -> AudioRepo?,
+        audioLibrary: @escaping @MainActor @Sendable () -> (any AudioLibraryProviding)?,
         audioDisk: @escaping @MainActor @Sendable () -> URL?,
         audioDiagnostics: @escaping @MainActor @Sendable () -> AudioStorageDiagnostics,
         @ViewBuilder content: () -> Content
@@ -30,7 +30,7 @@ struct AudioDBPluginRootView<Content>: View where Content: View {
         self.rootViewModel = rootViewModel
         self.dbViewModel = dbViewModel
         self.sceneState = sceneState
-        self.audioRepo = audioRepo
+        self.audioLibrary = audioLibrary
         self.audioDisk = audioDisk
         self.audioDiagnostics = audioDiagnostics
         self.content = content()
@@ -53,7 +53,7 @@ struct AudioDBPluginRootView<Content>: View where Content: View {
 
     private var dependencies: AudioDBDependencies {
         AudioDBDependencies(
-            audioRepo: audioRepo,
+            audioLibrary: audioLibrary,
             audioDisk: audioDisk,
             audioDiagnostics: audioDiagnostics,
             supportedExtensions: AudioPluginInfo.supportedExtensions,
@@ -80,7 +80,7 @@ struct AudioDBPluginTabView: View {
     let rootViewModel: AudioDBRootViewModel
     let dbViewModel: AudioDBViewModel
 
-    private let audioRepo: @MainActor @Sendable () async -> AudioRepo?
+    private let audioLibrary: @MainActor @Sendable () -> (any AudioLibraryProviding)?
     private let audioDisk: @MainActor @Sendable () -> URL?
     private let audioDiagnostics: @MainActor @Sendable () -> AudioStorageDiagnostics
 
@@ -90,7 +90,7 @@ struct AudioDBPluginTabView: View {
         listViewModel: AudioListViewModel,
         rootViewModel: AudioDBRootViewModel,
         dbViewModel: AudioDBViewModel,
-        audioRepo: @escaping @MainActor @Sendable () async -> AudioRepo?,
+        audioLibrary: @escaping @MainActor @Sendable () -> (any AudioLibraryProviding)?,
         audioDisk: @escaping @MainActor @Sendable () -> URL?,
         audioDiagnostics: @escaping @MainActor @Sendable () -> AudioStorageDiagnostics,
         demoMode: Bool
@@ -98,7 +98,7 @@ struct AudioDBPluginTabView: View {
         self.listViewModel = listViewModel
         self.rootViewModel = rootViewModel
         self.dbViewModel = dbViewModel
-        self.audioRepo = audioRepo
+        self.audioLibrary = audioLibrary
         self.audioDisk = audioDisk
         self.audioDiagnostics = audioDiagnostics
         self.demoMode = demoMode
@@ -114,7 +114,7 @@ struct AudioDBPluginTabView: View {
 
     private var dependencies: AudioDBDependencies {
         AudioDBDependencies(
-            audioRepo: audioRepo,
+            audioLibrary: audioLibrary,
             audioDisk: audioDisk,
             audioDiagnostics: audioDiagnostics,
             supportedExtensions: AudioPluginInfo.supportedExtensions,

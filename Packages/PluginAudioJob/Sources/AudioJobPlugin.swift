@@ -4,6 +4,7 @@ import ProviderDocsView
 import Foundation
 import OSLog
 import ProviderAudioLibrary
+import ProviderStorage
 import MagicKit
 
 public actor AudioJobPlugin: SuperPlugin, SuperLog {
@@ -19,6 +20,7 @@ public actor AudioJobPlugin: SuperPlugin, SuperLog {
     )
 
     nonisolated(unsafe) private var storageObserver: AudioJobStorageObserver?
+    nonisolated(unsafe) private weak var kernel: CisumKernel?
 
     @MainActor
     public func onRegister(kernel: CisumKernel) async throws {
@@ -30,6 +32,7 @@ public actor AudioJobPlugin: SuperPlugin, SuperLog {
 
     @MainActor
     public func onBoot(kernel: CisumKernel) async throws {
+        self.kernel = kernel
         await registerJobs()
         setupStorageLocationObserver()
     }
@@ -38,6 +41,7 @@ public actor AudioJobPlugin: SuperPlugin, SuperLog {
     public func onShutdown(kernel: CisumKernel) async throws {
         storageObserver?.cancel()
         storageObserver = nil
+        self.kernel = nil
     }
 
     private func registerJobs() async {
@@ -51,7 +55,8 @@ public actor AudioJobPlugin: SuperPlugin, SuperLog {
     @MainActor
     private func setupStorageLocationObserver() {
         guard storageObserver == nil else { return }
-        storageObserver = AudioJobStorageObserver { [weak self] in
+        guard let storage = kernel?.storage else { return }
+        storageObserver = AudioJobStorageObserver(provider: storage) { [weak self] in
             Task {
                 await self?.restartFileSystemMonitor()
             }
@@ -74,27 +79,29 @@ public actor AudioJobPlugin: SuperPlugin, SuperLog {
     private func makeFileSystemMonitorJob() -> FileSystemMonitorJob {
         FileSystemMonitorJob(
             diskProvider: {
-                await AudioPluginHost.getAudioDisk()
+                await MainActor.run { self.kernel?.audioLibrary?.audioDisk }
             },
             syncItems: { items, isFirst in
-                let disk = await AudioPluginHost.getAudioDisk()
-                guard let repo = await AudioPluginHost.getAudioRepoAsync() else {
+                guard let library = await MainActor.run(body: { self.kernel?.audioLibrary }) else {
                     return
                 }
 
+                let disk = await MainActor.run { library.audioDisk }
                 let shouldFullSync = FileSystemMonitorJob.shouldPerformFullSync(isFirst: isFirst, disk: disk)
-                await repo.sync(items, verbose: FileSystemMonitorJob.verbose, isFirst: shouldFullSync)
+                await library.sync(
+                    urls: items,
+                    verbose: FileSystemMonitorJob.verbose,
+                    isFirst: shouldFullSync
+                )
             },
             deleteItems: { urls in
-                guard let repo = await AudioPluginHost.getAudioRepoAsync() else {
-                    throw AudioPluginError.hostNotConfigured
+                guard let library = await MainActor.run(body: { self.kernel?.audioLibrary }) else {
+                    return
                 }
 
-                try await repo.deleteAudios(urls, verbose: FileSystemMonitorJob.verbose)
+                try await library.delete(urls: urls, verbose: FileSystemMonitorJob.verbose)
             },
-            notifyDeletion: {
-                NotificationCenter.postFileSystemDeleted()
-            }
+            notifyDeletion: {}
         )
     }
 }

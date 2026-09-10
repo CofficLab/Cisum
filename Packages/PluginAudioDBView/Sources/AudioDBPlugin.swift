@@ -88,7 +88,7 @@ public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
                 rootViewModel: root,
                 dbViewModel: db,
                 sceneState: resolveSceneState(),
-                audioRepo: audioRepoProvider,
+                audioLibrary: audioLibraryProvider,
                 audioDisk: audioDiskProvider,
                 audioDiagnostics: audioDiagnosticsProvider,
                 content: content
@@ -107,7 +107,7 @@ public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
                 listViewModel: list,
                 rootViewModel: root,
                 dbViewModel: db,
-                audioRepo: audioRepoProvider,
+                audioLibrary: audioLibraryProvider,
                 audioDisk: audioDiskProvider,
                 audioDiagnostics: audioDiagnosticsProvider,
                 demoMode: demoMode
@@ -124,7 +124,7 @@ public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
         // 共享状态变化会传播到主窗口 contentview，导致其闪动。
         let playback = kernel?.playback
         let settingList = AudioListViewModel(
-            audioRepo: audioRepoProvider,
+            audioLibrary: audioLibraryProvider,
             playbackCapability: makePlaybackCapability(from: playback)
         )
         let settingTree = AudioTreeViewModel(disk: audioDiskProvider)
@@ -148,7 +148,7 @@ public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
     @MainActor
     private var settingDependencies: AudioDBDependencies {
         AudioDBDependencies(
-            audioRepo: audioRepoProvider,
+                audioLibrary: audioLibraryProvider,
             audioDisk: audioDiskProvider,
             audioDiagnostics: audioDiagnosticsProvider,
             supportedExtensions: AudioPluginInfo.supportedExtensions,
@@ -171,9 +171,9 @@ public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
 
     /// 音频仓库闭包：从数据层 Provider 获取。
     @MainActor
-    private var audioRepoProvider: @MainActor @Sendable () async -> AudioRepo? {
+    private var audioLibraryProvider: @MainActor @Sendable () -> (any AudioLibraryProviding)? {
         { @MainActor [weak self] in
-            await self?.kernel?.audioLibrary?.audioRepo
+            self?.kernel?.audioLibrary
         }
     }
 
@@ -189,7 +189,7 @@ public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
     @MainActor
     private var audioDiagnosticsProvider: @MainActor @Sendable () -> AudioStorageDiagnostics {
         { @MainActor [weak self] in
-            AudioStorageDiagnostics.make(storage: self?.kernel?.storage)
+            AudioStorageDiagnosticsFactory.make(storage: self?.kernel?.storage)
         }
     }
 
@@ -217,15 +217,20 @@ public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
 
         guard let playback = kernel.playback else { return }
         let list = AudioListViewModel(
-            audioRepo: audioRepoProvider,
+            audioLibrary: audioLibraryProvider,
             playbackCapability: makePlaybackCapability(from: playback)
         )
         let root = AudioDBRootViewModel(
-            audioRepo: audioRepoProvider,
+            audioLibrary: audioLibraryProvider,
             showDBView: { kernel.appState?.showDBView() ?? () }
         )
         let db = AudioDBViewModel()
-        let observer = AudioDatabaseObserver(list: list, root: root, db: db)
+        let observer = AudioDatabaseObserver(
+            list: list,
+            root: root,
+            db: db,
+            library: kernel.audioLibrary
+        )
         let playbackObserver = AudioDBPlaybackObserver(playback: playback, viewModel: list)
 
         listViewModel = list
@@ -261,10 +266,10 @@ public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
             return (listViewModel, rootViewModel, dbViewModel)
         }
         let list = AudioListViewModel(
-            audioRepo: audioRepoProvider,
+            audioLibrary: audioLibraryProvider,
             playbackCapability: makePlaybackCapability(from: kernel?.playback)
         )
-        let root = AudioDBRootViewModel(audioRepo: audioRepoProvider, showDBView: {})
+        let root = AudioDBRootViewModel(audioLibrary: audioLibraryProvider, showDBView: {})
         let db = AudioDBViewModel()
         listViewModel = list
         rootViewModel = root

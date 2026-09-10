@@ -2,7 +2,7 @@ import ProviderAudioLibrary
 import SwiftUI
 
 public struct AudioDBDependencies: @unchecked Sendable {
-    public var audioRepo: @MainActor @Sendable () async -> AudioRepo?
+    public var audioLibrary: @MainActor @Sendable () -> (any AudioLibraryProviding)?
     public var audioDisk: @MainActor @Sendable () -> URL?
     public var audioDiagnostics: @MainActor @Sendable () -> AudioStorageDiagnostics
     public var supportedExtensions: [String]
@@ -12,7 +12,7 @@ public struct AudioDBDependencies: @unchecked Sendable {
     public var isImporting: Binding<Bool>
 
     public init(
-        audioRepo: @escaping @MainActor @Sendable () async -> AudioRepo?,
+        audioLibrary: @escaping @MainActor @Sendable () -> (any AudioLibraryProviding)?,
         audioDisk: @escaping @MainActor @Sendable () -> URL?,
         audioDiagnostics: @escaping @MainActor @Sendable () -> AudioStorageDiagnostics,
         supportedExtensions: [String],
@@ -21,7 +21,7 @@ public struct AudioDBDependencies: @unchecked Sendable {
         showDBView: @escaping @MainActor @Sendable () -> Void,
         isImporting: Binding<Bool>
     ) {
-        self.audioRepo = audioRepo
+        self.audioLibrary = audioLibrary
         self.audioDisk = audioDisk
         self.audioDiagnostics = audioDiagnostics
         self.supportedExtensions = supportedExtensions
@@ -32,9 +32,9 @@ public struct AudioDBDependencies: @unchecked Sendable {
     }
 
     public static let empty = AudioDBDependencies(
-        audioRepo: { nil },
+        audioLibrary: { nil },
         audioDisk: { nil },
-        audioDiagnostics: { AudioStorageDiagnostics.make(storage: nil) },
+        audioDiagnostics: { AudioStorageDiagnosticsFactory.make(storage: nil) },
         supportedExtensions: [],
         isDesktop: true,
         isNotDesktop: false,
@@ -44,6 +44,7 @@ public struct AudioDBDependencies: @unchecked Sendable {
 }
 
 private struct AudioDBDependenciesKey: EnvironmentKey {
+    typealias Value = AudioDBDependencies
     static let defaultValue = AudioDBDependencies.empty
 }
 

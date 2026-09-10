@@ -11,24 +11,17 @@ let package = Package(
     products: [
         .library(name: "ProviderAudioLibrary", targets: ["ProviderAudioLibrary"]),
     ],
-    dependencies: [
-        .package(path: "../MagicKit"),
-        .package(path: "../CisumUIComponents"),
-        .package(path: "../ProviderAudioLike"),
-        .package(path: "../ProviderStorage"),
-    ],
+    dependencies: [],
     targets: [
         .target(
             name: "ProviderAudioLibrary",
-            dependencies: [
-                .product(name: "MagicKit", package: "MagicKit"),
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
-                .product(name: "ProviderAudioLike", package: "ProviderAudioLike"),
-                .product(name: "ProviderStorage", package: "ProviderStorage"),
-            ],
-            path: ".",
-            sources: ["Sources/ProviderAudioLibrary"],
-            resources: [.process("Resources")]
+            dependencies: [],
+            path: "Sources/ProviderAudioLibrary"
+        ),
+        .testTarget(
+            name: "ProviderAudioLibraryTests",
+            dependencies: ["ProviderAudioLibrary"],
+            path: "Tests"
         ),
     ],
     swiftLanguageModes: [.v5]

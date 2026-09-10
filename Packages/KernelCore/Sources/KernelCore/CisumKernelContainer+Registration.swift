@@ -2,6 +2,7 @@ import CisumUIComponents
 import Foundation
 import ProviderAppState
 import ProviderAudioLibrary
+import ProviderAudioLike
 import ProviderAudioNavigation
 import ProviderCloud
 import ProviderDevice
@@ -16,6 +17,11 @@ extension CisumKernelContainer {
     /// 注册音频库服务。
     public func registerAudioLibrary(_ library: any AudioLibraryProviding) throws {
         try registerProvider(AudioLibraryProviding.self, library)
+    }
+
+    /// 注册音频喜欢服务。
+    public func registerAudioLike(_ like: any AudioLikeProviding) throws {
+        try registerProvider(AudioLikeProviding.self, like)
     }
 
     /// 注册音频曲目导航服务。

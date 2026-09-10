@@ -107,21 +107,23 @@ public actor AudioPlayModePlugin: SuperPlugin, SuperLog {
 
     @MainActor
     private func makeSortAction() -> AudioPlayModeSortAction {
-        { @MainActor currentURL in
-            guard let repo = await AudioPluginHost.getAudioRepoAsync() else {
-                throw AudioPluginError.hostNotConfigured
+        let ordering = kernel?.resolveProvider(AudioLibraryOrderingProviding.self)
+        return { @MainActor currentURL in
+            guard let ordering else {
+                throw AudioLibraryProvidingError.unavailable
             }
-            await repo.sort(currentURL, reason: "PlayModeChanged")
+            await ordering.sort(url: currentURL, reason: "PlayModeChanged")
         }
     }
 
     @MainActor
     private func makeShuffleAction() -> AudioPlayModeShuffleAction {
-        { @MainActor currentURL in
-            guard let repo = await AudioPluginHost.getAudioRepoAsync() else {
-                throw AudioPluginError.hostNotConfigured
+        let ordering = kernel?.resolveProvider(AudioLibraryOrderingProviding.self)
+        return { @MainActor currentURL in
+            guard let ordering else {
+                throw AudioLibraryProvidingError.unavailable
             }
-            try await repo.sortRandom(currentURL, reason: "PlayModeChanged", verbose: false)
+            try await ordering.sortRandom(url: currentURL, reason: "PlayModeChanged", verbose: false)
         }
     }
 

@@ -1,8 +1,8 @@
 import Testing
 import Foundation
 import SwiftData
-@testable import PluginAudio
-@testable import ProviderAudioLibrary
+@testable import PluginAudioDBData
+import ProviderAudioLibrary
 
 @Test func audioPluginInfoExportsMetadata() {
     #expect(AudioPluginInfo.titleKey == "Music")
@@ -22,7 +22,7 @@ import SwiftData
 @Test func audioDiskCreationReplacesDanglingSymlink() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
-    let audioDisk = root.appendingPathComponent(AudioPlugin.dbDirName, isDirectory: true)
+    let audioDisk = root.appendingPathComponent(AudioPluginInfo.effectiveDBDirName, isDirectory: true)
     defer {
         try? FileManager.default.removeItem(at: root)
     }
@@ -33,14 +33,7 @@ import SwiftData
         withDestinationURL: root.appendingPathComponent("missing-audio", isDirectory: true)
     )
 
-    AudioPluginHost.configure(
-        databaseURL: { name in root.appendingPathComponent("\(name).db") },
-        storageRoot: { root },
-        hasStorageLocation: { true },
-        storageLocationDidChangeNotifications: []
-    )
-
-    let preparedDisk = try #require(AudioPlugin.getAudioDisk())
+    let preparedDisk = try audioDisk.ensureDirectory()
     var isDirectory: ObjCBool = false
 
     #expect(preparedDisk == audioDisk)
@@ -104,22 +97,6 @@ import SwiftData
 
     #expect(!AudioDB.representsSameAudioFile(firstLink, secondLink))
     #expect(AudioDB.uniqueSupportedAudioFiles([firstLink, secondLink]) == [firstLink, secondLink])
-}
-
-@Test func missingStorageErrorKeepsStorageSetupGuidance() {
-    let presentation = AudioRootErrorPresentation.make(error: .initialization(reason: AudioContainerLoadError.storageMissingReason))
-
-    #expect(presentation.title == "Storage Location Not Set")
-    #expect(presentation.message == "Set the media library storage location first.")
-    #expect(presentation.detail == nil)
-}
-
-@Test func databaseInitializationErrorShowsActualFailure() {
-    let presentation = AudioRootErrorPresentation.make(error: .initialization(reason: "database is locked"))
-
-    #expect(presentation.title == "Audio Library Initialization Failed")
-    #expect(presentation.message == "Try restarting the app.")
-    #expect(presentation.detail == "Initialization failed: database is locked")
 }
 
 @Test func audioDBNextOfReturnsFollowingOrderedTrack() async throws {

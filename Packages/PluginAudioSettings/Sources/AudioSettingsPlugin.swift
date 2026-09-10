@@ -19,9 +19,11 @@ public actor AudioSettingsPlugin: SuperPlugin, SuperLog {
 
     nonisolated(unsafe) private var settingsViewModel: AudioSettingsViewModel?
     nonisolated(unsafe) private var settingsObserver: AudioSettingsObserver?
+    nonisolated(unsafe) private weak var kernel: CisumKernel?
 
     @MainActor
     public func onRegister(kernel: CisumKernel) async throws {
+        self.kernel = kernel
         if let docs = kernel.docs {
             docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { AudioSettingsPluginAboutView() })
             docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { AudioSettingsPluginManualView() })
@@ -30,12 +32,14 @@ public actor AudioSettingsPlugin: SuperPlugin, SuperLog {
 
     @MainActor
     public func onBoot(kernel: CisumKernel) async throws {
-        installState()
+        self.kernel = kernel
+        installState(kernel: kernel)
     }
 
     @MainActor
     public func onEnable(kernel: CisumKernel) async throws {
-        installState()
+        self.kernel = kernel
+        installState(kernel: kernel)
     }
 
     @MainActor
@@ -46,6 +50,7 @@ public actor AudioSettingsPlugin: SuperPlugin, SuperLog {
     @MainActor
     public func onShutdown(kernel: CisumKernel) async throws {
         teardownState()
+        self.kernel = nil
     }
 
     @MainActor
@@ -57,17 +62,18 @@ public actor AudioSettingsPlugin: SuperPlugin, SuperLog {
             description: Self.metadata.description,
             iconName: "slider.horizontal.3",
             order: AudioSettingsPluginInfo.order,
-            destination: AnyView(AudioSettingsPluginView(viewModel: viewModel))
+            destination: AnyView(AudioSettingsPluginView(viewModel: viewModel, audioDisk: { self.kernelAudioDisk() }))
         )
     }
 
     // MARK: - State assembly
 
     @MainActor
-    private func installState() {
+    private func installState(kernel: CisumKernel) {
         guard settingsViewModel == nil else { return }
         let viewModel = AudioSettingsViewModel()
-        let observer = AudioSettingsObserver(viewModel: viewModel)
+        guard let storage = kernel.storage else { return }
+        let observer = AudioSettingsObserver(provider: storage, viewModel: viewModel)
         settingsViewModel = viewModel
         settingsObserver = observer
     }
@@ -84,7 +90,11 @@ public actor AudioSettingsPlugin: SuperPlugin, SuperLog {
         if let settingsViewModel {
             return settingsViewModel
         }
-        installState()
-        return settingsViewModel!
+        return settingsViewModel ?? AudioSettingsViewModel()
+    }
+
+    @MainActor
+    private func kernelAudioDisk() -> URL? {
+        kernel?.audioLibrary?.audioDisk
     }
 }

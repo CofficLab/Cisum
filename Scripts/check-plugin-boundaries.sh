@@ -31,4 +31,42 @@ if rg -n '\.package\((name: "[^"]+", )?path: "\.\./Plugin(Book|Audio|Store)' "${
   exit 1
 fi
 
+provider_scope=(
+  Packages/ProviderAudioLibrary/Sources
+  Packages/ProviderAudioLike/Sources
+)
+
+if rg -n '^import (SwiftData|SwiftUI|OSLog|ProviderStorage|CisumUIComponents|MagicKit)' "${provider_scope[@]}" \
+  --glob '*.swift'; then
+  print -u2 'Provider boundary violation: an Audio Provider imports implementation or UI dependencies.'
+  exit 1
+fi
+
+if rg -n '^[^/]*(FileManager|UserDefaults|NotificationCenter|AudioDB|AudioRepo|AudioLikeRepo)' "${provider_scope[@]}" \
+  --glob '*.swift' \
+  --glob '!**/README.md'; then
+  print -u2 'Provider boundary violation: an Audio Provider contains concrete storage, repository, or global-event logic.'
+  exit 1
+fi
+
+consumer_scope=(
+  Packages/PluginAudio
+  Packages/PluginAudioCopy
+  Packages/PluginAudioDBView
+  Packages/PluginAudioJob
+  Packages/PluginAudioPlayMode
+  Packages/PluginAudioProgress
+  Packages/PluginAudioSettings
+  Packages/PluginAudioWidgetControl
+)
+
+if rg -n 'AudioPluginHost|getAudioRepoAsync|getAudioRepo\(|(^|[^A-Za-z])AudioRepo\(' "${consumer_scope[@]}" \
+  --glob '*.swift' \
+  --glob '!**/Tests/**' \
+  --glob '!**/.build/**' \
+  --glob '!*PluginAudioDBData/Sources/Implementation/*'; then
+  print -u2 'Provider boundary violation: a consumer uses an Audio concrete host or repository.'
+  exit 1
+fi
+
 print 'Plugin boundary check passed.'

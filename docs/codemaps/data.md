@@ -254,7 +254,7 @@ enum FileStatus {
 
 ### Audio Repositories
 
-**Location**: `Plugins/Audio/Repo/` (inferred)
+**Location**: `Packages/PluginAudioDBData/Sources/Implementation/`
 
 #### AudioRepo
 **Purpose**: Audio data access layer
@@ -272,7 +272,7 @@ actor AudioRepo {
 ```
 
 #### AudioConfigRepo
-**Location**: `Plugins/Audio/AudioConfigRepo.swift`
+**Location**: `Packages/PluginAudioDBData/Sources/Implementation/AudioConfigRepo.swift`
 
 **Purpose**: Audio configuration storage
 

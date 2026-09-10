@@ -78,28 +78,28 @@ public actor AudioWidgetControlPlugin: SuperPlugin, SuperLog {
         let viewModel = AudioWidgetControlViewModel(
             playbackCapability: makePlaybackCapability(from: kernel?.playback),
             nextAsset: { current, verbose in
-                guard let repo = await AudioPluginHost.getAudioRepoAsync() else {
-                    throw AudioPluginError.hostNotConfigured
+                guard let navigation = kernel?.audioTrackNavigation else {
+                    return nil
                 }
-                return try await repo.getNextOf(current, verbose: verbose)
+                return try await navigation.nextURL(after: current, verbose: verbose)
             },
             previousAsset: { current, verbose in
-                guard let repo = await AudioPluginHost.getAudioRepoAsync() else {
-                    throw AudioPluginError.hostNotConfigured
+                guard let navigation = kernel?.audioTrackNavigation else {
+                    return nil
                 }
-                return try await repo.getPrevOf(current, verbose: verbose)
+                return try await navigation.previousURL(before: current, verbose: verbose)
             },
             firstAsset: {
-                guard let repo = await AudioPluginHost.getAudioRepoAsync() else {
-                    throw AudioPluginError.hostNotConfigured
+                guard let navigation = kernel?.audioTrackNavigation else {
+                    return nil
                 }
-                return try await repo.getFirst()
+                return try await navigation.firstURL()
             },
             lastAsset: {
-                guard let repo = await AudioPluginHost.getAudioRepoAsync() else {
-                    throw AudioPluginError.hostNotConfigured
+                guard let navigation = kernel?.audioTrackNavigation else {
+                    return nil
                 }
-                return try await repo.getLast()
+                return try await navigation.lastURL()
             }
         )
         let observer = AudioWidgetCommandObserver(viewModel: viewModel)

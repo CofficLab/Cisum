@@ -1,6 +1,8 @@
 import Foundation
+import ProviderAudioLibrary
 import ProviderPlayback
 import ProviderScene
+import ProviderStorage
 import MagicKit
 
 /// 音频进度的数据库删除与存储重置观察者（迁移 Phase 5）。
@@ -14,12 +16,19 @@ final class AudioProgressObserver: SuperLog {
     nonisolated static let verbose = false
 
     private weak var viewModel: AudioProgressViewModel?
-    private var tokens: [NSObjectProtocol] = []
+    private var libraryHandle: (any AudioLibraryProvidingObserverHandle)?
+    private var storageHandle: (any StorageProvidingObserverHandle)?
     private var sceneHandle: (any SceneProvidingObserverHandle)?
     private var playbackHandle: (any PlaybackProvidingObserverHandle)?
     private var currentScene: AppScene?
 
-    init(scene: any SceneProviding, playback: any PlaybackProviding, viewModel: AudioProgressViewModel, storageResetNotifications: [Notification.Name]) {
+    init(
+        scene: any SceneProviding,
+        playback: any PlaybackProviding,
+        library: (any AudioLibraryProviding)?,
+        storage: (any StorageProviding)?,
+        viewModel: AudioProgressViewModel
+    ) {
         self.viewModel = viewModel
         currentScene = scene.currentScene
         viewModel.handleSceneChange(from: nil, to: scene.currentScene)
@@ -40,17 +49,13 @@ final class AudioProgressObserver: SuperLog {
                 break
             }
         }
-        let center = NotificationCenter.default
-
-        tokens.append(center.addObserver(forName: .dbDeleted, object: nil, queue: .main) { [weak self] notification in
-            let urls = notification.userInfo?["urls"] as? [URL] ?? []
-            Task { @MainActor in self?.viewModel?.handleDBDeleted(deletedURLs: urls) }
-        })
-
-        for name in storageResetNotifications {
-            tokens.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                Task { @MainActor in self?.viewModel?.handleStorageLocationDidReset() }
-            })
+        libraryHandle = library?.addObserver { [weak self] event in
+            guard case .deleted(let urls, _) = event else { return }
+            self?.viewModel?.handleDBDeleted(deletedURLs: urls)
+        }
+        storageHandle = storage?.addObserver { [weak self] event in
+            guard case .locationChanged = event else { return }
+            self?.viewModel?.handleStorageLocationDidReset()
         }
     }
 
@@ -60,7 +65,9 @@ final class AudioProgressObserver: SuperLog {
         playbackHandle?.cancel()
         playbackHandle = nil
         currentScene = nil
-        tokens.forEach { NotificationCenter.default.removeObserver($0) }
-        tokens.removeAll()
+        libraryHandle?.cancel()
+        libraryHandle = nil
+        storageHandle?.cancel()
+        storageHandle = nil
     }
 }

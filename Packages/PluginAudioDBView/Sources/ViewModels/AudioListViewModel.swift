@@ -32,7 +32,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     private var loadGeneration = 0
     private var selectionGeneration = 0
 
-    private let audioRepoProvider: @MainActor () async -> AudioRepo?
+    private let audioLibraryProvider: @MainActor () -> (any AudioLibraryProviding)?
     /// AudioDB 所需的最小播放能力；不让 ViewModel 反向访问 Kernel。
     private let playbackCapability: (any AudioPlaybackCapability)?
     private var currentAsset: URL?
@@ -40,12 +40,12 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     private let isDesktop: Bool
 
     init(
-        audioRepo: @escaping @MainActor () async -> AudioRepo?,
+        audioLibrary: @escaping @MainActor () -> (any AudioLibraryProviding)?,
         playbackCapability: (any AudioPlaybackCapability)? = nil,
         reasonTag: String = "AudioListViewModel",
         isDesktop: Bool? = nil
     ) {
-        self.audioRepoProvider = audioRepo
+        self.audioLibraryProvider = audioLibrary
         self.playbackCapability = playbackCapability
         self.reasonTag = reasonTag
         self.isDesktop = isDesktop ?? Self.defaultIsDesktop
@@ -191,22 +191,22 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         }
 
         Task { @MainActor in
-            guard let repo = await audioRepoProvider() else {
+            guard let library = audioLibraryProvider() else {
                 alert_error(String(localized: "Delete failed: audio repository is unavailable", bundle: .module))
                 return
             }
-            await deleteFiles(urlsToDelete, in: repo)
+            await deleteFiles(urlsToDelete, in: library)
         }
     }
 
     /// 删除单个文件（列表项上下文菜单）。
     func deleteFile(_ url: URL) {
         Task { @MainActor in
-            guard let repo = await audioRepoProvider() else {
+            guard let library = audioLibraryProvider() else {
                 alert_error(String(localized: "Delete failed: audio repository is unavailable", bundle: .module))
                 return
             }
-            await deleteFiles([url], in: repo)
+            await deleteFiles([url], in: library)
         }
     }
 
@@ -276,7 +276,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         isLoading = true
 
         Task { @MainActor in
-            guard let repo = await audioRepoProvider() else {
+            guard let library = audioLibraryProvider() else {
                 isLoading = false
                 alert_error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
                 return
@@ -284,8 +284,8 @@ final class AudioListViewModel: ObservableObject, SuperLog {
 
             let pageSize = self.pageSize
             Task.detached(priority: .background) {
-                let count = await repo.getTotalCount()
-                let urls = await repo.get(
+                let count = await library.totalCount()
+                let urls = await library.urls(
                     offset: 0,
                     limit: pageSize,
                     reason: self.reasonTag
@@ -316,7 +316,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         let generation = loadGeneration
 
         Task { @MainActor in
-            guard let repo = await audioRepoProvider() else {
+            guard let library = audioLibraryProvider() else {
                 isLoadingMore = false
                 alert_error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
                 return
@@ -332,7 +332,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
             )
 
             Task.detached(priority: .background) {
-                let newUrls = await repo.get(
+                let newUrls = await library.urls(
                     offset: offset,
                     limit: pageSize,
                     reason: self.reasonTag
@@ -397,7 +397,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         isLoadingMore = loadingState.isLoadingMore
 
         Task { @MainActor in
-            guard let repo = await audioRepoProvider() else {
+            guard let library = audioLibraryProvider() else {
                 alert_error(String(localized: "Refresh failed: audio repository is unavailable", bundle: .module))
                 return
             }
@@ -405,7 +405,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
             Task.detached(priority: .background) {
                 let currentCount = await self.urls.count
                 let currentTotalCount = await self.totalCount
-                let newTotalCount = await repo.getTotalCount()
+                let newTotalCount = await library.totalCount()
 
                 await MainActor.run {
                     guard AudioListLoadPolicy.shouldApplyResult(
@@ -427,7 +427,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                         let currentCount = currentCount
                         let newTotalCount = newTotalCount
                         Task.detached(priority: .background) {
-                            let refreshedUrls = await repo.get(
+                            let refreshedUrls = await library.urls(
                                 offset: 0,
                                 limit: currentCount,
                                 reason: self.reasonTag
@@ -460,9 +460,12 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         selection = newValue
     }
 
-    private func deleteFiles(_ urlsToDelete: [URL], in repo: AudioRepo) async {
+    private func deleteFiles(
+        _ urlsToDelete: [URL],
+        in library: any AudioLibraryProviding
+    ) async {
         do {
-            try await repo.deleteAudios(urlsToDelete)
+            try await library.delete(urls: urlsToDelete, verbose: false)
             if AudioDeletePlaybackPolicy.shouldResetDirectlyAfterDelete(
                 currentURL: currentAsset,
                 deletedURLs: urlsToDelete,

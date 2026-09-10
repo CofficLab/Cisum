@@ -20,6 +20,7 @@ let package = Package(
         // MARK: - Provider Contracts（能力契约独立成包，与 Lumi 的 Provider* 体系对齐）
         .package(name: "ProviderAppState", path: "../ProviderAppState"),
         .package(name: "ProviderAudioLibrary", path: "../ProviderAudioLibrary"),
+        .package(name: "ProviderAudioLike", path: "../ProviderAudioLike"),
         .package(name: "ProviderAudioNavigation", path: "../ProviderAudioNavigation"),
         .package(name: "ProviderCloud", path: "../ProviderCloud"),
         .package(name: "ProviderDevice", path: "../ProviderDevice"),
@@ -36,6 +37,7 @@ let package = Package(
                 .product(name: "MagicKit", package: "MagicKit"),
                 .product(name: "ProviderAppState", package: "ProviderAppState"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+                .product(name: "ProviderAudioLike", package: "ProviderAudioLike"),
                 .product(name: "ProviderAudioNavigation", package: "ProviderAudioNavigation"),
                 .product(name: "ProviderCloud", package: "ProviderCloud"),
                 .product(name: "ProviderDevice", package: "ProviderDevice"),

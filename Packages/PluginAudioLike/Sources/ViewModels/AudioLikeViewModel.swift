@@ -6,7 +6,7 @@ import MagicKit
 import ProviderAudioLike
 
 /// 喜欢列表加载闭包（由插件入口组装本地仓库）。
-typealias AudioLikeLoadProvider = @MainActor () async -> [AudioLikeModel]
+typealias AudioLikeLoadProvider = @MainActor () async -> [AudioLikeItem]
 
 /// 喜欢状态保存闭包（由插件入口组装本地仓库）。
 typealias AudioLikeSaveProvider = @MainActor (_ audioId: String, _ liked: Bool, _ url: URL?, _ title: String?) async throws -> Void
@@ -24,7 +24,7 @@ typealias AudioLikeSaveProvider = @MainActor (_ audioId: String, _ liked: Bool, 
 final class AudioLikeViewModel: ObservableObject, SuperLog {
     nonisolated static let verbose = false
 
-    @Published private(set) var likedAudios: [AudioLikeModel] = []
+    @Published private(set) var likedAudios: [AudioLikeItem] = []
     @Published private(set) var isLoading = true
 
     private let playbackCapability: (any AudioLikePlaybackCapability)?
