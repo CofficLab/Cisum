@@ -9,6 +9,7 @@ import MagicKit
 
 public actor AudioJobPlugin: SuperPlugin, SuperLog {
     nonisolated static let verbose = true
+    private static let fileSystemMonitorIdentifier = "com.cisum.audio.job.filesystem-monitor"
 
     public static let shared = AudioJobPlugin()
     public static let metadata = PluginMetadata(
@@ -16,6 +17,7 @@ public actor AudioJobPlugin: SuperPlugin, SuperLog {
         description: String(localized: "Background tasks for audio files", bundle: .module),
         iconName: "gearshape.2",
         order: 5,
+        policy: .alwaysOn,
         category: .system,
     )
 
@@ -33,6 +35,14 @@ public actor AudioJobPlugin: SuperPlugin, SuperLog {
     @MainActor
     public func onBoot(kernel: CisumKernel) async throws {
         self.kernel = kernel
+    }
+
+    /// Storage and AudioLibrary are registered by earlier lifecycle work after
+    /// all plugins have completed `onBoot`. Start the monitor here so its first
+    /// scan can resolve the real audio disk and library provider.
+    @MainActor
+    public func onReady(kernel: CisumKernel) async throws {
+        self.kernel = kernel
         await registerJobs()
         setupStorageLocationObserver()
     }
@@ -41,6 +51,9 @@ public actor AudioJobPlugin: SuperPlugin, SuperLog {
     public func onShutdown(kernel: CisumKernel) async throws {
         storageObserver?.cancel()
         storageObserver = nil
+        let manager = AudioJobManager.shared
+        await manager.stopJob(Self.fileSystemMonitorIdentifier)
+        await manager.unregister(Self.fileSystemMonitorIdentifier)
         self.kernel = nil
     }
 
@@ -65,15 +78,9 @@ public actor AudioJobPlugin: SuperPlugin, SuperLog {
 
     private func restartFileSystemMonitor() async {
         let manager = AudioJobManager.shared
-        let identifier = FileSystemMonitorJob(
-            diskProvider: { nil },
-            syncItems: { _, _ in },
-            deleteItems: { _ in }
-        ).identifier
-
-        await manager.stopJob(identifier)
+        await manager.stopJob(Self.fileSystemMonitorIdentifier)
         try? await Task.sleep(nanoseconds: 100_000_000)
-        await manager.startJob(identifier)
+        await manager.startJob(Self.fileSystemMonitorIdentifier)
     }
 
     private func makeFileSystemMonitorJob() -> FileSystemMonitorJob {

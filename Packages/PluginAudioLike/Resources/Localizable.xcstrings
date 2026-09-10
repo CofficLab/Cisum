@@ -30,7 +30,6 @@
       }
     },
     "AudioLike database path is not configured" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -171,7 +170,6 @@
       }
     },
     "Data container is unavailable" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

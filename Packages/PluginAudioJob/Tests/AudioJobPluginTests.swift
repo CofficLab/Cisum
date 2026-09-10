@@ -1,5 +1,5 @@
 import Foundation
-import AudioJobPlugin
+import PluginAudioJob
 import Testing
 
 private final class RecordingAudioJob: AudioJob, @unchecked Sendable {
@@ -60,6 +60,10 @@ private final class RecordingAudioJob: AudioJob, @unchecked Sendable {
     #expect(status.identifier == "job")
     #expect(status.name == "Job")
     #expect(status.isRunning)
+}
+
+@Test func audioJobPluginIsAlwaysOnForLibrarySynchronization() {
+    #expect(AudioJobPlugin.metadata.policy == .alwaysOn)
 }
 
 @Test func localFileChangesUseFullSync() {
