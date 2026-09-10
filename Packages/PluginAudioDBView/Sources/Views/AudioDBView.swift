@@ -12,7 +12,7 @@ extension NSItemProvider: @retroactive @unchecked Sendable {}
 @MainActor
 public struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
     public nonisolated static let emoji = "🐘"
-    public nonisolated static let verbose = false
+    public nonisolated static let verbose = true
 
     @Environment(\.audioDBDependencies) private var dependencies
     @EnvironmentObject private var dbViewModel: AudioDBViewModel

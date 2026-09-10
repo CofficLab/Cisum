@@ -6,7 +6,7 @@ import ProviderAudioLibrary
 
 public struct AudioDBRootView<Content>: View, SuperLog where Content: View {
     public nonisolated static var emoji: String { "🎵" }
-    public nonisolated static var verbose: Bool { false }
+    public nonisolated static var verbose: Bool { true }
 
     @EnvironmentObject private var rootViewModel: AudioDBRootViewModel
     @Environment(\.audioDBDependencies) private var dependencies

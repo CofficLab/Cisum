@@ -10,7 +10,7 @@ import MagicKit
 @MainActor
 final class AudioDatabaseObserver: SuperLog {
     nonisolated static let emoji = "🗃️"
-    nonisolated static let verbose = false
+    nonisolated static let verbose = true
 
     private weak var listViewModel: AudioListViewModel?
     private weak var rootViewModel: AudioDBRootViewModel?

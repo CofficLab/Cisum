@@ -17,7 +17,7 @@ enum AudioContainerLoadError: Error {
 /// `AudioStorageObserver`，View 只观察本 ViewModel，不再直接订阅存储通知。
 @MainActor
 final class AudioRootViewModel: ObservableObject, SuperLog {
-    nonisolated static let verbose = false
+    nonisolated static let verbose = true
 
     @Published private(set) var error: AudioPluginError?
     @Published private(set) var container: ModelContainer?

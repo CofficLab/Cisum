@@ -7,7 +7,7 @@ import MagicKit
 /// `isSorting` / `sortMode` 做 UI 表现，不再直接订阅数据库排序通知。
 @MainActor
 final class AudioDBViewModel: ObservableObject, SuperLog {
-    nonisolated static let verbose = false
+    nonisolated static let verbose = true
 
     @Published private(set) var isSorting = false
     @Published private(set) var sortMode: SortMode = .none

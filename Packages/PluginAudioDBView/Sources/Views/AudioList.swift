@@ -185,7 +185,7 @@ enum AudioListSelectionPolicy {
  */
 struct AudioList: View, SuperLog {
     nonisolated static let emoji = "📬"
-    nonisolated static let verbose = false
+    nonisolated static let verbose = true
 
     @EnvironmentObject var viewModel: AudioListViewModel
     @LumiTheme private var appTheme

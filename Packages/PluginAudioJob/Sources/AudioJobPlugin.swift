@@ -7,7 +7,7 @@ import ProviderAudioLibrary
 import MagicKit
 
 public actor AudioJobPlugin: SuperPlugin, SuperLog {
-    nonisolated static let verbose = false
+    nonisolated static let verbose = true
 
     public static let shared = AudioJobPlugin()
     public static let metadata = PluginMetadata(

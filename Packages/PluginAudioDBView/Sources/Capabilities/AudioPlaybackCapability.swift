@@ -16,7 +16,7 @@ protocol AudioPlaybackCapability: AnyObject {
 /// 将内核的 `PlaybackProviding` 适配成 AudioDB 的播放能力。
 @MainActor
 final class AudioPlaybackCapabilityAdapter: AudioPlaybackCapability, SuperLog {
-    nonisolated static let verbose = false
+    nonisolated static let verbose = true
 
     private let playback: any PlaybackProviding
 

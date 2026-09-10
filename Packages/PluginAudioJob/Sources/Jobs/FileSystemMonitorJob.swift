@@ -10,7 +10,7 @@ public final class FileSystemMonitorJob: AudioJob, SuperLog, @unchecked Sendable
     public typealias DeleteItems = @Sendable (_ urls: [URL]) async throws -> Void
     public typealias DeletionNotifier = @Sendable () async -> Void
 
-    public static let verbose = false
+    public static let verbose = true
 
     public nonisolated let identifier = "com.cisum.audio.job.filesystem-monitor"
     public nonisolated let name = String(localized: "File System Monitor", bundle: .module)

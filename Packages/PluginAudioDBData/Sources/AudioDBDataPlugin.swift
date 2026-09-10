@@ -11,7 +11,7 @@ import ProviderStorage
 /// UI 插件通过 `AudioLibraryProviding` 使用它，不再自行构造数据库。
 public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
     public nonisolated static let emoji = "💾"
-    public nonisolated static let verbose = false
+    public nonisolated static let verbose = true
 
     public static let shared = AudioDBDataPlugin()
     public static let metadata = PluginMetadata(

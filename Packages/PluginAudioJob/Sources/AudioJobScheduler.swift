@@ -6,7 +6,7 @@ public actor AudioJobScheduler: SuperLog {
     public nonisolated static let emoji = "⏰"
     public static let shared = AudioJobScheduler()
 
-    public nonisolated static let verbose = false
+    public nonisolated static let verbose = true
 
     private var isSetup = false
 

@@ -12,7 +12,7 @@ import MagicKit
 @MainActor
 final class AudioJobStorageObserver: SuperLog {
     nonisolated static let emoji = "💾"
-    nonisolated static let verbose = false
+    nonisolated static let verbose = true
 
     private var cancellables: Set<AnyCancellable> = []
     private let onChange: () -> Void

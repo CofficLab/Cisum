@@ -6,7 +6,7 @@ import OSLog
 @MainActor
 final class AudioDBPlaybackObserver: SuperLog {
     nonisolated static let emoji = "🎵"
-    nonisolated static let verbose = false
+    nonisolated static let verbose = true
 
     private weak var viewModel: AudioListViewModel?
     private var handle: (any PlaybackProvidingObserverHandle)?

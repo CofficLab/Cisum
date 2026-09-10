@@ -11,7 +11,7 @@ import ProviderStorage
 @MainActor
 final class AudioLibraryProvider: AudioLibraryProviding, ObservableObject, SuperLog {
     nonisolated static let emoji = "💾"
-    nonisolated static let verbose = false
+    nonisolated static let verbose = true
 
     private let storage: any StorageProviding
     private var cachedRepo: AudioRepo?
