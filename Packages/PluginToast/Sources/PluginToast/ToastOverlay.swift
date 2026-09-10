@@ -3,9 +3,9 @@ import SwiftUI
 
 public struct ToastOverlay<Content: View>: View {
     private let content: Content
-    @ObservedObject private var center: ToastCenter
+    @ObservedObject private var center: ToastProvider
 
-    public init(content: Content, center: ToastCenter) {
+    public init(content: Content, center: ToastProvider) {
         self.content = content
         self.center = center
     }
@@ -35,7 +35,7 @@ public struct ToastOverlay<Content: View>: View {
 }
 
 public extension View {
-    func withToastOverlay(center: ToastCenter) -> some View {
+    func withToastOverlay(center: ToastProvider) -> some View {
         ToastOverlay(content: self, center: center)
     }
 }
@@ -92,7 +92,7 @@ private struct LoadingCard: View {
 
 private struct ErrorNoticeOverlay: View {
     let error: CisumErrorNotice
-    @ObservedObject var center: ToastCenter
+    @ObservedObject var center: ToastProvider
 
     var body: some View {
         GeometryReader { geometry in

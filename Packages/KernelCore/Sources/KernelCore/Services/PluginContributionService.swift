@@ -10,7 +10,7 @@ import SwiftUI
 /// 无需直接依赖插件注册表。
 ///
 /// 场景管理（场景列表/当前场景/切换与持久化）已独立到 `PluginScene` 的
-/// `SceneService`（`SceneProviding`）；场景相关视图由插件自行从 Kernel
+/// `SceneProvider`（`SceneProviding`）；场景相关视图由插件自行从 Kernel
 /// 解析场景能力并注入所需状态。
 @MainActor
 public final class PluginContributionService: ObservableObject, PluginProviding {

@@ -14,7 +14,7 @@ public actor ToastPlugin: SuperPlugin {
         category: .core
     )
 
-    public let center = ToastCenter()
+    public let center = ToastProvider()
     private static let overlayID = "cisum.toast"
 
     public init() {}
@@ -36,6 +36,6 @@ public actor ToastPlugin: SuperPlugin {
     public func onShutdown(kernel: CisumKernel) async throws {
         center.dismissAll()
         kernel.resolveProvider((any RootViewProviding).self)?.removeOverlays(ids: [Self.overlayID])
-        CisumToastBridge.install(DefaultToastProviding())
+        CisumToastBridge.install(DefaultToastProvider())
     }
 }

@@ -17,8 +17,8 @@
 | Provider | 语义事件 | 默认 no-op | 实现发送真实事件 | 备注 |
 |---|---|---|---|---|
 | `ThemeProviding` | `themesChanged` / `selectionChanged` | 是 | 是（`ThemeService`） | 已落实 |
-| `StorageProviding` | `locationChanged` / `storageAvailabilityChanged` | 是 | 是（`StorageService`） | 已落实；仍桥接旧通知 |
-| `SceneProviding` | `selectionChanged(scene:)` | 是 | 是（`SceneService`） | 已落实 |
+| `StorageProviding` | `locationChanged` / `storageAvailabilityChanged` | 是 | 是（`StorageProvider`） | 已落实；仍桥接旧通知 |
+| `SceneProviding` | `selectionChanged(scene:)` | 是 | 是（`SceneProvider`） | 已落实 |
 | `PlaybackProviding` | `stateChanged` / `assetChanged` / `timeChanged` / `durationChanged` / `playModeChanged` / `likedAssetsChanged` | 是 | 待核实（`MagicPlayMan+PlaybackProviding`） | 见 Phase 2 |
 | `AudioLibraryProviding` | `libraryChanged(totalCount:)` | 是 | 待核实 | 见 Phase 2 |
 | `CloudProviding` | `availabilityChanged` | 是 | 待核实（`FactoryCisum/CloudService`） | Phase 4 |
@@ -35,7 +35,7 @@
 
 - 入口：`ScenePlugin`（actor）
   - `onRegister`：注册 docs
-  - `onBoot`：`registerSceneService(SceneService())`
+  - `onBoot`：`registerSceneService(SceneProvider())`
   - `onReady`：`kernel.scene?.restoreCurrentScene()`
   - `onShutdown`：`unregisterProvider(SceneProviding.self)`
   - `addSettingNavigationItem`：`SceneSettingsView()`（未注入 ViewModel）
@@ -51,8 +51,8 @@
 #### 2.2 PluginStorage（`storage`）
 
 - 入口：`StoragePlugin`（actor）
-  - `onBoot`：`registerStorage(StorageService())`，设置 `StorageService.current`
-  - `onShutdown`：清空 `StorageService.current`
+  - `onBoot`：`registerStorage(StorageProvider())`，设置 `StorageProvider.current`
+  - `onShutdown`：清空 `StorageProvider.current`
   - `addSettingNavigationItem`：`StorageSettingView(storage:)` + `.pluginStorageDependencies(...)`
 - 外部输入：
   - `StorageSettingView`：`@Environment(\.pluginStorageDependencies)`；`@StateObject` 创建 ViewModel；`@State` location/targetLocation/hasChanges；`.onChange(of: targetLocation)`；`.onChange(of: viewModel.location)`；`.onStoragePluginLocationChanged`（`NotificationCenter` 桥接）；`.onAppear`。

@@ -7,7 +7,7 @@ import SwiftUI
 /// 状态变更通过 `RootViewProvidingEvent` 监听机制广播（对齐其他 providing），
 /// 不依赖 `ObservableObject`。
 @MainActor
-public final class DefaultRootViewProviding: RootViewProviding {
+public final class DefaultRootViewProvider: RootViewProviding {
     public private(set) var controlView: AnyView?
     public private(set) var contentView: AnyView?
     public private(set) var statusView: AnyView?

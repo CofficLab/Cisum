@@ -96,7 +96,7 @@ public actor PluginPluginManager: SuperPlugin {
     @MainActor
     private func installState(kernel: CisumKernel) {
         guard managementViewModel == nil else { return }
-        let manager = PluginManager(manager: kernel.pluginManager, kernel: kernel)
+        let manager = PluginManagerProvider(manager: kernel.pluginManager, kernel: kernel)
         let capability = PluginManagementCapabilityAdapter(manager: manager)
         let viewModel = PluginManagementViewModel(capability: capability)
         let observer = PluginManagerObserver(manager: manager, viewModel: viewModel)

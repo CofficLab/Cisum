@@ -2,7 +2,7 @@ import Foundation
 import ProviderToast
 import Combine
 
-public final class ToastCenter: ObservableObject, ToastProviding {
+public final class ToastProvider: ObservableObject, ToastProviding {
     @Published public private(set) var currentToast: CisumToast?
     @Published public private(set) var currentError: CisumErrorNotice?
     @Published public private(set) var currentLoading: CisumLoadingNotice?

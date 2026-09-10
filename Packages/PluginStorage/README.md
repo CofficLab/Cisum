@@ -11,8 +11,10 @@ This plugin registers with ID `StoragePlugin` and provides storage management fu
 ```
 StoragePlugin/
 ├── Package.swift
-├── Sources/StoragePlugin/
+├── Sources/
 │   ├── StoragePlugin.swift
+│   ├── Providers/
+│   │   └── StorageProvider.swift
 │   ├── StoragePluginHost.swift
 │   ├── StoragePluginInfo.swift
 │   ├── StorageDependencies.swift

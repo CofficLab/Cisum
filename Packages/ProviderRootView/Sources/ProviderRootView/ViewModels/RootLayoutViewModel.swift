@@ -2,7 +2,7 @@ import Combine
 import SwiftUI
 import MagicKit
 
-/// `RootLayoutView` 的状态容器：订阅 `DefaultRootViewProviding` 的
+    /// `RootLayoutView` 的状态容器：订阅 `DefaultRootViewProvider` 的
 /// `RootViewProvidingEvent` 监听机制，把各区域注入视图同步为可观察状态。
 ///
 /// 取代原 `@ObservedObject provider`（ObservableObject + @Published）的直接观察，
@@ -19,7 +19,7 @@ final class RootLayoutViewModel: ObservableObject, SuperLog {
 
     private var handle: (any RootViewProvidingObserverHandle)?
 
-    init(provider: DefaultRootViewProviding) {
+    init(provider: DefaultRootViewProvider) {
         controlView = provider.controlView
         contentView = provider.contentView
         statusView = provider.statusView

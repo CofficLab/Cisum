@@ -25,7 +25,7 @@ import SwiftUI
 ///
 /// ```swift
 /// let kernel = CisumKernelContainer()
-/// kernel.registerStorage(myStorageService)
+/// kernel.registerStorage(myStorageProvider)
 /// kernel.registerPlayback(myPlaybackService)
 /// try await kernel.startup()
 ///

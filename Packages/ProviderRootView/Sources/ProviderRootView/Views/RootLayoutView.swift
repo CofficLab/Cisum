@@ -10,13 +10,13 @@ import SwiftUI
 struct RootLayoutView: View {
     @ObservedObject private var viewModel: RootLayoutViewModel
     @ObservedObject private var themeRegistry = LumiUIThemeRegistry.shared
-    let provider: DefaultRootViewProviding
+    let provider: DefaultRootViewProvider
     let kernel: CisumKernel
     @State private var isDetailVisible = false
     @State private var rememberedHeight: CGFloat = 0
     @State private var autoResizing = false
 
-    init(provider: DefaultRootViewProviding, kernel: CisumKernel) {
+    init(provider: DefaultRootViewProvider, kernel: CisumKernel) {
         _viewModel = ObservedObject(wrappedValue: RootLayoutViewModel(provider: provider))
         _isDetailVisible = State(initialValue: provider.isContentViewVisible)
         self.provider = provider

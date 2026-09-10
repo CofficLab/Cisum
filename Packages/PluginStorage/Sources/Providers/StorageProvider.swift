@@ -15,7 +15,7 @@ import ProviderStorage
 /// - `UserDefaults` key `"StorageLocation"`（与旧版 `Config` 一致）。
 /// - 存储变更通过内核事件 `.cisumStorageLocationDidChange` / `.cisumStorageLocationDidReset` 广播。
 @MainActor
-public final class StorageService: ObservableObject, StorageProviding {
+public final class StorageProvider: ObservableObject, StorageProviding {
     private static let storageLocationKey = "StorageLocation"
 
     /// 数据根目录名：`db_<debug|production>_v<majorVersion>`（对齐 Lumi/GitOK 命名规则）。
@@ -101,9 +101,9 @@ public final class StorageService: ObservableObject, StorageProviding {
     // MARK: - Bridging（为旧版 `StorageDependencies` 视图提供兼容入口）
 
     /// 由插件在 `onBoot` 设置，供 `StoragePlugin.addSettingView` 构建旧版依赖闭包使用。
-    nonisolated(unsafe) public static var current: StorageService?
+    nonisolated(unsafe) public static var current: StorageProvider?
 
-    /// 构建旧版 `StorageDependencies`，桥接到当前 `StorageService`。
+    /// 构建旧版 `StorageDependencies`，桥接到当前 `StorageProvider`。
     public static func makePluginDependencies() -> StorageDependencies {
         StorageDependencies(
             getStorageLocation: { current?.currentStorageLocation.map { StoragePluginLocation($0) } },

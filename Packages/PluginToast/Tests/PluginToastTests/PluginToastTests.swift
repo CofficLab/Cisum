@@ -7,7 +7,7 @@ import ProviderToast
 @MainActor
 final class PluginToastTests: XCTestCase {
     func testShowReplacesCurrentToast() {
-        let center = ToastCenter()
+        let center = ToastProvider()
         center.show("First")
         center.show("Second", style: .success)
         XCTAssertEqual(center.currentToast?.title, "Second")
@@ -15,7 +15,7 @@ final class PluginToastTests: XCTestCase {
     }
 
     func testErrorIsPersistentUntilDismissed() {
-        let center = ToastCenter()
+        let center = ToastProvider()
         center.presentError(title: "Failure", message: "Details")
         XCTAssertEqual(center.currentError?.message, "Details")
         center.dismissError()
@@ -24,7 +24,7 @@ final class PluginToastTests: XCTestCase {
 
     func testPluginRegistersProviderAndRootOverlay() async throws {
         let kernel = CisumKernel()
-        let root = DefaultRootViewProviding(kernel: kernel)
+        let root = DefaultRootViewProvider(kernel: kernel)
         kernel.registerProvider((any RootViewProviding).self, root)
         let plugin = ToastPlugin()
 

@@ -1,5 +1,5 @@
 @MainActor
-public final class DefaultToastProviding: ToastProviding {
+public final class DefaultToastProvider: ToastProviding {
     public init() {}
 
     public func show(_ toast: CisumToast) {}

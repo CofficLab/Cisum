@@ -32,8 +32,8 @@ public struct SettingsWindowHost: View {
                     storage: kernel.storage,
                     scene: kernel.scene
                 )
-                if let center = kernel.toast as? ToastCenter {
-                    ToastOverlay(content: settings, center: center)
+                if let provider = kernel.toast as? ToastProvider {
+                    ToastOverlay(content: settings, center: provider)
                 } else {
                     settings
                 }

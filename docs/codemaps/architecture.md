@@ -72,6 +72,11 @@ PluginProvider
 
 **Location**: `Core/Providers/`
 
+Provider contracts live in `Provider*` packages. Concrete implementations in
+plugin packages use the `*Provider` suffix and are kept under that plugin's
+`Providers/` directory; observers and capabilities remain in their own
+directories.
+
 ### Event System
 
 Decoupled communication via NotificationCenter:

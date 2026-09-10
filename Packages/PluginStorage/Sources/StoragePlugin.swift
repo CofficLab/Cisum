@@ -33,9 +33,9 @@ public actor StoragePlugin: SuperPlugin, SuperLog {
 
     @MainActor
     public func onBoot(kernel: CisumKernel) async throws {
-        let service = StorageService()
-        StorageService.current = service
-        kernel.registerStorage(service)
+        let provider = StorageProvider()
+        StorageProvider.current = provider
+        kernel.registerStorage(provider)
 
         // 插件启用状态持久化存储由 PluginPluginManager.onBoot 注入
         // （解析 kernel.storage 的根目录，写入 `<databaseRoot>/PluginManager/`）。
@@ -57,7 +57,7 @@ public actor StoragePlugin: SuperPlugin, SuperLog {
     @MainActor
     public func onShutdown(kernel: CisumKernel) async throws {
         teardownSettingsState()
-        StorageService.current = nil
+        StorageProvider.current = nil
     }
 
     @MainActor
@@ -66,7 +66,7 @@ public actor StoragePlugin: SuperPlugin, SuperLog {
         // ViewModel，而不是每次请求都重新创建。
         let viewModel = settingsViewModel ?? {
             let viewModel = StorageSettingsViewModel(
-                capability: makeStorageCapability(from: StorageService.current)
+                capability: makeStorageCapability(from: StorageProvider.current)
             )
             settingsViewModel = viewModel
             return viewModel
@@ -79,7 +79,7 @@ public actor StoragePlugin: SuperPlugin, SuperLog {
             order: 10,
             destination: AnyView(
                 StorageSettingView(viewModel: viewModel)
-                    .pluginStorageDependencies(StorageService.makePluginDependencies())
+                    .pluginStorageDependencies(StorageProvider.makePluginDependencies())
             )
         )
     }

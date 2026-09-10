@@ -987,8 +987,10 @@ import Foundation
 
 @MainActor
 @Test func storageObserverPerformsInitialSync() {
-    let service = StorageService()
-    let viewModel = StorageSettingsViewModel(storage: service)
+    let service = StorageProvider()
+    let viewModel = StorageSettingsViewModel(
+        capability: StorageSettingsCapabilityAdapter(storage: service)
+    )
     let observer = StorageProvidingObserver(provider: service, viewModel: viewModel)
     defer { observer.cancel() }
 
@@ -1000,8 +1002,10 @@ import Foundation
 
 @MainActor
 @Test func storageObserverForwardsLocationChangeToViewModel() {
-    let service = StorageService()
-    let viewModel = StorageSettingsViewModel(storage: service)
+    let service = StorageProvider()
+    let viewModel = StorageSettingsViewModel(
+        capability: StorageSettingsCapabilityAdapter(storage: service)
+    )
     let observer = StorageProvidingObserver(provider: service, viewModel: viewModel)
     defer { observer.cancel() }
 
@@ -1014,8 +1018,10 @@ import Foundation
 
 @MainActor
 @Test func storageObserverCancelStopsViewModelUpdates() {
-    let service = StorageService()
-    let viewModel = StorageSettingsViewModel(storage: service)
+    let service = StorageProvider()
+    let viewModel = StorageSettingsViewModel(
+        capability: StorageSettingsCapabilityAdapter(storage: service)
+    )
     let observer = StorageProvidingObserver(provider: service, viewModel: viewModel)
 
     observer.cancel()
@@ -1028,7 +1034,7 @@ import Foundation
 
 @MainActor
 @Test func pluginDataDirectoryResolvesUnderDatabaseRootAndCreates() {
-    let service = StorageService()
+    let service = StorageProvider()
     let dir = service.pluginDataDirectory(for: "PluginManager")
 
     // 路径为 <databaseRoot>/PluginManager/
@@ -1043,7 +1049,7 @@ import Foundation
 
 @MainActor
 @Test func pluginDataDirectoryKeepsPerPluginSubdirectories() {
-    let service = StorageService()
+    let service = StorageProvider()
     let first = service.pluginDataDirectory(for: "PluginAlpha")
     let second = service.pluginDataDirectory(for: "PluginBeta")
 

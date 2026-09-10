@@ -7,7 +7,7 @@ import ProviderToast
 /// 仍然使用同一个全局 Toast Provider，而不是回到 MagicAlert 的独立单例。
 @MainActor
 public enum CisumToastBridge {
-    private static var currentProvider: any ToastProviding = DefaultToastProviding()
+    private static var currentProvider: any ToastProviding = DefaultToastProvider()
 
     public static func install(_ provider: any ToastProviding) {
         currentProvider = provider

@@ -11,7 +11,7 @@ import ProviderScene
 /// 由调用方通过 `StorageProviding.pluginDataDirectory(for: pluginID)` 解析，
 /// 目录名即插件 ID，文件落盘到 `<pluginDataDirectory>/current-scene.json`。
 @MainActor
-public final class SceneService: ObservableObject, SceneProviding {
+public final class SceneProvider: ObservableObject, SceneProviding {
     private struct PersistedScene: Codable {
         let sceneName: String
         let pluginID: String?
@@ -126,11 +126,11 @@ public final class SceneService: ObservableObject, SceneProviding {
     }
 
     private final class Observer: SceneProvidingObserverHandle {
-        private weak var owner: SceneService?
+        private weak var owner: SceneProvider?
         private let callback: (SceneProvidingEvent) -> Void
         private var cancelled = false
 
-        init(owner: SceneService, callback: @escaping (SceneProvidingEvent) -> Void) {
+        init(owner: SceneProvider, callback: @escaping (SceneProvidingEvent) -> Void) {
             self.owner = owner
             self.callback = callback
         }

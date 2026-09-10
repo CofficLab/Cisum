@@ -9,7 +9,7 @@ final class ProviderToastTests: XCTestCase {
     }
 
     func testDefaultProviderIsNoOp() {
-        let provider = DefaultToastProviding()
+        let provider = DefaultToastProvider()
         provider.show("Info")
         provider.presentError(title: "Error", message: "Details")
         provider.showLoading(title: "Loading", detail: nil)

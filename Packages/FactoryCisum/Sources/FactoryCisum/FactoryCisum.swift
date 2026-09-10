@@ -90,9 +90,9 @@ public enum CisumBuilder: SuperLog {
 
         kernel.registerCloudService(CloudService())
         kernel.registerDeviceService(DeviceService())
-        kernel.registerDocsService(DefaultDocsViewProviding())
+        kernel.registerDocsService(DefaultDocsViewProvider())
         // 提示 Provider 必须在插件 onBoot 前存在；ToastPlugin 随后替换为真实实现。
-        let defaultToast = DefaultToastProviding()
+        let defaultToast = DefaultToastProvider()
         kernel.registerToastService(defaultToast)
         CisumToastBridge.install(defaultToast)
 
@@ -177,7 +177,7 @@ public enum CisumBuilder: SuperLog {
     /// Provider 契约，默认实现注册进内核；Factory 组装时只做解析 + 注入 +
     /// makeRootView。
     private static func registerViewProviders(into kernel: CisumKernel) {
-        kernel.registerProvider((any RootViewProviding).self, DefaultRootViewProviding(kernel: kernel))
+        kernel.registerProvider((any RootViewProviding).self, DefaultRootViewProvider(kernel: kernel))
         kernel.registerProvider(
             (any ControlViewProviding).self,
             DefaultControlViewProvider(
@@ -271,7 +271,7 @@ public enum CisumBuilder: SuperLog {
         sceneObserverHandle = handle
     }
 
-    /// 场景监听句柄（跨方法存活，避免 `SceneService` 弱引用提前释放监听器）。
+    /// 场景监听句柄（跨方法存活，避免 `SceneProvider` 弱引用提前释放监听器）。
     private nonisolated(unsafe) static var sceneObserverHandle: (any SceneProvidingObserverHandle)?
 }
 

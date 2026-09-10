@@ -8,7 +8,7 @@ import MagicKit
 
 /// 场景 Provider 插件。
 ///
-/// 场景为内置固定枚举（`AppScene.allCases`），本插件负责把 `SceneService`
+/// 场景为内置固定枚举（`AppScene.allCases`），本插件负责把 `SceneProvider`
 /// 注册进内核并恢复上次场景；不再从已启用插件的 `addSceneItem()` 贡献中收集。
 /// 同时通过 `addToolBarButtons()` 把场景切换器贡献到工具栏（迁移自
 /// `ProviderToolbar` 的 `DefaultToolbarProviding`）。
@@ -51,17 +51,17 @@ public actor ScenePlugin: SuperPlugin, SuperLog {
     public func onBoot(kernel: CisumKernel) async throws {
         self.kernel = kernel
         // onBoot 阶段 StoragePlugin 可能尚未启动（ScenePlugin order=-1000 优先），
-        // 先注册无持久化的 SceneService 保证下游插件可访问 SceneProviding。
-        kernel.registerSceneService(SceneService(pluginDataDirectory: nil))
+        // 先注册无持久化的 SceneProvider 保证下游插件可访问 SceneProviding。
+        kernel.registerSceneService(SceneProvider(pluginDataDirectory: nil))
     }
 
     @MainActor
     public func onReady(kernel: CisumKernel) async throws {
         // onReady 在所有插件 onBoot 完成后执行，此时 StoragePlugin 已注入 storage。
-        // 用带持久化的 SceneService 替换临时实例，恢复上次场景。
+        // 用带持久化的 SceneProvider 替换临时实例，恢复上次场景。
         if let storage = kernel.storage {
             let pluginDir = storage.pluginDataDirectory(for: self.id)
-            let persisted = SceneService(pluginDataDirectory: pluginDir)
+            let persisted = SceneProvider(pluginDataDirectory: pluginDir)
             kernel.registerSceneService(persisted)
         }
         kernel.scene?.restoreCurrentScene()
