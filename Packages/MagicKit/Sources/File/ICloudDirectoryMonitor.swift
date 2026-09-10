@@ -91,6 +91,11 @@ public final class ICloudDirectoryMonitor: SuperLog {
     private let progressThrottle = ProgressThrottle()
     private let lifecycle = ICloudDirectoryMonitorLifecycle()
     private let normalizedPath: String
+    private let initialScanQueue = DispatchQueue(
+        label: "com.cisum.icloud-directory-monitor.initial-scan",
+        qos: .utility
+    )
+    private var didDeliverInitialScan = false
 
     // MARK: - Initialization
 
@@ -162,6 +167,12 @@ public final class ICloudDirectoryMonitor: SuperLog {
             }
             monitor.startQuery()
         }
+
+        // Do not make the first library load depend on NSMetadataQuery. On
+        // macOS, an iCloud document can be visible as a local placeholder
+        // while metadata synchronization is paused or failing. FileManager
+        // can still enumerate those URLs without downloading their contents.
+        deliverInitialScan()
 
         // 关键修复：闭包需要捕获 self 的强引用（不使用 weak）
         // 这样返回的 AnyCancellable 会持有 ICloudDirectoryMonitor 实例，防止被释放
@@ -290,7 +301,51 @@ public final class ICloudDirectoryMonitor: SuperLog {
             }
         }
 
-        processResults(isInitial: true)
+        // The initial result from NSMetadataQuery is not authoritative: it
+        // can be empty while iCloud metadata sync is unavailable. The direct
+        // filesystem scan started by `start()` is the source of truth.
+        deliverInitialScan()
+    }
+
+    /// Delivers the initial directory snapshot once, serialized so a fast
+    /// metadata-query completion cannot race the direct scan started at boot.
+    private func deliverInitialScan() {
+        initialScanQueue.async { [weak self] in
+            guard let self else { return }
+            guard !self.didDeliverInitialScan else { return }
+
+            do {
+                let urls = try Self.scanDirectoryContents(at: self.directoryURL)
+                self.didDeliverInitialScan = true
+                self.onChange(urls, true, nil)
+            } catch {
+                // Keep the delivery flag unset so a later metadata-query
+                // completion can retry after a transient filesystem error.
+                self.onChange([], true, error)
+            }
+        }
+    }
+
+    /// Enumerates directory entries without reading file contents. This is
+    /// intentionally compatible with iCloud placeholder files.
+    static func scanDirectoryContents(at directoryURL: URL) throws -> [URL] {
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(
+            atPath: directoryURL.path,
+            isDirectory: &isDirectory
+        ), isDirectory.boolValue else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+
+        guard let enumerator = FileManager.default.enumerator(
+            at: directoryURL,
+            includingPropertiesForKeys: [.isDirectoryKey, .isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            throw URLError(.cannotOpenFile)
+        }
+
+        return enumerator.compactMap { $0 as? URL }
     }
 
     // MARK: - Private Methods - Processing

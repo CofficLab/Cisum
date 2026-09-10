@@ -68,8 +68,30 @@ public class BookRepo: ObservableObject, SuperEvent, SuperLog {
                 }
                 if let error {
                     os_log(.error, "\(self.t) Directory scan failed: \(error.localizedDescription)")
+                    // A failed initial scan is not an empty library. Mark the
+                    // wait as finished so the UI can keep showing any
+                    // existing records, but never run a destructive full
+                    // sync with an invalid empty snapshot.
                     await self.completeInitialSyncIfNeeded()
                     return
+                }
+                if isFirst, items.isEmpty {
+                    do {
+                        let visibleEntries = try FileManager.default.contentsOfDirectory(
+                            at: monitoredDisk,
+                            includingPropertiesForKeys: [.isDirectoryKey, .isRegularFileKey],
+                            options: [.skipsHiddenFiles]
+                        )
+                        guard visibleEntries.isEmpty else {
+                            os_log(.error, "\(self.t) Initial scan returned an empty snapshot for a non-empty directory; preserving database")
+                            await self.completeInitialSyncIfNeeded()
+                            return
+                        }
+                    } catch {
+                        os_log(.error, "\(self.t) Initial scan returned an empty snapshot and directory validation failed: \(error.localizedDescription)")
+                        await self.completeInitialSyncIfNeeded()
+                        return
+                    }
                 }
                 if !isFirst, let lastTime = UserDefaults.standard.object(forKey: "BookLastUpdateTime") as? Date {
                     let now = Date()
