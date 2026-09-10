@@ -185,28 +185,38 @@ extension BookRepo {
     /// - Parameter reason: 调用原因，用于日志记录
     /// - Returns: 按顺序排序的书籍 DTO 列表
     public func getAll(reason: String) async -> [BookDTO] {
-        if verbose {
-            os_log("\(self.t)📚 获取所有书籍集合 - 来源: \(reason)")
-        }
+        os_log("\(self.t)📚 getAll 开始 - 来源: \(reason)")
 
+        let syncStart = DispatchTime.now()
         await waitForInitialSync()
+        let syncNanos = DispatchTime.now().uptimeNanoseconds - syncStart.uptimeNanoseconds
+        let syncSeconds = Double(syncNanos) / 1_000_000_000
+        if syncSeconds > 0.01 {
+            os_log("\(self.t)⏳ 初始同步等待完成 (\(String(format: "%.2f", syncSeconds))s)")
+        }
         
         do {
             // 获取所有书籍的数据传输对象，只保留顶层书籍，包含文件夹书和单文件书。
+            let fetchStart = DispatchTime.now()
             let allBooks = try await db.allBookDTOs()
+            let fetchNanos = DispatchTime.now().uptimeNanoseconds - fetchStart.uptimeNanoseconds
+            let fetchSeconds = Double(fetchNanos) / 1_000_000_000
+            os_log("\(self.t)🗃️ DB 查询完成: \(allBooks.count) 条原始记录 (\(String(format: "%.3f", fetchSeconds))s)")
+
             let libraryRoot = disk
             // DTO filtering performs symlink/path resolution for every item.
             // Keep that filesystem work off the main actor; only the final
             // value crosses back to the UI-facing repository.
+            let filterStart = DispatchTime.now()
             let books = await Task.detached(priority: .utility) {
                 allBooks
                     .filter { Self.isDisplayableLibraryItem($0, libraryRoot: libraryRoot) }
                     .sorted { $0.order < $1.order }
             }.value
-            
-            if Self.verbose {
-                os_log("\(self.t)✅ 获取到 \(books.count) 本书籍")
-            }
+            let filterNanos = DispatchTime.now().uptimeNanoseconds - filterStart.uptimeNanoseconds
+            let filterSeconds = Double(filterNanos) / 1_000_000_000
+
+            os_log("\(self.t)✅ getAll 完成: \(books.count) 本书籍可展示 (过滤 \(allBooks.count - books.count) 条, \(String(format: "%.3f", filterSeconds))s)")
             
             return books
         } catch {

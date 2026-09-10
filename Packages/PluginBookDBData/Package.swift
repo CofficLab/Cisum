@@ -17,6 +17,7 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../KernelCore"),
+        .package(path: "../MagicKit"),
         .package(path: "../ProviderBook"),
         .package(path: "../ProviderStorage"),
     ],
@@ -25,6 +26,7 @@ let package = Package(
             name: "PluginBookDBData",
             dependencies: [
                 .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "MagicKit", package: "MagicKit"),
                 .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "ProviderBookData", package: "ProviderBook"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),

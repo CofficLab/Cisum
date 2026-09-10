@@ -183,6 +183,7 @@ extension BookDB {
     /// - Returns: 所有书籍的 BookDTO 数组
     public func allBookDTOs() throws -> [BookDTO] {
         let books: [BookModel] = try context.fetch(FetchDescriptor<BookModel>())
+        os_log("\(Self.t)🗄️ SwiftData fetch: \(books.count) BookModel records")
         return books.toDTOs()
     }
 

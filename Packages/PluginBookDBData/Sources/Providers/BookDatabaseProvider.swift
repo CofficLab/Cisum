@@ -1,10 +1,15 @@
 import Foundation
+import MagicKit
+import OSLog
 import ProviderBook
 import ProviderBookData
 import ProviderStorage
 
 @MainActor
-final class BookDatabaseProvider: BookDatabaseProviding {
+final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
+    nonisolated static let emoji = "💾"
+    nonisolated static let verbose = false
+
     private let storage: any StorageProviding
     private var cachedRepository: BookRepo?
     private var storageObserver: (any StorageProvidingObserverHandle)?
@@ -62,7 +67,12 @@ final class BookDatabaseProvider: BookDatabaseProviding {
     }
 
     func books(reason: String) async -> [BookDTO] {
-        await repository()?.getAll(reason: reason) ?? []
+        os_log("\(Self.t)🚀 books ➡️ \(reason)")
+        guard let repository = await repository() else {
+            os_log(.error, "\(Self.t)❌ repository is nil")
+            return []
+        }
+        return await repository.getAll(reason: reason)
     }
 
     func syncImportedItems(_ items: [URL]) async throws {
