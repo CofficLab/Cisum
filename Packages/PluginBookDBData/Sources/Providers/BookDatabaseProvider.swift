@@ -67,7 +67,9 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
     }
 
     func books(reason: String) async -> [BookDTO] {
-        os_log("\(Self.t)🚀 books ➡️ \(reason)")
+        if Self.verbose {
+            os_log("\(Self.t)🚀 books ➡️ \(reason)")
+        }
         guard let repository = await repository() else {
             os_log(.error, "\(Self.t)❌ repository is nil")
             return []

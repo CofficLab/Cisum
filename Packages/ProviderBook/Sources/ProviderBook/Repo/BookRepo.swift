@@ -207,13 +207,15 @@ extension BookRepo {
     /// - Parameter reason: 调用原因，用于日志记录
     /// - Returns: 按顺序排序的书籍 DTO 列表
     public func getAll(reason: String) async -> [BookDTO] {
-        os_log("\(self.t)📚 getAll 开始 - 来源: \(reason)")
+        if verbose {
+            os_log("\(self.t)📚 getAll 开始 - 来源: \(reason)")
+        }
 
         let syncStart = DispatchTime.now()
         await waitForInitialSync()
         let syncNanos = DispatchTime.now().uptimeNanoseconds - syncStart.uptimeNanoseconds
         let syncSeconds = Double(syncNanos) / 1_000_000_000
-        if syncSeconds > 0.01 {
+        if verbose, syncSeconds > 0.01 {
             os_log("\(self.t)⏳ 初始同步等待完成 (\(String(format: "%.2f", syncSeconds))s)")
         }
         
@@ -223,7 +225,9 @@ extension BookRepo {
             let allBooks = try await db.allBookDTOs()
             let fetchNanos = DispatchTime.now().uptimeNanoseconds - fetchStart.uptimeNanoseconds
             let fetchSeconds = Double(fetchNanos) / 1_000_000_000
-            os_log("\(self.t)🗃️ DB 查询完成: \(allBooks.count) 条原始记录 (\(String(format: "%.3f", fetchSeconds))s)")
+            if verbose {
+                os_log("\(self.t)🗃️ DB 查询完成: \(allBooks.count) 条原始记录 (\(String(format: "%.3f", fetchSeconds))s)")
+            }
 
             let libraryRoot = disk
             // DTO filtering performs symlink/path resolution for every item.
@@ -238,7 +242,9 @@ extension BookRepo {
             let filterNanos = DispatchTime.now().uptimeNanoseconds - filterStart.uptimeNanoseconds
             let filterSeconds = Double(filterNanos) / 1_000_000_000
 
-            os_log("\(self.t)✅ getAll 完成: \(books.count) 本书籍可展示 (过滤 \(allBooks.count - books.count) 条, \(String(format: "%.3f", filterSeconds))s)")
+            if verbose {
+                os_log("\(self.t)✅ getAll 完成: \(books.count) 本书籍可展示 (过滤 \(allBooks.count - books.count) 条, \(String(format: "%.3f", filterSeconds))s)")
+            }
             
             return books
         } catch {
