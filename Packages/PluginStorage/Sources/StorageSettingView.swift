@@ -16,7 +16,7 @@ public struct StorageSettingView: View, SuperLog {
     }
 
     public var body: some View {
-        AppSettingsContentScaffold {
+        AppSettingsContentScaffold(maxContentWidth: nil) {
             AppSettingSection(title: String(localized: "Media Storage Location", bundle: .module)) {
                 VStack(spacing: 0) {
                     AppSettingRow(
@@ -74,6 +74,7 @@ public struct StorageSettingView: View, SuperLog {
                     .opacity(viewModel.storageRoot == nil ? 0.5 : 1)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .sheet(isPresented: $showMigrationProgress) {
             MigrationProgressView(

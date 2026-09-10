@@ -134,7 +134,9 @@ public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
             title: String(localized: String.LocalizationValue(AudioDBPluginInfo.titleKey), bundle: .module),
             description: Self.metadata.description,
             iconName: Self.metadata.iconName,
-            order: Self.metadata.order,
+            // 设置入口排序不使用 metadata.order（1 是启动优先级），
+            // 使用独立值确保「通用」（order=1）排在最前。
+            order: 10,
             destination: AnyView(
                 AudioDBSettingView()
                     .environmentObject(settingList)
