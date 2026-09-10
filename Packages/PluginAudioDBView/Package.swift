@@ -23,7 +23,6 @@ let package = Package(
         .package(name: "ProviderAudioLibrary", path: "../ProviderAudioLibrary"),
         .package(path: "../ProviderScene"),
         .package(path: "../ProviderStorage"),
-        .package(name: "PluginAudioDBData", path: "../PluginAudioDBData"),
     ],
     targets: [
         .target(
@@ -37,7 +36,6 @@ let package = Package(
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
-                .product(name: "PluginAudioDBData", package: "PluginAudioDBData"),
             ],
             path: ".",
             sources: ["Sources"],
