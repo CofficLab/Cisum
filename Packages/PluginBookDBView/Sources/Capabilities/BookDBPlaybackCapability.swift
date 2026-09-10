@@ -15,7 +15,7 @@ protocol BookDBPlaybackCapability: AnyObject {
 /// 将内核播放 Provider 适配成有声书库的播放能力。
 @MainActor
 final class BookDBPlaybackCapabilityAdapter: BookDBPlaybackCapability, SuperLog {
-    nonisolated static let verbose = true
+    nonisolated static let verbose = false
 
     private let playback: any PlaybackProviding
 

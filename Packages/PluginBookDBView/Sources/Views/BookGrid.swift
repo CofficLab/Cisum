@@ -104,7 +104,7 @@ enum BookGridPlayableChildrenLoader {
 struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
     @LumiTheme private var appTheme
     nonisolated static let emoji = "📖"
-    nonisolated static let verbose = true
+    nonisolated static let verbose = false
 
     @Environment(\.bookDBViewDependencies) private var dependencies
     @EnvironmentObject var viewModel: BookGridViewModel

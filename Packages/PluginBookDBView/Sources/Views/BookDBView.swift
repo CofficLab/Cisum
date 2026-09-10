@@ -11,7 +11,7 @@ extension NSItemProvider: @retroactive @unchecked Sendable {}
 
 public struct BookDBView: View, SuperLog, SuperThread {
     public nonisolated static let emoji = "🐘"
-    public nonisolated static let verbose = true
+    public nonisolated static let verbose = false
     
     @Environment(\.bookDBViewDependencies) private var dependencies
     @State private var isFileImporterPresented = false
@@ -73,7 +73,7 @@ extension BookDBView {
         }
 
         guard let bookDisk = dependencies.bookDisk else {
-            os_log(.error, "\(self.t)❌ Book repository directory is unavailable")
+            // os_log(.error, "\(self.t)❌ Book repository directory is unavailable")
             alert_error(String(localized: "Storage location is unavailable", bundle: .module))
             return
         }
@@ -111,7 +111,7 @@ extension BookDBView {
                 try await bookProvider.syncImportedItems(copiedItems)
             } catch {
                 Self.cleanUpCopiedItems(copiedItems)
-                os_log(.error, "\(self.t)❌ Failed to copy book files: \(error.localizedDescription)")
+                // os_log(.error, "\(self.t)❌ Failed to copy book files: \(error.localizedDescription)")
                 await MainActor.run {
                     alert_error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))
                 }
@@ -568,7 +568,7 @@ extension BookDBView {
             copy(urls)
             
         case let .failure(error):
-            os_log(.error, "\(self.t)❌ File import failed: \(error.localizedDescription)")
+            // os_log(.error, "\(self.t)❌ File import failed: \(error.localizedDescription)")
             alert_error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))
         }
     }
@@ -596,10 +596,10 @@ extension BookDBView {
 
             if Self.shouldReportDroppedURLLoadFailure(droppedFiles.urls, errors: droppedFiles.errors),
                let error = droppedFiles.errors.first {
-                os_log(.error, "\(self.t)⚠️ Failed to load file: \(error.localizedDescription)")
+                // os_log(.error, "\(self.t)⚠️ Failed to load file: \(error.localizedDescription)")
                 alert_error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))
             } else if Self.shouldReportPartialDroppedURLLoadFailure(droppedFiles.urls, errors: droppedFiles.errors) {
-                os_log(.error, "\(self.t)⚠️ Some dropped files failed to load")
+                // os_log(.error, "\(self.t)⚠️ Some dropped files failed to load")
                 alert_warning(String(localized: "Some dropped files could not be loaded", bundle: .module))
             }
 

@@ -71,7 +71,7 @@ struct BookTile: View, SuperThread, SuperLog, Equatable {
     @State private var stateRevision: Int = 0
 
     nonisolated static let emoji = "🖥️"
-    private let verbose = true
+    private let verbose = false
     
     private var noCover: Bool { cover == nil }
     

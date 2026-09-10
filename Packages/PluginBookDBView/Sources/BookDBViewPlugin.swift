@@ -9,7 +9,7 @@ import SwiftUI
 import MagicKit
 
 public actor BookDBViewPlugin: SuperPlugin, SuperLog {
-    nonisolated static let verbose = true
+    nonisolated static let verbose = false
 
     public static let shared = BookDBViewPlugin()
     public static let metadata = PluginMetadata(
@@ -74,7 +74,7 @@ public actor BookDBViewPlugin: SuperPlugin, SuperLog {
         guard sceneBox.scene?.currentScene == .audiobooks else { return nil }
         let label = String(localized: String.LocalizationValue(BookDBViewPluginInfo.titleKey), bundle: .module)
         guard kernel?.resolveProvider(BookDatabaseProviding.self) != nil else {
-            os_log(.error, "BookDBViewPlugin failed to resolve database data service")
+            // os_log(.error, "BookDBViewPlugin failed to resolve database data service")
             let view = BookDBUnavailableView(errorDescription: String(localized: "Storage service is unavailable", bundle: .module))
             return (AnyView(view), label)
         }

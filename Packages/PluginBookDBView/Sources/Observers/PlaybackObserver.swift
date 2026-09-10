@@ -6,7 +6,7 @@ import MagicKit
 @MainActor
 final class PlaybackObserver: SuperLog {
     nonisolated static let emoji = "🎧"
-    nonisolated static let verbose = true
+    nonisolated static let verbose = false
 
     private weak var viewModel: BookGridViewModel?
     private var handle: (any PlaybackProvidingObserverHandle)?

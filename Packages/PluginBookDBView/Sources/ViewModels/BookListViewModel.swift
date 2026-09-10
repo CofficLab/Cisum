@@ -13,7 +13,7 @@ import MagicKit
 /// 书籍列表与总数，不处理播放/选中态。
 @MainActor
 final class BookListViewModel: ObservableObject, SuperLog {
-    nonisolated static let verbose = true
+    nonisolated static let verbose = false
 
     @Published private(set) var books: [BookDTO] = []
     @Published private(set) var isLoading = false
