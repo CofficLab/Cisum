@@ -35,7 +35,7 @@ public actor StoragePlugin: SuperPlugin, SuperLog {
     public func onBoot(kernel: CisumKernel) async throws {
         let provider = StorageProvider()
         StorageProvider.current = provider
-        kernel.registerStorage(provider)
+        try kernel.registerStorage(provider)
 
         // 插件启用状态持久化存储由 PluginPluginManager.onBoot 注入
         // （解析 kernel.storage 的根目录，写入 `<databaseRoot>/PluginManager/`）。
