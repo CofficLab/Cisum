@@ -23,7 +23,6 @@ let package = Package(
         .package(path: "../ProviderBook"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(path: "../ProviderScene"),
-        .package(path: "../ProviderStorage"),
     ],
     targets: [
         .target(
@@ -36,7 +35,6 @@ let package = Package(
                 .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
                 "ProviderScene",
-                "ProviderStorage",
             ],
             path: ".",
             sources: ["Sources"],

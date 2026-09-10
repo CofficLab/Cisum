@@ -5,7 +5,6 @@ import ProviderBook
 import ProviderBook
 import ProviderPlayback
 import ProviderScene
-import ProviderStorage
 import SwiftUI
 import MagicKit
 
@@ -27,8 +26,6 @@ public actor BookDBPlugin: SuperPlugin, SuperLog {
     nonisolated(unsafe) private var gridViewModel: BookGridViewModel?
     nonisolated(unsafe) private var databaseObserver: BookDatabaseObserver?
     nonisolated(unsafe) private var playbackObserver: BookDBPlaybackObserver?
-    /// 缓存的有声书仓库单例，供主内容区与导入流程复用，避免反复构建 SwiftData 容器。
-    nonisolated(unsafe) private var cachedBookRepo: BookRepo?
 
     @MainActor
     public func onRegister(kernel: CisumKernel) async throws {
@@ -78,14 +75,14 @@ public actor BookDBPlugin: SuperPlugin, SuperLog {
     public func addTabView(reason: String, demoMode: Bool = false) -> (view: AnyView, label: String)? {
         guard sceneBox.scene?.currentScene == .audiobooks else { return nil }
         let label = String(localized: String.LocalizationValue(BookDBPluginInfo.titleKey), bundle: .module)
-        guard let storage = kernel?.storage else {
-            os_log(.error, "BookDBPlugin failed to resolve storage service")
+        guard kernel?.resolveProvider(BookDatabaseProviding.self) != nil else {
+            os_log(.error, "BookDBPlugin failed to resolve database data service")
             let view = BookDBUnavailableView(errorDescription: String(localized: "Storage service is unavailable", bundle: .module))
             return (AnyView(view), label)
         }
 
         let dependencies = BookDBViewDependencies(
-            dbRoot: storage.databaseRoot,
+            dbRoot: databaseRootProvider(),
             bookDisk: bookDiskProvider(),
             isDesktop: ConfigShim.isDesktop,
             isNotDesktop: ConfigShim.isNotDesktop,
@@ -121,7 +118,7 @@ public actor BookDBPlugin: SuperPlugin, SuperLog {
         )
     }
 
-    /// 设置页依赖：仓库路径 / 仓库均由本插件自持（不依赖 `BookPlugin`）。
+    /// 设置页依赖：仓库路径 / 仓库均由数据层 Provider 提供。
     @MainActor
     private var settingDependencies: BookDBDependencies {
         BookDBDependencies(
@@ -132,58 +129,29 @@ public actor BookDBPlugin: SuperPlugin, SuperLog {
 
     // MARK: - State assembly
 
-    // MARK: - 仓库路径自持（不依赖 BookPlugin actor）
+    // MARK: - Data Provider bridge
 
-    /// 有声书仓库磁盘目录：`storageRoot` + `BookPluginInfo.dirName`。
-    ///
-    /// 由本插件直接从内核存储服务解析，不再经由 `BookPlugin` 的静态入口，
-    /// 因此 `BookPlugin` 的启用状态不影响仓库可用性。
+    /// 数据库根目录由数据层 Provider 提供。
     @MainActor
-    private static func makeBookDisk(from storage: any StorageProviding) -> URL? {
-        guard let root = storage.storageRoot else { return nil }
-        return try? root
-            .appendingPathComponent(BookPluginInfo.dirName, isDirectory: true)
-            .ensureDirectory()
+    private func databaseRootProvider() -> URL {
+        kernel?.resolveProvider(BookDatabaseProviding.self)?.databaseRoot
+            ?? FileManager.default.temporaryDirectory
     }
 
-    /// 构建有声书仓库：磁盘目录 + SwiftData 容器 + `BookRepo`。
-    ///
-    /// dbRoot（`storage.databaseRoot`）与磁盘目录在 MainActor 上解析，
-    /// SwiftData 容器创建放到 utility 任务，避免阻塞 UI（对齐 `BookPlugin` 既有策略）。
-    @MainActor
-    private static func makeBookRepo(from storage: any StorageProviding) async -> BookRepo? {
-        guard let disk = Self.makeBookDisk(from: storage) else { return nil }
-        let dbRoot = storage.databaseRoot
-        let container = await Task.detached(priority: .utility) {
-            try? BookConfig.getContainer(dbRootURL: dbRoot)
-        }.value
-        guard let container else { return nil }
-        return try? BookRepo(disk: disk, db: BookDB(container, reason: "BookDBPlugin"))
-    }
-
-    /// 有声书仓库磁盘目录解析器。
+    /// 书籍磁盘目录由数据层 Provider 提供。
     @MainActor
     private var bookDiskProvider: @MainActor @Sendable () -> URL? {
         { @MainActor [weak self] in
-            guard let storage = self?.kernel?.storage else { return nil }
-            return Self.makeBookDisk(from: storage)
+            self?.kernel?.resolveProvider(BookDatabaseProviding.self)?.bookDisk
         }
     }
 
-    /// 有声书仓库解析器：首次解析成功后缓存单例，后续直接复用。
+    /// 仓库由数据层 Provider 创建并缓存，View 插件不再组装 SwiftData。
     @MainActor
     private var bookRepoProvider: @MainActor @Sendable () async -> BookRepo? {
         { @MainActor [weak self] in
-            guard let self else { return nil }
-            if let cached = self.cachedBookRepo {
-                return cached
-            }
-            guard let storage = self.kernel?.storage else { return nil }
-            let repo = await Self.makeBookRepo(from: storage)
-            if let repo {
-                self.cachedBookRepo = repo
-            }
-            return repo
+            guard let provider = self?.kernel?.resolveProvider(BookDatabaseProviding.self) else { return nil }
+            return await provider.repository()
         }
     }
 
@@ -213,7 +181,6 @@ public actor BookDBPlugin: SuperPlugin, SuperLog {
         playbackObserver?.cancel()
         playbackObserver = nil
         gridViewModel = nil
-        cachedBookRepo = nil
     }
 
     @MainActor

@@ -23,8 +23,24 @@ public protocol BookProviding: AnyObject {
 
     @discardableResult
     func addObserver(
-        _ callback: @escaping (BookProvidingEvent) -> Void
+        _ callback: @escaping @Sendable (BookProvidingEvent) -> Void
     ) -> any BookProvidingObserverHandle
+}
+
+/// 书籍数据库的跨插件访问边界。
+///
+/// 数据库容器、同步器和仓库实例由数据层插件持有；View 插件只通过这个
+/// Provider 获取已经组装好的仓库，避免自行创建 SwiftData 容器。
+@MainActor
+public protocol BookDatabaseProviding: BookProviding {
+    /// 当前数据库根目录。即使书库磁盘尚未配置，数据库根目录也可用。
+    var databaseRoot: URL { get }
+
+    /// 获取数据层缓存的仓库实例。
+    func repository() async -> BookRepo?
+
+    /// 存储位置改变后丢弃旧的仓库实例。
+    func invalidateRepository()
 }
 
 @MainActor
@@ -36,7 +52,7 @@ public final class NoopBookProvidingObserverHandle: BookProvidingObserverHandle 
 public extension BookProviding {
     @discardableResult
     func addObserver(
-        _ callback: @escaping (BookProvidingEvent) -> Void
+        _ callback: @escaping @Sendable (BookProvidingEvent) -> Void
     ) -> any BookProvidingObserverHandle {
         NoopBookProvidingObserverHandle()
     }

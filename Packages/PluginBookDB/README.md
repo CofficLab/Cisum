@@ -6,6 +6,10 @@ Book database viewer plugin for Cisum, providing a browsable interface for the a
 
 This plugin registers with ID `BookDBViewPlugin` and provides audiobook database viewing functionality through the Cisum plugin system.
 
+Database ownership is provided by the separate `PluginBookDBData` plugin. The
+view plugin resolves `BookDatabaseProviding` from the Kernel and does not
+create the SwiftData container or `BookRepo` itself.
+
 ## Architecture
 
 ```
