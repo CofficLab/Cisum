@@ -22,7 +22,7 @@ struct GeneralSettingsDetailView: View {
     }
 
     var body: some View {
-        AppSettingsContentScaffold {
+        AppSettingsContentScaffold(maxContentWidth: nil) {
             VStack(alignment: .leading, spacing: 16) {
                 appInfoSection
                 manualsSection
@@ -30,6 +30,7 @@ struct GeneralSettingsDetailView: View {
                 debugSection
                 #endif
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .sheet(isPresented: $isShowingManuals) {
             ManualsBrowserView(manuals: docsProvider?.manualEntries ?? [])

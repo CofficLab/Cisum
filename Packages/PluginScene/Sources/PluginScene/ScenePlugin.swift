@@ -96,7 +96,9 @@ public actor ScenePlugin: SuperPlugin, SuperLog {
             title: Self.metadata.displayName,
             description: Self.metadata.description,
             iconName: Self.metadata.iconName,
-            order: Self.metadata.order,
+            // 设置入口排序不使用 metadata.order（-1000 是启动优先级），
+            // 使用独立值确保「通用」（order=1）排在最前。
+            order: 100,
             destination: AnyView(SceneSettingsView(model: viewModel))
         )
     }
