@@ -8,7 +8,7 @@ import MagicKit
 import OSLog
 
 public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
-    nonisolated static let verbose = true
+    nonisolated static let verbose = false
 
     public static let shared = AudioDBViewPlugin()
     public static let metadata = PluginMetadata(

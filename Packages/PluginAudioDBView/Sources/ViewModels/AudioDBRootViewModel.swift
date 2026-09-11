@@ -8,7 +8,7 @@ import MagicKit
 /// `AudioDatabaseObserver`，View 只发起检查意图，不再直接读取 Repository。
 @MainActor
 final class AudioDBRootViewModel: ObservableObject, SuperLog {
-    nonisolated static let verbose = true
+    nonisolated static let verbose = false
 
     private let audioLibraryProvider: @MainActor () -> (any AudioLibraryProviding)?
     private let showDBViewAction: @MainActor () -> Void

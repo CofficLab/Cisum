@@ -10,7 +10,7 @@ import ProviderAudioNavigation
 @MainActor
 final class AudioTrackNavigationProvider: AudioTrackNavigationProviding, SuperLog {
     nonisolated static let emoji = "🎵"
-    nonisolated static let verbose = true
+    nonisolated static let verbose = false
 
     typealias AdjacentURLResolver = @MainActor @Sendable (URL?, Bool) async throws -> URL?
     typealias BoundaryURLResolver = @MainActor @Sendable () async throws -> URL?

@@ -12,7 +12,7 @@ import SwiftUI
 @Model
 public final class AudioModel: SuperLog {
     public static let emoji = "🔔"
-    public static let verbose = true
+    public static let verbose = false
 
     @Transient let fileManager = FileManager.default
     @Transient var db: AudioRepo?

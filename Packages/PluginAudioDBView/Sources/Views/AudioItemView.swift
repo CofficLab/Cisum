@@ -123,7 +123,7 @@ enum AudioItemFileActionPolicy {
 /// 用于在 AudioList 中展示单个音频文件
 struct AudioItemView: View, Equatable, SuperLog {
     nonisolated static let emoji = "🎵"
-    nonisolated static let verbose = true
+    nonisolated static let verbose = false
 
     @EnvironmentObject var listViewModel: AudioListViewModel
     @LumiTheme private var appTheme

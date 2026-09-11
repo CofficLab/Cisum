@@ -12,7 +12,7 @@ import ProviderAudioLibrary
 actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     /// 用于日志输出的表情符号
     static let emoji = "📦"
-    static let verbose = true
+    static let verbose = false
 
     static func normalizedPagination(offset: Int, limit: Int) -> (offset: Int, limit: Int) {
         (max(0, offset), max(0, limit))

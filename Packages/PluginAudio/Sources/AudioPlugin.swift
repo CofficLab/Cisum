@@ -8,7 +8,7 @@ import SwiftUI
 import MagicKit
 
 public actor AudioPlugin: SuperPlugin, SuperLog {
-    nonisolated static let verbose = true
+    nonisolated static let verbose = false
 
     public static let shared = AudioPlugin()
     public static let metadata = PluginMetadata(

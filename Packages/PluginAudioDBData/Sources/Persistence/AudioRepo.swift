@@ -10,7 +10,7 @@ import SwiftUI
 @MainActor
 public class AudioRepo: ObservableObject, SuperLog, @unchecked Sendable {
     public nonisolated static let emoji = "🎵"
-    public nonisolated static let verbose = true
+    public nonisolated static let verbose = false
 
     private var db: AudioDB
     private var disk: URL

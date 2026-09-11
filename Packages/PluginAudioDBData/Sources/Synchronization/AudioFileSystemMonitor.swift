@@ -13,7 +13,7 @@ final class AudioFileSystemMonitor: SuperLog, @unchecked Sendable {
     typealias SyncItems = @Sendable (_ items: [URL], _ isFirst: Bool) async -> Void
     typealias DeleteItems = @Sendable (_ urls: [URL]) async throws -> Void
 
-    static let verbose = true
+    static let verbose = false
 
     private let diskProvider: DiskProvider
     private let syncItems: SyncItems
