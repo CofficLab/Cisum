@@ -29,6 +29,15 @@
         }
       }
     },
+    "Cannot play next" : {
+
+    },
+    "Cannot play previous" : {
+
+    },
+    "Cannot recover deleted audio" : {
+
+    },
     "Click Previous or Next to switch tracks." : {
       "localizations" : {
         "en" : {
@@ -169,6 +178,9 @@
         }
       }
     },
+    "Current file was deleted, playing the first" : {
+
+    },
     "Cycles through sequential, repeat, and other modes." : {
       "localizations" : {
         "en" : {
@@ -224,6 +236,15 @@
           }
         }
       }
+    },
+    "No files in library" : {
+
+    },
+    "No next audio file" : {
+
+    },
+    "No previous audio file" : {
+
     },
     "Notes" : {
       "localizations" : {
@@ -421,6 +442,9 @@
         }
       }
     },
+    "Playback controls unavailable" : {
+
+    },
     "Plays and pauses the current track." : {
       "localizations" : {
         "en" : {
@@ -561,6 +585,12 @@
         }
       }
     },
+    "Reached the last track, playing the first" : {
+
+    },
+    "The audio library navigation service is unavailable." : {
+
+    },
     "The button group is injected into the player control area via ControlViewProviding." : {
       "localizations" : {
         "en" : {
@@ -616,6 +646,15 @@
           }
         }
       }
+    },
+    "The music scene is not active." : {
+
+    },
+    "The playback service is unavailable." : {
+
+    },
+    "There is no current audio file." : {
+
     },
     "This plugin is a system-level capability that is always enabled and cannot be disabled." : {
       "localizations" : {
