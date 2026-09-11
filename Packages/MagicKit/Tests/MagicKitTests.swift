@@ -51,6 +51,37 @@ final class MagicKitTests: XCTestCase {
         try await file.ensureLocalAvailability(timeout: 0.1, pollInterval: 0.05)
     }
 
+    /// 非 iCloud 文件必须一律视为「内容已在本地」，否则播放路径会误触发下载等待。
+    func testLocalFileHasLocalContent() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer {
+            try? FileManager.default.removeItem(at: root)
+        }
+
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let file = root.appendingPathComponent("track.mp3")
+        try Data("audio".utf8).write(to: file)
+
+        XCTAssertTrue(file.hasLocalContent)
+        XCTAssertFalse(file.appendingPathExtension("missing").hasLocalContent)
+    }
+
+    /// 空文件没有内容需要下载，不应被判为「内容不在本地」。
+    func testEmptyLocalFileHasLocalContent() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer {
+            try? FileManager.default.removeItem(at: root)
+        }
+
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let file = root.appendingPathComponent("empty.mp3")
+        try Data().write(to: file)
+
+        XCTAssertTrue(file.hasLocalContent)
+    }
+
     func testCopyToRejectsCopyingFileOntoItselfWithoutDeletingSource() async throws {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)

@@ -180,6 +180,38 @@ public extension URL {
         #endif
     }
 
+    /// 文件内容是否已经落到本地磁盘，可以直接读取。
+    ///
+    /// 与 `isDownloaded` 的区别：`isDownloaded` 依赖 iCloud 的
+    /// `ubiquitousItemDownloadingStatus`，而「优化 Mac 存储」下被驱逐的文件
+    /// （`ls -lO` 显示 `dataless`、`st_blocks` 为 0）在该键上可能既不报
+    /// `.notDownloaded` 也不报 `.current`，于是 `isDownloaded` 与 `isNotDownloaded`
+    /// 同时为 false，下载流程既不发起请求、也无法判定完成。
+    ///
+    /// 这里改用文件实际占用的磁盘空间判断（dataless 占位文件的已分配空间恒为 0），
+    /// 不依赖 iCloud 状态键，任何进程与权限下都能可靠读取。
+    var hasLocalContent: Bool {
+        guard isFileURL, isFileExist else { return false }
+
+        guard let values = try? resourceValues(forKeys: [
+            .isUbiquitousItemKey,
+            .fileSizeKey,
+            .totalFileAllocatedSizeKey,
+            .fileAllocatedSizeKey,
+        ]) else {
+            return true
+        }
+
+        // 只有 iCloud 项目才可能是「占位无内容」，其余一律视为本地可用
+        guard values.isUbiquitousItem == true else { return true }
+
+        // 空文件没有内容需要下载
+        guard let fileSize = values.fileSize, fileSize > 0 else { return true }
+
+        let allocatedSize = values.totalFileAllocatedSize ?? values.fileAllocatedSize ?? 0
+        return allocatedSize > 0
+    }
+
     /// 创建文件如果不存在，返回自身
     func createIfNotExist() -> URL {
         if !FileManager.default.fileExists(atPath: self.path) {
@@ -261,11 +293,13 @@ public extension URL {
     ) async throws {
         guard checkIsICloud(verbose: false) else { return }
 
-        if isDownloaded { return }
+        // 以「内容是否已在本地」为唯一判据，而不依赖 isDownloaded / isNotDownloaded：
+        // 被驱逐（dataless）的文件这两个值会同时为 false，既不会发起下载也无法判定完成。
+        if hasLocalContent { return }
 
-        if isNotDownloaded {
-            try FileManager.default.startDownloadingUbiquitousItem(at: self)
-        }
+        // 无条件请求下载：该 API 对已下载/下载中的项目是幂等的，
+        // 而 isNotDownloaded 为 false 并不代表内容确实在本地。
+        try FileManager.default.startDownloadingUbiquitousItem(at: self)
 
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
@@ -273,7 +307,7 @@ public extension URL {
 
             var refreshedURL = self
             refreshedURL.removeAllCachedResourceValues()
-            if refreshedURL.isDownloaded {
+            if refreshedURL.hasLocalContent {
                 return
             }
 
@@ -297,17 +331,15 @@ public extension URL {
     ) throws {
         guard checkIsICloud(verbose: false) else { return }
 
-        if isDownloaded { return }
+        if hasLocalContent { return }
 
-        if isNotDownloaded {
-            try FileManager.default.startDownloadingUbiquitousItem(at: self)
-        }
+        try FileManager.default.startDownloadingUbiquitousItem(at: self)
 
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
             var refreshedURL = self
             refreshedURL.removeAllCachedResourceValues()
-            if refreshedURL.isDownloaded {
+            if refreshedURL.hasLocalContent {
                 return
             }
 
