@@ -4,61 +4,58 @@ import CisumUIComponents
 import MagicKit
 import OSLog
 
-public final class FileSystemMonitorJob: AudioJob, SuperLog, @unchecked Sendable {
-    public typealias DiskProvider = @Sendable () async -> URL?
-    public typealias SyncItems = @Sendable (_ items: [URL], _ isFirst: Bool) async -> Void
-    public typealias DeleteItems = @Sendable (_ urls: [URL]) async throws -> Void
-    public typealias DeletionNotifier = @Sendable () async -> Void
+/// 音频库文件系统同步器。
+///
+/// 只负责把目录监控事件转换成同步/删除回调；回调的具体数据实现由
+/// `AudioDBDataPlugin` 注入，因此这个类型不会穿透 Provider 边界。
+final class AudioFileSystemMonitor: SuperLog, @unchecked Sendable {
+    typealias DiskProvider = @Sendable () async -> URL?
+    typealias SyncItems = @Sendable (_ items: [URL], _ isFirst: Bool) async -> Void
+    typealias DeleteItems = @Sendable (_ urls: [URL]) async throws -> Void
 
-    public static let verbose = true
+    static let verbose = true
 
-    public nonisolated let identifier = "com.cisum.audio.job.filesystem-monitor"
-    public nonisolated let name = String(localized: "File System Monitor", bundle: .module)
-    public nonisolated let description = String(localized: "Monitor audio file system changes and sync to database", bundle: .module)
-
-    private var monitor: Cancellable?
-    private let state = State()
     private let diskProvider: DiskProvider
     private let syncItems: SyncItems
     private let deleteItems: DeleteItems
-    private let notifyDeletion: DeletionNotifier
+
+    private var monitor: Cancellable?
+    private let state = State()
     private let runIDLock = NSLock()
     private var activeRunIDSnapshot: UUID?
 
-    public init(
+    init(
         diskProvider: @escaping DiskProvider,
         syncItems: @escaping SyncItems,
-        deleteItems: @escaping DeleteItems,
-        notifyDeletion: @escaping DeletionNotifier = {}
+        deleteItems: @escaping DeleteItems
     ) {
         self.diskProvider = diskProvider
         self.syncItems = syncItems
         self.deleteItems = deleteItems
-        self.notifyDeletion = notifyDeletion
     }
 
-    public static func shouldPerformFullSync(isFirst: Bool, disk: URL?) -> Bool {
+    static func shouldPerformFullSync(isFirst: Bool, disk: URL?) -> Bool {
         isFirst || !(disk?.checkIsICloud(verbose: false) ?? true)
     }
 
-    public static func shouldContinueRunning(runID: UUID, activeRunID: UUID?, isRunning: Bool) -> Bool {
+    static func shouldContinueRunning(runID: UUID, activeRunID: UUID?, isRunning: Bool) -> Bool {
         isRunning && activeRunID == runID
     }
 
-    public static func shouldProcessMonitorEvent(runID: UUID, activeRunID: UUID?, isRunning: Bool) -> Bool {
+    static func shouldProcessMonitorEvent(runID: UUID, activeRunID: UUID?, isRunning: Bool) -> Bool {
         shouldContinueRunning(runID: runID, activeRunID: activeRunID, isRunning: isRunning)
     }
 
-    public static func shouldSyncMonitorItems(error: Error?) -> Bool {
+    static func shouldSyncMonitorItems(error: Error?) -> Bool {
         error == nil
     }
 
-    public static func shouldApplyCancellation(cancelledRunID: UUID?, activeRunID: UUID?) -> Bool {
+    static func shouldApplyCancellation(cancelledRunID: UUID?, activeRunID: UUID?) -> Bool {
         guard let cancelledRunID else { return true }
         return cancelledRunID == activeRunID
     }
 
-    public func execute() async throws {
+    func execute() async throws {
         guard let disk = await diskProvider() else {
             if Self.verbose {
                 os_log("❌ Unable to resolve audio disk path")
@@ -114,7 +111,6 @@ public final class FileSystemMonitorJob: AudioJob, SuperLog, @unchecked Sendable
 
                         do {
                             try await self.deleteItems(urls)
-                            await self.notifyDeletion()
                         } catch {
                             os_log(.error, "❌ Audio deletion sync failed: \(error.localizedDescription)")
                             return
@@ -143,7 +139,7 @@ public final class FileSystemMonitorJob: AudioJob, SuperLog, @unchecked Sendable
         clearActiveRunIDSnapshot(runID)
     }
 
-    public func cancel() {
+    func cancel() {
         let runID = currentRunIDSnapshot()
         Task { @Sendable [weak self] in
             guard let self else { return }
@@ -188,7 +184,7 @@ public final class FileSystemMonitorJob: AudioJob, SuperLog, @unchecked Sendable
         }
 
         func cancel(runID: UUID?) {
-            guard FileSystemMonitorJob.shouldApplyCancellation(
+            guard AudioFileSystemMonitor.shouldApplyCancellation(
                 cancelledRunID: runID,
                 activeRunID: activeRunID
             ) else {
@@ -200,7 +196,7 @@ public final class FileSystemMonitorJob: AudioJob, SuperLog, @unchecked Sendable
         }
 
         func shouldContinue(_ runID: UUID) -> Bool {
-            FileSystemMonitorJob.shouldContinueRunning(
+            AudioFileSystemMonitor.shouldContinueRunning(
                 runID: runID,
                 activeRunID: activeRunID,
                 isRunning: isRunning
@@ -208,7 +204,7 @@ public final class FileSystemMonitorJob: AudioJob, SuperLog, @unchecked Sendable
         }
 
         func shouldProcessMonitorEvent(_ runID: UUID) -> Bool {
-            FileSystemMonitorJob.shouldProcessMonitorEvent(
+            AudioFileSystemMonitor.shouldProcessMonitorEvent(
                 runID: runID,
                 activeRunID: activeRunID,
                 isRunning: isRunning

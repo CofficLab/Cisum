@@ -15,13 +15,13 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
 
     private let storage: any StorageProviding
     private var cachedRepo: AudioRepo?
-    private var storageObserver: (any StorageProvidingObserverHandle)?
+    private var storageObserver: AudioStorageObserver?
     private var eventTokens: [NSObjectProtocol] = []
     private var observers: [WeakAudioLibraryObserver] = []
 
     init(storage: any StorageProviding) {
         self.storage = storage
-        storageObserver = storage.addObserver { [weak self] event in
+        storageObserver = AudioStorageObserver(provider: storage) { [weak self] _ in
             self?.invalidateRepository()
         }
         installEventBridge()

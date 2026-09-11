@@ -53,7 +53,6 @@ consumer_scope=(
   Packages/PluginAudio
   Packages/PluginAudioCopy
   Packages/PluginAudioDBView
-  Packages/PluginAudioJob
   Packages/PluginAudioPlayMode
   Packages/PluginAudioProgress
   Packages/PluginAudioSettings
@@ -63,8 +62,7 @@ consumer_scope=(
 if rg -n 'AudioPluginHost|getAudioRepoAsync|getAudioRepo\(|(^|[^A-Za-z])AudioRepo\(' "${consumer_scope[@]}" \
   --glob '*.swift' \
   --glob '!**/Tests/**' \
-  --glob '!**/.build/**' \
-  --glob '!*PluginAudioDBData/Sources/Implementation/*'; then
+  --glob '!**/.build/**'; then
   print -u2 'Provider boundary violation: a consumer uses an Audio concrete host or repository.'
   exit 1
 fi

@@ -20,4 +20,4 @@ Cisum 的包只按三类组织：
 Scripts/check-plugin-boundaries.sh
 ```
 
-音频实现归属如下：`PluginAudioDBData` 唯一持有 `AudioModel`、`AudioDB`、`AudioRepo`、SwiftData 容器、文件系统同步和事件桥接；`PluginAudioLike` 唯一持有喜欢的 SwiftData 模型、仓库和配置。`PluginAudio` 只负责根视图和存储可用性门禁，功能插件通过 Kernel 解析协议。新增功能插件时，应先定义 Provider，再在插件内部实现 Provider；外部文件变化放在 Observer，外部写入、播放、复制等动作放在 Capability。
+音频实现归属如下：`PluginAudioDBData` 唯一持有 `AudioModel`、`AudioDB`、`AudioRepo`、SwiftData 容器、文件系统同步和事件桥接；`PluginAudioLike` 唯一持有喜欢的 SwiftData 模型、仓库和配置。音频目录的文件系统同步属于数据一致性机制，由 `PluginAudioDBData` 在自身生命周期内启动、停止和重建，不再由独立的 `PluginAudioJob` 驱动。`PluginAudio` 只负责根视图和存储可用性门禁，功能插件通过 Kernel 解析协议。新增功能插件时，应先定义 Provider，再在插件内部实现 Provider；外部文件变化放在拥有数据一致性职责的插件内部，外部写入、播放、复制等动作放在 Capability。

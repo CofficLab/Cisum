@@ -3,7 +3,6 @@ import MagicKit
 import OSLog
 import ProviderAudioLibrary
 import ProviderAudioNavigation
-import ProviderStorage
 
 /// 音频数据库数据层插件。
 ///
@@ -16,7 +15,7 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
     public static let shared = AudioDBDataPlugin()
     public static let metadata = PluginMetadata(
         displayName: "Audio Database Data",
-        description: "Provides the audio database and repository service.",
+        description: "Provides the audio database and keeps the audio library synchronized.",
         iconName: "externaldrive.badge.timemachine",
         order: 1,
         policy: .alwaysOn,
@@ -26,6 +25,8 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
     nonisolated(unsafe) private weak var kernel: CisumKernel?
     nonisolated(unsafe) private var libraryProvider: AudioLibraryProvider?
     nonisolated(unsafe) private var navigationProvider: AudioTrackNavigationProvider?
+    nonisolated(unsafe) private var storageObserver: AudioStorageObserver?
+    nonisolated(unsafe) private var fileSystemMonitor: AudioFileSystemMonitor?
 
     @MainActor
     public func onBoot(kernel: CisumKernel) async throws {
@@ -35,24 +36,108 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
 
     @MainActor
     public func onReady(kernel: CisumKernel) async throws {
+        self.kernel = kernel
         try installProviders(kernel: kernel)
+        setupStorageLocationObserver(kernel: kernel)
+        startFileSystemMonitor()
     }
 
     @MainActor
     public func onEnable(kernel: CisumKernel) async throws {
         self.kernel = kernel
         try installProviders(kernel: kernel)
+        setupStorageLocationObserver(kernel: kernel)
+        startFileSystemMonitor()
     }
 
     @MainActor
     public func onDisable(kernel: CisumKernel) async throws {
+        teardownSynchronization()
         removeProviders(from: kernel)
     }
 
     @MainActor
     public func onShutdown(kernel: CisumKernel) async throws {
+        teardownSynchronization()
         removeProviders(from: kernel)
         self.kernel = nil
+    }
+
+    // MARK: - Audio library synchronization
+
+    /// 数据插件自行维护文件系统到数据库的同步生命周期。
+    ///
+    /// 目录监控不是一个独立业务插件：它是音频目录数据正确性的基础设施，
+    /// 因此必须和 Provider 的具体实现一起启动、停止和重建。
+    @MainActor
+    private func startFileSystemMonitor() {
+        guard storageObserver != nil, fileSystemMonitor == nil, let provider = libraryProvider else { return }
+
+        let monitor = AudioFileSystemMonitor(
+            diskProvider: {
+                await MainActor.run { provider.audioDisk }
+            },
+            syncItems: { items, isFirst in
+                let disk = await MainActor.run { provider.audioDisk }
+                let shouldFullSync = AudioFileSystemMonitor.shouldPerformFullSync(
+                    isFirst: isFirst,
+                    disk: disk
+                )
+                await provider.sync(
+                    urls: items,
+                    verbose: AudioFileSystemMonitor.verbose,
+                    isFirst: shouldFullSync
+                )
+            },
+            deleteItems: { urls in
+                try await provider.delete(
+                    urls: urls,
+                    verbose: AudioFileSystemMonitor.verbose
+                )
+            }
+        )
+
+        fileSystemMonitor = monitor
+        Task { [monitor] in
+            do {
+                try await monitor.execute()
+            } catch is CancellationError {
+                // Cancellation is the normal path during storage changes or shutdown.
+            } catch {
+                os_log(.error, "❌ Audio library filesystem monitor failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    @MainActor
+    private func setupStorageLocationObserver(kernel: CisumKernel) {
+        guard storageObserver == nil, let storage = kernel.storage else { return }
+        storageObserver = AudioStorageObserver(provider: storage) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                await self?.restartFileSystemMonitor()
+            }
+        }
+    }
+
+    @MainActor
+    private func restartFileSystemMonitor() async {
+        stopFileSystemMonitor()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+        guard storageObserver != nil else { return }
+        startFileSystemMonitor()
+    }
+
+    @MainActor
+    private func stopFileSystemMonitor() {
+        fileSystemMonitor?.cancel()
+        fileSystemMonitor = nil
+    }
+
+    @MainActor
+    private func teardownSynchronization() {
+        storageObserver?.cancel()
+        storageObserver = nil
+        stopFileSystemMonitor()
     }
 
     // MARK: - Provider installation

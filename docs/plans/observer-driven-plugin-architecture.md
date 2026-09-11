@@ -226,7 +226,7 @@ NotificationCenter 不是禁止使用，而是禁止让 View 直接使用：
 1. `PluginPluginManager`：把启用状态变化从 View 的 `.onReceive` 移到 `PluginManagementObserver` + ViewModel。
 2. `PluginDevice`：把设备指标采样/系统通知集中到 `DeviceMetricsObserver`，入口持有所有设备 ViewModel。
 3. `PluginStore`：把交易、恢复购买、订阅状态事件集中到 Store observers 和 Store ViewModel。
-4. `PluginAudioJob`、`PluginAudioCopy`、`PluginStorage` 文件/迁移页面：把文件系统任务和迁移进度回调集中到 Observer/Coordinator，View 只读任务状态。
+4. `PluginAudioDBData`、`PluginAudioCopy`、`PluginStorage` 文件/迁移页面：把音频目录同步和迁移进度回调集中到数据协调器/Observer，View 只读任务状态。
 5. `PluginAudioWidgetControl`、`PluginOpenButton`、`PluginReset`、`PluginWelcome` 等：逐项判断是否有持续外部状态；一次性用户动作不需要为了形式增加 Observer。
 
 验收：所有持续外部状态都有明确 Observer；纯本地选择、搜索和动画状态保留在 View 或本地 ViewModel，不被过度抽象。
