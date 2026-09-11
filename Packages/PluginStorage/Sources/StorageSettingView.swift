@@ -6,12 +6,14 @@ public struct StorageSettingView: View, SuperLog {
     public nonisolated static let emoji: String = "🍴"
 
     @ObservedObject var viewModel: StorageSettingsViewModel
+    let dependencies: StorageDependencies
     @State private var showMigrationProgress = false
     @State private var targetLocation: StoragePluginLocation
     @State private var hasChanges = false
 
-    init(viewModel: StorageSettingsViewModel) {
+    init(viewModel: StorageSettingsViewModel, dependencies: StorageDependencies) {
         self.viewModel = viewModel
+        self.dependencies = dependencies
         _targetLocation = State(initialValue: .local)
     }
 
@@ -85,7 +87,8 @@ public struct StorageSettingView: View, SuperLog {
                 onDismiss: {
                     showMigrationProgress = false
                     self.hasChanges = targetLocation != viewModel.location
-                }
+                },
+                dependencies: dependencies
             )
         }
         .onAppear {

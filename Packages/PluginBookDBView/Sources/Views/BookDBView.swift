@@ -13,7 +13,8 @@ public struct BookDBView: View, SuperLog, SuperThread {
     public nonisolated static let emoji = "🐘"
     public nonisolated static let verbose = false
     
-    @Environment(\.bookDBViewDependencies) private var dependencies
+    private let dependencies: BookDBViewDependencies
+    private let viewModel: BookGridViewModel
     @State private var isFileImporterPresented = false
     @State private var isImportingFiles = false
     @State private var isDropping = false
@@ -25,7 +26,10 @@ public struct BookDBView: View, SuperLog, SuperThread {
     /// Whether to use the list view. Defaults to the grid view.
     private var useListView = false
 
-    public init() {}
+    init(dependencies: BookDBViewDependencies, viewModel: BookGridViewModel) {
+        self.dependencies = dependencies
+        self.viewModel = viewModel
+    }
 
     public var body: some View {
         if Self.verbose {
@@ -33,14 +37,15 @@ public struct BookDBView: View, SuperLog, SuperThread {
         }
         return VStack(spacing: 0) {
             if useListView {
-                BookList()
+                BookList(dependencies: dependencies, viewModel: viewModel)
             } else {
-                BookGrid()
+                BookGrid(
+                    viewModel: viewModel,
+                    dependencies: dependencies,
+                    requestImport: { isFileImporterPresented = true }
+                )
             }
         }
-        .environment(\.bookDBImportAction, {
-            isFileImporterPresented = true
-        })
         .fileImporter(
             isPresented: $isFileImporterPresented,
             allowedContentTypes: [.folder, .audio],

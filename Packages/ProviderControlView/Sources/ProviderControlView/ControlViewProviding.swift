@@ -39,11 +39,15 @@ public protocol ControlViewProviding: AnyObject, ObservableObject {
     /// 注入右侧封面区视图（传 `nil` 不渲染右侧专辑区）。
     func setRightAlbumView(_ view: AnyView?)
 
+    /// 设置播放控制区的演示模式。
+    func setDemoMode(_ enabled: Bool)
+
     @discardableResult
     func addObserver(_ callback: @escaping (ControlViewProvidingEvent) -> Void) -> any ControlViewProvidingObserverHandle
 }
 
 public extension ControlViewProviding {
+    func setDemoMode(_ enabled: Bool) {}
     func setHeroView(_ view: AnyView?) {}
     func setStateView(_ view: AnyView?) {}
     func setProgressView(_ view: AnyView?) {}

@@ -3,8 +3,8 @@ import SwiftUI
 
 /// 播放状态提示。
 struct StateView: View {
-    @Environment(\.demoMode) private var isDemoMode
     @LumiTheme private var appTheme
+    let isDemoMode: Bool
     let stateViews: @MainActor () -> [AnyView]
     let stateMessage: @MainActor () -> String
 

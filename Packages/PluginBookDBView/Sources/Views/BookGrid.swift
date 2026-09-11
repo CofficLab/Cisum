@@ -106,8 +106,9 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
     nonisolated static let emoji = "📖"
     nonisolated static let verbose = false
 
-    @Environment(\.bookDBViewDependencies) private var dependencies
-    @EnvironmentObject var viewModel: BookGridViewModel
+    @ObservedObject var viewModel: BookGridViewModel
+    let dependencies: BookDBViewDependencies
+    let requestImport: @MainActor @Sendable () -> Void
 
     /// Total book count.
     var total: Int { viewModel.books.count }
@@ -117,12 +118,22 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
         false
     }
 
+    init(
+        viewModel: BookGridViewModel,
+        dependencies: BookDBViewDependencies,
+        requestImport: @escaping @MainActor @Sendable () -> Void
+    ) {
+        self._viewModel = ObservedObject(wrappedValue: viewModel)
+        self.dependencies = dependencies
+        self.requestImport = requestImport
+    }
+
     var body: some View {
         Group {
             if viewModel.isLoading {
-                BookDBTips(variant: .loading)
+                BookDBTips(dependencies: dependencies, requestImport: requestImport, variant: .loading)
             } else if total == 0 {
-                BookDBTips(variant: .empty)
+                BookDBTips(dependencies: dependencies, requestImport: requestImport, variant: .empty)
             } else {
                 VStack(spacing: 0) {
                     HStack {
@@ -151,7 +162,13 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
                                     selectedURL: viewModel.selectedBookURL
                                 )
 
-                                BookTile(url: item.url, title: item.bookTitle, childCount: item.childCount)
+                                BookTile(
+                                    url: item.url,
+                                    title: item.bookTitle,
+                                    childCount: item.childCount,
+                                    viewModel: viewModel,
+                                    dependencies: dependencies
+                                )
                                     .overlay(
                                         Rectangle()
                                             .stroke(

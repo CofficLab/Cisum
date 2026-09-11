@@ -7,7 +7,8 @@ import SwiftUI
 struct BookList: View, SuperLog, SuperThread {
     nonisolated static let emoji = "📖"
 
-    @Environment(\.bookDBViewDependencies) private var dependencies
+    private let dependencies: BookDBViewDependencies
+    private let viewModel: BookGridViewModel
 
     @State private var books: [BookDTO] = []
 
@@ -18,9 +19,20 @@ struct BookList: View, SuperLog, SuperThread {
         false
     }
 
+    init(dependencies: BookDBViewDependencies, viewModel: BookGridViewModel) {
+        self.dependencies = dependencies
+        self.viewModel = viewModel
+    }
+
     var body: some View {
         return List(displayableBooks) { item in
-            BookTile(url: item.url, title: item.bookTitle, childCount: item.childCount)
+            BookTile(
+                url: item.url,
+                title: item.bookTitle,
+                childCount: item.childCount,
+                viewModel: viewModel,
+                dependencies: dependencies
+            )
         }
         .task {
             books = await dependencies.bookProvider?.books(reason: "BookList") ?? []

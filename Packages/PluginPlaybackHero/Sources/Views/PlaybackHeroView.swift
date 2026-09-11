@@ -7,15 +7,15 @@ import SwiftUI
 /// 高度不足时只显示标题，否则显示主封面与标题。
 struct PlaybackHeroView: View {
     @ObservedObject private var viewModel: PlaybackHeroViewModel
-    @Environment(\.demoMode) private var isDemoMode
-    @Environment(\.rightAlbumVisible) private var isRightAlbumVisible
     @LumiTheme private var appTheme
     @LumiMotionPreferenceReader private var motionPreference
 
     private let titleViewHeight: CGFloat = 60
+    private let isDemoMode: Bool
 
-    init(viewModel: PlaybackHeroViewModel) {
+    init(viewModel: PlaybackHeroViewModel, isDemoMode: Bool) {
         self.viewModel = viewModel
+        self.isDemoMode = isDemoMode
     }
 
     private var title: String {
@@ -62,8 +62,7 @@ struct PlaybackHeroView: View {
     }
 
     private func shouldShowAlbum(in geometry: GeometryProxy) -> Bool {
-        !isRightAlbumVisible
-            && !CisumPlayerLayout.shouldShowRightAlbum(width: geometry.size.width)
+        !CisumPlayerLayout.shouldShowRightAlbum(width: geometry.size.width)
             && geometry.size.height > CisumPlayerLayout.albumMinimumHeight
     }
 

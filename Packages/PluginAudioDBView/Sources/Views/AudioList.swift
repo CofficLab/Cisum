@@ -187,17 +187,23 @@ struct AudioList: View, SuperLog {
     nonisolated static let emoji = "📬"
     nonisolated static let verbose = false
 
-    @EnvironmentObject var viewModel: AudioListViewModel
+    @ObservedObject var viewModel: AudioListViewModel
+    let dependencies: AudioDBDependencies
     @LumiTheme private var appTheme
+
+    init(viewModel: AudioListViewModel, dependencies: AudioDBDependencies) {
+        self._viewModel = ObservedObject(wrappedValue: viewModel)
+        self.dependencies = dependencies
+    }
 
     var body: some View {
         ZStack {
             audioListView
 
             if viewModel.isLoading && viewModel.urls.isEmpty {
-                AudioDBTips(variant: .loading)
+                AudioDBTips(dependencies: dependencies, variant: .loading)
             } else if viewModel.urls.isEmpty && !viewModel.isLoading {
-                AudioDBTips(variant: .empty)
+                AudioDBTips(dependencies: dependencies, variant: .empty)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -224,13 +230,13 @@ struct AudioList: View, SuperLog {
                 }
 
                 if viewModel.isNotDesktop {
-                    BtnAdd()
+                    BtnAdd(dependencies: dependencies)
                         .font(.title2)
                         .labelStyle(.iconOnly)
                 }
             }, content: {
                 ForEach(Array(viewModel.urls.enumerated()), id: \.element) { index, url in
-                    AudioItemView(url)
+                    AudioItemView(url, listViewModel: viewModel)
                         .equatable() // Use Equatable to reduce unnecessary redraws.
                         .listRowInsets(EdgeInsets())
                         .listRowSeparator(.hidden)

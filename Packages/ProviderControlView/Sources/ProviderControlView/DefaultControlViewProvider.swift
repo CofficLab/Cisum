@@ -12,6 +12,7 @@ public final class DefaultControlViewProvider: ObservableObject, ControlViewProv
     public private(set) var progressView: AnyView?
     public private(set) var controlButtonsView: AnyView?
     public private(set) var rightAlbumView: AnyView?
+    public private(set) var isDemoMode = false
 
     private let stateViews: @MainActor () -> [AnyView]
     private let stateMessage: @MainActor () -> String
@@ -29,12 +30,14 @@ public final class DefaultControlViewProvider: ObservableObject, ControlViewProv
     public func setProgressView(_ view: AnyView?) { progressView = view }
     public func setControlButtonsView(_ view: AnyView?) { controlButtonsView = view }
     public func setRightAlbumView(_ view: AnyView?) { rightAlbumView = view }
+    public func setDemoMode(_ enabled: Bool) { isDemoMode = enabled }
 
     public func makeControlView() -> AnyView {
         AnyView(
             ControlView(
                 stateViews: stateViews,
                 stateMessage: stateMessage,
+                isDemoMode: isDemoMode,
                 heroView: heroView,
                 stateView: stateView,
                 progressView: progressView,

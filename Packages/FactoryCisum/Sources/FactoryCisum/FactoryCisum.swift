@@ -201,6 +201,7 @@ public enum CisumBuilder: SuperLog {
         }
 
         if let control = kernel.resolveProvider((any ControlViewProviding).self) {
+            control.setDemoMode(kernel.appState?.isDemoMode ?? false)
             control.setHeroView(kernel.plugin?.getHeroView())
             control.setRightAlbumView(kernel.plugin?.getRightAlbumView())
             control.setControlButtonsView(kernel.plugin?.getControlButtonsView())
@@ -208,6 +209,7 @@ public enum CisumBuilder: SuperLog {
             root.setControlView(control.makeControlView())
         }
         if let content = kernel.resolveProvider((any ContentViewProviding).self) {
+            content.setDemoMode(kernel.appState?.isDemoMode ?? false)
             refreshContentTabs(content, kernel: kernel)
             root.setContentView(content.makeContentView())
         }

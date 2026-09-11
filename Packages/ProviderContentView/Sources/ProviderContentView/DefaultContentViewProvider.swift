@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor
 public final class DefaultContentViewProvider: ContentViewProviding, ObservableObject {
     @Published public private(set) var tabs: [ContentTabItem] = []
+    @Published public private(set) var isDemoMode = false
     private let eventObservers = ContentViewObserverStore()
 
     public init() {}
@@ -14,8 +15,12 @@ public final class DefaultContentViewProvider: ContentViewProviding, ObservableO
         eventObservers.send(.tabsChanged(ids: self.tabs.map(\.id)))
     }
 
+    public func setDemoMode(_ enabled: Bool) {
+        isDemoMode = enabled
+    }
+
     public func makeContentView() -> AnyView {
-        AnyView(ContentAreaView(provider: self))
+        AnyView(ContentAreaView(provider: self, isDemoMode: isDemoMode))
     }
 
     @discardableResult

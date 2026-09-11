@@ -78,8 +78,10 @@ public actor StoragePlugin: SuperPlugin, SuperLog {
             iconName: StoragePluginInfo.iconName,
             order: 10,
             destination: AnyView(
-                StorageSettingView(viewModel: viewModel)
-                    .pluginStorageDependencies(StorageProvider.makePluginDependencies())
+                StorageSettingView(
+                    viewModel: viewModel,
+                    dependencies: StorageProvider.makePluginDependencies()
+                )
             )
         )
     }

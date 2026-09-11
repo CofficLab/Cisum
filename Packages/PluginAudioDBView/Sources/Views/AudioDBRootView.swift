@@ -8,14 +8,18 @@ public struct AudioDBRootView<Content>: View, SuperLog where Content: View {
     public nonisolated static var emoji: String { "🎵" }
     public nonisolated static var verbose: Bool { true }
 
-    @EnvironmentObject private var rootViewModel: AudioDBRootViewModel
-    @Environment(\.audioDBDependencies) private var dependencies
+    @ObservedObject private var rootViewModel: AudioDBRootViewModel
     private let isDemoMode: Bool
 
     private var content: Content
 
-    public init(isDemoMode: Bool, @ViewBuilder content: () -> Content) {
+    init(
+        isDemoMode: Bool,
+        rootViewModel: AudioDBRootViewModel,
+        @ViewBuilder content: () -> Content
+    ) {
         self.isDemoMode = isDemoMode
+        self._rootViewModel = ObservedObject(wrappedValue: rootViewModel)
         self.content = content()
     }
 

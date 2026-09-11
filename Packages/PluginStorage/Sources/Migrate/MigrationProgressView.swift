@@ -34,7 +34,6 @@ enum MigrationProgressErrorMessagePolicy {
 }
 
 struct MigrationProgressView: View {
-    @Environment(\.pluginStorageDependencies) private var dependencies
     @LumiTheme private var appTheme
     @StateObject private var migrationManager = MigrationManager()
     let sourceLocation: StoragePluginLocation?
@@ -42,6 +41,7 @@ struct MigrationProgressView: View {
     let sourceURL: URL?
     let targetURL: URL?
     let onDismiss: () -> Void
+    let dependencies: StorageDependencies
 
     @State private var processedFiles: [FileStatus] = []
     @State private var sourceFiles: [String] = []
@@ -167,6 +167,7 @@ struct MigrationProgressView: View {
         VStack(spacing: 5) {
             GroupBox {
                 RepositoryInfoView(
+                    isDesktop: dependencies.isDesktop,
                     title: String(localized: "Source Library", bundle: .module),
                     location: sourceLocation,
                     url: sourceURL
@@ -184,6 +185,7 @@ struct MigrationProgressView: View {
 
             GroupBox {
                 RepositoryInfoView(
+                    isDesktop: dependencies.isDesktop,
                     title: String(localized: "Target Library", bundle: .module),
                     location: targetLocation,
                     url: targetURL

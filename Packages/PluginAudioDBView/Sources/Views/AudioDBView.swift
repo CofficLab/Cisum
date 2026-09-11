@@ -14,8 +14,9 @@ public struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
     public nonisolated static let emoji = "🐘"
     public nonisolated static let verbose = false
 
-    @Environment(\.audioDBDependencies) private var dependencies
-    @EnvironmentObject private var dbViewModel: AudioDBViewModel
+    @ObservedObject private var dbViewModel: AudioDBViewModel
+    private let listViewModel: AudioListViewModel
+    private let dependencies: AudioDBDependencies
     @LumiTheme private var appTheme
     private let isDemoMode: Bool
 
@@ -25,8 +26,16 @@ public struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
     /// 是否正在复制导入文件
     @State private var isImportingFiles: Bool = false
 
-    public init(isDemoMode: Bool) {
+    init(
+        isDemoMode: Bool,
+        listViewModel: AudioListViewModel,
+        dbViewModel: AudioDBViewModel,
+        dependencies: AudioDBDependencies
+    ) {
         self.isDemoMode = isDemoMode
+        self.listViewModel = listViewModel
+        self._dbViewModel = ObservedObject(wrappedValue: dbViewModel)
+        self.dependencies = dependencies
     }
 
     public var body: some View {
@@ -38,12 +47,16 @@ public struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
             if isDemoMode {
                 EmptyView()
             } else {
-                AudioList()
+                AudioList(viewModel: listViewModel, dependencies: dependencies)
             }
         }
         .overlay(alignment: .center) {
             if dbViewModel.isSorting {
-                AudioDBTips(variant: .sorting, sortingMessage: dbViewModel.sortMode.description)
+                AudioDBTips(
+                    dependencies: dependencies,
+                    variant: .sorting,
+                    sortingMessage: dbViewModel.sortMode.description
+                )
                     .transition(.opacity)
             }
         }

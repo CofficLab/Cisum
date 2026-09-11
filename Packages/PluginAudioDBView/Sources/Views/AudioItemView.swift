@@ -125,7 +125,7 @@ struct AudioItemView: View, Equatable, SuperLog {
     nonisolated static let emoji = "🎵"
     nonisolated static let verbose = false
 
-    @EnvironmentObject var listViewModel: AudioListViewModel
+    @ObservedObject var listViewModel: AudioListViewModel
     @LumiTheme private var appTheme
 
     let url: URL
@@ -140,8 +140,9 @@ struct AudioItemView: View, Equatable, SuperLog {
         lhs.url == rhs.url
     }
 
-    init(_ url: URL) {
+    init(_ url: URL, listViewModel: AudioListViewModel) {
         self.url = url
+        self._listViewModel = ObservedObject(wrappedValue: listViewModel)
     }
 }
 

@@ -1,4 +1,4 @@
-import SwiftUI
+import Foundation
 
 public struct StorageDependencies: @unchecked Sendable {
     public var getStorageLocation: () -> StoragePluginLocation?
@@ -32,21 +32,4 @@ public struct StorageDependencies: @unchecked Sendable {
         postStorageLocationUpdated: {},
         isDesktop: true
     )
-}
-
-private struct StorageDependenciesKey: EnvironmentKey {
-    static let defaultValue: StorageDependencies = .preview
-}
-
-public extension EnvironmentValues {
-    var pluginStorageDependencies: StorageDependencies {
-        get { self[StorageDependenciesKey.self] }
-        set { self[StorageDependenciesKey.self] = newValue }
-    }
-}
-
-public extension View {
-    func pluginStorageDependencies(_ dependencies: StorageDependencies) -> some View {
-        environment(\.pluginStorageDependencies, dependencies)
-    }
 }

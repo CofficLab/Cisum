@@ -20,14 +20,3 @@ public struct BookDBDependencies: @unchecked Sendable {
         bookDisk: { nil }
     )
 }
-
-private struct BookDBDependenciesKey: EnvironmentKey {
-    static let defaultValue = BookDBDependencies.empty
-}
-
-public extension EnvironmentValues {
-    var bookDBDependencies: BookDBDependencies {
-        get { self[BookDBDependenciesKey.self] }
-        set { self[BookDBDependenciesKey.self] = newValue }
-    }
-}

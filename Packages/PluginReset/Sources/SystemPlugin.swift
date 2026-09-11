@@ -16,9 +16,12 @@ public actor SystemPlugin: SuperPlugin, SuperLog {
         category: .system,
     )
 
+    nonisolated(unsafe) private weak var kernel: CisumKernel?
+
 
     @MainActor
     public func onRegister(kernel: CisumKernel) async throws {
+        self.kernel = kernel
         if let docs = kernel.docs {
             docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { SystemPluginAboutView() })
             docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { SystemPluginManualView() })
@@ -33,13 +36,21 @@ public actor SystemPlugin: SuperPlugin, SuperLog {
             description: Self.metadata.description,
             iconName: "gearshape.2",
             order: ResetPluginInfo.order,
-            destination: AnyView(SystemPluginSettingView())
+            destination: AnyView(
+                SystemPluginSettingView(
+                    resetSettings: { [weak self] in
+                        await MainActor.run {
+                            self?.kernel?.storage?.resetStorageLocation()
+                        }
+                    }
+                )
+            )
         )
     }
 }
 
 private struct SystemPluginSettingView: View {
-    @Environment(\.resetSettingsAction) private var resetSettings
+    let resetSettings: @Sendable () async -> Void
 
     var body: some View {
         SystemSetting(

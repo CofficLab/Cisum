@@ -55,7 +55,12 @@ public actor PlaybackHeroPlugin: SuperPlugin, SuperLog {
     public func addHeroView() -> AnyView? {
         installState(kernel: kernel)
         guard let viewModel else { return nil }
-        return AnyView(PlaybackHeroView(viewModel: viewModel))
+        return AnyView(
+            PlaybackHeroView(
+                viewModel: viewModel,
+                isDemoMode: kernel?.appState?.isDemoMode ?? false
+            )
+        )
     }
 
     /// 向宽窗口的右侧专辑区域注入同一份播放状态驱动的媒体视图。

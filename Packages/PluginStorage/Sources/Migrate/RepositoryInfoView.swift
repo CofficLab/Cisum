@@ -15,7 +15,7 @@ enum RepositoryInfoActionPolicy {
 
 struct RepositoryInfoView: View {
     @LumiTheme private var appTheme
-    @Environment(\.pluginStorageDependencies) private var dependencies
+    let isDesktop: Bool
 
     let title: String
     let location: StoragePluginLocation?
@@ -49,7 +49,7 @@ struct RepositoryInfoView: View {
                 .foregroundColor(.secondary)
             Spacer()
 
-            if let path = url?.path, dependencies.isDesktop {
+            if let path = url?.path, isDesktop {
                 Text(path)
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -61,7 +61,7 @@ struct RepositoryInfoView: View {
             Spacer()
 
             if let root = url,
-               dependencies.isDesktop,
+               isDesktop,
                RepositoryInfoActionPolicy.canOpenInFinder(root) {
                 root.makeOpenButton()
             }

@@ -43,6 +43,10 @@ public protocol ContentViewProviding: AnyObject, ObservableObject {
     /// 设置内容区 Tab 列表（传空数组表示清空，回退到占位）。
     func setTabs(_ tabs: [ContentTabItem])
 
+    /// 设置内容区的演示模式。演示模式是内容 Provider 的显式输入，
+    /// 不通过 SwiftUI 环境向下查找。
+    func setDemoMode(_ enabled: Bool)
+
     /// 返回当前主内容视图；未设置 Tab 时返回占位视图。
     func makeContentView() -> AnyView
 
@@ -51,6 +55,8 @@ public protocol ContentViewProviding: AnyObject, ObservableObject {
 }
 
 public extension ContentViewProviding {
+    func setDemoMode(_ enabled: Bool) {}
+
     @discardableResult
     func addObserver(_ callback: @escaping (ContentViewProvidingEvent) -> Void) -> any ContentViewProvidingObserverHandle {
         NoopContentViewProvidingObserverHandle()

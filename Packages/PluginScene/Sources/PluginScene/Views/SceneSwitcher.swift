@@ -21,8 +21,7 @@ struct SceneSwitcher: View {
                 Image(systemName: current.iconName)
             }
             .popover(isPresented: $isPresented) {
-                PostersView(viewModel: viewModel)
-                    .environment(\.posterDismissAction, { isPresented = false })
+                PostersView(viewModel: viewModel, dismissAction: { isPresented = false })
                     .frame(minWidth: 350)
             }
         }
@@ -40,6 +39,7 @@ private struct PostersView: View {
     }
 
     @ObservedObject var viewModel: SceneSettingsViewModel
+    let dismissAction: @MainActor () -> Void
     @State private var selectedID = ""
     @State private var items: [Item] = []
 
@@ -81,7 +81,8 @@ private struct PostersView: View {
                         title: title,
                         description: description,
                         enterTitle: String(localized: "Enter Scene", bundle: .module),
-                        enterAction: { viewModel.select(scene) }
+                        enterAction: { viewModel.select(scene) },
+                        dismissAction: dismissAction
                     )
                 )
             )

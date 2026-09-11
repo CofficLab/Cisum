@@ -91,6 +91,12 @@ public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
                 audioLibrary: audioLibraryProvider,
                 audioDisk: audioDiskProvider,
                 audioDiagnostics: audioDiagnosticsProvider,
+                isDemoMode: kernel?.appState?.isDemoMode ?? false,
+                isImporting: Binding(
+                    get: { self.kernel?.appState?.isImporting ?? false },
+                    set: { self.kernel?.appState?.setImporting($0) }
+                ),
+                showDBView: { self.kernel?.appState?.showDBView() },
                 content: content
             )
         )
@@ -110,6 +116,11 @@ public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
                 audioLibrary: audioLibraryProvider,
                 audioDisk: audioDiskProvider,
                 audioDiagnostics: audioDiagnosticsProvider,
+                isImporting: Binding(
+                    get: { self.kernel?.appState?.isImporting ?? false },
+                    set: { self.kernel?.appState?.setImporting($0) }
+                ),
+                showDBView: { self.kernel?.appState?.showDBView() },
                 demoMode: demoMode
             )),
             String(localized: "Music Repository", bundle: .module)
@@ -138,10 +149,11 @@ public actor AudioDBViewPlugin: SuperPlugin, SuperLog {
             // 使用独立值确保「通用」（order=1）排在最前。
             order: 10,
             destination: AnyView(
-                AudioDBSettingView()
-                    .environmentObject(settingList)
-                    .environmentObject(settingTree)
-                    .environment(\.audioDBDependencies, settingDependencies)
+                AudioDBSettingView(
+                    viewModel: settingList,
+                    treeViewModel: settingTree,
+                    dependencies: settingDependencies
+                )
             )
         )
     }

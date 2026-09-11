@@ -2,7 +2,6 @@ import CisumUIComponents
 import Foundation
 import KernelCore
 import MagicKit
-import PluginToast
 import SwiftUI
 
 /// Factory 根视图桥接层。
@@ -55,24 +54,6 @@ struct KernelRootView: View {
             let bridged = wrap(assembledContent)
             // 插件贡献变化（.id 变化）时整棵子树重建，重新注入内容 Tab 等。
             .id(contributionRevision)
-            .environment(\.demoMode, kernel.appState?.isDemoMode ?? false)
-            .environment(
-                \.appIsImporting,
-                Binding(
-                    get: { kernel.appState?.isImporting ?? false },
-                    set: { kernel.appState?.setImporting($0) }
-                )
-            )
-            .environment(\.showAudioDBViewAction, { kernel.appState?.showDBView() })
-            .environment(\.pluginThemes, kernel.theme?.allThemeContributions ?? [])
-            .environment(\.currentPluginThemeId, kernel.theme?.selectedThemeID ?? "")
-            .environment(\.selectPluginThemeAction, { themeID in kernel.theme?.selectTheme(themeID) })
-            .environment(\.resetSettingsAction, {
-                Task { @MainActor in
-                    FactoryCisum.mainKernel?.storage?.resetStorageLocation()
-                }
-            })
-            .environment(\.toastProviding, kernel.toast)
             bridged
         } else {
             ProgressView("Loading…")

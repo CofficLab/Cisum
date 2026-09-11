@@ -10,6 +10,7 @@ import SwiftUI
 struct ControlView: View {
     let stateViews: @MainActor () -> [AnyView]
     let stateMessage: @MainActor () -> String
+    let isDemoMode: Bool
     var heroView: AnyView? = nil
     var stateView: AnyView? = nil
     var progressView: AnyView? = nil
@@ -67,10 +68,7 @@ struct ControlView: View {
     @ViewBuilder
     private func heroArea(for geometry: GeometryProxy) -> some View {
         if let heroView {
-            heroView.environment(
-                \.rightAlbumVisible,
-                shouldShowRightAlbum(geometry)
-            )
+            heroView
         }
     }
 
@@ -79,7 +77,7 @@ struct ControlView: View {
         if let stateView {
             stateView
         } else {
-            StateView(stateViews: stateViews, stateMessage: stateMessage)
+            StateView(isDemoMode: isDemoMode, stateViews: stateViews, stateMessage: stateMessage)
         }
     }
 

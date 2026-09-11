@@ -64,7 +64,12 @@ public actor AudioDemoPlugin: SuperPlugin, SuperLog {
         guard demoMode else { return nil }
 
         let addButton = AnyView(
-            AudioDemoAddButton()
+            AudioDemoAddButton(
+                isImporting: Binding<Bool>(
+                    get: { self.kernel?.appState?.isImporting ?? false },
+                    set: { self.kernel?.appState?.setImporting($0) }
+                )
+            )
                 .font(.title2)
                 .labelStyle(.iconOnly)
         )
