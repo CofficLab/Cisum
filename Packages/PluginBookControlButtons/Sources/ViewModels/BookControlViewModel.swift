@@ -85,7 +85,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
             Self.log.debug("\(Self.tag)⏮️ Previous chapter button tapped")
         }
         guard let asset = playbackCapability?.currentURL else {
-            reportUnavailable(operation: "play previous chapter", message: "There is no current audiobook chapter.")
+            reportUnavailable(operation: "play previous chapter", message: String(localized: "There is no current audiobook chapter.", bundle: .module))
             return
         }
         handlePreviousRequested(asset)
@@ -96,7 +96,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
             Self.log.debug("\(Self.tag)⏭️ Next chapter button tapped")
         }
         guard let asset = playbackCapability?.currentURL else {
-            reportUnavailable(operation: "play next chapter", message: "There is no current audiobook chapter.")
+            reportUnavailable(operation: "play next chapter", message: String(localized: "There is no current audiobook chapter.", bundle: .module))
             return
         }
         handleNextRequested(asset)
@@ -165,7 +165,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
                 }
             } else {
                 Self.log.error("\(Self.tag) No previous chapter")
-                presentError(title: "Cannot play previous chapter", message: "No previous chapter is available.")
+                presentError(title: String(localized: "Cannot play previous chapter", bundle: .module), message: String(localized: "No previous chapter is available.", bundle: .module))
             }
         }
     }
@@ -207,7 +207,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
                 }
             } else {
                 Self.log.error("\(Self.tag) No next chapter")
-                presentError(title: "Cannot play next chapter", message: "No next chapter is available.")
+                presentError(title: String(localized: "Cannot play next chapter", bundle: .module), message: String(localized: "No next chapter is available.", bundle: .module))
             }
         }
     }
@@ -294,9 +294,9 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     }
 
     private func reportUnavailable(operation: String, message: String? = nil) {
-        let message = message ?? "The playback service is unavailable."
+        let message = message ?? String(localized: "The playback service is unavailable.", bundle: .module)
         Self.log.error("\(Self.tag) Cannot \(operation): \(message)")
-        presentError(title: "Audiobook controls unavailable", message: message)
+        presentError(title: String(localized: "Audiobook controls unavailable", bundle: .module), message: message)
     }
 
     private func presentError(title: String, message: String) {

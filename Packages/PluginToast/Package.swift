@@ -28,7 +28,8 @@ let package = Package(
             ],
             path: ".",
             exclude: ["Tests"],
-            sources: ["Sources/PluginToast"]
+            sources: ["Sources/PluginToast"],
+            resources: [.process("Resources")]
         ),
         .testTarget(
             name: "PluginToastTests",
