@@ -51,10 +51,16 @@ public final class PlaybackProvider: PlaybackProviding, PlaybackMediaProviding, 
     // MARK: - PlaybackProviding actions
 
     public func play(_ url: URL) async {
+        if Self.verbose {
+            Self.logger.info("\(Self.t)🚀 play: \(url.lastPathComponent)")
+        }
         await playback.play(url, reason: "PlaybackProvider.play")
     }
 
     public func play(_ url: URL, startTime: TimeInterval?) async {
+        if Self.verbose {
+            Self.logger.info("\(Self.t)🚀 play from \(startTime ?? 0)s: \(url.lastPathComponent)")
+        }
         await playback.play(
             url,
             autoPlay: false,
@@ -63,8 +69,23 @@ public final class PlaybackProvider: PlaybackProviding, PlaybackMediaProviding, 
         )
     }
 
-    public func pause() { playback.pause(reason: "PlaybackProvider.pause") }
-    public func toggle() { playback.toggle(reason: "PlaybackProvider.toggle") }
+    public func pause() {
+        if Self.verbose {
+            let asset = playback.currentURL?.lastPathComponent ?? "nil"
+            Self.logger.info("\(Self.t)⏸️ pause; asset=\(asset)")
+        }
+        playback.pause(reason: "PlaybackProvider.pause")
+    }
+
+    public func toggle() {
+        if Self.verbose {
+            let asset = playback.currentURL?.lastPathComponent ?? "nil"
+            let state = String(describing: playback.state)
+            let isPlaying = playback.state.isPlaying
+            Self.logger.info("\(Self.t)⏯️ toggle; asset=\(asset), isPlaying=\(isPlaying), state=\(state)")
+        }
+        playback.toggle(reason: "PlaybackProvider.toggle")
+    }
     public func seek(toProgress progress: Double) {
         let normalizedProgress = min(max(progress, 0), 1)
         playback.seek(
@@ -75,14 +96,38 @@ public final class PlaybackProvider: PlaybackProviding, PlaybackMediaProviding, 
     public func seek(toTime time: TimeInterval) {
         playback.seek(time: time, reason: "PlaybackProvider.seekTime")
     }
-    public func next() { playback.next() }
-    public func previous() { playback.previous() }
+    public func next() {
+        if Self.verbose {
+            Self.logger.info("\(Self.t)➡️ next")
+        }
+        playback.next()
+    }
+    public func previous() {
+        if Self.verbose {
+            Self.logger.info("\(Self.t)⬅️ previous")
+        }
+        playback.previous()
+    }
     public func setPlayMode(_ mode: PlaybackMode) {
+        if Self.verbose {
+            Self.logger.info("\(Self.t)🔁 setPlayMode: \(mode.rawValue)")
+        }
         playback.changePlayMode(MagicPlayMode(rawValue: mode.rawValue) ?? .sequence)
     }
     public func toggleCurrentLike() { playback.toggleLike() }
-    public func reset() async { await playback.reset(reason: "PlaybackProvider.reset") }
-    public func togglePlayMode() { playback.togglePlayMode() }
+    public func reset() async {
+        if Self.verbose {
+            Self.logger.info("\(Self.t)🔄 reset")
+        }
+        await playback.reset(reason: "PlaybackProvider.reset")
+    }
+    public func togglePlayMode() {
+        if Self.verbose {
+            let mode = playback.playMode.rawValue
+            Self.logger.info("\(Self.t)🔁 togglePlayMode; current=\(mode)")
+        }
+        playback.togglePlayMode()
+    }
 
     @discardableResult
     public func addObserver(
