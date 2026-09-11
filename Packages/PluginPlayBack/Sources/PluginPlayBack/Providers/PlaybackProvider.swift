@@ -3,6 +3,7 @@ import Foundation
 import MagicPlayMan
 import MagicKit
 import ProviderPlayback
+import os
 
 /// `PlaybackProviding` 的转发实现。
 ///
@@ -12,12 +13,15 @@ import ProviderPlayback
 @MainActor
 public final class PlaybackProvider: ObservableObject, PlaybackProviding, SuperLog {
     nonisolated public static let verbose = false
+    nonisolated public static let logger = Logger(subsystem: "com.coffic.cisum", category: "plugin.playback")
 
     private let playback: MagicPlayMan
 
     public init(playback: MagicPlayMan) {
         self.playback = playback
-        print("\(Self.t)初始化播放 Provider")
+        if Self.verbose {
+            Self.logger.info("\(Self.t)初始化播放 Provider")
+        }
     }
 
     // MARK: - PlaybackProviding 属性转发
@@ -61,62 +65,86 @@ public final class PlaybackProvider: ObservableObject, PlaybackProviding, SuperL
     // MARK: - PlaybackProviding 方法转发
 
     public func play(_ url: URL) async {
-        print("\(Self.t)播放请求\(r(url.lastPathComponent))")
+        if Self.verbose {
+            Self.logger.info("\(Self.t)播放请求\(self.r(url.lastPathComponent))")
+        }
         await playback.play(url)
     }
 
     public func play(_ url: URL, startTime: TimeInterval?) async {
-        print("\(Self.t)播放请求\(r(url.lastPathComponent))，起始时间: \(startTime ?? 0)")
+        if Self.verbose {
+            Self.logger.info("\(Self.t)播放请求\(self.r(url.lastPathComponent))，起始时间: \(startTime ?? 0)")
+        }
         await playback.play(url, startTime: startTime)
     }
 
     public func pause() {
-        print("\(Self.t)暂停播放")
+        if Self.verbose {
+            Self.logger.info("\(Self.t)暂停播放")
+        }
         playback.pause()
     }
 
     public func toggle() {
-        print("\(Self.t)切换播放/暂停")
+        if Self.verbose {
+            Self.logger.info("\(Self.t)切换播放/暂停")
+        }
         playback.toggle()
     }
 
     public func seek(toProgress progress: Double) {
-        print("\(Self.t)跳转到进度\(r("\(progress)"))")
+        if Self.verbose {
+            Self.logger.info("\(Self.t)跳转到进度\(self.r("\(progress)"))")
+        }
         playback.seek(toProgress: progress)
     }
 
     public func seek(toTime time: TimeInterval) {
-        print("\(Self.t)跳转到时间\(r("\(time)"))")
+        if Self.verbose {
+            Self.logger.info("\(Self.t)跳转到时间\(self.r("\(time)"))")
+        }
         playback.seek(toTime: time)
     }
 
     public func next() {
-        print("\(Self.t)下一首")
+        if Self.verbose {
+            Self.logger.info("\(Self.t)下一首")
+        }
         playback.next()
     }
 
     public func previous() {
-        print("\(Self.t)上一首")
+        if Self.verbose {
+            Self.logger.info("\(Self.t)上一首")
+        }
         playback.previous()
     }
 
     public func setPlayMode(_ mode: MagicPlayMode) {
-        print("\(Self.t)设置播放模式\(r("\(mode)"))")
+        if Self.verbose {
+            Self.logger.info("\(Self.t)设置播放模式\(self.r("\(mode)"))")
+        }
         playback.setPlayMode(mode)
     }
 
     public func toggleCurrentLike() {
-        print("\(Self.t)切换喜欢状态")
+        if Self.verbose {
+            Self.logger.info("\(Self.t)切换喜欢状态")
+        }
         playback.toggleCurrentLike()
     }
 
     public func reset() async {
-        print("\(Self.t)重置播放器")
+        if Self.verbose {
+            Self.logger.info("\(Self.t)重置播放器")
+        }
         await playback.reset()
     }
 
     public func togglePlayMode() {
-        print("\(Self.t)切换播放模式")
+        if Self.verbose {
+            Self.logger.info("\(Self.t)切换播放模式")
+        }
         playback.togglePlayMode()
     }
 
