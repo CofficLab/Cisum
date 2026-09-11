@@ -360,10 +360,10 @@ extension AudioItemView {
 
     /// 播放音频
     private func playAudio() {
-        os_log("\(Self.t)🖱️ Row action fired: \(url.lastPathComponent)")
+        if Self.verbose { os_log("\(Self.t)🖱️ Row action fired: \(url.lastPathComponent)") }
         Task {
             listViewModel.userSelected(url)
-            os_log("\(Self.t)✅ Row action forwarded to AudioListViewModel: \(url.lastPathComponent)")
+            if Self.verbose { os_log("\(Self.t)✅ Row action forwarded to AudioListViewModel: \(url.lastPathComponent)") }
         }
     }
 
