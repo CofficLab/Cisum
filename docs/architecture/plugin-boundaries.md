@@ -21,3 +21,9 @@ Scripts/check-plugin-boundaries.sh
 ```
 
 音频实现归属如下：`PluginAudioDBData` 唯一持有 `AudioModel`、`AudioDB`、`AudioRepo`、SwiftData 容器、文件系统同步和事件桥接；`PluginAudioLike` 唯一持有喜欢的 SwiftData 模型、仓库和配置。音频目录的文件系统同步属于数据一致性机制，由 `PluginAudioDBData` 在自身生命周期内启动、停止和重建，不再由独立的 `PluginAudioJob` 驱动。`PluginAudio` 只负责根视图和存储可用性门禁，功能插件通过 Kernel 解析协议。新增功能插件时，应先定义 Provider，再在插件内部实现 Provider；外部文件变化放在拥有数据一致性职责的插件内部，外部写入、播放、复制等动作放在 Capability。
+
+## 播放链路
+
+`ProviderPlayback` 只定义中立的播放状态、模式、快照、命令和事件，以及可取消的 Observer 句柄。它不导入 `MagicPlayMan`，也不依赖某个插件的实现。`PluginPlayBack` 创建并持有 `MagicPlayMan`，将底层事件翻译成 `PlaybackProvidingEvent`，通过 Provider 自己的 `PlaybackObserverStore` 发送。
+
+播放功能插件在自己的 `Observers/` 中订阅 `PlaybackProviding`，把事件写入自己的 ViewModel；视图只接收 ViewModel 或显式能力对象。`FactoryCisum` 和 `ProviderControlView` 只负责区域装配，不读取播放器具体类型，也不注入 `MagicPlayMan` 环境对象。播放封面和右侧专辑区都是 `PluginPlaybackHero` 的贡献槽位，因此布局 Provider 不需要播放回退实现。

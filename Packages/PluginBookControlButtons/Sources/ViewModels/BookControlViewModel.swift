@@ -4,6 +4,7 @@ import MagicPlayMan
 import OSLog
 import ProviderBook
 import ProviderBook
+import ProviderPlayback
 import ProviderScene
 import ProviderToast
 import SwiftUI
@@ -63,7 +64,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
         }
     }
 
-    func applyStateChanged(_ state: PlaybackState) {
+    func applyStateChanged(_ state: PlaybackStatus) {
         isPlaying = state == .playing
     }
 

@@ -18,7 +18,9 @@ final class PlaybackCapabilityAdapter: PlaybackCapability, SuperLog {
 
     var isPlaying: Bool { playback.isPlaying }
 
-    var playMode: MagicPlayMode { playback.playMode }
+    var playMode: MagicPlayMode {
+        MagicPlayMode(rawValue: playback.playMode.rawValue) ?? .sequence
+    }
 
     func toggle() { playback.toggle() }
 

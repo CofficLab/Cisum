@@ -11,9 +11,8 @@ import SwiftUI
 /// `PlaybackProviding` 注入内核，并维护当前播放文件的磁盘持久化与恢复。
 ///
 /// 原先由 `FactoryCisum` 直接创建 `MagicPlayMan` 并 `registerPlayback`，
-/// 现收拢到本插件的 `onBoot`：插件持有播放引擎生命周期，内核通过
-/// `kernel.playback` 解析到 `MagicPlayMan` 实例（UI 层仍可
-/// `as? MagicPlayMan` 注入 `@EnvironmentObject`）。
+/// 现收拢到本插件的 `onBoot`：插件持有播放引擎生命周期，内核只看到
+/// `PlaybackProviding` 能力；具体播放引擎不会泄漏到视图层。
 ///
 /// ## 播放文件持久化
 /// 内核存在场景概念（`AppScene` 固定枚举），因此当前播放文件按「场景 + 文件」
@@ -37,6 +36,7 @@ public actor PluginPlayBack: SuperPlugin {
 
     /// 持有的播放引擎；onBoot 时创建并注册为 `PlaybackProviding`。
     nonisolated(unsafe) public private(set) var magicPlayMan: MagicPlayMan?
+    nonisolated(unsafe) private var playbackProvider: PlaybackProvider?
 
     /// 当前播放文件的磁盘存储（onBoot 时从 kernel.storage 创建）。
     nonisolated(unsafe) private var stateStore: PlaybackStateStore?
@@ -69,7 +69,9 @@ public actor PluginPlayBack: SuperPlugin {
         
         // 使用 PlaybackProvider 包装并注册为 PlaybackProviding
         let playbackProvider = PlaybackProvider(playback: player)
+        self.playbackProvider = playbackProvider
         try kernel.registerPlayback(playbackProvider)
+        try kernel.registerProvider((any PlaybackMediaProviding).self, playbackProvider)
 
         // 持久化存储（order 12 在 StoragePlugin 之后，kernel.storage 已可用）
         guard let storage = kernel.storage else { return }
@@ -77,7 +79,7 @@ public actor PluginPlayBack: SuperPlugin {
         stateStore = store
 
         // 监听播放文件变化，记录到当前场景的磁盘槽位（场景由 sceneObserver 提供）
-        observerHandle = player.addObserver { [weak self] event in
+        observerHandle = playbackProvider.addObserver { [weak self] event in
             guard case .assetChanged(let url) = event else { return }
             self?.sceneObserver?.saveCurrentFile(url)
         }
@@ -105,6 +107,9 @@ public actor PluginPlayBack: SuperPlugin {
         settingsPlaybackObserver = nil
         settingsViewModel = nil
         stateStore = nil
+        playbackProvider?.shutdown()
+        kernel.unregisterProvider((any PlaybackMediaProviding).self)
+        playbackProvider = nil
         magicPlayMan = nil
     }
 
@@ -126,7 +131,7 @@ public actor PluginPlayBack: SuperPlugin {
         guard let store = stateStore else { return nil }
         let viewModel = PluginPlayBackSettingsViewModel(
             store: store,
-            playbackCapability: makePlaybackSettingsCapability(from: magicPlayMan)
+            playbackCapability: makePlaybackSettingsCapability(from: playbackProvider)
         )
         settingsViewModel = viewModel
         return viewModel
@@ -142,8 +147,8 @@ public actor PluginPlayBack: SuperPlugin {
 
     /// 设置窗口入口：按场景展示各场景最近播放文件与当前播放详情。
     ///
-    /// 注入 `PluginPlayBackSettingsViewModel` 作为环境数据（场景切换时刷新），
-    /// 并注入 `MagicPlayMan` 作为环境对象，播放详情随播放状态实时刷新
+    /// 视图只接收 `PluginPlayBackSettingsViewModel`，播放详情由
+    /// `PlaybackSettingsPlaybackObserver` 根据 Provider 事件实时刷新
     /// （`currentURL` / `isPlaying` / `duration` / `currentTime`）。
     @MainActor
     public func addSettingNavigationItem() -> PluginSettingNavigationItem? {

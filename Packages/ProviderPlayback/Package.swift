@@ -11,19 +11,21 @@ let package = Package(
     products: [
         .library(name: "ProviderPlayback", targets: ["ProviderPlayback"]),
     ],
-    dependencies: [
-        .package(name: "MagicPlayMan", path: "../MagicPlayMan"),
-    ],
+    dependencies: [],
     targets: [
         .target(
             name: "ProviderPlayback",
-            dependencies: [
-                .product(name: "MagicPlayMan", package: "MagicPlayMan"),
-            ],
+            dependencies: [],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources/ProviderPlayback"],
             resources: [.process("Resources")]
         ),
+        .testTarget(
+            name: "ProviderPlaybackTests",
+            dependencies: ["ProviderPlayback"],
+            path: "Tests"
+        )
     ],
     swiftLanguageModes: [.v5]
 )

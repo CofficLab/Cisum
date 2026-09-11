@@ -1,5 +1,5 @@
 import Foundation
-import MagicPlayMan
+import ProviderPlayback
 import ProviderScene
 import MagicKit
 
@@ -19,7 +19,7 @@ final class PluginPlayBackSettingsViewModel: ObservableObject, SuperLog {
     @Published private(set) var currentScene: AppScene?
     @Published private(set) var currentURL: URL?
     @Published private(set) var isPlaying = false
-    @Published private(set) var state: PlaybackState = .idle
+    @Published private(set) var state: PlaybackStatus = .idle
     @Published private(set) var currentTime: TimeInterval = 0
     @Published private(set) var duration: TimeInterval = 0
 
@@ -42,7 +42,7 @@ final class PluginPlayBackSettingsViewModel: ObservableObject, SuperLog {
         currentURL = url
     }
 
-    func handleStateChanged(_ state: PlaybackState) {
+    func handleStateChanged(_ state: PlaybackStatus) {
         self.state = state
         isPlaying = state == .playing
     }

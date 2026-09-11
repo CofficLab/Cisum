@@ -3,7 +3,7 @@ import SwiftUI
 /// 默认 `ControlViewProviding` 实现：返回内置的播放控制区（`ControlView`）。
 ///
 /// 支持外部通过 `setXxxView(_:)` 分别注入控制区各区块视图（封面 / 状态 /
-/// 进度 / 操作按钮 / 右侧封面），未注入时回退到内置默认实现。操作按钮组
+/// 进度 / 操作按钮 / 右侧封面），未注入时不渲染对应播放区块。操作按钮组
 /// 由插件通过 `setControlButtonsView(_:)` 提供。
 @MainActor
 public final class DefaultControlViewProvider: ObservableObject, ControlViewProviding {

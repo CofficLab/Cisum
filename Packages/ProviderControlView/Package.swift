@@ -13,16 +13,12 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "CisumUIComponents", path: "../CisumUIComponents"),
-        .package(name: "MagicPlayMan", path: "../MagicPlayMan"),
-        .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
     ],
     targets: [
         .target(
             name: "ProviderControlView",
             dependencies: [
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
-                .product(name: "MagicPlayMan", package: "MagicPlayMan"),
-                .product(name: "ProviderPlayback", package: "ProviderPlayback"),
             ],
             path: ".",
             sources: ["Sources/ProviderControlView"],

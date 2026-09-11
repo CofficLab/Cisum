@@ -29,10 +29,14 @@ final class BookPlayModePlaybackCapabilityAdapter: BookPlayModePlaybackCapabilit
         if Self.verbose { os_log("\(Self.t)🔌 BookPlayModePlaybackCapabilityAdapter 初始化") }
     }
 
-    var playMode: MagicPlayMode { playback.playMode }
+    var playMode: MagicPlayMode {
+        MagicPlayMode(rawValue: playback.playMode.rawValue) ?? .sequence
+    }
 
     func setPlayMode(_ mode: MagicPlayMode) {
         if Self.verbose { os_log("\(Self.t)🔄 设置播放模式: \(mode.shortName)") }
-        playback.setPlayMode(mode)
+        playback.setPlayMode(
+            PlaybackMode(rawValue: mode.rawValue) ?? .sequence
+        )
     }
 }

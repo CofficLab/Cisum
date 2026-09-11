@@ -1,18 +1,114 @@
 import Foundation
-import MagicPlayMan
+import SwiftUI
+
+/// 播放能力的基础状态。该类型属于 Provider 契约，不依赖具体播放器实现。
+public enum PlaybackStatus: Equatable, Sendable {
+    case idle
+    case loading(LoadingStatus)
+    case willPlay
+    case playing
+    case paused
+    case stopped
+    case failed(PlaybackFailure)
+
+    public enum LoadingStatus: Equatable, Sendable {
+        case connecting
+        case preparing
+        case buffering
+        case downloading(Double)
+    }
+
+    public var isPlaying: Bool { self == .playing }
+
+    public var isLoading: Bool {
+        if case .loading = self { return true }
+        return false
+    }
+
+    public var isDownloading: Bool {
+        guard case let .loading(status) = self else { return false }
+        if case .downloading = status { return true }
+        return false
+    }
+}
+
+public enum PlaybackFailure: Equatable, Sendable {
+    case noAsset
+    case invalidAsset
+    case networkError(String)
+    case playbackError(String)
+    case unsupportedFormat(String)
+    case invalidURL(String)
+}
+
+/// Provider 对外暴露的播放模式数据。
+public enum PlaybackMode: String, CaseIterable, Sendable {
+    case sequence
+    case loop
+    case shuffle
+    case repeatAll
+}
+
+public enum PlaybackNavigationDirection: Equatable, Sendable {
+    case previous
+    case next
+}
+
+public struct PlaybackNavigationFailure: Equatable, Sendable {
+    public let direction: PlaybackNavigationDirection
+    public let reason: String
+
+    public init(direction: PlaybackNavigationDirection, reason: String) {
+        self.direction = direction
+        self.reason = reason
+    }
+}
+
+/// 播放能力的一致快照，供插件初始同步和测试使用。
+public struct PlaybackSnapshot: Equatable, Sendable {
+    public let state: PlaybackStatus
+    public let currentURL: URL?
+    public let currentTime: TimeInterval
+    public let duration: TimeInterval
+    public let progress: Double
+    public let playMode: PlaybackMode
+    public let likedAssets: Set<URL>
+
+    public init(
+        state: PlaybackStatus,
+        currentURL: URL?,
+        currentTime: TimeInterval,
+        duration: TimeInterval,
+        progress: Double,
+        playMode: PlaybackMode,
+        likedAssets: Set<URL>
+    ) {
+        self.state = state
+        self.currentURL = currentURL
+        self.currentTime = currentTime
+        self.duration = duration
+        self.progress = progress
+        self.playMode = playMode
+        self.likedAssets = likedAssets
+    }
+
+    public var isPlaying: Bool { state.isPlaying }
+    public var hasAsset: Bool { currentURL != nil }
+}
 
 @MainActor
 public enum PlaybackProvidingEvent {
-    case stateChanged(PlaybackState)
+    case snapshotChanged(PlaybackSnapshot)
+    case stateChanged(PlaybackStatus)
     case assetChanged(URL?)
     case timeChanged(currentTime: TimeInterval, progress: Double)
     case durationChanged(TimeInterval)
-    case playModeChanged(MagicPlayMode)
+    case playModeChanged(PlaybackMode)
     case likedAssetsChanged(Set<URL>)
     case likeStatusChanged(asset: URL, isLiked: Bool)
     case previousRequested(URL)
     case nextRequested(URL)
-    case navigationFailed(MagicPlayMan.PlaybackEvents.NavigationFailure)
+    case navigationFailed(PlaybackNavigationFailure)
 }
 
 @MainActor
@@ -20,86 +116,38 @@ public protocol PlaybackProvidingObserverHandle: AnyObject {
     func cancel()
 }
 
-/// 播放服务能力协议。
-///
-/// 直接复用 `MagicPlayMan` 的真实类型（`PlaybackState` / `MagicPlayMode`），
-/// 避免维护一套并行的播放状态枚举。具体实现由 `MagicPlayMan` 在 Factory
-/// 注册时提供；插件视图中仍可通过 `@EnvironmentObject MagicPlayMan` 直接
-/// 访问完整引擎 API，而新布局视图通过此协议消费。
-///
-/// 状态变更的唯一对外通知方式是 `addObserver`（`PlaybackProvidingEvent`），
-/// 协议本身不依赖 `ObservableObject`。
-///
-/// ## 使用示例
-///
-/// ```swift
-/// kernel.playback?.toggle()
-/// let isPlaying = kernel.playback?.isPlaying ?? false
-/// kernel.playback?.setPlayMode(.shuffle)
-/// ```
+/// 播放视觉能力。播放封面插件只依赖这个抽象，不需要知道底层播放器类型。
+@MainActor
+public protocol PlaybackMediaProviding: AnyObject {
+    func makeMediaView() -> AnyView
+    func localizedStateText(for state: PlaybackStatus) -> String
+}
+
+/// 播放服务能力协议：定义能力、基础数据和事件，不包含具体实现。
 @MainActor
 public protocol PlaybackProviding: AnyObject {
-    /// 底层播放状态（idle/loading/playing/paused/...）。
-    var state: PlaybackState { get }
-
-    /// 当前播放资源的 URL。
+    var state: PlaybackStatus { get }
     var currentURL: URL? { get }
-
-    /// 当前播放时间（秒）。
     var currentTime: TimeInterval { get }
-
-    /// 总时长（秒）。
     var duration: TimeInterval { get }
-
-    /// 播放进度 (0.0 ~ 1.0)。
     var progress: Double { get }
-
-    /// 当前播放模式。
-    var playMode: MagicPlayMode { get }
-
-    /// 已点赞的资源集合。
+    var playMode: PlaybackMode { get }
     var likedAssets: Set<URL> { get }
-
-    /// 是否正在播放（便捷判断）。
     var isPlaying: Bool { get }
-
-    /// 是否已加载资源。
     var hasAsset: Bool { get }
+    var snapshot: PlaybackSnapshot { get }
 
-    /// 播放指定 URL。
     func play(_ url: URL) async
-
-    /// 播放指定 URL，并可从保存的时间点开始。
     func play(_ url: URL, startTime: TimeInterval?) async
-
-    /// 暂停。
     func pause()
-
-    /// 依据当前状态在播放/暂停间切换。
     func toggle()
-
-    /// 跳转到指定进度 (0.0 ~ 1.0)。
     func seek(toProgress progress: Double)
-
-    /// 跳转到指定时间点（秒）。
     func seek(toTime time: TimeInterval)
-
-    /// 下一首。
     func next()
-
-    /// 上一首。
     func previous()
-
-    /// 设置播放模式。
-    func setPlayMode(_ mode: MagicPlayMode)
-
-    /// 切换当前资源的喜欢状态。
+    func setPlayMode(_ mode: PlaybackMode)
     func toggleCurrentLike()
-
-    /// 完全卸载当前资源并恢复空闲状态。
     func reset() async
-
-    /// 循环切换播放模式。
     func togglePlayMode()
 
     @discardableResult
@@ -107,6 +155,18 @@ public protocol PlaybackProviding: AnyObject {
 }
 
 public extension PlaybackProviding {
+    var snapshot: PlaybackSnapshot {
+        PlaybackSnapshot(
+            state: state,
+            currentURL: currentURL,
+            currentTime: currentTime,
+            duration: duration,
+            progress: progress,
+            playMode: playMode,
+            likedAssets: likedAssets
+        )
+    }
+
     func play(_ url: URL, startTime: TimeInterval?) async {
         await play(url)
     }

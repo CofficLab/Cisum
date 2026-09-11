@@ -1,5 +1,4 @@
 import Foundation
-import MagicPlayMan
 import ProviderPlayback
 import MagicKit
 
@@ -9,9 +8,9 @@ import MagicKit
 /// 具体 Adapter 由 `AudioWidgetControlPlugin` 在生命周期组装阶段创建。
 @MainActor
 protocol AudioWidgetPlaybackCapability: AnyObject {
-    var state: PlaybackState { get }
+    var state: PlaybackStatus { get }
     var currentURL: URL? { get }
-    var playMode: MagicPlayMode { get }
+    var playMode: PlaybackMode { get }
 
     func toggle()
     func pause()
@@ -29,9 +28,9 @@ final class AudioWidgetPlaybackCapabilityAdapter: AudioWidgetPlaybackCapability,
         self.playback = playback
     }
 
-    var state: PlaybackState { playback.state }
+    var state: PlaybackStatus { playback.state }
     var currentURL: URL? { playback.currentURL }
-    var playMode: MagicPlayMode { playback.playMode }
+    var playMode: PlaybackMode { playback.playMode }
 
     func toggle() {
         playback.toggle()

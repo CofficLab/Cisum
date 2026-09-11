@@ -1,5 +1,6 @@
 import Foundation
 import MagicKit
+import MagicPlayMan
 import OSLog
 import ProviderPlayback
 import ProviderScene
@@ -43,7 +44,9 @@ final class ControlButtonsObserver: SuperLog {
             case .stateChanged(let state):
                 self.viewModel?.applyStateChanged(state)
             case .playModeChanged(let mode):
-                self.viewModel?.applyPlayModeChanged(mode)
+                self.viewModel?.applyPlayModeChanged(
+                    MagicPlayMode(rawValue: mode.rawValue) ?? .sequence
+                )
             case .previousRequested(let asset):
                 if Self.verbose {
                     os_log("\(Self.t)⬅️ Playback emitted previous request: \(asset.lastPathComponent)")

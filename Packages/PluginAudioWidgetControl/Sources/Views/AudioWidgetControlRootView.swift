@@ -4,6 +4,7 @@ import Foundation
 import CisumUIComponents
 import MagicPlayMan
 import OSLog
+import ProviderPlayback
 import SwiftUI
 
 public typealias AudioWidgetAdjacentAssetProvider = @MainActor (_ current: URL?, _ verbose: Bool) async throws -> URL?
@@ -51,7 +52,7 @@ enum AudioWidgetPlaybackRequestPolicy {
         max(0, commandCount(from: storedValue, maximum: 1_000_000) - consumedCount)
     }
 
-    static func playPauseAction(currentState: PlaybackState, commandCount: Int) -> AudioWidgetPlayPauseAction? {
+    static func playPauseAction(currentState: PlaybackStatus, commandCount: Int) -> AudioWidgetPlayPauseAction? {
         guard commandCount > 0, commandCount.isMultiple(of: 2) == false else {
             return nil
         }

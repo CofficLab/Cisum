@@ -2,15 +2,12 @@ import CisumUIComponents
 import Foundation
 import KernelCore
 import MagicKit
-import MagicPlayMan
 import PluginToast
 import SwiftUI
 
 /// Factory 根视图桥接层。
 ///
-/// 将内核 Provider 投影为 SwiftUI 环境值/环境对象，供仍以旧式环境读取的插件视图
-/// 继续工作；并用插件的 RootView 包裹内部布局。Host 桥接彻底移除后，这里的兼容
-/// 环境可进一步精简。
+/// 将内核的非播放 UI 配置投影为 SwiftUI 环境值，并用插件的 RootView 包裹内部布局。
 struct KernelRootView: View {
     @ObservedObject var kernel: CisumKernel
     @ObservedObject private var themeRegistry = LumiUIThemeRegistry.shared
@@ -76,11 +73,7 @@ struct KernelRootView: View {
                 }
             })
             .environment(\.toastProviding, kernel.toast)
-            if let playMan = kernel.playback as? MagicPlayMan {
-                bridged.environmentObject(playMan)
-            } else {
-                bridged
-            }
+            bridged
         } else {
             ProgressView("Loading…")
         }

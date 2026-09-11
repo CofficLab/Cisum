@@ -67,4 +67,16 @@ if rg -n 'AudioPluginHost|getAudioRepoAsync|getAudioRepo\(|(^|[^A-Za-z])AudioRep
   exit 1
 fi
 
+playback_ui_scope=(
+  Packages/FactoryCisum/Sources/FactoryCisum/Views
+  Packages/ProviderControlView/Sources
+  Packages/ProviderPlayback/Sources
+)
+
+if rg -n '@EnvironmentObject[^\n]*MagicPlayMan|as\?\s*MagicPlayMan|^import MagicPlayMan' "${playback_ui_scope[@]}" \
+  --glob '*.swift'; then
+  print -u2 'Playback boundary violation: UI/provider layers depend on MagicPlayMan concrete state or environment objects.'
+  exit 1
+fi
+
 print 'Plugin boundary check passed.'

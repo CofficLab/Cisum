@@ -1,5 +1,4 @@
 import Foundation
-import MagicPlayMan
 import ProviderPlayback
 import MagicKit
 
@@ -14,7 +13,7 @@ protocol AudioProgressPlaybackCapability: AnyObject {
     var currentAsset: URL? { get }
 
     /// 当前播放状态。
-    var state: PlaybackState { get }
+    var state: PlaybackStatus { get }
 
     /// 当前播放进度（秒）。
     var currentTime: TimeInterval { get }
@@ -42,7 +41,7 @@ final class AudioProgressPlaybackCapabilityAdapter: AudioProgressPlaybackCapabil
 
     var currentAsset: URL? { playback.currentURL }
 
-    var state: PlaybackState { playback.state }
+    var state: PlaybackStatus { playback.state }
 
     var currentTime: TimeInterval { playback.currentTime }
 

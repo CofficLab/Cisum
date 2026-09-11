@@ -1,157 +1,251 @@
 import Combine
 import Foundation
-import MagicPlayMan
 import MagicKit
+import MagicPlayMan
 import ProviderPlayback
+import SwiftUI
 import os
 
-/// `PlaybackProviding` 的转发实现。
+/// `PlaybackProviding` 的具体实现。
 ///
-/// 该 Provider 将 `MagicPlayMan` 实例包装为内核可识别的 `PlaybackProviding` 协议。
-/// 虽然 `MagicPlayMan` 已通过 extension 实现了 `PlaybackProviding`，但此包装器
-/// 提供了更清晰的边界，方便未来扩展或替换底层播放引擎。
+/// 这是 PluginPlayBack 的内部适配层：底层播放器的事件在这里转换为 Provider
+/// 事件，再由各功能插件自己的 Observer 消费。ProviderPlayback 不知道本类型。
 @MainActor
-public final class PlaybackProvider: ObservableObject, PlaybackProviding, SuperLog {
+public final class PlaybackProvider: PlaybackProviding, PlaybackMediaProviding, SuperLog {
     nonisolated public static let verbose = false
     nonisolated public static let logger = Logger(subsystem: "com.coffic.cisum", category: "plugin.playback")
 
     private let playback: MagicPlayMan
+    private let observers = PlaybackObserverStore<PlaybackProvidingEvent>()
+    private var cancellables: Set<AnyCancellable> = []
+    private let navigationSubscriberID: UUID
 
     public init(playback: MagicPlayMan) {
         self.playback = playback
+        navigationSubscriberID = playback.events.addNavigationSubscriber(name: "PluginPlayBack.Provider")
+        installEngineObservers()
         if Self.verbose {
             Self.logger.info("\(Self.t)初始化播放 Provider")
         }
     }
 
-    // MARK: - PlaybackProviding 属性转发
-
-    public var state: PlaybackState {
-        playback.state
+    /// 解除底层播放器事件订阅。由插件生命周期显式调用，避免在非隔离的
+    /// `deinit` 中访问主线程隔离的 `MagicPlayMan`。
+    public func shutdown() {
+        cancellables.removeAll()
+        playback.events.removeNavigationSubscriber(id: navigationSubscriberID)
     }
 
-    public var currentURL: URL? {
-        playback.currentURL
-    }
+    // MARK: - PlaybackProviding data
 
-    public var currentTime: TimeInterval {
-        playback.currentTime
-    }
+    public var state: PlaybackStatus { playback.state.providerStatus }
+    public var currentURL: URL? { playback.currentURL }
+    public var currentTime: TimeInterval { playback.currentTime }
+    public var duration: TimeInterval { playback.duration }
+    public var progress: Double { playback.progress }
+    public var playMode: PlaybackMode { playback.playMode.providerMode }
+    public var likedAssets: Set<URL> { playback.likedAssets }
+    public var isPlaying: Bool { playback.state.isPlaying }
+    public var hasAsset: Bool { playback.hasAsset }
 
-    public var duration: TimeInterval {
-        playback.duration
-    }
-
-    public var progress: Double {
-        playback.progress
-    }
-
-    public var playMode: MagicPlayMode {
-        playback.playMode
-    }
-
-    public var likedAssets: Set<URL> {
-        playback.likedAssets
-    }
-
-    public var isPlaying: Bool {
-        playback.isPlaying
-    }
-
-    public var hasAsset: Bool {
-        playback.hasAsset
-    }
-
-    // MARK: - PlaybackProviding 方法转发
+    // MARK: - PlaybackProviding actions
 
     public func play(_ url: URL) async {
-        if Self.verbose {
-            Self.logger.info("\(Self.t)播放请求\(self.r(url.lastPathComponent))")
-        }
-        await playback.play(url)
+        await playback.play(url, reason: "PlaybackProvider.play")
     }
 
     public func play(_ url: URL, startTime: TimeInterval?) async {
-        if Self.verbose {
-            Self.logger.info("\(Self.t)播放请求\(self.r(url.lastPathComponent))，起始时间: \(startTime ?? 0)")
-        }
-        await playback.play(url, startTime: startTime)
+        await playback.play(
+            url,
+            autoPlay: false,
+            startTime: startTime,
+            reason: "PlaybackProvider.playFromTime"
+        )
     }
 
-    public func pause() {
-        if Self.verbose {
-            Self.logger.info("\(Self.t)暂停播放")
-        }
-        playback.pause()
-    }
-
-    public func toggle() {
-        if Self.verbose {
-            Self.logger.info("\(Self.t)切换播放/暂停")
-        }
-        playback.toggle()
-    }
-
+    public func pause() { playback.pause(reason: "PlaybackProvider.pause") }
+    public func toggle() { playback.toggle(reason: "PlaybackProvider.toggle") }
     public func seek(toProgress progress: Double) {
-        if Self.verbose {
-            Self.logger.info("\(Self.t)跳转到进度\(self.r("\(progress)"))")
-        }
-        playback.seek(toProgress: progress)
+        let normalizedProgress = min(max(progress, 0), 1)
+        playback.seek(
+            time: duration * normalizedProgress,
+            reason: "PlaybackProvider.seekProgress"
+        )
     }
-
     public func seek(toTime time: TimeInterval) {
-        if Self.verbose {
-            Self.logger.info("\(Self.t)跳转到时间\(self.r("\(time)"))")
-        }
-        playback.seek(toTime: time)
+        playback.seek(time: time, reason: "PlaybackProvider.seekTime")
     }
-
-    public func next() {
-        if Self.verbose {
-            Self.logger.info("\(Self.t)下一首")
-        }
-        playback.next()
+    public func next() { playback.next() }
+    public func previous() { playback.previous() }
+    public func setPlayMode(_ mode: PlaybackMode) {
+        playback.changePlayMode(MagicPlayMode(rawValue: mode.rawValue) ?? .sequence)
     }
-
-    public func previous() {
-        if Self.verbose {
-            Self.logger.info("\(Self.t)上一首")
-        }
-        playback.previous()
-    }
-
-    public func setPlayMode(_ mode: MagicPlayMode) {
-        if Self.verbose {
-            Self.logger.info("\(Self.t)设置播放模式\(self.r("\(mode)"))")
-        }
-        playback.setPlayMode(mode)
-    }
-
-    public func toggleCurrentLike() {
-        if Self.verbose {
-            Self.logger.info("\(Self.t)切换喜欢状态")
-        }
-        playback.toggleCurrentLike()
-    }
-
-    public func reset() async {
-        if Self.verbose {
-            Self.logger.info("\(Self.t)重置播放器")
-        }
-        await playback.reset()
-    }
-
-    public func togglePlayMode() {
-        if Self.verbose {
-            Self.logger.info("\(Self.t)切换播放模式")
-        }
-        playback.togglePlayMode()
-    }
+    public func toggleCurrentLike() { playback.toggleLike() }
+    public func reset() async { await playback.reset(reason: "PlaybackProvider.reset") }
+    public func togglePlayMode() { playback.togglePlayMode() }
 
     @discardableResult
     public func addObserver(
         _ callback: @escaping (PlaybackProvidingEvent) -> Void
     ) -> any PlaybackProvidingObserverHandle {
-        playback.addObserver(callback)
+        observers.add(callback)
+    }
+
+    // MARK: - PlaybackMediaProviding
+
+    public func makeMediaView() -> AnyView {
+        AnyView(playback.makeHeroView(verbose: false, avatarShape: .roundedRectangle(cornerRadius: 8)))
+    }
+
+    public func localizedStateText(for state: PlaybackStatus) -> String {
+        state.magicPlayState.localizedStateText(localization: playback.localization)
+    }
+
+    // MARK: - Engine event bridge
+
+    private func installEngineObservers() {
+        playback.events.onStateChanged
+            .sink { [weak self] state in self?.send(.stateChanged(state.providerStatus)) }
+            .store(in: &cancellables)
+
+        playback.events.onCurrentURLChanged
+            .sink { [weak self] url in self?.send(.assetChanged(url)) }
+            .store(in: &cancellables)
+
+        playback.events.onPlayModeChanged
+            .sink { [weak self] mode in self?.send(.playModeChanged(mode.providerMode)) }
+            .store(in: &cancellables)
+
+        playback.events.onLikeStatusChanged
+            .sink { [weak self] event in
+                self?.send(.likeStatusChanged(asset: event.asset, isLiked: event.isLiked))
+                self?.send(.likedAssetsChanged(self?.playback.likedAssets ?? []))
+            }
+            .store(in: &cancellables)
+
+        playback.events.onPreviousRequested
+            .sink { [weak self] asset in self?.send(.previousRequested(asset)) }
+            .store(in: &cancellables)
+
+        playback.events.onNextRequested
+            .sink { [weak self] asset in self?.send(.nextRequested(asset)) }
+            .store(in: &cancellables)
+
+        playback.events.onNavigationFailed
+            .sink { [weak self] failure in self?.send(.navigationFailed(failure.providerFailure)) }
+            .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: .playManTimeUpdate, object: playback)
+            .compactMap { notification -> (TimeInterval, Double)? in
+                guard let currentTime = notification.userInfo?["currentTime"] as? TimeInterval,
+                      let progress = notification.userInfo?["progress"] as? Double else { return nil }
+                return (currentTime, progress)
+            }
+            .sink { [weak self] currentTime, progress in
+                self?.send(.timeChanged(currentTime: currentTime, progress: progress))
+            }
+            .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: .playManDurationChanged, object: playback)
+            .compactMap { $0.userInfo?["duration"] as? TimeInterval }
+            .sink { [weak self] duration in self?.send(.durationChanged(duration)) }
+            .store(in: &cancellables)
+    }
+
+    private func send(_ event: PlaybackProvidingEvent) {
+        observers.send(event)
+        observers.send(.snapshotChanged(snapshot))
+    }
+}
+
+private extension PlaybackState {
+    var providerStatus: PlaybackStatus {
+        switch self {
+        case .idle: return .idle
+        case .loading(let loading):
+            return .loading(loading.providerStatus)
+        case .willPlay: return .willPlay
+        case .playing: return .playing
+        case .paused: return .paused
+        case .stopped: return .stopped
+        case .failed(let error): return .failed(error.providerFailure)
+        }
+    }
+}
+
+private extension PlaybackState.LoadingState {
+    var providerStatus: PlaybackStatus.LoadingStatus {
+        switch self {
+        case .connecting: return .connecting
+        case .preparing: return .preparing
+        case .buffering: return .buffering
+        case .downloading(let progress): return .downloading(progress)
+        }
+    }
+}
+
+private extension PlaybackState.PlaybackError {
+    var providerFailure: PlaybackFailure {
+        switch self {
+        case .noAsset: return .noAsset
+        case .invalidAsset: return .invalidAsset
+        case .networkError(let message): return .networkError(message)
+        case .playbackError(let message): return .playbackError(message)
+        case .unsupportedFormat(let ext): return .unsupportedFormat(ext)
+        case .invalidURL(let url): return .invalidURL(url)
+        }
+    }
+}
+
+private extension PlaybackStatus {
+    var magicPlayState: PlaybackState {
+        switch self {
+        case .idle: return .idle
+        case .loading(let loading): return .loading(loading.magicPlayState)
+        case .willPlay: return .willPlay
+        case .playing: return .playing
+        case .paused: return .paused
+        case .stopped: return .stopped
+        case .failed(let failure): return .failed(failure.magicPlayState)
+        }
+    }
+}
+
+private extension PlaybackStatus.LoadingStatus {
+    var magicPlayState: PlaybackState.LoadingState {
+        switch self {
+        case .connecting: return .connecting
+        case .preparing: return .preparing
+        case .buffering: return .buffering
+        case .downloading(let progress): return .downloading(progress)
+        }
+    }
+}
+
+private extension PlaybackFailure {
+    var magicPlayState: PlaybackState.PlaybackError {
+        switch self {
+        case .noAsset: return .noAsset
+        case .invalidAsset: return .invalidAsset
+        case .networkError(let message): return .networkError(message)
+        case .playbackError(let message): return .playbackError(message)
+        case .unsupportedFormat(let ext): return .unsupportedFormat(ext)
+        case .invalidURL(let url): return .invalidURL(url)
+        }
+    }
+}
+
+private extension MagicPlayMode {
+    var providerMode: PlaybackMode {
+        PlaybackMode(rawValue: rawValue) ?? .sequence
+    }
+}
+
+private extension MagicPlayMan.PlaybackEvents.NavigationFailure {
+    var providerFailure: PlaybackNavigationFailure {
+        PlaybackNavigationFailure(
+            direction: direction == .previous ? .previous : .next,
+            reason: reason
+        )
     }
 }

@@ -58,11 +58,20 @@ public actor PlaybackHeroPlugin: SuperPlugin, SuperLog {
         return AnyView(PlaybackHeroView(viewModel: viewModel))
     }
 
+    /// 向宽窗口的右侧专辑区域注入同一份播放状态驱动的媒体视图。
+    @MainActor
+    public func addRightAlbumView() -> AnyView? {
+        installState(kernel: kernel)
+        guard let viewModel else { return nil }
+        return AnyView(PlaybackHeroRightAlbumView(viewModel: viewModel))
+    }
+
     @MainActor
     private func installState(kernel: CisumKernel?) {
         guard viewModel == nil else { return }
         guard let playback = kernel?.playback else { return }
-        let capability = PlaybackHeroPlaybackCapabilityAdapter(playback: playback)
+        let media = kernel?.resolveProvider((any PlaybackMediaProviding).self)
+        let capability = PlaybackHeroPlaybackCapabilityAdapter(playback: playback, media: media)
         let viewModel = PlaybackHeroViewModel(playbackCapability: capability)
         self.viewModel = viewModel
         observer = PlaybackHeroObserver(playback: playback, viewModel: viewModel)

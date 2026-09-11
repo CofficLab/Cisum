@@ -70,6 +70,9 @@ public protocol PluginProviding: AnyObject, ObservableObject {
     /// 播放控制区只保留一份封面区（单槽位），取第一个启用插件提供的贡献。
     func getHeroView() -> AnyView?
 
+    /// 获取首个插件提供的右侧封面视图。
+    func getRightAlbumView() -> AnyView?
+
     /// 获取首个插件提供的播放控制按钮视图。
     ///
     /// 播放控制区只保留一份按钮组（单槽位），取第一个启用插件提供的贡献。

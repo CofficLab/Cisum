@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import AudioWidgetControlPlugin
+@testable import PluginAudioWidgetControl
 
 @Test func pluginMetadataIsStable() {
     #expect(AudioWidgetControlPluginInfo.iconName == "command")

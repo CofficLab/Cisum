@@ -4,6 +4,7 @@ import MagicPlayMan
 import MagicKit
 import OSLog
 import ProviderScene
+import ProviderPlayback
 import ProviderToast
 
 /// 播放控制按钮的状态容器。
@@ -46,7 +47,7 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
         currentScene == targetScene
     }
 
-    func applyStateChanged(_ state: PlaybackState) {
+    func applyStateChanged(_ state: PlaybackStatus) {
         isPlaying = state == .playing
     }
 
@@ -100,7 +101,7 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
         playbackCapability.togglePlayMode()
     }
 
-    func handleNavigationFailure(_ failure: MagicPlayMan.PlaybackEvents.NavigationFailure) {
+    func handleNavigationFailure(_ failure: PlaybackNavigationFailure) {
         let title: String
         switch failure.direction {
         case .previous:

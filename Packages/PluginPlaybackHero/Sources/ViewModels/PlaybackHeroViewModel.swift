@@ -1,4 +1,4 @@
-import MagicPlayMan
+import ProviderPlayback
 import SwiftUI
 import MagicKit
 
@@ -8,7 +8,7 @@ final class PlaybackHeroViewModel: ObservableObject, SuperLog {
     nonisolated static let verbose = false
 
     @Published private(set) var currentURL: URL?
-    @Published private(set) var state: PlaybackState
+    @Published private(set) var state: PlaybackStatus
 
     private let playbackCapability: (any PlaybackHeroPlaybackCapability)?
 
@@ -22,7 +22,7 @@ final class PlaybackHeroViewModel: ObservableObject, SuperLog {
         currentURL = url
     }
 
-    func applyStateChanged(_ state: PlaybackState) {
+    func applyStateChanged(_ state: PlaybackStatus) {
         self.state = state
     }
 
