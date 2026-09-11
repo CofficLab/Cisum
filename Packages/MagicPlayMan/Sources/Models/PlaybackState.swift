@@ -148,6 +148,14 @@ public enum PlaybackState: Equatable {
         }
         return false
     }
+
+    /// 是否是失败状态
+    public var isFailed: Bool {
+        if case .failed = self {
+            return true
+        }
+        return false
+    }
     
     /// 是否是加载中
     public var isLoading: Bool {
