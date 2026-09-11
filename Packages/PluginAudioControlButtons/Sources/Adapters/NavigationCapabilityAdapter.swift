@@ -3,7 +3,7 @@ import ProviderAudioNavigation
 
 /// ControlButtons 所需的曲目导航能力适配器，由插件入口解析 Kernel Provider 后组装。
 @MainActor
-final class NavigationCapabilityAdapter: ControlButtonsNavigationCapability {
+final class NavigationCapabilityAdapter: NavigationCapability {
     private let navigation: any AudioTrackNavigationProviding
 
     init(navigation: any AudioTrackNavigationProviding) {

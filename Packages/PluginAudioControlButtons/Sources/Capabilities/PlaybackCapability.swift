@@ -7,7 +7,7 @@ import MagicPlayMan
 /// `PlaybackProviding` 或 `MagicPlayMan` 具体类型。Adapter 在
 /// `AudioControlButtonsPlugin` 的 onReady 阶段由内核 Provider 组装。
 @MainActor
-protocol ControlButtonsPlaybackCapability: AnyObject {
+protocol PlaybackCapability: AnyObject {
     /// 当前播放资源 URL。
     var currentURL: URL? { get }
 

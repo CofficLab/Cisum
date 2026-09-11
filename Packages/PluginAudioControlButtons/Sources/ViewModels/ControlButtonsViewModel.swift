@@ -12,21 +12,21 @@ import ProviderToast
 /// 插件入口组装的 Capability 执行。ViewModel 不持有 Kernel 或具体 Provider。
 @MainActor
 final class ControlButtonsViewModel: ObservableObject, SuperLog {
-    nonisolated static let verbose = false
+    nonisolated static let verbose = true
     private static let log = Logger(subsystem: "com.yueyi.cisum", category: "ControlButtons")
 
     @Published private(set) var isPlaying = false
     @Published private(set) var playMode: MagicPlayMode = .sequence
-    private let playbackCapability: (any ControlButtonsPlaybackCapability)?
-    private let navigationCapability: (any ControlButtonsNavigationCapability)?
+    private let playbackCapability: (any PlaybackCapability)?
+    private let navigationCapability: (any NavigationCapability)?
     private let toastProvider: (any ToastProviding)?
     private let targetScene: AppScene
     private var currentScene: AppScene?
     private var controlGeneration = 0
 
     init(
-        playbackCapability: (any ControlButtonsPlaybackCapability)?,
-        navigationCapability: (any ControlButtonsNavigationCapability)? = nil,
+        playbackCapability: (any PlaybackCapability)?,
+        navigationCapability: (any NavigationCapability)? = nil,
         toastProvider: (any ToastProviding)? = nil,
         targetScene: AppScene = .music,
         currentScene: AppScene? = nil
@@ -63,6 +63,7 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
 
     func toggle() {
         guard let playbackCapability else {
+            Self.log.error("\(Self.t)playbackCapability is unavailable")
             reportUnavailable(operation: "toggle playback")
             return
         }
@@ -260,7 +261,7 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
 
     private func shouldApply(
         asset: URL,
-        playback: any ControlButtonsPlaybackCapability,
+        playback: any PlaybackCapability,
         generation: Int,
         ignoreSceneCheck: Bool
     ) -> Bool {
@@ -275,7 +276,7 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
 
     private func shouldReport(
         asset: URL,
-        playback: any ControlButtonsPlaybackCapability,
+        playback: any PlaybackCapability,
         generation: Int,
         ignoreSceneCheck: Bool
     ) -> Bool {
