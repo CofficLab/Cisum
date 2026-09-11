@@ -1,15 +1,16 @@
 import Foundation
 import MagicKit
 import MagicPlayMan
-import OSLog
 import ProviderPlayback
 import ProviderScene
+import os
 
 /// 订阅播放、场景和音频库外部事件，并把事件回写给 ViewModel。
 @MainActor
 final class ControlButtonsObserver: SuperLog {
     nonisolated static let emoji = "🎛️"
     nonisolated static let verbose = false
+    private static let log = Logger(subsystem: "com.yueyi.cisum", category: "ControlButtons.Observer")
 
     private weak var viewModel: ControlButtonsViewModel?
     private var playbackHandle: (any PlaybackProvidingObserverHandle)?
@@ -19,46 +20,52 @@ final class ControlButtonsObserver: SuperLog {
     init(scene: any SceneProviding, playback: any PlaybackProviding, viewModel: ControlButtonsViewModel) {
         self.viewModel = viewModel
         if Self.verbose {
-            os_log("\(Self.t)👀 ControlButtons observer installed; scene=\(String(describing: scene.currentScene))")
+            Self.log.info("\(Self.t)👀 ControlButtons observer installed; scene=\(String(describing: scene.currentScene))")
         }
         viewModel.handleSceneChange(scene.currentScene)
 
         sceneHandle = scene.addObserver { [weak self] event in
             guard let self else {
-                os_log(.error, "\(Self.t)❌ Scene event dropped: observer was released")
+                Self.log.error("\(Self.t)❌ Scene event dropped: observer was released")
                 return
             }
             guard case .selectionChanged(let scene) = event else { return }
             if Self.verbose {
-                os_log("\(Self.t)👀 Scene changed: \(String(describing: scene))")
+                Self.log.info("\(Self.t)👀 Scene changed: \(String(describing: scene))")
             }
             self.viewModel?.handleSceneChange(scene)
         }
 
         playbackHandle = playback.addObserver { [weak self] event in
             guard let self else {
-                os_log(.error, "\(Self.t)❌ Playback event dropped: ControlButtons observer was released")
+                Self.log.error("\(Self.t)❌ Playback event dropped: ControlButtons observer was released")
                 return
             }
             switch event {
             case .stateChanged(let state):
+                if Self.verbose {
+                    Self.log.info("\(Self.t)📥 Playback state changed: \(String(describing: state))")
+                }
                 self.viewModel?.applyStateChanged(state)
             case .playModeChanged(let mode):
+                if Self.verbose {
+                    Self.log.info("\(Self.t)📥 Playback mode changed: \(String(describing: mode))")
+                }
                 self.viewModel?.applyPlayModeChanged(
                     MagicPlayMode(rawValue: mode.rawValue) ?? .sequence
                 )
             case .previousRequested(let asset):
                 if Self.verbose {
-                    os_log("\(Self.t)⬅️ Playback emitted previous request: \(asset.lastPathComponent)")
+                    Self.log.info("\(Self.t)⬅️ Playback emitted previous request: \(asset.lastPathComponent)")
                 }
                 self.viewModel?.handlePreviousRequested(asset)
             case .nextRequested(let asset):
                 if Self.verbose {
-                    os_log("\(Self.t)➡️ Playback emitted next request: \(asset.lastPathComponent)")
+                    Self.log.info("\(Self.t)➡️ Playback emitted next request: \(asset.lastPathComponent)")
                 }
                 self.viewModel?.handleNextRequested(asset)
             case .navigationFailed(let failure):
-                os_log(.error, "\(Self.t)❌ Playback navigation failed: \(failure.reason)")
+                Self.log.error("\(Self.t)❌ Playback navigation failed: \(failure.reason)")
                 self.viewModel?.handleNavigationFailure(failure)
             default:
                 break

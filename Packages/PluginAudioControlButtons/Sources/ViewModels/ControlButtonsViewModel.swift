@@ -2,7 +2,7 @@ import Combine
 import Foundation
 import MagicPlayMan
 import MagicKit
-import OSLog
+import os
 import ProviderScene
 import ProviderPlayback
 import ProviderToast
@@ -24,6 +24,8 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
     private let targetScene: AppScene
     private var currentScene: AppScene?
     private var controlGeneration = 0
+    /// 最近一次已提示过的失败，用于去重，避免状态抖动反复弹窗。
+    private var lastPresentedFailure: PlaybackFailure?
 
     init(
         playbackCapability: (any PlaybackCapability)?,
@@ -49,6 +51,38 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
 
     func applyStateChanged(_ state: PlaybackStatus) {
         isPlaying = state == .playing
+
+        guard case .failed(let failure) = state else {
+            lastPresentedFailure = nil
+            return
+        }
+
+        // 失败必须让用户看得见：之前 .failed 只折算成 isPlaying = false，
+        // 表现为「点了播放没反应，也没有任何提示」。
+        guard failure != lastPresentedFailure else { return }
+        lastPresentedFailure = failure
+
+        let message = Self.failureDescription(failure)
+        Self.log.error("\(Self.t)❌ Playback failed: \(message)")
+        presentError(
+            title: String(localized: "Cannot play audio", bundle: .module),
+            message: message
+        )
+    }
+
+    private static func failureDescription(_ failure: PlaybackFailure) -> String {
+        switch failure {
+        case .noAsset:
+            return String(localized: "The playback service is unavailable.", bundle: .module)
+        case .invalidAsset:
+            return String(localized: "The audio file is unavailable or not downloaded.", bundle: .module)
+        case .networkError(let message), .playbackError(let message):
+            return message
+        case .unsupportedFormat(let ext):
+            return String(localized: "Unsupported audio format", bundle: .module) + ": " + ext
+        case .invalidURL(let scheme):
+            return String(localized: "Invalid audio URL", bundle: .module) + ": " + scheme
+        }
     }
 
     func applyPlayModeChanged(_ mode: MagicPlayMode) {
@@ -63,6 +97,12 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
     }
 
     func toggle() {
+        if Self.verbose {
+            let asset = playbackCapability?.currentURL?.lastPathComponent ?? "nil"
+            let isPlaying = playbackCapability?.isPlaying ?? false
+            let sceneActive = shouldActivateControl
+            Self.log.info("\(Self.t)⏯️ Play/Pause tapped; asset=\(asset), isPlaying=\(isPlaying), sceneActive=\(sceneActive)")
+        }
         guard let playbackCapability else {
             Self.log.error("\(Self.t)playbackCapability is unavailable")
             reportUnavailable(operation: "toggle playback")
@@ -73,7 +113,7 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
 
     func previous() {
         if Self.verbose {
-            os_log("\(Self.t)⬅️ Previous button tapped")
+            Self.log.info("\(Self.t)⬅️ Previous button tapped")
         }
         guard let asset = playbackCapability?.currentURL else {
             reportUnavailable(operation: "play previous", message: String(localized: "There is no current audio file.", bundle: .module))
@@ -84,7 +124,7 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
 
     func next() {
         if Self.verbose {
-            os_log("\(Self.t)➡️ Next button tapped")
+            Self.log.info("\(Self.t)➡️ Next button tapped")
         }
         guard let asset = playbackCapability?.currentURL else {
             reportUnavailable(operation: "play next", message: String(localized: "There is no current audio file.", bundle: .module))
@@ -94,6 +134,10 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
     }
 
     func togglePlayMode() {
+        if Self.verbose {
+            let mode = playMode.displayName
+            Self.log.info("\(Self.t)🔁 Play mode button tapped; mode=\(mode)")
+        }
         guard let playbackCapability else {
             reportUnavailable(operation: "change playback mode")
             return
