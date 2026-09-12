@@ -24,6 +24,7 @@ let package = Package(
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: [
                 "Sources/ProviderBook/BookEvent.swift",
                 "Sources/ProviderBook/BookPluginError.swift",
@@ -43,6 +44,7 @@ let package = Package(
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests", "Resources"],
             sources: [
                 "Sources/ProviderBook/BookConfig.swift",
                 "Sources/ProviderBook/BookPluginHost.swift",
@@ -58,6 +60,11 @@ let package = Package(
                 "Sources/ProviderBook/Repo/BookRepo.swift",
                 "Sources/ProviderBook/Repo/BookSettingRepo.swift",
             ]
+        ),
+        .testTarget(
+            name: "ProviderBookTests",
+            dependencies: ["ProviderBook", "ProviderBookData"],
+            path: "Tests"
         ),
     ],
     swiftLanguageModes: [.v5]
