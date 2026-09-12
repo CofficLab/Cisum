@@ -33,6 +33,7 @@ let package = Package(
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources"],
             resources: [
                 .process("Resources/Localizable.xcstrings"),
@@ -40,7 +41,11 @@ let package = Package(
         ),
         .testTarget(
             name: "StoragePluginTests",
-            dependencies: ["PluginStorage"],
+            dependencies: [
+                "PluginStorage",
+                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "ProviderStorage", package: "ProviderStorage"),
+            ],
             path: "Tests"
         ),
     ]

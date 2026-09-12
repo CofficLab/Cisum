@@ -18,7 +18,7 @@ public actor StoragePlugin: SuperPlugin, SuperLog {
         category: .library,
     )
 
-    nonisolated(unsafe) private var settingsViewModel: StorageSettingsViewModel?
+    nonisolated(unsafe) var settingsViewModel: StorageSettingsViewModel?
     nonisolated(unsafe) private var settingsObserver: StorageProvidingObserver?
 
     public init() {}
@@ -90,14 +90,21 @@ public actor StoragePlugin: SuperPlugin, SuperLog {
 
     @MainActor
     private func installSettingsState(kernel: CisumKernel) {
-        guard settingsViewModel == nil else { return }
         guard let storage = kernel.storage else { return }
-        let viewModel = StorageSettingsViewModel(
-            capability: makeStorageCapability(from: storage)
-        )
-        let observer = StorageProvidingObserver(provider: storage, viewModel: viewModel)
+        installSettingsState(storage: storage)
+    }
+
+    /// Binds the stable settings ViewModel to the storage service once it becomes available.
+    /// Navigation contributions may be requested before `onBoot`, so the initial model can
+    /// legitimately exist without a capability.
+    @MainActor
+    func installSettingsState(storage: any StorageProviding) {
+        let viewModel = settingsViewModel ?? StorageSettingsViewModel(capability: nil)
+        viewModel.updateCapability(makeStorageCapability(from: storage))
+
+        settingsObserver?.cancel()
+        settingsObserver = StorageProvidingObserver(provider: storage, viewModel: viewModel)
         settingsViewModel = viewModel
-        settingsObserver = observer
     }
 
     @MainActor

@@ -10,7 +10,7 @@ final class StorageSettingsViewModel: ObservableObject, SuperLog {
     @Published private(set) var isICloudAvailable = false
     @Published private(set) var isLocalStorageAvailable = false
 
-    private let capability: (any StorageSettingsCapability)?
+    private var capability: (any StorageSettingsCapability)?
 
     init(capability: (any StorageSettingsCapability)?) {
         self.capability = capability
@@ -33,6 +33,11 @@ final class StorageSettingsViewModel: ObservableObject, SuperLog {
     }
 
     func handleProviderChanged() {
+        refresh()
+    }
+
+    func updateCapability(_ capability: (any StorageSettingsCapability)?) {
+        self.capability = capability
         refresh()
     }
 
