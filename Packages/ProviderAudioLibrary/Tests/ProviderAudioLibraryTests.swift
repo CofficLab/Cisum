@@ -1,9 +1,31 @@
+import Foundation
 import Testing
 @testable import ProviderAudioLibrary
 
+@MainActor
+private final class StubAudioLibraryProvider: AudioLibraryProviding {
+    var audioDisk: URL? { nil }
+    var supportedExtensions: [String] { [] }
+    var isAvailable: Bool { false }
+
+    func totalCount() async -> Int { 0 }
+    func allURLs(reason: String) async -> [URL] { [] }
+    func urls(offset: Int, limit: Int, reason: String) async -> [URL] { [] }
+    func contains(_ url: URL) async -> Bool { false }
+    func delete(urls: [URL], verbose: Bool) async throws {}
+    func sync(urls: [URL], verbose: Bool, isFirst: Bool) async {}
+    func sort(url: URL?, reason: String) async {}
+    func sortRandom(url: URL?, reason: String, verbose: Bool) async throws {}
+}
+
 @Test @MainActor
-func audioLibraryNoopObserverCanBeCancelled() {
-    let handle = NoopAudioLibraryProvidingObserverHandle()
+func audioLibraryDefaultObserverReturnsNoopHandle() {
+    let provider = StubAudioLibraryProvider()
+    let handle = provider.addObserver { _ in
+        Issue.record("The default observer must not receive events")
+    }
+
+    #expect(handle is NoopAudioLibraryProvidingObserverHandle)
     handle.cancel()
     handle.cancel()
 }
