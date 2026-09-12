@@ -25,38 +25,33 @@ enum AudioSettingsFileCountTextPolicy {
 }
 
 /// 音频设置视图：展示仓库大小、位置与文件数量。
-public struct AudioSettingsView: View, SuperLog {
-    public nonisolated static var emoji: String { AudioSettingsPluginInfo.emoji }
+///
+/// 只依赖 `AudioSettingsViewModel`；仓库指标由 ViewModel 加载，
+/// 刷新令牌变化时触发 ViewModel 刷新。
+struct AudioSettingsView: View, SuperLog {
+    nonisolated static var emoji: String { AudioSettingsPluginInfo.emoji }
     nonisolated static let openLibraryActionLabel = String(
         localized: "Open Library",
         bundle: .module
     )
 
-    @State private var diskSize: String?
-    @State private var description: String = ""
-    @State private var fileCount: Int = 0
-    @State private var disk: URL?
-    @State private var refreshGeneration = 0
+    @ObservedObject private var viewModel: AudioSettingsViewModel
 
-    private let refreshToken: Int
-    private let audioDisk: @MainActor () -> URL?
-
-    public init(refreshToken: Int = 0, audioDisk: @escaping @MainActor () -> URL?) {
-        self.refreshToken = refreshToken
-        self.audioDisk = audioDisk
+    init(viewModel: AudioSettingsViewModel) {
+        self.viewModel = viewModel
     }
 
-    public var body: some View {
+    var body: some View {
         AppSettingsContentScaffold {
             VStack(alignment: .leading, spacing: 16) {
-                if let disk = disk {
+                if let disk = viewModel.disk {
                     AppSettingSection(title: String(localized: "Music Library", bundle: .module)) {
                         AppSettingRow(
                             title: String(localized: "Library Size", bundle: .module),
-                            description: description,
+                            description: viewModel.description,
                             icon: .cisumIconMusicLibrary
                         ) {
-                            if let diskSize = diskSize {
+                            if let diskSize = viewModel.diskSize {
                                 Text(diskSize)
                                     .font(.footnote)
                             }
@@ -88,11 +83,11 @@ public struct AudioSettingsView: View, SuperLog {
                             description: String(localized: "Total files in library", bundle: .module),
                             icon: .cisumIconDocument
                         ) {
-                            if Self.shouldUseSingularFileCount(fileCount) {
-                                Text("\(fileCount) file", bundle: .module)
+                            if Self.shouldUseSingularFileCount(viewModel.fileCount) {
+                                Text("\(viewModel.fileCount) file", bundle: .module)
                                     .font(.footnote)
                             } else {
-                                Text("\(fileCount) files", bundle: .module)
+                                Text("\(viewModel.fileCount) files", bundle: .module)
                                     .font(.footnote)
                             }
                         }
@@ -101,7 +96,7 @@ public struct AudioSettingsView: View, SuperLog {
                     AppSettingSection(title: String(localized: "Music Library", bundle: .module)) {
                         AppSettingRow(
                             title: String(localized: "Error", bundle: .module),
-                            description: description,
+                            description: viewModel.description,
                             icon: .cisumIconMusicLibrary
                         ) {
                             Text("Cannot get music library information", bundle: .module)
@@ -112,75 +107,12 @@ public struct AudioSettingsView: View, SuperLog {
             }
         }
         .task {
-            refresh()
+            viewModel.refresh()
         }
-        .onChange(of: refreshToken) {
-            refresh()
-        }
-    }
-}
-
-// MARK: - Action
-
-private extension AudioSettingsView {
-    func refresh() {
-        refreshGeneration += 1
-        let generation = refreshGeneration
-
-        updateDisk()
-
-        guard let requestedDisk = disk else {
-            description = ""
-            fileCount = 0
-            diskSize = nil
-            return
-        }
-
-        updateDescription()
-        diskSize = nil
-        fileCount = 0
-
-        Task {
-            let metrics = await Self.metrics(for: requestedDisk)
-            await MainActor.run {
-                guard AudioSettingsMetricsPolicy.shouldApplyMetrics(
-                    currentDisk: self.disk,
-                    requestedDisk: requestedDisk,
-                    currentGeneration: self.refreshGeneration,
-                    resultGeneration: generation
-                ) else { return }
-
-                self.diskSize = metrics.diskSize
-                self.fileCount = metrics.fileCount
-            }
+        .onChange(of: viewModel.refreshToken) { _, _ in
+            viewModel.refresh()
         }
     }
-
-    private func updateDisk() {
-        self.disk = audioDisk()
-    }
-
-    private func updateDescription() {
-        guard let disk = self.disk else {
-            return
-        }
-
-        if disk.checkIsICloud(verbose: false) {
-            description = String(localized: "iCloud Drive, will sync", bundle: .module)
-        } else {
-            description = String(localized: "Local directory, will not sync", bundle: .module)
-        }
-    }
-
-    nonisolated static func metrics(for disk: URL) async -> AudioLibraryMetrics {
-        await Task.detached(priority: .utility) {
-            AudioLibraryMetrics(
-                diskSize: disk.getSizeReadable(),
-                fileCount: disk.filesCountRecursively()
-            )
-        }.value
-    }
-
 }
 
 extension AudioSettingsView {
