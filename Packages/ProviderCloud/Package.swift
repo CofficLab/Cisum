@@ -12,9 +12,14 @@ let package = Package(
         .library(name: "ProviderCloud", targets: ["ProviderCloud"]),
     ],
     targets: [
-        .target(name: "ProviderCloud", path: ".",
+        .target(name: "ProviderCloud", path: ".", exclude: ["README.md", "Tests"],
             sources: ["Sources/ProviderCloud"],
             resources: [.process("Resources")]),
+        .testTarget(
+            name: "ProviderCloudTests",
+            dependencies: ["ProviderCloud"],
+            path: "Tests"
+        ),
     ],
     swiftLanguageModes: [.v5]
 )
