@@ -13,8 +13,14 @@ let package = Package(
     ],
     targets: [
         .target(name: "ProviderStorage", path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources/ProviderStorage"],
             resources: [.process("Resources")]),
+        .testTarget(
+            name: "ProviderStorageTests",
+            dependencies: ["ProviderStorage"],
+            path: "Tests"
+        ),
     ],
     swiftLanguageModes: [.v5]
 )
