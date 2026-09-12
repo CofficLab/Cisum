@@ -38,3 +38,24 @@ import Testing
     #expect(identities.contains(nested.resolvingSymlinksInPath().standardizedFileURL.path))
     #expect(identities.contains(audio.resolvingSymlinksInPath().standardizedFileURL.path))
 }
+
+@Test func iCloudDirectoryMonitorDirectScanAcceptsAReadableEmptyDirectory() throws {
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent("cisum-icloud-monitor-empty-\(UUID().uuidString)", isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+
+    #expect(try ICloudDirectoryMonitor.scanDirectoryContents(at: root).isEmpty)
+}
+
+@Test func iCloudDirectoryMonitorDoesNotAcceptAnEmptySnapshotForNonemptyDirectory() throws {
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent("cisum-icloud-monitor-incomplete-\(UUID().uuidString)", isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    try Data("visible entry".utf8).write(to: root.appendingPathComponent("track.mp3"))
+
+    #expect(throws: (any Error).self) {
+        try ICloudDirectoryMonitor.validateDirectoryScanResult([], at: root)
+    }
+}
