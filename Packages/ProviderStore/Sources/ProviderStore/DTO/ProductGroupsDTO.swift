@@ -27,34 +27,49 @@ public struct ProductGroupsDTO: Hashable, Sendable {
     }
 
     public init(products: [Product]) {
-        var newCars: [Product] = []
-        var newSubscriptions: [Product] = []
-        var newNonRenewables: [Product] = []
-        var newFuel: [Product] = []
-
-        for product in products {
+        let classifiedProducts = products.compactMap { product -> (ProductDTO.ProductKind, ProductDTO)? in
             switch product.type {
             case .consumable:
-                newFuel.append(product)
+                return (.consumable, ProductDTO.toDTO(product, kind: .consumable))
             case .nonConsumable:
-                newCars.append(product)
+                return (.nonConsumable, ProductDTO.toDTO(product, kind: .nonConsumable))
             case .autoRenewable:
-                newSubscriptions.append(product)
+                return (.autoRenewable, ProductDTO.toDTO(product, kind: .autoRenewable))
             case .nonRenewable:
-                newNonRenewables.append(product)
+                return (.nonRenewable, ProductDTO.toDTO(product, kind: .nonRenewable))
             default:
+                return nil
+            }
+        }
+
+        self.init(classifiedProducts: classifiedProducts)
+    }
+
+    init(classifiedProducts: [(kind: ProductDTO.ProductKind, product: ProductDTO)]) {
+        var cars: [ProductDTO] = []
+        var subscriptions: [ProductDTO] = []
+        var nonRenewables: [ProductDTO] = []
+        var fuel: [ProductDTO] = []
+
+        for (kind, product) in classifiedProducts {
+            switch kind {
+            case .nonConsumable:
+                cars.append(product)
+            case .autoRenewable:
+                subscriptions.append(product)
+            case .nonRenewable:
+                nonRenewables.append(product)
+            case .consumable:
+                fuel.append(product)
+            case .unknown:
                 break
             }
         }
 
-        self.cars = newCars.map { ProductDTO.toDTO($0, kind: .nonConsumable) }
-
-        // 将订阅产品按组聚合
-        let subscriptionDTOs = newSubscriptions.map { ProductDTO.toDTO($0, kind: .autoRenewable) }
-        self.subscriptionGroups = Self.createSubscriptionGroups(from: subscriptionDTOs)
-
-        self.nonRenewables = newNonRenewables.map { ProductDTO.toDTO($0, kind: .nonRenewable) }
-        self.fuel = newFuel.map { ProductDTO.toDTO($0, kind: .consumable) }
+        self.cars = cars
+        self.subscriptionGroups = Self.createSubscriptionGroups(from: subscriptions)
+        self.nonRenewables = nonRenewables
+        self.fuel = fuel
     }
 }
 
@@ -65,7 +80,7 @@ extension ProductGroupsDTO {
     ///
     /// - Parameter subscriptions: 订阅产品列表
     /// - Returns: 订阅组列表：`[SubscriptionGroupDTO]`
-    private static func createSubscriptionGroups(from subscriptions: [ProductDTO]) -> [SubscriptionGroupDTO] {
+    static func createSubscriptionGroups(from subscriptions: [ProductDTO]) -> [SubscriptionGroupDTO] {
         // 按订阅组 ID 聚合，避免为同一组重复创建条目
         var grouped: [String: [ProductDTO]] = [:]
         for product in subscriptions {
@@ -85,6 +100,7 @@ extension ProductGroupsDTO {
 
             return SubscriptionGroupDTO(name: displayName, id: groupId, subscriptions: sortedItems)
         }
+        .sorted { $0.id < $1.id }
 
         return groups
     }

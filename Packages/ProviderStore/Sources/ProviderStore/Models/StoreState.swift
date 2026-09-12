@@ -9,6 +9,12 @@ final class StoreState: ObservableObject, SuperLog {
 
     static let verbose = false
 
+    struct EntitlementSnapshot {
+        let productID: String
+        let productType: Product.ProductType
+        let expirationDate: Date?
+    }
+
     // MARK: - Keys
 
     private enum Keys {
@@ -44,10 +50,74 @@ final class StoreState: ObservableObject, SuperLog {
         update(entitlement: .none)
     }
 
+    static func nonRenewableEntitlementInfo(
+        productID: String,
+        expirationDate: Date?,
+        now: Date
+    ) -> PurchaseInfo? {
+        guard let expirationDate, expirationDate > now else { return nil }
+        return PurchaseInfo(
+            tier: StoreService.tier(for: productID),
+            expiresAt: expirationDate
+        )
+    }
+
+    static func detectedPurchaseInfo(
+        from entitlements: [EntitlementSnapshot],
+        now: Date
+    ) -> PurchaseInfo {
+        var detectedTier: SubscriptionTier = .none
+        var detectedExpiration: Date?
+
+        for entitlement in entitlements {
+            switch entitlement.productType {
+            case .autoRenewable:
+                let tier = StoreService.tier(for: entitlement.productID)
+                detectedTier = max(detectedTier, tier)
+                if let expirationDate = entitlement.expirationDate {
+                    detectedExpiration = max(detectedExpiration ?? expirationDate, expirationDate)
+                    if verbose {
+                        os_log("\(self.t)⏰ Expiration date: \(expirationDate.fullDateTime)")
+                    }
+                }
+                if verbose {
+                    os_log("\(self.t)✅ Auto-renewable subscription: \(entitlement.productID), tier: \(tier.rawValue)")
+                }
+            case .nonRenewable:
+                guard let info = nonRenewableEntitlementInfo(
+                    productID: entitlement.productID,
+                    expirationDate: entitlement.expirationDate,
+                    now: now
+                ) else {
+                    if verbose, let expirationDate = entitlement.expirationDate {
+                        os_log("\(self.t)⚠️ Non-renewing subscription expired: \(expirationDate.fullDateTime)")
+                    }
+                    continue
+                }
+
+                detectedTier = max(detectedTier, info.tier)
+                if let expirationDate = info.expiresAt {
+                    detectedExpiration = max(detectedExpiration ?? expirationDate, expirationDate)
+                }
+                if verbose {
+                    os_log("\(self.t)✅ Non-renewing subscription: \(entitlement.productID), tier: \(info.tier.rawValue)")
+                    if let expirationDate = info.expiresAt {
+                        os_log("\(self.t)⏰ Non-renewing subscription expiration date: \(expirationDate.fullDateTime)")
+                    }
+                }
+            default:
+                if verbose {
+                    os_log("\(self.t)⏭️ Skipping other product type: \(entitlement.productID)")
+                }
+            }
+        }
+
+        return PurchaseInfo(tier: detectedTier, expiresAt: detectedExpiration)
+    }
+
     // Calibrate local state from current entitlements.
     static func calibrateFromCurrentEntitlements() async {
-        var detectedTier: SubscriptionTier = .none
-        var detectedExpire: Date?
+        var entitlements: [EntitlementSnapshot] = []
 
         if self.verbose {
             os_log("\(self.t)🔄 Calibrating current entitlements")
@@ -64,67 +134,21 @@ final class StoreState: ObservableObject, SuperLog {
             if self.verbose {
                 os_log("\(self.t)📋 Checking transaction: \(transaction.productID), type: \(transaction.productType.rawValue)")
             }
-            switch transaction.productType {
-            case .autoRenewable:
-                let t = StoreService.tier(for: transaction.productID)
-                detectedTier = max(detectedTier, t)
-                if verbose {
-                    os_log("\(self.t)✅ Auto-renewable subscription: \(transaction.productID), tier: \(t.rawValue)")
-                }
-
-                // Record the latest expiration date.
-                if let exp = transaction.expirationDate {
-                    if let cur = detectedExpire {
-                        detectedExpire = max(cur, exp)
-                    } else {
-                        detectedExpire = exp
-                    }
-
-                    if self.verbose {
-                        os_log("\(self.t)⏰ Expiration date: \(exp.fullDateTime)")
-                    }
-                }
-            case .nonRenewable:
-                let t = StoreService.tier(for: transaction.productID)
-                detectedTier = max(detectedTier, t)
-
-                if verbose {
-                    os_log("\(self.t)✅ Non-renewing subscription: \(transaction.productID), tier: \(t.rawValue)")
-                }
-
-                // For non-renewing subscriptions, check whether the entitlement is still valid.
-                if let exp = transaction.expirationDate {
-                    if exp > Date() {
-                        // Still valid.
-                        if let cur = detectedExpire {
-                            detectedExpire = max(cur, exp)
-                        } else {
-                            detectedExpire = exp
-                        }
-                        if self.verbose {
-                            os_log("\(self.t)⏰ Non-renewing subscription expiration date: \(exp.fullDateTime)")
-                        }
-                    } else {
-                        if self.verbose {
-                            os_log("\(self.t)⚠️ Non-renewing subscription expired: \(exp.fullDateTime)")
-                        }
-                    }
-                }
-            default:
-                if self.verbose {
-                    os_log("\(self.t)⏭️ Skipping other product type: \(transaction.productID)")
-                }
-                continue
-            }
+            entitlements.append(EntitlementSnapshot(
+                productID: transaction.productID,
+                productType: transaction.productType,
+                expirationDate: transaction.expirationDate
+            ))
         }
 
+        let detectedEntitlement = detectedPurchaseInfo(from: entitlements, now: .now)
         if self.verbose {
-            os_log("\(self.t)🎯 Calibration result: detectedTier=\(detectedTier.rawValue), detectedExpire=\(detectedExpire?.description ?? "nil")")
+            os_log("\(self.t)🎯 Calibration result: detectedTier=\(detectedEntitlement.tier.rawValue), detectedExpire=\(detectedEntitlement.expiresAt?.description ?? "nil")")
         }
 
         // Update state on the main thread.
         await MainActor.run {
-            update(entitlement: PurchaseInfo(tier: detectedTier, expiresAt: detectedExpire))
+            update(entitlement: detectedEntitlement)
         }
     }
 }
