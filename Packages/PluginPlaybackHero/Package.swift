@@ -35,6 +35,16 @@ let package = Package(
             sources: ["Sources"],
             resources: [.process("Resources")]
         ),
+        .testTarget(
+            name: "PluginPlaybackHeroTests",
+            dependencies: [
+                "PluginPlaybackHero",
+                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "ProviderPlayback", package: "ProviderPlayback"),
+                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
+            ],
+            path: "Tests"
+        ),
     ],
     swiftLanguageModes: [.v5]
 )
