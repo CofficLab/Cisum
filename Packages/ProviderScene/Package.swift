@@ -23,8 +23,17 @@ let package = Package(
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources/ProviderScene"],
             resources: [.process("Resources")]
+        ),
+        .testTarget(
+            name: "ProviderSceneTests",
+            dependencies: [
+                "ProviderScene",
+                .product(name: "KernelCore", package: "KernelCore"),
+            ],
+            path: "Tests"
         ),
     ],
     swiftLanguageModes: [.v5]
