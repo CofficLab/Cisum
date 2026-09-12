@@ -30,6 +30,8 @@ let package = Package(
            ],
            path: ".",
            exclude: [
+               "README.md",
+               "Tests",
                "Sources/MagicKit/Icons.xcassets",
                "Sources/MagicDemo/MagicDemo/Assets.xcassets",
                "Sources/MagicDemo/MagicDemo/Preview Content"

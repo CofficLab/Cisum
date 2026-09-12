@@ -484,7 +484,7 @@ public extension URL {
     func getNextFile() -> URL? {
         let contents = deletingLastPathComponent().getChildren()
             .sorted { $0.lastPathComponent < $1.lastPathComponent }
-        guard let index = contents.firstIndex(of: self) else { return nil }
+        guard let index = siblingIndex(of: self, in: contents) else { return nil }
         let nextIndex = index + 1
         return nextIndex < contents.count ? contents[nextIndex] : nil
     }
@@ -493,7 +493,7 @@ public extension URL {
     func getPrevFile() -> URL? {
         let contents = deletingLastPathComponent().getChildren()
             .sorted { $0.lastPathComponent < $1.lastPathComponent }
-        guard let index = contents.firstIndex(of: self) else { return nil }
+        guard let index = siblingIndex(of: self, in: contents) else { return nil }
         return index > 0 ? contents[index - 1] : nil
     }
 
@@ -678,5 +678,12 @@ public extension URL {
         )
 
         return monitor.start()
+    }
+}
+
+private func siblingIndex(of url: URL, in siblings: [URL]) -> Int? {
+    let identity = url.resolvingSymlinksInPath().standardizedFileURL.path
+    return siblings.firstIndex {
+        $0.resolvingSymlinksInPath().standardizedFileURL.path == identity
     }
 }
