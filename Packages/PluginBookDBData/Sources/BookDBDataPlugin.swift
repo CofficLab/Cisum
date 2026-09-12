@@ -53,8 +53,13 @@ public actor BookDBDataPlugin: SuperPlugin {
     private func installProvider(kernel: CisumKernel) throws {
         guard provider == nil, let storage = kernel.storage else { return }
         let provider = BookDatabaseProvider(storage: storage)
-        self.provider = provider
-        try kernel.registerProvider(BookDatabaseProviding.self, provider)
+        do {
+            try kernel.registerProvider(BookDatabaseProviding.self, provider)
+            self.provider = provider
+        } catch {
+            provider.shutdown()
+            throw error
+        }
     }
 
     @MainActor

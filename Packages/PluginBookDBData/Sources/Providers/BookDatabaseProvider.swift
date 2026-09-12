@@ -24,7 +24,7 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
     func shutdown() {
         storageObserver?.cancel()
         storageObserver = nil
-        cachedRepository = nil
+        invalidateRepository()
     }
 
     var bookDisk: URL? {
@@ -170,6 +170,7 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
     }
 
     func invalidateRepository() {
+        cachedRepository?.shutdown()
         cachedRepository = nil
     }
 }
