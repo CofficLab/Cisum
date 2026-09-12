@@ -26,12 +26,18 @@ let package = Package(
                 .product(name: "LumiUI", package: "LumiUI"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources"],
             resources: [.process("Resources")],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency=minimal"),
             ]
-        )
+        ),
+        .testTarget(
+            name: "CisumUIComponentsTests",
+            dependencies: ["CisumUIComponents"],
+            path: "Tests"
+        ),
     ],
     swiftLanguageModes: [.v5]
 )
