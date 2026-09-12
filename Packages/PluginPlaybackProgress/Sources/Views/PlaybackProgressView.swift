@@ -9,14 +9,22 @@ struct PlaybackProgressView: View {
         self.viewModel = viewModel
     }
 
+    func makeCurrentTimeBinding() -> Binding<TimeInterval> {
+        Binding(
+            get: { viewModel.currentTime },
+            set: { viewModel.handleTimeChanged($0) }
+        )
+    }
+
+    func handleSeek(_ time: TimeInterval) {
+        viewModel.seek(to: time)
+    }
+
     var body: some View {
         MagicProgressBar(
-            currentTime: Binding(
-                get: { viewModel.currentTime },
-                set: { viewModel.seek(to: $0) }
-            ),
+            currentTime: makeCurrentTimeBinding(),
             duration: viewModel.duration,
-            onSeek: { viewModel.seek(to: $0) }
+            onSeek: handleSeek
         )
     }
 }

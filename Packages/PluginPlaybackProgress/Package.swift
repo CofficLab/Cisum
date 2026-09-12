@@ -32,8 +32,19 @@ let package = Package(
                 .product(name: "ProviderDocsView", package: "ProviderDocsView"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources"],
             resources: [.process("Resources")]
+        ),
+        .testTarget(
+            name: "PluginPlaybackProgressTests",
+            dependencies: [
+                "PluginPlaybackProgress",
+                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "ProviderPlayback", package: "ProviderPlayback"),
+                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
+            ],
+            path: "Tests"
         ),
     ],
     swiftLanguageModes: [.v5]
