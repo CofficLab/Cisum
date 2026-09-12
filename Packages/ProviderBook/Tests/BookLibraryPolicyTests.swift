@@ -99,4 +99,22 @@ struct BookLibraryPolicyTests {
         #expect(folderModel.isCollection)
         #expect(folderModel.childCount == 1)
     }
+
+    @Test
+    func coverDataReturnsOnlyImageFiles() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("BookCoverDataTests-\(UUID().uuidString)", isDirectory: true)
+        let folder = root.appendingPathComponent("Novel", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let audioFile = root.appendingPathComponent("single-book.mp3")
+        let coverFile = folder.appendingPathComponent("cover.jpg")
+        try Data([0x01, 0x02]).write(to: audioFile)
+        try Data([0xFF, 0xD8, 0xFF]).write(to: coverFile)
+
+        let repository = BookCoverRepo()
+        #expect(await repository.getCoverData(for: audioFile) == nil)
+        #expect(await repository.getCoverData(for: folder) == Data([0xFF, 0xD8, 0xFF]))
+    }
 }

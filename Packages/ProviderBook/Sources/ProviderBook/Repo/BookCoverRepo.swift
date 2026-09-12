@@ -229,6 +229,7 @@ public final class BookCoverRepo: ObservableObject, SuperLog, @unchecked Sendabl
     private static func findCoverURL(in url: URL) -> URL? {
         let candidates = coverCandidates(in: url)
         for file in candidates.files {
+            guard isCoverImageCandidate(file) else { continue }
             if file.checkIsICloud(verbose: false) && file.isNotDownloaded { continue }
             if let data = try? Data(contentsOf: file), !data.isEmpty { return file }
         }
