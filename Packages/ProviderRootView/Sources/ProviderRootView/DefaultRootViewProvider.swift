@@ -43,9 +43,11 @@ public final class DefaultRootViewProvider: RootViewProviding {
     }
 
     public func addOverlays(_ newOverlays: [RootOverlayItem]) {
+        let previousCount = overlays.count
         for overlay in newOverlays where !overlays.contains(where: { $0.id == overlay.id }) {
             overlays.append(overlay)
         }
+        guard overlays.count != previousCount else { return }
         overlays.sort { $0.order < $1.order }
         eventObservers.send(.overlaysChanged)
     }
