@@ -63,6 +63,7 @@ public final class AudioModel: SuperLog {
         self.order = order ?? Self.makeRandomOrder()
         self.identifierKey = identifierKey
         self.contentType = contentType
+        self.isFolder = isFolder
         let trimmedTitle = title?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let trimmedTitle, !trimmedTitle.isEmpty {
             self.title = trimmedTitle

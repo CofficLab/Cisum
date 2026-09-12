@@ -35,6 +35,7 @@ let package = Package(
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources"],
             resources: [.process("Resources")]
         ),
@@ -42,7 +43,9 @@ let package = Package(
             name: "AudioDBDataPluginTests",
             dependencies: [
                 "PluginAudioDBData",
+                .product(name: "KernelCore", package: "KernelCore"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+                .product(name: "ProviderStorage", package: "ProviderStorage"),
             ],
             path: "Tests"
         ),
