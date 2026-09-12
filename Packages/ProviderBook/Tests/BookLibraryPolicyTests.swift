@@ -117,4 +117,21 @@ struct BookLibraryPolicyTests {
         #expect(await repository.getCoverData(for: audioFile) == nil)
         #expect(await repository.getCoverData(for: folder) == Data([0xFF, 0xD8, 0xFF]))
     }
+
+    @MainActor
+    @Test
+    func bookRepositoryShutdownReleasesInitialSyncWaiters() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("BookRepositoryShutdown-\(UUID().uuidString)", isDirectory: true)
+        let disk = root.appendingPathComponent("library", isDirectory: true)
+        try FileManager.default.createDirectory(at: disk, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let container = try BookConfig.getContainer(dbRootURL: root.appendingPathComponent("database"))
+        let repository = try BookRepo(disk: disk, db: BookDB(container, reason: "BookRepositoryShutdownTests"))
+        repository.shutdown()
+
+        #expect(await repository.getAll(reason: "after-shutdown").isEmpty)
+        repository.shutdown()
+    }
 }
