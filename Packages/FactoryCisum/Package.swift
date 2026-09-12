@@ -81,8 +81,8 @@ let package = Package(
         .package(name: "PluginWelcome", path: "../PluginWelcome"),
     ],
     targets: [
-            .target(
-                name: "FactoryCisum",
+        .target(
+            name: "FactoryCisum",
             dependencies: [
                 .product(name: "KernelCore", package: "KernelCore"),
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
@@ -153,6 +153,17 @@ let package = Package(
             resources: [
                 .process("Resources"),
             ]
+        ),
+        .testTarget(
+            name: "FactoryCisumTests",
+            dependencies: [
+                "FactoryCisum",
+                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "ProviderRootView", package: "ProviderRootView"),
+                .product(name: "ProviderControlView", package: "ProviderControlView"),
+                .product(name: "ProviderContentView", package: "ProviderContentView"),
+            ],
+            path: "Tests"
         ),
     ],
     swiftLanguageModes: [.v5]
