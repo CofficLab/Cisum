@@ -38,6 +38,29 @@ final class AudioFileSystemMonitor: SuperLog, @unchecked Sendable {
         isFirst || !(disk?.checkIsICloud(verbose: false) ?? true)
     }
 
+    /// An empty initial snapshot is destructive because a full sync removes all
+    /// records missing from the snapshot. Only accept it when the directory can
+    /// independently be listed and is genuinely empty.
+    static func shouldApplyEmptyFullSync(disk: URL?) -> Bool {
+        guard let disk else { return false }
+
+        do {
+            let visibleEntries = try FileManager.default.contentsOfDirectory(
+                at: disk,
+                includingPropertiesForKeys: [.isDirectoryKey, .isRegularFileKey],
+                options: [.skipsHiddenFiles]
+            )
+            guard visibleEntries.isEmpty else {
+                os_log(.error, "❌ Refusing empty audio full sync for non-empty directory: \(disk.path)")
+                return false
+            }
+            return true
+        } catch {
+            os_log(.error, "❌ Refusing empty audio full sync; cannot validate directory \(disk.path): \(error.localizedDescription)")
+            return false
+        }
+    }
+
     static func shouldContinueRunning(runID: UUID, activeRunID: UUID?, isRunning: Bool) -> Bool {
         isRunning && activeRunID == runID
     }

@@ -13,6 +13,24 @@ import Testing
     #expect(AudioFileSystemMonitor.shouldPerformFullSync(isFirst: false, disk: localDisk))
 }
 
+@Test func emptyFullSyncIsOnlyAllowedForAReadableEmptyDirectory() throws {
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent("cisum-audio-db-empty-sync-\(UUID().uuidString)", isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+
+    #expect(AudioFileSystemMonitor.shouldApplyEmptyFullSync(disk: root))
+    #expect(!AudioFileSystemMonitor.shouldApplyEmptyFullSync(disk: root.appendingPathComponent("missing")))
+
+    let existingTrack = root.appendingPathComponent("existing-track.mp3")
+    try Data([0x01]).write(to: existingTrack)
+    #expect(!AudioFileSystemMonitor.shouldApplyEmptyFullSync(disk: root))
+}
+
+@Test func emptyFullSyncIsRejectedWithoutResolvedDirectory() {
+    #expect(!AudioFileSystemMonitor.shouldApplyEmptyFullSync(disk: nil))
+}
+
 @Test func staleMonitorRunStopsAfterRestart() {
     let firstRun = UUID()
     let secondRun = UUID()

@@ -83,6 +83,10 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
                     isFirst: isFirst,
                     disk: disk
                 )
+                if shouldFullSync, items.isEmpty,
+                   !AudioFileSystemMonitor.shouldApplyEmptyFullSync(disk: disk) {
+                    return
+                }
                 await provider.sync(
                     urls: items,
                     verbose: AudioFileSystemMonitor.verbose,
