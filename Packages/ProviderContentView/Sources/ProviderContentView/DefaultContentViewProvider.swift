@@ -45,7 +45,9 @@ private final class ContentViewObserverStore {
     }
 
     func send(_ event: ContentViewProvidingEvent) {
-        callbacks.values.forEach { $0(event) }
+        for callback in Array(callbacks.values) {
+            callback(event)
+        }
     }
 }
 

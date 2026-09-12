@@ -21,10 +21,16 @@ let package = Package(
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources/ProviderContentView"],
             resources: [
                 .process("Resources"),
             ]
+        ),
+        .testTarget(
+            name: "ProviderContentViewTests",
+            dependencies: ["ProviderContentView"],
+            path: "Tests"
         ),
     ],
     swiftLanguageModes: [.v5]
