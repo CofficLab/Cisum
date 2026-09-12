@@ -108,6 +108,7 @@ public actor PluginPlayBack: SuperPlugin {
         settingsViewModel = nil
         stateStore = nil
         playbackProvider?.shutdown()
+        kernel.unregisterProvider(PlaybackProviding.self)
         kernel.unregisterProvider((any PlaybackMediaProviding).self)
         playbackProvider = nil
         magicPlayMan = nil
