@@ -1,4 +1,4 @@
-import MigratePlugin
+@testable import PluginMigrate
 import Testing
 
 @Test func migrateTypeExportsMetadata() {
