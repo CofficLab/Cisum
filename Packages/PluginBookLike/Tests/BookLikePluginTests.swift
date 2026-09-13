@@ -151,3 +151,86 @@ func pluginExposesSettingsNavigationItem() {
 
     #expect(likedBooks.map(\.title) == ["Legacy Book", "Legacy Spaced Book", "Spaced Book", "Valid Book"])
 }
+
+// MARK: - ViewModel 集成
+
+@MainActor
+private final class BookLikeCapabilityProbe: BookLikePlaybackCapability {
+    var isAvailable = true
+}
+
+@MainActor
+struct BookLikeViewModelTests {
+    @Test
+    func reloadLoadsLikedBooks() {
+        let items = [BookLikeItem(url: URL(fileURLWithPath: "/tmp/book-a"), title: "A")]
+        let viewModel = BookLikeViewModel(
+            playbackCapability: BookLikeCapabilityProbe(),
+            loadLikedBooks: { items },
+            saveLikeStatus: { _, _ in }
+        )
+
+        viewModel.handleAppear()
+
+        #expect(viewModel.likedBooks == items)
+        #expect(viewModel.isLoading == false)
+    }
+
+    @Test
+    func likeSaveRequiresActiveScene() {
+        var saved: [(Bool, URL)] = []
+        let viewModel = BookLikeViewModel(
+            playbackCapability: BookLikeCapabilityProbe(),
+            loadLikedBooks: { [] },
+            saveLikeStatus: { liked, url in saved.append((liked, url)) }
+        )
+
+        let asset = URL(fileURLWithPath: "/tmp/book-a/chapter.mp3")
+        viewModel.handleLikeStatusChanged(asset: asset, liked: true)
+        #expect(saved.isEmpty)
+
+        viewModel.handleSceneChange(.audiobooks)
+        viewModel.handleLikeStatusChanged(asset: asset, liked: true)
+        #expect(saved.count == 1)
+        #expect(saved.first?.0 == true)
+        #expect(saved.first?.1 == asset)
+
+        viewModel.handleSceneChange(.music)
+        viewModel.handleLikeStatusChanged(asset: asset, liked: false)
+        #expect(saved.count == 1)
+    }
+
+    @Test
+    func activationRequiresAvailableCapability() {
+        let unavailable = BookLikeCapabilityProbe()
+        unavailable.isAvailable = false
+        var saved: [(Bool, URL)] = []
+        let viewModel = BookLikeViewModel(
+            playbackCapability: unavailable,
+            loadLikedBooks: { [] },
+            saveLikeStatus: { liked, url in saved.append((liked, url)) }
+        )
+
+        viewModel.handleSceneChange(.audiobooks)
+        viewModel.handleLikeStatusChanged(asset: URL(fileURLWithPath: "/tmp/book-a/chapter.mp3"), liked: true)
+        #expect(saved.isEmpty)
+    }
+
+    @Test
+    func likeStatusChangeReloadsList() {
+        var loadCount = 0
+        let viewModel = BookLikeViewModel(
+            playbackCapability: BookLikeCapabilityProbe(),
+            loadLikedBooks: {
+                loadCount += 1
+                return []
+            },
+            saveLikeStatus: { _, _ in }
+        )
+
+        viewModel.handleSceneChange(.audiobooks)
+        viewModel.handleLikeStatusChanged(asset: URL(fileURLWithPath: "/tmp/book-a/chapter.mp3"), liked: true)
+
+        #expect(loadCount >= 1)
+    }
+}

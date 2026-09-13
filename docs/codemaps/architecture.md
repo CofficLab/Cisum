@@ -139,7 +139,7 @@ protocol SuperPlugin: Actor {
 
 ### Plugin Categories
 
-#### 1. Audio Plugins (11 plugins)
+#### 1. Audio Plugins (10 plugins)
 **Execution Order**: 0-9999
 
 | Plugin | Order | Responsibility |
@@ -152,7 +152,7 @@ protocol SuperPlugin: Actor {
 | AudioLikePlugin | - | Like/favorite management |
 | AudioPlayModePlugin | - | Play mode controls |
 | AudioDownloadPlugin | - | Download management |
-| AudioJobPlugin | - | Background jobs |
+| AudioDBDataPlugin | 1 | Database implementation and filesystem synchronization |
 | AudioSettingsPlugin | - | Settings integration |
 
 #### 2. Book Plugins (9 plugins)

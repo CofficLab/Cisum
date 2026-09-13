@@ -49,7 +49,9 @@ final class BookControlPlaybackCapabilityAdapter: BookControlPlaybackCapability,
 
     var isPlaying: Bool { playback.isPlaying }
 
-    var playMode: MagicPlayMode { playback.playMode }
+    var playMode: MagicPlayMode {
+        MagicPlayMode(rawValue: playback.playMode.rawValue) ?? .sequence
+    }
 
     func toggle() {
         if Self.verbose { os_log("\(Self.t)⏯️ toggle") }

@@ -16,7 +16,7 @@ import MagicKit
 /// 本 ViewModel 仅调用它们，保证行为不变。
 @MainActor
 final class AudioListViewModel: ObservableObject, SuperLog {
-    nonisolated static let verbose = true
+    nonisolated static let verbose = false
 
     /// 当前选中项；由外部播放事件和用户选择共同驱动，但只有用户选择会发出播放命令。
     @Published private(set) var selection: URL?

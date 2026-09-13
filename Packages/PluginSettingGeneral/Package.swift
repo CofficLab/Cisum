@@ -32,6 +32,15 @@ let package = Package(
             path: ".",
             sources: ["Sources"],
             resources: [.process("Resources")]
-        )
+        ),
+        .testTarget(
+            name: "PluginSettingGeneralTests",
+            dependencies: [
+                "PluginSettingGeneral",
+                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
+            ],
+            path: "Tests"
+        ),
     ]
 )

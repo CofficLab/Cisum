@@ -2,15 +2,11 @@ import CisumUIComponents
 import Foundation
 import KernelCore
 import MagicKit
-import MagicPlayMan
-import PluginToast
 import SwiftUI
 
 /// Factory 根视图桥接层。
 ///
-/// 将内核 Provider 投影为 SwiftUI 环境值/环境对象，供仍以旧式环境读取的插件视图
-/// 继续工作；并用插件的 RootView 包裹内部布局。Host 桥接彻底移除后，这里的兼容
-/// 环境可进一步精简。
+/// 将内核的非播放 UI 配置投影为 SwiftUI 环境值，并用插件的 RootView 包裹内部布局。
 struct KernelRootView: View {
     @ObservedObject var kernel: CisumKernel
     @ObservedObject private var themeRegistry = LumiUIThemeRegistry.shared
@@ -58,29 +54,7 @@ struct KernelRootView: View {
             let bridged = wrap(assembledContent)
             // 插件贡献变化（.id 变化）时整棵子树重建，重新注入内容 Tab 等。
             .id(contributionRevision)
-            .environment(\.demoMode, kernel.appState?.isDemoMode ?? false)
-            .environment(
-                \.appIsImporting,
-                Binding(
-                    get: { kernel.appState?.isImporting ?? false },
-                    set: { kernel.appState?.setImporting($0) }
-                )
-            )
-            .environment(\.showAudioDBViewAction, { kernel.appState?.showDBView() })
-            .environment(\.pluginThemes, kernel.theme?.allThemeContributions ?? [])
-            .environment(\.currentPluginThemeId, kernel.theme?.selectedThemeID ?? "")
-            .environment(\.selectPluginThemeAction, { themeID in kernel.theme?.selectTheme(themeID) })
-            .environment(\.resetSettingsAction, {
-                Task { @MainActor in
-                    FactoryCisum.mainKernel?.storage?.resetStorageLocation()
-                }
-            })
-            .environment(\.toastProviding, kernel.toast)
-            if let playMan = kernel.playback as? MagicPlayMan {
-                bridged.environmentObject(playMan)
-            } else {
-                bridged
-            }
+            bridged
         } else {
             ProgressView("Loading…")
         }

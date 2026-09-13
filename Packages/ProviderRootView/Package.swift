@@ -30,6 +30,14 @@ let package = Package(
             sources: ["Sources/ProviderRootView"],
             resources: [.process("Resources")]
         ),
+        .testTarget(
+            name: "ProviderRootViewTests",
+            dependencies: [
+                "ProviderRootView",
+                .product(name: "KernelCore", package: "KernelCore"),
+            ],
+            path: "Tests"
+        ),
     ],
     swiftLanguageModes: [.v5]
 )

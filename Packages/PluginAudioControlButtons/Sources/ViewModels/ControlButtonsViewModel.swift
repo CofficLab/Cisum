@@ -2,8 +2,9 @@ import Combine
 import Foundation
 import MagicPlayMan
 import MagicKit
-import OSLog
+import os
 import ProviderScene
+import ProviderPlayback
 import ProviderToast
 
 /// 播放控制按钮的状态容器。
@@ -12,21 +13,23 @@ import ProviderToast
 /// 插件入口组装的 Capability 执行。ViewModel 不持有 Kernel 或具体 Provider。
 @MainActor
 final class ControlButtonsViewModel: ObservableObject, SuperLog {
-    nonisolated static let verbose = false
+    nonisolated static let verbose = true
     private static let log = Logger(subsystem: "com.yueyi.cisum", category: "ControlButtons")
 
     @Published private(set) var isPlaying = false
     @Published private(set) var playMode: MagicPlayMode = .sequence
-    private let playbackCapability: (any ControlButtonsPlaybackCapability)?
-    private let navigationCapability: (any ControlButtonsNavigationCapability)?
+    private let playbackCapability: (any PlaybackCapability)?
+    private let navigationCapability: (any NavigationCapability)?
     private let toastProvider: (any ToastProviding)?
     private let targetScene: AppScene
     private var currentScene: AppScene?
     private var controlGeneration = 0
+    /// 最近一次已提示过的失败，用于去重，避免状态抖动反复弹窗。
+    private var lastPresentedFailure: PlaybackFailure?
 
     init(
-        playbackCapability: (any ControlButtonsPlaybackCapability)?,
-        navigationCapability: (any ControlButtonsNavigationCapability)? = nil,
+        playbackCapability: (any PlaybackCapability)?,
+        navigationCapability: (any NavigationCapability)? = nil,
         toastProvider: (any ToastProviding)? = nil,
         targetScene: AppScene = .music,
         currentScene: AppScene? = nil
@@ -46,8 +49,40 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
         currentScene == targetScene
     }
 
-    func applyStateChanged(_ state: PlaybackState) {
+    func applyStateChanged(_ state: PlaybackStatus) {
         isPlaying = state == .playing
+
+        guard case .failed(let failure) = state else {
+            lastPresentedFailure = nil
+            return
+        }
+
+        // 失败必须让用户看得见：之前 .failed 只折算成 isPlaying = false，
+        // 表现为「点了播放没反应，也没有任何提示」。
+        guard failure != lastPresentedFailure else { return }
+        lastPresentedFailure = failure
+
+        let message = Self.failureDescription(failure)
+        Self.log.error("\(Self.t)❌ Playback failed: \(message)")
+        presentError(
+            title: String(localized: "Cannot play audio", bundle: .module),
+            message: message
+        )
+    }
+
+    private static func failureDescription(_ failure: PlaybackFailure) -> String {
+        switch failure {
+        case .noAsset:
+            return String(localized: "The playback service is unavailable.", bundle: .module)
+        case .invalidAsset:
+            return String(localized: "The audio file is unavailable or not downloaded.", bundle: .module)
+        case .networkError(let message), .playbackError(let message):
+            return message
+        case .unsupportedFormat(let ext):
+            return String(localized: "Unsupported audio format", bundle: .module) + ": " + ext
+        case .invalidURL(let scheme):
+            return String(localized: "Invalid audio URL", bundle: .module) + ": " + scheme
+        }
     }
 
     func applyPlayModeChanged(_ mode: MagicPlayMode) {
@@ -62,7 +97,14 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
     }
 
     func toggle() {
+        if Self.verbose {
+            let asset = playbackCapability?.currentURL?.lastPathComponent ?? "nil"
+            let isPlaying = playbackCapability?.isPlaying ?? false
+            let sceneActive = shouldActivateControl
+            Self.log.info("\(Self.t)⏯️ Play/Pause tapped; asset=\(asset), isPlaying=\(isPlaying), sceneActive=\(sceneActive)")
+        }
         guard let playbackCapability else {
+            Self.log.error("\(Self.t)playbackCapability is unavailable")
             reportUnavailable(operation: "toggle playback")
             return
         }
@@ -71,10 +113,10 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
 
     func previous() {
         if Self.verbose {
-            os_log("\(Self.t)⬅️ Previous button tapped")
+            Self.log.info("\(Self.t)⬅️ Previous button tapped")
         }
         guard let asset = playbackCapability?.currentURL else {
-            reportUnavailable(operation: "play previous", message: "There is no current audio file.")
+            reportUnavailable(operation: "play previous", message: String(localized: "There is no current audio file.", bundle: .module))
             return
         }
         handlePreviousRequested(asset)
@@ -82,16 +124,20 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
 
     func next() {
         if Self.verbose {
-            os_log("\(Self.t)➡️ Next button tapped")
+            Self.log.info("\(Self.t)➡️ Next button tapped")
         }
         guard let asset = playbackCapability?.currentURL else {
-            reportUnavailable(operation: "play next", message: "There is no current audio file.")
+            reportUnavailable(operation: "play next", message: String(localized: "There is no current audio file.", bundle: .module))
             return
         }
         handleNextRequested(asset)
     }
 
     func togglePlayMode() {
+        if Self.verbose {
+            let mode = playMode.displayName
+            Self.log.info("\(Self.t)🔁 Play mode button tapped; mode=\(mode)")
+        }
         guard let playbackCapability else {
             reportUnavailable(operation: "change playback mode")
             return
@@ -99,13 +145,13 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
         playbackCapability.togglePlayMode()
     }
 
-    func handleNavigationFailure(_ failure: MagicPlayMan.PlaybackEvents.NavigationFailure) {
+    func handleNavigationFailure(_ failure: PlaybackNavigationFailure) {
         let title: String
         switch failure.direction {
         case .previous:
-            title = "Cannot play previous"
+            title = String(localized: "Cannot play previous", bundle: .module)
         case .next:
-            title = "Cannot play next"
+            title = String(localized: "Cannot play next", bundle: .module)
         }
         Self.log.error("Playback navigation rejected: \(failure.reason)")
         presentError(title: title, message: failure.reason)
@@ -113,7 +159,7 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
 
     func handlePreviousRequested(_ asset: URL, ignoreSceneCheck: Bool = false) {
         guard shouldActivateControl || ignoreSceneCheck else {
-            presentError(title: "Cannot play previous", message: "The music scene is not active.")
+            presentError(title: String(localized: "Cannot play previous", bundle: .module), message: String(localized: "The music scene is not active.", bundle: .module))
             return
         }
         guard let playback = playbackCapability else {
@@ -123,7 +169,7 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
         guard let navigation = navigationCapability else {
             reportUnavailable(
                 operation: "play previous",
-                message: "The audio library navigation service is unavailable."
+                message: String(localized: "The audio library navigation service is unavailable.", bundle: .module)
             )
             return
         }
@@ -143,21 +189,21 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
                 } else if playback.playMode == .repeatAll {
                     guard shouldApply(asset: asset, playback: playback, generation: generation, ignoreSceneCheck: ignoreSceneCheck) else { return }
                     await playback.reset()
-                    alert_info("No files in library")
+                    alert_info(String(localized: "No files in library", bundle: .module))
                 } else {
                     Self.log.error("Previous navigation reached the beginning of the audio library")
-                    presentError(title: "Cannot play previous", message: "No previous audio file")
+                    presentError(title: String(localized: "Cannot play previous", bundle: .module), message: String(localized: "No previous audio file", bundle: .module))
                 }
             } catch {
                 guard shouldReport(asset: asset, playback: playback, generation: generation, ignoreSceneCheck: ignoreSceneCheck) else { return }
-                presentError(title: "Cannot play previous", error: error)
+                presentError(title: String(localized: "Cannot play previous", bundle: .module), error: error)
             }
         }
     }
 
     func handleNextRequested(_ asset: URL, ignoreSceneCheck: Bool = false) {
         guard shouldActivateControl || ignoreSceneCheck else {
-            presentError(title: "Cannot play next", message: "The music scene is not active.")
+            presentError(title: String(localized: "Cannot play next", bundle: .module), message: String(localized: "The music scene is not active.", bundle: .module))
             return
         }
         guard let playback = playbackCapability else {
@@ -167,7 +213,7 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
         guard let navigation = navigationCapability else {
             reportUnavailable(
                 operation: "play next",
-                message: "The audio library navigation service is unavailable."
+                message: String(localized: "The audio library navigation service is unavailable.", bundle: .module)
             )
             return
         }
@@ -183,22 +229,22 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
 
                 guard playback.playMode == .repeatAll else {
                     Self.log.error("Next navigation reached the end of the audio library")
-                    presentError(title: "Cannot play next", message: "No next audio file")
+                    presentError(title: String(localized: "Cannot play next", bundle: .module), message: String(localized: "No next audio file", bundle: .module))
                     return
                 }
 
                 if let first = try await navigation.firstURL() {
                     guard shouldApply(asset: asset, playback: playback, generation: generation, ignoreSceneCheck: ignoreSceneCheck) else { return }
-                    alert_info("Reached the last track, playing the first")
+                    alert_info(String(localized: "Reached the last track, playing the first", bundle: .module))
                     await playback.play(first)
                 } else {
                     guard shouldApply(asset: asset, playback: playback, generation: generation, ignoreSceneCheck: ignoreSceneCheck) else { return }
                     await playback.reset()
-                    alert_info("No files in library")
+                    alert_info(String(localized: "No files in library", bundle: .module))
                 }
             } catch {
                 guard shouldReport(asset: asset, playback: playback, generation: generation, ignoreSceneCheck: ignoreSceneCheck) else { return }
-                presentError(title: "Cannot play next", error: error)
+                presentError(title: String(localized: "Cannot play next", bundle: .module), error: error)
             }
         }
     }
@@ -245,22 +291,22 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
                         currentGeneration: controlGeneration,
                         requestGeneration: generation
                     ) else { return }
-                    alert_warning("Current file was deleted, playing the first")
+                    alert_warning(String(localized: "Current file was deleted, playing the first", bundle: .module))
                     await playback.play(first)
                 } else {
                     await playback.reset()
-                    alert_info("No files in library")
+                    alert_info(String(localized: "No files in library", bundle: .module))
                 }
             } catch {
                 await playback.reset()
-                presentError(title: "Cannot recover deleted audio", error: error)
+                presentError(title: String(localized: "Cannot recover deleted audio", bundle: .module), error: error)
             }
         }
     }
 
     private func shouldApply(
         asset: URL,
-        playback: any ControlButtonsPlaybackCapability,
+        playback: any PlaybackCapability,
         generation: Int,
         ignoreSceneCheck: Bool
     ) -> Bool {
@@ -275,7 +321,7 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
 
     private func shouldReport(
         asset: URL,
-        playback: any ControlButtonsPlaybackCapability,
+        playback: any PlaybackCapability,
         generation: Int,
         ignoreSceneCheck: Bool
     ) -> Bool {
@@ -289,9 +335,9 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
     }
 
     private func reportUnavailable(operation: String, message: String? = nil) {
-        let message = message ?? "The playback service is unavailable."
+        let message = message ?? String(localized: "The playback service is unavailable.", bundle: .module)
         Self.log.error("Cannot \(operation): \(message)")
-        presentError(title: "Playback controls unavailable", message: message)
+        presentError(title: String(localized: "Playback controls unavailable", bundle: .module), message: message)
     }
 
     private func presentError(title: String, error: Error) {

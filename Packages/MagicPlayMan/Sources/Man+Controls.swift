@@ -117,13 +117,32 @@ public extension MagicPlayMan {
     /// - Parameters:
     ///   - reason: 原因
     func playCurrent(reason: String) {
-        guard hasAsset else {
+        guard let url = currentURL else {
             os_log(.error, "\(self.t)Cannot play: no asset loaded")
+            return
+        }
+
+        // 加载失败时 resetPlayerItemAfterFailedPlayback 会清空 item 但保留 currentURL，
+        // 此时 AVPlayer.play() 对 nil item 是静默无效的（表现为「点播放没反应、进度不动」）。
+        // 检测到 item 缺失就重新加载，让「点击播放」自动退化为「重试」。
+        guard _player.currentItem != nil else {
+            if self.verbose {
+                os_log("\(self.t)🔄 (\(reason)) Player item is missing, reloading: \(url.lastPathComponent)")
+            }
+
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.play(url, autoPlay: true, reason: reason + ".reload")
+            }
             return
         }
 
         if MagicPlayManPlaybackTimePolicy.shouldRestartFromBeginning(currentTime: currentTime, duration: duration) {
             self.seek(time: 0, reason: self.className + ".playCurrent")
+        }
+
+        if self.verbose {
+            os_log("\(self.t)▶️ (\(reason)) Play current: \(url.lastPathComponent)")
         }
 
         // 让内核开始播放，MagicPlayMan初始化时监听了内核状态
@@ -156,6 +175,46 @@ public extension MagicPlayMan {
             await resetPlayerItemAfterFailedPlayback(reason: reason + ".validation")
             setState(.failed(validationError), reason: reason + ".play")
             return
+        }
+
+        // iCloud 未下载（dataless 占位）文件：本地只有占位元数据，AVFoundation 读取会失败
+        // （AVError -11800），从而被下面的可播性校验误判为 invalidAsset。
+        // 必须在可播性校验之前先确保内容落到本地。
+        if url.isFileURL, !url.hasLocalContent {
+            if self.verbose {
+                os_log("\(self.t)☁️ (\(reason)) iCloud asset is not available locally, downloading: \(url.lastPathComponent)")
+            }
+
+            setState(.loading(.downloading(0)), reason: reason + ".iCloudDownload")
+
+            let progressTask = Task { @MainActor [weak self] in
+                while !Task.isCancelled {
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    guard !Task.isCancelled, let self else { return }
+                    guard self.isCurrentPlayRequest(requestGeneration) else { return }
+
+                    let progress = MagicPlayManPlaybackTimePolicy.normalizedUnitProgress(
+                        url.getDownloadProgressSnapshot(verbose: false)
+                    )
+                    self.setState(.loading(.downloading(progress)), reason: reason + ".iCloudDownload")
+                }
+            }
+            defer { progressTask.cancel() }
+
+            do {
+                try await url.ensureLocalAvailability()
+            } catch {
+                os_log(.error, "\(self.t)❌ (\(reason)) iCloud download failed: \(error.localizedDescription)")
+                await resetPlayerItemAfterFailedPlayback(reason: reason + ".iCloudDownload")
+                setState(.failed(.networkError(error.localizedDescription)), reason: reason + ".play")
+                return
+            }
+
+            // 下载期间用户可能已经切歌
+            guard isCurrentPlayRequest(requestGeneration),
+                  MagicPlayManAssetIdentity.representsSameAsset(self.currentURL, url) else {
+                return
+            }
         }
 
         if url.isFileURL {
@@ -399,12 +458,18 @@ public extension MagicPlayMan {
     /// 根据当前播放状态在播放/暂停之间切换，如果当前正在播放则暂停，如果当前已暂停或停止则开始播放
     /// - Parameter reason: 切换操作的原因描述
     func toggle(reason: String) {
+        if self.verbose {
+            os_log("\(self.t)⏯️ (\(reason)) Toggle requested; state=\(self.state.stateText), asset=\(self.currentURL?.lastPathComponent ?? "nil")")
+        }
         switch state {
         case .playing:
             pause(reason: reason)
         case .paused, .stopped:
             playCurrent(reason: reason)
-        case .loading, .failed, .idle, .willPlay:
+        case .failed:
+            // 失败后再次点击播放视为重试：playCurrent 会重新加载已缺失的 item。
+            playCurrent(reason: reason + ".retry")
+        case .loading, .idle, .willPlay:
             // 在这些状态下不执行任何操作
             if verbose { os_log("\(self.t)Cannot toggle playback in current state: \(self.state.stateText)") }
             break

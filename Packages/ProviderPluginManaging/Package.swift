@@ -21,8 +21,17 @@ let package = Package(
                 .product(name: "KernelCore", package: "KernelCore"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources/ProviderPluginManaging"],
             resources: [.process("Resources")]
+        ),
+        .testTarget(
+            name: "ProviderPluginManagingTests",
+            dependencies: [
+                "ProviderPluginManaging",
+                .product(name: "KernelCore", package: "KernelCore"),
+            ],
+            path: "Tests"
         ),
     ],
     swiftLanguageModes: [.v5]

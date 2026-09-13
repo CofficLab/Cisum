@@ -23,13 +23,23 @@ import SwiftUI
 struct AudioDBSettingView: View, SuperLog {
     nonisolated static let emoji = "🎵"
 
-    @EnvironmentObject var viewModel: AudioListViewModel
-    @EnvironmentObject var treeViewModel: AudioTreeViewModel
-    @Environment(\.audioDBDependencies) private var deps
+    @ObservedObject var viewModel: AudioListViewModel
+    @ObservedObject var treeViewModel: AudioTreeViewModel
+    let deps: AudioDBDependencies
     @LumiTheme private var theme
 
     /// 展示模式：0 = 音频列表（方式一，默认），1 = 目录树（方式二）。
     @State private var displayMode = 0
+
+    init(
+        viewModel: AudioListViewModel,
+        treeViewModel: AudioTreeViewModel,
+        dependencies: AudioDBDependencies
+    ) {
+        self._viewModel = ObservedObject(wrappedValue: viewModel)
+        self._treeViewModel = ObservedObject(wrappedValue: treeViewModel)
+        self.deps = dependencies
+    }
 
     var body: some View {
         AppSettingsContentScaffold(scrollsContent: false, maxContentWidth: nil) {
@@ -84,7 +94,7 @@ struct AudioDBSettingView: View, SuperLog {
         if displayMode == 0 {
             list
         } else {
-            AudioTreeView()
+            AudioTreeView(viewModel: treeViewModel)
         }
     }
 

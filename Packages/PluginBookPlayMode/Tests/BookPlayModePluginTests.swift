@@ -1,6 +1,6 @@
 import MagicPlayMan
 import Testing
-@testable import BookPlayModePlugin
+@testable import PluginBookPlayMode
 
 @Test func pluginInfoExportsRegistrationMetadata() {
     #expect(BookPlayModePluginInfo.iconName == "repeat")

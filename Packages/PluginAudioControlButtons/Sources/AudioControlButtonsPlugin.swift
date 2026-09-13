@@ -52,9 +52,9 @@ public actor AudioControlButtonsPlugin: SuperPlugin {
         guard let scene = kernel.resolveProvider((any SceneProviding).self) else {
             throw CisumKernelError.serviceNotAvailable(service: "SceneProviding")
         }
-        let capability = ControlButtonsPlaybackCapabilityAdapter(playback: playback)
+        let capability = PlaybackCapabilityAdapter(playback: playback)
         let navigationCapability = kernel.resolveProvider((any AudioTrackNavigationProviding).self)
-            .map(ControlButtonsNavigationCapabilityAdapter.init(navigation:))
+            .map(NavigationCapabilityAdapter.init(navigation:))
         let viewModel = ControlButtonsViewModel(
             playbackCapability: capability,
             navigationCapability: navigationCapability,
@@ -75,9 +75,9 @@ public actor AudioControlButtonsPlugin: SuperPlugin {
         guard let scene = kernel.resolveProvider((any SceneProviding).self) else {
             throw CisumKernelError.serviceNotAvailable(service: "SceneProviding")
         }
-        let capability = ControlButtonsPlaybackCapabilityAdapter(playback: playback)
+        let capability = PlaybackCapabilityAdapter(playback: playback)
         let navigationCapability = kernel.resolveProvider((any AudioTrackNavigationProviding).self)
-            .map(ControlButtonsNavigationCapabilityAdapter.init(navigation:))
+            .map(NavigationCapabilityAdapter.init(navigation:))
         let viewModel = ControlButtonsViewModel(
             playbackCapability: capability,
             navigationCapability: navigationCapability,
@@ -123,54 +123,4 @@ public actor AudioControlButtonsPlugin: SuperPlugin {
     }
 }
 
-/// ControlButtons 所需的播放能力实现，由插件入口连接到内核 Provider。
-@MainActor
-private final class ControlButtonsPlaybackCapabilityAdapter: ControlButtonsPlaybackCapability, SuperLog {
-    nonisolated static let verbose = false
 
-    private let playback: any PlaybackProviding
-
-    init(playback: any PlaybackProviding) {
-        self.playback = playback
-    }
-
-    var currentURL: URL? { playback.currentURL }
-
-    var isPlaying: Bool { playback.isPlaying }
-
-    var playMode: MagicPlayMode { playback.playMode }
-
-    func toggle() { playback.toggle() }
-
-    func togglePlayMode() { playback.togglePlayMode() }
-
-    func play(_ url: URL) async { await playback.play(url) }
-
-    func reset() async { await playback.reset() }
-}
-
-/// ControlButtons 所需的曲目导航能力，由插件入口解析 Kernel Provider 后组装。
-@MainActor
-private final class ControlButtonsNavigationCapabilityAdapter: ControlButtonsNavigationCapability {
-    private let navigation: any AudioTrackNavigationProviding
-
-    init(navigation: any AudioTrackNavigationProviding) {
-        self.navigation = navigation
-    }
-
-    func nextURL(after current: URL?) async throws -> URL? {
-        try await navigation.nextURL(after: current, verbose: true)
-    }
-
-    func previousURL(before current: URL?) async throws -> URL? {
-        try await navigation.previousURL(before: current, verbose: true)
-    }
-
-    func firstURL() async throws -> URL? {
-        try await navigation.firstURL()
-    }
-
-    func lastURL() async throws -> URL? {
-        try await navigation.lastURL()
-    }
-}

@@ -13,8 +13,7 @@ struct ScenePosterView: View {
     let description: String
     let enterTitle: String
     let enterAction: @MainActor () -> Void
-
-    @Environment(\.posterDismissAction) private var dismissAction
+    let dismissAction: @MainActor () -> Void
     @LumiTheme private var theme
 
     var body: some View {

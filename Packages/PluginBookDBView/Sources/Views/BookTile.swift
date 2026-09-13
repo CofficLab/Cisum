@@ -61,8 +61,8 @@ struct BookTile: View, SuperThread, SuperLog, Equatable {
         lhs.url == rhs.url
     }
 
-    @EnvironmentObject var viewModel: BookGridViewModel
-    @Environment(\.bookDBViewDependencies) private var dependencies
+    @ObservedObject var viewModel: BookGridViewModel
+    let dependencies: BookDBViewDependencies
     @Environment(\.colorScheme) private var colorScheme
 
     @State private var lastPlayedTitle: String? = nil
@@ -78,6 +78,20 @@ struct BookTile: View, SuperThread, SuperLog, Equatable {
     var url: URL
     var title: String
     var childCount: Int
+
+    init(
+        url: URL,
+        title: String,
+        childCount: Int,
+        viewModel: BookGridViewModel,
+        dependencies: BookDBViewDependencies
+    ) {
+        self.url = url
+        self.title = title
+        self.childCount = childCount
+        self._viewModel = ObservedObject(wrappedValue: viewModel)
+        self.dependencies = dependencies
+    }
 
     var body: some View {
         ZStack {

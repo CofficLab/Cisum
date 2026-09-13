@@ -32,8 +32,18 @@ let package = Package(
                 .product(name: "ProviderTheme", package: "ProviderTheme"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources/ProviderSettings"],
             resources: [.process("Resources")]
+        ),
+        .testTarget(
+            name: "ProviderSettingsTests",
+            dependencies: [
+                "ProviderSettings",
+                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
+            ],
+            path: "Tests"
         ),
     ],
     swiftLanguageModes: [.v5]

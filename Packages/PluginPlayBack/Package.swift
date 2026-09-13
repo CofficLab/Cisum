@@ -35,8 +35,19 @@ let package = Package(
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources/PluginPlayBack"],
             resources: [.process("Resources")]
+        ),
+        .testTarget(
+            name: "PluginPlayBackTests",
+            dependencies: [
+                "PluginPlayBack",
+                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "ProviderPlayback", package: "ProviderPlayback"),
+                .product(name: "ProviderScene", package: "ProviderScene"),
+            ],
+            path: "Tests"
         ),
     ],
     swiftLanguageModes: [.v5]

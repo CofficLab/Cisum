@@ -23,8 +23,14 @@ let package = Package(
                 .product(name: "ProviderScene", package: "ProviderScene"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources/ProviderToolbar"],
             resources: [.process("Resources")]
+        ),
+        .testTarget(
+            name: "ProviderToolbarTests",
+            dependencies: ["ProviderToolbar"],
+            path: "Tests"
         ),
     ],
     swiftLanguageModes: [.v5]

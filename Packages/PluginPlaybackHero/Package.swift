@@ -18,7 +18,6 @@ let package = Package(
         .package(path: "../MagicKit"),
         .package(path: "../CisumUIComponents"),
         .package(name: "KernelCore", path: "../KernelCore"),
-        .package(name: "MagicPlayMan", path: "../MagicPlayMan"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
     ],
@@ -29,13 +28,22 @@ let package = Package(
                 .product(name: "MagicKit", package: "MagicKit"),
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
                 .product(name: "KernelCore", package: "KernelCore"),
-                .product(name: "MagicPlayMan", package: "MagicPlayMan"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
                 .product(name: "ProviderDocsView", package: "ProviderDocsView"),
             ],
             path: ".",
             sources: ["Sources"],
             resources: [.process("Resources")]
+        ),
+        .testTarget(
+            name: "PluginPlaybackHeroTests",
+            dependencies: [
+                "PluginPlaybackHero",
+                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "ProviderPlayback", package: "ProviderPlayback"),
+                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
+            ],
+            path: "Tests"
         ),
     ],
     swiftLanguageModes: [.v5]

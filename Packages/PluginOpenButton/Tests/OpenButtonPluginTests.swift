@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import OpenButtonPlugin
+@testable import PluginOpenButton
 
 @Test func pluginMetadataIsStable() {
     #expect(OpenButtonPluginInfo.toolbarItemId == "open-current")

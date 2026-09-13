@@ -12,9 +12,14 @@ let package = Package(
         .library(name: "ProviderAppState", targets: ["ProviderAppState"]),
     ],
     targets: [
-        .target(name: "ProviderAppState", path: ".",
+        .target(name: "ProviderAppState", path: ".", exclude: ["README.md", "Tests"],
             sources: ["Sources/ProviderAppState"],
             resources: [.process("Resources")]),
+        .testTarget(
+            name: "ProviderAppStateTests",
+            dependencies: ["ProviderAppState"],
+            path: "Tests"
+        ),
     ],
     swiftLanguageModes: [.v5]
 )

@@ -39,6 +39,10 @@ final class ICloudDirectoryMonitorLifecycle: @unchecked Sendable {
 /// - Note: 使用 NSMetadataQuery 进行 iCloud 文件同步状态监听
 public final class ICloudDirectoryMonitor: SuperLog {
     public static let emoji = "☁️"
+
+    private enum DirectoryScanError: Error {
+        case incompleteSnapshot
+    }
     
     // MARK: - Types
 
@@ -337,15 +341,43 @@ public final class ICloudDirectoryMonitor: SuperLog {
             throw CocoaError(.fileNoSuchFile)
         }
 
+        var enumerationError: Error?
         guard let enumerator = FileManager.default.enumerator(
             at: directoryURL,
             includingPropertiesForKeys: [.isDirectoryKey, .isRegularFileKey],
-            options: [.skipsHiddenFiles]
+            options: [.skipsHiddenFiles],
+            errorHandler: { _, error in
+                enumerationError = error
+                return false
+            }
         ) else {
             throw URLError(.cannotOpenFile)
         }
 
-        return enumerator.compactMap { $0 as? URL }
+        let urls = enumerator.compactMap { $0 as? URL }
+        if let enumerationError {
+            throw enumerationError
+        }
+
+        return try validateDirectoryScanResult(urls, at: directoryURL)
+    }
+
+    /// DirectoryEnumerator can stop early after a File Provider permission
+    /// failure without throwing from iteration. Detect the common silent
+    /// empty-result case so it is not mistaken for a genuinely empty library.
+    static func validateDirectoryScanResult(_ urls: [URL], at directoryURL: URL) throws -> [URL] {
+        guard urls.isEmpty else { return urls }
+
+        let visibleEntries = try FileManager.default.contentsOfDirectory(
+            at: directoryURL,
+            includingPropertiesForKeys: [.isDirectoryKey, .isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        )
+        guard visibleEntries.isEmpty else {
+            throw DirectoryScanError.incompleteSnapshot
+        }
+
+        return urls
     }
 
     // MARK: - Private Methods - Processing

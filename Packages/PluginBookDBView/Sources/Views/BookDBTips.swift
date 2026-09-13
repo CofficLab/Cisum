@@ -15,10 +15,20 @@ struct BookDBTips: View {
         case loading
     }
 
-    @Environment(\.bookDBViewDependencies) private var dependencies
-    @Environment(\.bookDBImportAction) private var requestImport
     @LumiTheme private var appTheme
+    let dependencies: BookDBViewDependencies
+    let requestImport: @MainActor @Sendable () -> Void
     var variant: Variant = .empty
+
+    init(
+        dependencies: BookDBViewDependencies,
+        requestImport: @escaping @MainActor @Sendable () -> Void,
+        variant: Variant = .empty
+    ) {
+        self.dependencies = dependencies
+        self.requestImport = requestImport
+        self.variant = variant
+    }
 
     var supportedFormats: String {
         BookPluginInfo.supportedExtensions.joined(separator: ",")

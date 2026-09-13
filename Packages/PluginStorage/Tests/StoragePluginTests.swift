@@ -1,6 +1,9 @@
 import Testing
 @testable import PluginStorage
 import Foundation
+import Combine
+import KernelCore
+import ProviderStorage
 
 @Test func storagePluginInfoIsExposed() {
     #expect(StoragePluginInfo.titleKey == "Storage Settings")
@@ -1056,4 +1059,108 @@ import Foundation
     #expect(first.lastPathComponent == "PluginAlpha")
     #expect(second.lastPathComponent == "PluginBeta")
     #expect(first.path != second.path)
+}
+
+@MainActor
+@Test func storagePluginBindsPreexistingSettingsViewModelWhenProviderBecomesAvailable() async throws {
+    let plugin = StoragePlugin()
+    _ = plugin.addSettingNavigationItem()
+
+    let originalViewModel = plugin.settingsViewModel
+    #expect(originalViewModel != nil)
+    #expect(originalViewModel?.location == nil)
+
+    let provider = TestStorageProviding()
+    let kernel = CisumKernel()
+    try kernel.registerStorage(provider)
+    try await plugin.onEnable(kernel: kernel)
+
+    #expect(plugin.settingsViewModel === originalViewModel)
+    #expect(originalViewModel?.location == .local)
+    #expect(originalViewModel?.isICloudAvailable == true)
+    #expect(originalViewModel?.isLocalStorageAvailable == true)
+
+    provider.setStorageLocation(.icloud)
+    #expect(originalViewModel?.location == .icloud)
+
+    try await plugin.onDisable(kernel: kernel)
+}
+
+@MainActor
+private final class TestStorageProviding: ObservableObject, StorageProviding {
+    @Published var currentStorageLocation: StorageLocation? = .local
+    let databaseRoot = URL(fileURLWithPath: "/tmp/cisum-storage-provider-test", isDirectory: true)
+
+    private var observers: [UUID: (StorageProvidingEvent) -> Void] = [:]
+
+    var storageRoot: URL? {
+        currentStorageLocation.flatMap(storageRoot(for:))
+    }
+
+    var hasUsableStorageLocation: Bool { storageRoot != nil }
+    var isICloudStorageAvailable: Bool { storageRoot(for: .icloud) != nil }
+
+    func storageRoot(for location: StorageLocation) -> URL? {
+        switch location {
+        case .icloud:
+            URL(fileURLWithPath: "/tmp/cisum-storage-provider-test/icloud", isDirectory: true)
+        case .local:
+            URL(fileURLWithPath: "/tmp/cisum-storage-provider-test/local", isDirectory: true)
+        case .custom:
+            nil
+        }
+    }
+
+    func databaseFile(name: String) throws -> URL {
+        databaseRoot.appendingPathComponent(name, isDirectory: true)
+            .appendingPathComponent("\(name).db")
+    }
+
+    func pluginDataDirectory(for pluginID: String) -> URL {
+        databaseRoot.appendingPathComponent(pluginID, isDirectory: true)
+    }
+
+    func setStorageLocation(_ location: StorageLocation?) {
+        currentStorageLocation = location
+        notify(.locationChanged(location))
+        notify(.storageAvailabilityChanged)
+    }
+
+    func resetStorageLocation() {
+        setStorageLocation(nil)
+    }
+
+    func addObserver(
+        _ callback: @escaping (StorageProvidingEvent) -> Void
+    ) -> any StorageProvidingObserverHandle {
+        let id = UUID()
+        observers[id] = callback
+        return TestStorageObserverHandle(provider: self, id: id)
+    }
+
+    fileprivate func removeObserver(_ id: UUID) {
+        observers.removeValue(forKey: id)
+    }
+
+    private func notify(_ event: StorageProvidingEvent) {
+        for observer in observers.values {
+            observer(event)
+        }
+    }
+}
+
+@MainActor
+private final class TestStorageObserverHandle: StorageProvidingObserverHandle {
+    private weak var provider: TestStorageProviding?
+    private let id: UUID
+
+    init(provider: TestStorageProviding, id: UUID) {
+        self.provider = provider
+        self.id = id
+    }
+
+    func cancel() {
+        provider?.removeObserver(id)
+        provider = nil
+    }
 }

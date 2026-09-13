@@ -1,5 +1,5 @@
 import Testing
-@testable import ThemeForestPlugin
+@testable import PluginThemeForest
 
 @Test func themeIdentityIsStable() {
     let theme = ForestTheme()

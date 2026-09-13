@@ -112,13 +112,10 @@ public struct MagicProgressBar: View {
 
     public var body: some View {
         Slider(
-            value: Binding(
-                get: { MagicProgressBarPolicy.normalizedTime(currentTime, duration: duration) },
-                set: { value in
-                    let normalizedValue = MagicProgressBarPolicy.normalizedTime(value, duration: duration)
-                    currentTime = normalizedValue
-                    onSeek(normalizedValue)
-                }
+            value: MagicProgressBarPolicy.normalizedTimeBinding(
+                currentTime: $currentTime,
+                duration: duration,
+                onSeek: onSeek
             ),
             in: 0...MagicProgressBarPolicy.sliderUpperBound(forDuration: duration)
         )
@@ -126,6 +123,21 @@ public struct MagicProgressBar: View {
 }
 
 enum MagicProgressBarPolicy {
+    static func normalizedTimeBinding(
+        currentTime: Binding<TimeInterval>,
+        duration: TimeInterval,
+        onSeek: @escaping (TimeInterval) -> Void
+    ) -> Binding<TimeInterval> {
+        Binding(
+            get: { normalizedTime(currentTime.wrappedValue, duration: duration) },
+            set: { value in
+                let normalizedValue = normalizedTime(value, duration: duration)
+                currentTime.wrappedValue = normalizedValue
+                onSeek(normalizedValue)
+            }
+        )
+    }
+
     static func normalizedDuration(_ duration: TimeInterval) -> TimeInterval {
         guard duration.isFinite, duration > 0 else { return 0 }
         return duration

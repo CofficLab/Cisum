@@ -2,7 +2,7 @@ import CisumUIComponents
 import SwiftUI
 
 struct AudioDemoAddButton: View {
-    @Environment(\.appIsImporting) private var isImporting
+    let isImporting: Binding<Bool>
 
     var body: some View {
         Button(

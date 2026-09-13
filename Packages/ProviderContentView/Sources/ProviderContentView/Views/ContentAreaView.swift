@@ -8,7 +8,7 @@ struct ContentAreaView: View {
     @ObservedObject var provider: DefaultContentViewProvider
     @LumiTheme private var appTheme
     @State private var selectedTab = 0
-    @Environment(\.demoMode) private var isDemoMode
+    let isDemoMode: Bool
 
     private var tabs: [ContentTabItem] { provider.tabs }
 

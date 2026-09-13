@@ -600,6 +600,7 @@
       }
     },
     "None" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

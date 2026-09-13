@@ -25,7 +25,7 @@ Cisum uses **SwiftData** for persistence with a repository pattern for data acce
 
 #### AudioModel
 
-**Location**: `Plugins/Audio/Models/AudioModel.swift` (inferred)
+**Location**: `Packages/PluginAudioDBData/Sources/Models/AudioModel.swift`
 
 **Purpose**: Represents audio files in the library
 
@@ -254,7 +254,7 @@ enum FileStatus {
 
 ### Audio Repositories
 
-**Location**: `Packages/PluginAudioDBData/Sources/Implementation/`
+**Location**: `Packages/PluginAudioDBData/Sources/Persistence/`
 
 #### AudioRepo
 **Purpose**: Audio data access layer
@@ -272,7 +272,7 @@ actor AudioRepo {
 ```
 
 #### AudioConfigRepo
-**Location**: `Packages/PluginAudioDBData/Sources/Implementation/AudioConfigRepo.swift`
+**Location**: `Packages/PluginAudioDBData/Sources/Persistence/AudioConfigRepo.swift`
 
 **Purpose**: Audio configuration storage
 
@@ -387,6 +387,22 @@ static func getDBRootDir() throws -> URL {
 ---
 
 ## Data Flow
+
+### Audio Library Reconciliation
+
+```
+StorageProviding
+  ↓
+PluginAudioDBData
+  ├─ AudioFileSystemMonitor
+  ├─ AudioLibraryProvider
+  └─ AudioRepo / SwiftData
+```
+
+`PluginAudioDBData` owns the complete filesystem-to-database synchronization lifecycle. It
+performs the initial scan, applies file additions and changes, removes deleted files, and
+restarts the monitor when the storage location changes. No separate audio job plugin is
+required for catalog correctness.
 
 ### Read Operations
 

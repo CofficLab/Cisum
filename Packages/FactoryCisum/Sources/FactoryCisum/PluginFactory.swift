@@ -6,7 +6,6 @@ import PluginAudioDBData
 import PluginAudioDBView
 import PluginAudioDemo
 import PluginAudioDownload
-import PluginAudioJob
 import PluginAudioLike
 import PluginAudioPlayMode
 import PluginAudioProgress
@@ -80,7 +79,6 @@ public struct DefaultPluginFactory: PluginFactory {
             AudioDBViewPlugin.shared,
             AudioDemoPlugin.shared,
             AudioDownloadPlugin.shared,
-            AudioJobPlugin.shared,
             AudioLikePlugin.shared,
             AudioPlayModePlugin.shared,
             AudioPlugin.shared,

@@ -6,7 +6,7 @@ import SwiftUI
 
 /// Factory 的设置窗口接线视图。
 ///
-/// 负责创建主内核，并在内核就绪后把各 Provider 解析出来注入 `ProviderSettings.SettingsWindow`。
+/// 负责创建主内核，并在内核就绪后把插件设置 Provider 注入 `ProviderSettings.SettingsWindow`。
 /// 设置窗口 UI 本身不感知内核/工厂，与主窗口共享同一内核实例。
 public struct SettingsWindowHost: View {
     @State private var kernel: CisumKernel?
@@ -26,11 +26,7 @@ public struct SettingsWindowHost: View {
                 KernelErrorView(error: initializationError)
             } else if let kernel {
                 let settings = ProviderSettings.SettingsWindow(
-                    settings: kernel.plugin,
-                    appState: kernel.appState,
-                    theme: kernel.theme,
-                    storage: kernel.storage,
-                    scene: kernel.scene
+                    settings: kernel.plugin
                 )
                 if let provider = kernel.toast as? ToastProvider {
                     ToastOverlay(content: settings, center: provider)

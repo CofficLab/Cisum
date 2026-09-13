@@ -51,7 +51,11 @@ public actor SettingGeneralPlugin: SuperPlugin, SuperLog {
             description: Self.metadata.description,
             iconName: Self.metadata.iconName,
             order: Self.metadata.order,
-            destination: AnyView(GeneralSettingsDetailView(docsProvider: kernel?.docs))
+            destination: AnyView(GeneralSettingsDetailView(
+                viewModel: GeneralSettingsViewModel(
+                    manualEntries: kernel?.docs?.manualEntries ?? []
+                )
+            ))
         )
     }
 }

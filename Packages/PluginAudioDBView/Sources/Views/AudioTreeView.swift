@@ -6,7 +6,7 @@ import SwiftUI
 /// 以文件树形式展示仓库真实目录结构：目录节点可展开/收起，
 /// 文件节点仅收录受支持的音乐扩展名。目录右侧显示子项数量。
 struct AudioTreeView: View {
-    @EnvironmentObject var viewModel: AudioTreeViewModel
+    @ObservedObject var viewModel: AudioTreeViewModel
     @LumiTheme private var theme
 
     var body: some View {

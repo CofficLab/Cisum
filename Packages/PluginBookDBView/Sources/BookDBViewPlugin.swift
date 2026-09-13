@@ -88,9 +88,7 @@ public actor BookDBViewPlugin: SuperPlugin, SuperLog {
             isNotDesktop: ConfigShim.isNotDesktop
         )
         let viewModel = resolveViewModel()
-        let view = BookDBView()
-            .environmentObject(viewModel)
-            .bookDBViewDependencies(dependencies)
+        let view = BookDBView(dependencies: dependencies, viewModel: viewModel)
         return (AnyView(view), label)
     }
 
@@ -111,10 +109,11 @@ public actor BookDBViewPlugin: SuperPlugin, SuperLog {
             iconName: Self.metadata.iconName,
             order: Self.metadata.order,
             destination: AnyView(
-                BookDBSettingView()
-                    .environmentObject(settingList)
-                    .environmentObject(settingTree)
-                    .environment(\.bookDBDependencies, settingDependencies)
+                BookDBSettingView(
+                    viewModel: settingList,
+                    treeViewModel: settingTree,
+                    dependencies: settingDependencies
+                )
             )
         )
     }

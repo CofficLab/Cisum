@@ -9,10 +9,20 @@ struct AudioDBTips: View {
         case sorting
     }
 
-    @Environment(\.audioDBDependencies) private var dependencies
     @LumiTheme private var appTheme
+    let dependencies: AudioDBDependencies
     var variant: Variant = .empty
     var sortingMessage: String?
+
+    init(
+        dependencies: AudioDBDependencies,
+        variant: Variant = .empty,
+        sortingMessage: String? = nil
+    ) {
+        self.dependencies = dependencies
+        self.variant = variant
+        self.sortingMessage = sortingMessage
+    }
 
     var supportedFormats: String {
         dependencies.supportedExtensions.joined(separator: ",")
@@ -48,7 +58,9 @@ struct AudioDBTips: View {
                     }
                 #endif
 
-                BtnAdd().buttonStyle(.bordered).cisumIf(dependencies.isNotDesktop)
+                BtnAdd(dependencies: dependencies)
+                    .buttonStyle(.bordered)
+                    .cisumIf(dependencies.isNotDesktop)
 
             case .loading:
                 AppLoadingOverlay(message: LocalizedStringKey(String(localized: "Reading repository", bundle: .module)), size: .large)

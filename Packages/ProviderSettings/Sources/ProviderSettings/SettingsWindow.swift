@@ -1,10 +1,5 @@
 import KernelCore
 import CisumUIComponents
-import ProviderAppState
-import KernelCore
-import ProviderScene
-import ProviderStorage
-import ProviderTheme
 import SwiftUI
 
 /// 设置窗口：各插件贡献的一级导航入口，双栏布局（对齐 Lumi `ProviderSettingView`）。
@@ -16,9 +11,8 @@ import SwiftUI
 /// - 左侧：插件 `addSettingNavigationItem` 贡献的导航入口；
 /// - 右侧：选中导航入口的内容。
 ///
-/// 本视图只依赖各 Provider 能力契约（`PluginProviding` / `AppStateProviding` /
-/// `ThemeProviding` / `StorageProviding`），不依赖内核或工厂具体类型；由宿主
-/// （CisumFactory）从内核解析各 Provider 后注入。
+/// 本视图只依赖插件设置能力契约（`PluginProviding`），不依赖内核或工厂具体类型；
+/// 由宿主（CisumFactory）从内核解析 Provider 后注入。
 public struct SettingsWindow: View {
     @State private var selection: String
     @LumiTheme private var appTheme
@@ -26,22 +20,10 @@ public struct SettingsWindow: View {
     @StateObject private var viewModel: SettingsWindowViewModel
 
     private let settings: (any PluginProviding)?
-    private let appState: (any AppStateProviding)?
-    private let theme: (any ThemeProviding)?
-    private let scene: (any SceneProviding)?
-    private let storage: (any StorageProviding)?
     public init(
-        settings: (any PluginProviding)?,
-        appState: (any AppStateProviding)?,
-        theme: (any ThemeProviding)?,
-        storage: (any StorageProviding)?,
-        scene: (any SceneProviding)? = nil
+        settings: (any PluginProviding)?
     ) {
         self.settings = settings
-        self.appState = appState
-        self.theme = theme
-        self.scene = scene
-        self.storage = storage
         self._viewModel = StateObject(wrappedValue: SettingsWindowViewModel(settings: settings))
         self._selection = State(initialValue: "")
     }
@@ -66,13 +48,6 @@ public struct SettingsWindow: View {
                 )
             }
         }
-        .modifier(KernelEnvironmentModifier(
-            settings: settings,
-            appState: appState,
-            theme: theme,
-            scene: scene,
-            storage: storage
-        ))
         .appThemedAppearance()
 #if os(macOS)
         .overlay { ThemeWindowAppearanceBridge().allowsHitTesting(false) }
@@ -164,37 +139,5 @@ public struct SettingsWindow: View {
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-    }
-}
-
-/// 将 Provider 能力投影为插件设置视图依赖的环境值（与主窗口 `KernelRootView` 一致）。
-private struct KernelEnvironmentModifier: ViewModifier {
-    @LumiTheme private var appTheme
-    let settings: (any PluginProviding)?
-    let appState: (any AppStateProviding)?
-    let theme: (any ThemeProviding)?
-    let scene: (any SceneProviding)?
-    let storage: (any StorageProviding)?
-
-    func body(content: Content) -> some View {
-        content
-            .environment(\.demoMode, appState?.isDemoMode ?? false)
-            .environment(
-                \.appIsImporting,
-                Binding(
-                    get: { appState?.isImporting ?? false },
-                    set: { appState?.setImporting($0) }
-                )
-            )
-            .environment(\.showAudioDBViewAction, { appState?.showDBView() })
-            .environment(\.pluginThemes, theme?.allThemeContributions ?? [])
-            .environment(\.sceneProviding, scene)
-            .environment(\.currentPluginThemeId, appTheme.id)
-            .environment(\.selectPluginThemeAction, { themeID in theme?.selectTheme(themeID) })
-            .environment(\.resetSettingsAction, {
-                Task { @MainActor in
-                    storage?.resetStorageLocation()
-                }
-            })
     }
 }

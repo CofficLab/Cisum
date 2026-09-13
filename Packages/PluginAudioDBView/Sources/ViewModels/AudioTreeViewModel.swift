@@ -10,7 +10,7 @@ import SwiftUI
 /// 仅负责加载仓库目录树，不处理播放/选中态。
 @MainActor
 final class AudioTreeViewModel: ObservableObject, SuperLog {
-    nonisolated static let verbose = true
+    nonisolated static let verbose = false
 
     @Published private(set) var children: [AudioTreeNode] = []
     @Published private(set) var isLoading = false

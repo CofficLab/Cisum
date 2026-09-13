@@ -130,6 +130,12 @@ internal extension MagicPlayMan {
                             return
                         }
 
+                        // 加载失败时清空 item 同样会触发 .paused，此时不能把 .failed
+                        // 覆盖成 .stopped，否则调用方会丢失失败原因（表现为「点了没反应也没有报错」）。
+                        if self.state.isFailed {
+                            return
+                        }
+
                         self.setState(self.currentTime == 0 ? .stopped : .paused, reason: self.className + ".systemObserver.paused")
                     case .waitingToPlayAtSpecifiedRate:
                         if case .playing = self.state {

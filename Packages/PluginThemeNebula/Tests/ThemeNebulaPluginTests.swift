@@ -1,5 +1,5 @@
 import Testing
-@testable import ThemeNebulaPlugin
+@testable import PluginThemeNebula
 
 @Test func themeIdentityIsStable() {
     let theme = NebulaTheme()

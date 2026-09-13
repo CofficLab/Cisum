@@ -1,5 +1,6 @@
 import Foundation
 import OSLog
+import MagicPlayMan
 import ProviderPlayback
 import MagicKit
 
@@ -22,7 +23,9 @@ final class BookControlPlaybackObserver: SuperLog {
             case .stateChanged(let state):
                 self.viewModel?.applyStateChanged(state)
             case .playModeChanged(let mode):
-                self.viewModel?.applyPlayModeChanged(mode)
+                self.viewModel?.applyPlayModeChanged(
+                    MagicPlayMode(rawValue: mode.rawValue) ?? .sequence
+                )
             case .previousRequested(let asset):
                 self.viewModel?.handlePreviousRequested(asset)
             case .nextRequested(let asset):

@@ -1,5 +1,5 @@
 import Testing
-@testable import ThemeMonoPlugin
+@testable import PluginThemeMono
 
 @Test func themeIdentityIsStable() {
     let theme = MonoTheme()

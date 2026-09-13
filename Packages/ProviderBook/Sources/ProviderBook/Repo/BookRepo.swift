@@ -17,6 +17,7 @@ public class BookRepo: ObservableObject, SuperEvent, SuperLog {
     private nonisolated let coverRepo: BookCoverRepo
     private var initialSyncCompleted = false
     private var initialSyncWaiters: [CheckedContinuation<Void, Never>] = []
+    private var isShutdown = false
 
     // MARK: - State
 
@@ -45,6 +46,15 @@ public class BookRepo: ObservableObject, SuperEvent, SuperLog {
         self.monitor = try self.makeMonitor()
     }
 
+    /// Stop directory monitoring and release any pending initial-sync readers.
+    public func shutdown() {
+        guard !isShutdown else { return }
+        isShutdown = true
+        monitor?.cancel()
+        monitor = nil
+        completeInitialSyncIfNeeded()
+    }
+
     func makeMonitor() throws -> Cancellable {
         if verbose {
             os_log("\(self.t)📸 Make monitor for: \(self.disk.shortPath())")
@@ -63,6 +73,7 @@ public class BookRepo: ObservableObject, SuperEvent, SuperLog {
             verbose: self.verbose,
             caller: self.className,
             onChange: { items, isFirst, error in
+                guard await self.isShutdown == false else { return }
                 if await Self.verbose {
                     os_log("\(self.t) Disk changed, with items \(items.count)")
                 }
@@ -104,7 +115,8 @@ public class BookRepo: ObservableObject, SuperEvent, SuperLog {
             },
             onDeleted: { [weak self] urls in
                 Task {
-                    await self?.delete(urls)
+                    guard let self, await self.isShutdown == false else { return }
+                    await self.delete(urls)
                 }
             },
             onProgress: { _, _ in
@@ -118,6 +130,7 @@ public class BookRepo: ObservableObject, SuperEvent, SuperLog {
 
 extension BookRepo {
     private func sync(_ items: [URL], isFirst: Bool) async {
+        guard !isShutdown else { return }
         await self.db.sync(items, isFirst: isFirst)
         if isFirst {
             completeInitialSyncIfNeeded()

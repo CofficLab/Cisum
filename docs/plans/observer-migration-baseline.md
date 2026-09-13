@@ -162,7 +162,7 @@
 | `PluginPluginManager` | `PluginManagementView`：`.onChange(filteredPlugins)`（派生 UI，保留）+ `.onReceive(.cisumEnabledPluginsDidChange)` | `PluginManagementObserver` + ViewModel，观察 `PluginProviding.pluginsChanged` |
 | `PluginDevice` | `BtnDelDevice`：`@Environment(\.modelContext)`（本地数据上下文，保留） | 入口持有设备 ViewModel；`DeviceMetricsObserver`（采样/系统通知，如涉及） |
 | `PluginStore` | `StoreSetting`：`.task` + `.onReceive(.storeTransactionUpdated / .Restored)`；`ProductCell` `.onChange` | Store observers + Store ViewModel |
-| `PluginAudioJob` / `PluginAudioCopy` | 文件系统任务 / 迁移进度回调（`CopyEvents` 通知） | Observer/Coordinator，View 只读任务状态 |
+| `PluginAudioDBData` / `PluginAudioCopy` | 音频目录文件系统同步 / 迁移进度回调（`CopyEvents` 通知） | 数据一致性协调器 / Observer，View 只读任务状态 |
 | `PluginStorage` 迁移/文件页 | `FileInfo` / `Migrate` 系列 | 文件/迁移任务状态集中到 Observer/Coordinator |
 | `PluginAudioWidgetControl` | `AudioWidgetControlRootView`：`.onReceive(.audioWidgetCommandReceived)` | Widget 命令 Observer |
 | `PluginOpenButton` | `OpenCurrentButtonView`：`@EnvironmentObject man`（播放器操作） | 判断：一次性动作，无持续外部状态，可不建 Observer |

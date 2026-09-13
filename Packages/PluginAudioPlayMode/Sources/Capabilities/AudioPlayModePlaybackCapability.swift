@@ -32,9 +32,13 @@ final class AudioPlayModePlaybackCapabilityAdapter: AudioPlayModePlaybackCapabil
 
     var currentURL: URL? { playback.currentURL }
 
-    var playMode: MagicPlayMode { playback.playMode }
+    var playMode: MagicPlayMode {
+        MagicPlayMode(rawValue: playback.playMode.rawValue) ?? .sequence
+    }
 
     func setPlayMode(_ mode: MagicPlayMode) {
-        playback.setPlayMode(mode)
+        playback.setPlayMode(
+            PlaybackMode(rawValue: mode.rawValue) ?? .sequence
+        )
     }
 }

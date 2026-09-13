@@ -188,9 +188,9 @@ extension AvatarView {
                     await capturedState.setError(nil)
                 }
             } catch URLError.cancelled {
-                os_log("\(Self.t)缩略图加载被取消")
+                if verbose { os_log("\(Self.t)缩略图加载被取消") }
             } catch {
-                os_log(.error, "\(Self.t)❌ 加载缩略图失败: \(error.localizedDescription)")
+                if verbose { os_log(.error, "\(Self.t)❌ 加载缩略图失败: \(error.localizedDescription)") }
                 let viewError: ViewError
                 if let urlError = error as? URLError {
                     switch urlError.code {

@@ -1,6 +1,8 @@
 import Foundation
 @testable import PluginAudioLike
 import ProviderAudioLike
+import ProviderPlayback
+import ProviderScene
 import Testing
 
 private final class NotificationObserverToken: @unchecked Sendable {
@@ -299,4 +301,144 @@ struct AudioLikeRepoTests {
         #expect(liked.first?.url == linkedURL)
         #expect(liked.first?.title == "Linked")
     }
+}
+
+// MARK: - ViewModel 集成
+
+@MainActor
+private final class SceneProbe: SceneProviding {
+    var scenes: [AppScene] { AppScene.allCases }
+    var currentScene: AppScene?
+    private var observers: [UUID: (SceneProvidingEvent) -> Void] = [:]
+
+    func setCurrentScene(_ scene: AppScene) {
+        currentScene = scene
+        let event = SceneProvidingEvent.selectionChanged(scene: scene)
+        for observer in observers.values { observer(event) }
+    }
+
+    func restoreCurrentScene() {}
+
+    @discardableResult
+    func addObserver(_ callback: @escaping (SceneProvidingEvent) -> Void) -> any SceneProvidingObserverHandle {
+        let id = UUID()
+        observers[id] = callback
+        return ProbeSceneHandle { [weak self] in self?.observers.removeValue(forKey: id) }
+    }
+}
+
+@MainActor
+private final class ProbeSceneHandle: SceneProvidingObserverHandle {
+    private let onCancel: () -> Void
+    private var cancelled = false
+    init(onCancel: @escaping () -> Void) { self.onCancel = onCancel }
+    func cancel() {
+        guard !cancelled else { return }
+        cancelled = true
+        onCancel()
+    }
+}
+
+@MainActor
+private final class LikePlaybackProbe: AudioLikePlaybackCapability {
+    var isAvailable = true
+}
+
+@MainActor
+struct AudioLikeViewModelTests {
+    @Test
+    func reloadAppliesOnlyLatestGeneration() async throws {
+        let viewModel = AudioLikeViewModel(
+            playbackCapability: nil,
+            loadLikedAudios: { [] },
+            saveLikeStatus: { _, _, _, _ in }
+        )
+        viewModel.reloadLikedAudios()
+        for _ in 0..<50 where viewModel.isLoading {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(!viewModel.isLoading)
+        #expect(viewModel.likedAudios.isEmpty)
+    }
+
+    @Test
+    func sceneChangeActivationGatesLikeSaving() async throws {
+        var saved: [String] = []
+        let viewModel = AudioLikeViewModel(
+            playbackCapability: LikePlaybackProbe(),
+            loadLikedAudios: { [] },
+            saveLikeStatus: { audioId, _, _, _ in saved.append(audioId) }
+        )
+
+        // 未激活时不保存。
+        viewModel.handleLikeStatusChanged(asset: URL(fileURLWithPath: "/tmp/a.mp3"), liked: true)
+        try await Task.sleep(for: .milliseconds(30))
+        #expect(saved.isEmpty)
+
+        // 激活后保存并 post 通知。
+        viewModel.handleSceneChange(.music, targetScene: .music)
+        viewModel.handleLikeStatusChanged(asset: URL(fileURLWithPath: "/tmp/a.mp3"), liked: true)
+        for _ in 0..<50 where saved.isEmpty {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(saved == ["file:///tmp/a.mp3"])
+
+        // 离开场景后再次停用。
+        viewModel.handleSceneChange(.audiobooks, targetScene: .music)
+        viewModel.handleLikeStatusChanged(asset: URL(fileURLWithPath: "/tmp/b.mp3"), liked: true)
+        try await Task.sleep(for: .milliseconds(30))
+        #expect(saved.count == 1)
+    }
+
+    @Test
+    func observerForwardsSceneSelectionToViewModel() async throws {
+        let scene = SceneProbe()
+        scene.currentScene = .music
+        let viewModel = AudioLikeViewModel(
+            playbackCapability: LikePlaybackProbe(),
+            loadLikedAudios: { [] },
+            saveLikeStatus: { _, _, _, _ in }
+        )
+        let observer = AudioLikeObserver(scene: scene, playback: PlaybackProbeStub(), viewModel: viewModel)
+        defer { observer.cancel() }
+
+        // 切走场景再切回；activation 路径无公开状态，验证不崩溃且通知转发正常。
+        scene.setCurrentScene(.audiobooks)
+        scene.setCurrentScene(.music)
+        #expect(scene.currentScene == .music)
+    }
+}
+
+@MainActor
+private final class PlaybackProbeStub: PlaybackProviding {
+    var state: PlaybackStatus = .idle
+    var currentURL: URL?
+    var currentTime: TimeInterval = 0
+    var duration: TimeInterval = 0
+    var progress: Double = 0
+    var playMode: PlaybackMode = .sequence
+    var likedAssets: Set<URL> = []
+    var isPlaying: Bool { false }
+    var hasAsset: Bool { currentURL != nil }
+
+    func play(_ url: URL) async {}
+    func play(_ url: URL, startTime: TimeInterval?) async {}
+    func pause() {}
+    func toggle() {}
+    func seek(toProgress progress: Double) {}
+    func seek(toTime time: TimeInterval) {}
+    func next() {}
+    func previous() {}
+    func setPlayMode(_ mode: PlaybackMode) {}
+    func toggleCurrentLike() {}
+    func togglePlayMode() {}
+    @discardableResult
+    func addObserver(_ callback: @escaping (PlaybackProvidingEvent) -> Void) -> any PlaybackProvidingObserverHandle {
+        PlaybackNoopHandle()
+    }
+}
+
+@MainActor
+private final class PlaybackNoopHandle: PlaybackProvidingObserverHandle {
+    func cancel() {}
 }

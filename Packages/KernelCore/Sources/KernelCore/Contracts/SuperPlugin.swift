@@ -219,6 +219,7 @@ public protocol SuperPlugin: Actor {
     @MainActor func addToolBarButtons() -> [(id: String, view: AnyView)]
     @MainActor func addThemeContributions() -> [LumiUIThemeContribution]
     @MainActor func addHeroView() -> AnyView?
+    @MainActor func addRightAlbumView() -> AnyView?
     @MainActor func addControlButtonsView() -> AnyView?
     @MainActor func addProgressView() -> AnyView?
 
@@ -273,6 +274,7 @@ public extension SuperPlugin {
     nonisolated func addToolBarButtons() -> [(id: String, view: AnyView)] { [] }
     @MainActor func addThemeContributions() -> [LumiUIThemeContribution] { [] }
     @MainActor func addHeroView() -> AnyView? { nil }
+    @MainActor func addRightAlbumView() -> AnyView? { nil }
     @MainActor func addControlButtonsView() -> AnyView? { nil }
     @MainActor func addProgressView() -> AnyView? { nil }
 

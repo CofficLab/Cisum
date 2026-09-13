@@ -2,6 +2,7 @@ import Foundation
 import MagicPlayMan
 import ProviderScene
 import MagicKit
+import os
 
 /// 场景监听器：订阅 `SceneProviding` 的场景切换事件，驱动「场景 + 文件」的
 /// 当前播放记录恢复。
@@ -17,6 +18,7 @@ import MagicKit
 final class PlaybackSceneObserver: SuperLog {
     nonisolated static let emoji = "🎭"
     nonisolated static let verbose = false
+    private static let log = Logger(subsystem: "com.yueyi.cisum", category: "Playback.Scene")
 
     private weak var player: MagicPlayMan?
     private let store: PlaybackStateStore
@@ -37,9 +39,15 @@ final class PlaybackSceneObserver: SuperLog {
             guard case .selectionChanged(let scene) = event else { return }
             self?.restore(scene)
         }
+        if Self.verbose {
+            Self.log.info("\(Self.t)👀 Scene observer installed; scene=\(String(describing: scene?.currentScene))")
+        }
     }
 
     func cancel() {
+        if Self.verbose {
+            Self.log.info("\(Self.t)🛑 Scene observer cancelled")
+        }
         handle?.cancel()
         handle = nil
     }
@@ -47,6 +55,10 @@ final class PlaybackSceneObserver: SuperLog {
     /// 把当前播放文件记录到当前场景的槽位；场景未知时忽略。
     func saveCurrentFile(_ url: URL?) {
         guard let currentScene else { return }
+        if Self.verbose {
+            let scene = currentScene.rawValue
+            Self.log.info("\(Self.t)💾 Save current file: \(url?.lastPathComponent ?? "nil") for scene=\(scene)")
+        }
         store.saveCurrentFile(url, for: currentScene)
     }
 
@@ -56,6 +68,10 @@ final class PlaybackSceneObserver: SuperLog {
 
         restoreGeneration += 1
         let generation = restoreGeneration
+
+        if Self.verbose {
+            Self.log.info("\(Self.t)🎬 Restore for scene=\(scene.rawValue); stored=\(self.store.loadCurrentFile(for: scene)?.lastPathComponent ?? "nil")")
+        }
 
         guard let url = store.loadCurrentFile(for: scene) else {
             // 目标场景无历史记录：显式停止当前播放，而不是保持引擎现状，

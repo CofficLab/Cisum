@@ -42,15 +42,3 @@ public struct AudioDBDependencies: @unchecked Sendable {
         isImporting: .constant(false)
     )
 }
-
-private struct AudioDBDependenciesKey: EnvironmentKey {
-    typealias Value = AudioDBDependencies
-    static let defaultValue = AudioDBDependencies.empty
-}
-
-public extension EnvironmentValues {
-    var audioDBDependencies: AudioDBDependencies {
-        get { self[AudioDBDependenciesKey.self] }
-        set { self[AudioDBDependenciesKey.self] = newValue }
-    }
-}

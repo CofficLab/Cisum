@@ -26,6 +26,14 @@ let package = Package(
             sources: ["Sources/ProviderDocsView"],
             resources: [.process("Resources")]
         ),
+        .testTarget(
+            name: "ProviderDocsViewTests",
+            dependencies: [
+                "ProviderDocsView",
+                .product(name: "KernelCore", package: "KernelCore"),
+            ],
+            path: "Tests"
+        ),
     ],
     swiftLanguageModes: [.v5]
 )

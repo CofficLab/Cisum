@@ -10,8 +10,6 @@ struct BookSettingsPluginView: View {
     }
 
     var body: some View {
-        BookSettingsView(refreshToken: viewModel.refreshToken) {
-            viewModel.bookDisk()
-        }
+        BookSettingsView(viewModel: viewModel)
     }
 }

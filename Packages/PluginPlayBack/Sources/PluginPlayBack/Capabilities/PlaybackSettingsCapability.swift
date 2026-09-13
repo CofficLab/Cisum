@@ -1,5 +1,4 @@
 import Foundation
-import MagicPlayMan
 import ProviderPlayback
 import MagicKit
 
@@ -11,7 +10,7 @@ import MagicKit
 protocol PlaybackSettingsCapability: AnyObject {
     var currentURL: URL? { get }
     var isPlaying: Bool { get }
-    var state: PlaybackState { get }
+    var state: PlaybackStatus { get }
     var currentTime: TimeInterval { get }
     var duration: TimeInterval { get }
 }
@@ -29,7 +28,7 @@ final class PlaybackSettingsCapabilityAdapter: PlaybackSettingsCapability, Super
 
     var currentURL: URL? { playback?.currentURL }
     var isPlaying: Bool { playback?.isPlaying ?? false }
-    var state: PlaybackState { playback?.state ?? .idle }
+    var state: PlaybackStatus { playback?.state ?? .idle }
     var currentTime: TimeInterval { playback?.currentTime ?? 0 }
     var duration: TimeInterval { playback?.duration ?? 0 }
 }

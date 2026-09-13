@@ -62,7 +62,7 @@ public actor AudioSettingsPlugin: SuperPlugin, SuperLog {
             description: Self.metadata.description,
             iconName: "slider.horizontal.3",
             order: AudioSettingsPluginInfo.order,
-            destination: AnyView(AudioSettingsPluginView(viewModel: viewModel, audioDisk: { self.kernelAudioDisk() }))
+            destination: AnyView(AudioSettingsPluginView(viewModel: viewModel))
         )
     }
 
@@ -71,7 +71,7 @@ public actor AudioSettingsPlugin: SuperPlugin, SuperLog {
     @MainActor
     private func installState(kernel: CisumKernel) {
         guard settingsViewModel == nil else { return }
-        let viewModel = AudioSettingsViewModel()
+        let viewModel = AudioSettingsViewModel(audioDisk: { [weak self] in self?.kernelAudioDisk() })
         guard let storage = kernel.storage else { return }
         let observer = AudioSettingsObserver(provider: storage, viewModel: viewModel)
         settingsViewModel = viewModel
@@ -90,7 +90,7 @@ public actor AudioSettingsPlugin: SuperPlugin, SuperLog {
         if let settingsViewModel {
             return settingsViewModel
         }
-        return settingsViewModel ?? AudioSettingsViewModel()
+        return settingsViewModel ?? AudioSettingsViewModel(audioDisk: { [weak self] in self?.kernelAudioDisk() })
     }
 
     @MainActor

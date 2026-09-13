@@ -11,14 +11,15 @@ import SwiftUI
 /// 分组（DEBUG 下附加「调试」分组），新增「说明书」分组（打开说明书浏览器，
 /// 浏览各插件贡献的说明书），删减了依赖 Lumi 特有能力的分组（官网 / 更新 /
 /// 引导重放）。
+///
+/// 只依赖 `GeneralSettingsViewModel`；说明书条目由组装层注入。
 struct GeneralSettingsDetailView: View {
-    /// 文档视图提供器：说明书浏览器读取全部插件贡献的 manual 条目。
-    let docsProvider: (any DocsViewProviding)?
+    @ObservedObject private var viewModel: GeneralSettingsViewModel
 
     @State private var isShowingManuals = false
 
-    init(docsProvider: (any DocsViewProviding)? = nil) {
-        self.docsProvider = docsProvider
+    init(viewModel: GeneralSettingsViewModel) {
+        self.viewModel = viewModel
     }
 
     var body: some View {
@@ -33,7 +34,7 @@ struct GeneralSettingsDetailView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .sheet(isPresented: $isShowingManuals) {
-            ManualsBrowserView(manuals: docsProvider?.manualEntries ?? [])
+            ManualsBrowserView(manuals: viewModel.manualEntries)
         }
     }
 

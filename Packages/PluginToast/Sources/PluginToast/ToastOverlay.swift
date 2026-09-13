@@ -114,7 +114,7 @@ private struct ErrorNoticeOverlay: View {
                         Spacer(minLength: 12)
                     }
                     Divider().padding(.vertical, 16)
-                    Text("Error details")
+                    Text(String(localized: "Error details", bundle: .module))
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
                         .padding(.bottom, 6)
@@ -128,10 +128,10 @@ private struct ErrorNoticeOverlay: View {
                     .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
                     .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
                     HStack {
-                        Button("Copy error") { copy(error.message) }
+                        Button(String(localized: "Copy error", bundle: .module)) { copy(error.message) }
                             .buttonStyle(.borderless)
                         Spacer()
-                        Button("Close") { center.dismissError() }
+                        Button(String(localized: "Close", bundle: .module)) { center.dismissError() }
                             .keyboardShortcut(.defaultAction)
                             .buttonStyle(.borderedProminent)
                     }

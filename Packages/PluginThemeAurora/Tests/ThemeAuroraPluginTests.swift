@@ -1,5 +1,5 @@
 import Testing
-@testable import ThemeAuroraPlugin
+@testable import PluginThemeAurora
 
 @Test func themeIdentityIsStable() {
     let theme = AuroraTheme()

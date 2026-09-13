@@ -1,3 +1,5 @@
+import MagicPlayMan
+import ProviderToast
 import Testing
 import SwiftUI
 @testable import PluginBookControlButtons
@@ -548,4 +550,137 @@ import SwiftUI
     let sibling = URL(fileURLWithPath: "/tmp/cisum-books/Book Backup/01.m4b")
 
     #expect(BookControlChapterLoader.relativePath(sibling, in: root) == "01.m4b")
+}
+
+// MARK: - ViewModel 集成
+
+@MainActor
+private final class BookControlPlaybackProbe: BookControlPlaybackCapability {
+    var currentURL: URL?
+    var isPlaying = false
+    var playMode: MagicPlayMode = .sequence
+    var toggleCount = 0
+    var togglePlayModeCount = 0
+    var resetCount = 0
+
+    func toggle() { toggleCount += 1 }
+    func togglePlayMode() { togglePlayModeCount += 1 }
+    func play(_ url: URL, reason: String) async {}
+    func reset(reason: String) async { resetCount += 1 }
+}
+
+@MainActor
+private final class BookToastProbe: ToastProviding {
+    var errors: [(title: String, message: String)] = []
+
+    func show(_ toast: CisumToast) {}
+    func presentError(title: String, message: String) { errors.append((title, message)) }
+    func dismissError() {}
+    func showLoading(title: String, detail: String?) {}
+    func dismissLoading() {}
+    func dismissAll() {}
+}
+
+@MainActor
+struct BookControlViewModelTests {
+    @Test
+    func initReflectsPlaybackState() {
+        let playback = BookControlPlaybackProbe()
+        playback.isPlaying = true
+        playback.playMode = .shuffle
+        let viewModel = BookControlViewModel(
+            targetScene: .audiobooks,
+            playbackCapability: playback
+        )
+        viewModel.handleSceneChange(.audiobooks)
+        #expect(viewModel.isPlaying)
+        #expect(viewModel.playMode == .shuffle)
+        #expect(viewModel.shouldActivateControl)
+    }
+
+    @Test
+    func toggleWithoutCapabilityReportsUnavailable() {
+        let toast = BookToastProbe()
+        let viewModel = BookControlViewModel(
+            targetScene: .audiobooks,
+            playbackCapability: nil,
+            toastProvider: toast
+        )
+        viewModel.toggle()
+        #expect(!toast.errors.isEmpty)
+    }
+
+    @Test
+    func previousWithoutCurrentChapterReportsUnavailable() {
+        let toast = BookToastProbe()
+        let viewModel = BookControlViewModel(
+            targetScene: .audiobooks,
+            playbackCapability: BookControlPlaybackProbe(),
+            toastProvider: toast
+        )
+        viewModel.previous()
+        #expect(!toast.errors.isEmpty)
+    }
+
+    @Test
+    func storageLocationResetResetsPlaybackInActiveScene() async throws {
+        let playback = BookControlPlaybackProbe()
+        let viewModel = BookControlViewModel(
+            targetScene: .audiobooks,
+            playbackCapability: playback
+        )
+        viewModel.handleSceneChange(.audiobooks)
+        viewModel.handleStorageLocationDidReset()
+
+        for _ in 0..<50 where playback.resetCount == 0 {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(playback.resetCount == 1)
+    }
+
+    @Test
+    func storageLocationResetIgnoredWhenSceneInactive() async throws {
+        let playback = BookControlPlaybackProbe()
+        let viewModel = BookControlViewModel(
+            targetScene: .audiobooks,
+            playbackCapability: playback
+        )
+        viewModel.handleSceneChange(.music)
+        viewModel.handleStorageLocationDidReset()
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(playback.resetCount == 0)
+    }
+
+    @Test
+    func deletionOfCurrentChapterResetsPlayback() async throws {
+        let playback = BookControlPlaybackProbe()
+        playback.currentURL = URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")
+        let viewModel = BookControlViewModel(
+            targetScene: .audiobooks,
+            playbackCapability: playback
+        )
+        viewModel.handleSceneChange(.audiobooks)
+        viewModel.handleBookDBDeleted(deletedURLs: [URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")])
+
+        for _ in 0..<50 where playback.resetCount == 0 {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(playback.resetCount == 1)
+    }
+
+    @Test
+    func sceneChangeInvalidatesPendingDeletionReset() async throws {
+        let playback = BookControlPlaybackProbe()
+        playback.currentURL = URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")
+        let viewModel = BookControlViewModel(
+            targetScene: .audiobooks,
+            playbackCapability: playback
+        )
+        viewModel.handleSceneChange(.audiobooks)
+        viewModel.handleBookDBDeleted(deletedURLs: [URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")])
+        viewModel.handleSceneChange(.music)
+
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(playback.resetCount == 0)
+    }
 }

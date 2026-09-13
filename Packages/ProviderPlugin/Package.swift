@@ -24,6 +24,11 @@ let package = Package(
             sources: ["Sources/ProviderPlugin"],
             resources: [.process("Resources")]
         ),
+        .testTarget(
+            name: "ProviderPluginTests",
+            dependencies: ["ProviderPlugin"],
+            path: "Tests"
+        ),
     ],
     swiftLanguageModes: [.v5]
 )

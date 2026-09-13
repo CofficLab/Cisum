@@ -35,7 +35,12 @@ let package = Package(
         ),
         .testTarget(
             name: "BookDBDataPluginTests",
-            dependencies: ["PluginBookDBData"],
+            dependencies: [
+                "PluginBookDBData",
+                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "ProviderBook", package: "ProviderBook"),
+                .product(name: "ProviderStorage", package: "ProviderStorage"),
+            ],
             path: "Tests"
         ),
     ]

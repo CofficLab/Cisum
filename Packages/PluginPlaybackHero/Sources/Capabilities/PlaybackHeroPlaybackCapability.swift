@@ -1,5 +1,4 @@
 import Foundation
-import MagicPlayMan
 import ProviderPlayback
 import SwiftUI
 import MagicKit
@@ -15,13 +14,13 @@ protocol PlaybackHeroPlaybackCapability: AnyObject {
     var currentURL: URL? { get }
 
     /// 当前播放状态。
-    var state: PlaybackState { get }
+    var state: PlaybackStatus { get }
 
     /// 构建播放封面视图（由具体播放服务提供）。
     func makeHeroView() -> AnyView
 
     /// 返回指定播放状态的本地化文本。
-    func localizedStateText(for state: PlaybackState) -> String
+    func localizedStateText(for state: PlaybackStatus) -> String
 }
 
 /// 将内核的 `PlaybackProviding` 适配成 PlaybackHero 的播放能力。
@@ -30,22 +29,22 @@ final class PlaybackHeroPlaybackCapabilityAdapter: PlaybackHeroPlaybackCapabilit
     nonisolated static let verbose = false
 
     private let playback: any PlaybackProviding
+    private let media: (any PlaybackMediaProviding)?
 
-    init(playback: any PlaybackProviding) {
+    init(playback: any PlaybackProviding, media: (any PlaybackMediaProviding)?) {
         self.playback = playback
+        self.media = media
     }
 
     var currentURL: URL? { playback.currentURL }
 
-    var state: PlaybackState { playback.state }
+    var state: PlaybackStatus { playback.state }
 
     func makeHeroView() -> AnyView {
-        guard let player = playback as? MagicPlayMan else { return AnyView(EmptyView()) }
-        return AnyView(player.makeHeroView(verbose: false, avatarShape: .roundedRectangle(cornerRadius: 8)))
+        media?.makeMediaView() ?? AnyView(EmptyView())
     }
 
-    func localizedStateText(for state: PlaybackState) -> String {
-        guard let player = playback as? MagicPlayMan else { return String(describing: state) }
-        return state.localizedStateText(localization: player.localization)
+    func localizedStateText(for state: PlaybackStatus) -> String {
+        media?.localizedStateText(for: state) ?? String(describing: state)
     }
 }

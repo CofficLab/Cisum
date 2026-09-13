@@ -18,13 +18,11 @@ let package = Package(
         .package(name: "KernelCore", path: "../KernelCore"),
         .package(name: "CisumUIComponents", path: "../CisumUIComponents"),
         .package(name: "MagicKit", path: "../MagicKit"),
-        .package(name: "MagicPlayMan", path: "../MagicPlayMan"),
         .package(name: "ProviderCloud", path: "../ProviderCloud"),
         .package(name: "ProviderContentView", path: "../ProviderContentView"),
         .package(name: "ProviderControlView", path: "../ProviderControlView"),
         .package(name: "ProviderDevice", path: "../ProviderDevice"),
         .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
-        .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(name: "ProviderRootView", path: "../ProviderRootView"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
         .package(name: "ProviderSettings", path: "../ProviderSettings"),
@@ -37,7 +35,6 @@ let package = Package(
         .package(name: "PluginAudioDBView", path: "../PluginAudioDBView"),
         .package(name: "PluginAudioDemo", path: "../PluginAudioDemo"),
         .package(name: "PluginAudioDownload", path: "../PluginAudioDownload"),
-        .package(name: "PluginAudioJob", path: "../PluginAudioJob"),
         .package(name: "PluginAudioLike", path: "../PluginAudioLike"),
         .package(name: "PluginAudioPlayMode", path: "../PluginAudioPlayMode"),
         .package(name: "PluginAudioProgress", path: "../PluginAudioProgress"),
@@ -84,19 +81,17 @@ let package = Package(
         .package(name: "PluginWelcome", path: "../PluginWelcome"),
     ],
     targets: [
-            .target(
-                name: "FactoryCisum",
+        .target(
+            name: "FactoryCisum",
             dependencies: [
                 .product(name: "KernelCore", package: "KernelCore"),
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
                 .product(name: "MagicKit", package: "MagicKit"),
-                .product(name: "MagicPlayMan", package: "MagicPlayMan"),
                 .product(name: "ProviderCloud", package: "ProviderCloud"),
                 .product(name: "ProviderContentView", package: "ProviderContentView"),
                 .product(name: "ProviderControlView", package: "ProviderControlView"),
                 .product(name: "ProviderDevice", package: "ProviderDevice"),
                 .product(name: "ProviderDocsView", package: "ProviderDocsView"),
-                .product(name: "ProviderPlayback", package: "ProviderPlayback"),
                 .product(name: "ProviderRootView", package: "ProviderRootView"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderSettings", package: "ProviderSettings"),
@@ -108,7 +103,6 @@ let package = Package(
                 .product(name: "PluginAudioDBView", package: "PluginAudioDBView"),
                 .product(name: "PluginAudioDemo", package: "PluginAudioDemo"),
                 .product(name: "PluginAudioDownload", package: "PluginAudioDownload"),
-                .product(name: "PluginAudioJob", package: "PluginAudioJob"),
                 .product(name: "PluginAudioLike", package: "PluginAudioLike"),
                 .product(name: "PluginAudioPlayMode", package: "PluginAudioPlayMode"),
                 .product(name: "PluginAudioProgress", package: "PluginAudioProgress"),
@@ -159,6 +153,17 @@ let package = Package(
             resources: [
                 .process("Resources"),
             ]
+        ),
+        .testTarget(
+            name: "FactoryCisumTests",
+            dependencies: [
+                "FactoryCisum",
+                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "ProviderRootView", package: "ProviderRootView"),
+                .product(name: "ProviderControlView", package: "ProviderControlView"),
+                .product(name: "ProviderContentView", package: "ProviderContentView"),
+            ],
+            path: "Tests"
         ),
     ],
     swiftLanguageModes: [.v5]

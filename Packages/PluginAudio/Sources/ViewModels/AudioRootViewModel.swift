@@ -12,7 +12,7 @@ enum AudioRootError: Error, Equatable {
 /// `AudioStorageObserver`，View 只观察本 ViewModel，不再直接订阅存储通知。
 @MainActor
 final class AudioRootViewModel: ObservableObject, SuperLog {
-    nonisolated static let verbose = true
+    nonisolated static let verbose = false
 
     @Published private(set) var error: AudioRootError?
     @Published private(set) var isInitializing = true

@@ -8,7 +8,7 @@ import MagicKit
 @MainActor
 final class AudioStorageObserver: SuperLog {
     nonisolated static let emoji = "📦"
-    nonisolated static let verbose = true
+    nonisolated static let verbose = false
 
     private weak var viewModel: AudioRootViewModel?
     private var handle: (any StorageProvidingObserverHandle)?

@@ -1,5 +1,5 @@
 import Testing
-@testable import AudioDemoPlugin
+@testable import PluginAudioDemo
 
 @Test func pluginMetadataIsStable() {
     #expect(AudioDemoPluginInfo.iconName == "externaldrive")

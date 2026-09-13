@@ -14,8 +14,12 @@ let package = Package(
     targets: [
         .target(
             name: "ProviderAudioNavigation",
-            path: ".",
-            sources: ["Sources/ProviderAudioNavigation"]
+            path: "Sources/ProviderAudioNavigation"
+        ),
+        .testTarget(
+            name: "ProviderAudioNavigationTests",
+            dependencies: ["ProviderAudioNavigation"],
+            path: "Tests"
         ),
     ],
     swiftLanguageModes: [.v5]
