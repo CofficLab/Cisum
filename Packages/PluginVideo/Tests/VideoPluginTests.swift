@@ -1,4 +1,5 @@
-@testable import VideoPlugin
+
+@testable import PluginVideo
 import SwiftUI
 import Testing
 
