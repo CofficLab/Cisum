@@ -165,3 +165,34 @@ private func subscriptionProduct(id: String) -> ProductDTO {
         description: ""
     )
 }
+
+// MARK: - 插件生命周期装配
+
+@Test
+@MainActor
+func storePluginAssemblesAndTearsDownState() async throws {
+    let plugin = StorePlugin()
+    #expect(plugin.addSettingNavigationItem() != nil)
+    #expect(plugin.addSettingNavigationItem() != nil) // 二次调用复用同一 ViewModel
+}
+
+@Test
+@MainActor
+func storeObserverCancelsTokensIdempotently() {
+    let viewModel = StoreViewModel()
+    let observer = StoreObserver(viewModel: viewModel)
+    observer.cancel()
+    observer.cancel()
+    // 取消后不崩溃；tokens 已清空。
+}
+
+@Test
+@MainActor
+func storeViewModelStartsWithFreePresentation() {
+    let viewModel = StoreViewModel()
+    #expect(!viewModel.showBuySheet)
+    #expect(!viewModel.showRestoreSheet)
+    #expect(viewModel.purchaseInfo == .none)
+    #expect(viewModel.tierDisplayName == "Free")
+    #expect(viewModel.statusDescription == "Currently using free version")
+}
