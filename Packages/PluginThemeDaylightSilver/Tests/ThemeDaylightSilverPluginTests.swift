@@ -1,5 +1,5 @@
 import Testing
-@testable import ThemeDaylightSilverPlugin
+@testable import PluginThemeDaylightSilver
 
 @Test func themeIdentityIsStable() {
     let theme = DaylightSilverTheme()
