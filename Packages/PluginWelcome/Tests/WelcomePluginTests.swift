@@ -1,4 +1,4 @@
-@testable import WelcomePlugin
+@testable import PluginWelcome
 import Testing
 
 @Test func pluginInfoExportsRegistrationMetadata() {
@@ -121,4 +121,50 @@ import Testing
 
     #expect(WelcomePlugin.shared.completeGuidePage())
     #expect(storedSelection == .local)
+}
+
+@Test @MainActor
+func guideViewIsShownOnlyWhenNoStorageLocationExists() {
+    var hasLocation = false
+    WelcomePluginHost.configure(
+        hasStorageLocation: { hasLocation },
+        isICloudAvailable: { true },
+        currentStorageSelection: { nil },
+        updateStorageSelection: { _ in }
+    )
+
+    #expect(WelcomePlugin.shared.addGuideView() != nil)
+
+    hasLocation = true
+    #expect(WelcomePlugin.shared.addGuideView() == nil)
+}
+
+@Test @MainActor
+func completingGuideWhenStorageExistsSkipsUpdate() {
+    var updated = false
+    WelcomePluginHost.configure(
+        hasStorageLocation: { true },
+        isICloudAvailable: { true },
+        currentStorageSelection: { .icloud },
+        updateStorageSelection: { _ in updated = true }
+    )
+
+    #expect(WelcomePlugin.shared.completeGuidePage())
+    #expect(!updated)
+}
+
+@Test @MainActor
+func hostForwardsUpdateStorageSelection() {
+    var received: WelcomeStorageSelection?
+    WelcomePluginHost.configure(
+        hasStorageLocation: { false },
+        isICloudAvailable: { false },
+        currentStorageSelection: { nil },
+        updateStorageSelection: { received = $0 }
+    )
+
+    WelcomePluginHost.updateStorageSelection(.local)
+    #expect(received == .local)
+    #expect(WelcomePluginHost.hasStorageLocation == false)
+    #expect(WelcomePluginHost.isICloudAvailable == false)
 }
