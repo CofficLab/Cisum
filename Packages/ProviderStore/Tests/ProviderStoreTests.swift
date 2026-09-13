@@ -342,3 +342,86 @@ private func status(
 ) -> StoreService.SubscriptionStatusSnapshot {
     StoreService.SubscriptionStatusSnapshot(state: state.rawValue, currentProductID: productID)
 }
+
+// MARK: - StoreState 纯逻辑
+
+@Test
+func entitlementDetectionMergesTiersAndMaxExpiration() {
+    let now = Date()
+    let snapshots = [
+        StoreState.EntitlementSnapshot(
+            productID: "com.yueyi.cisum.pro.monthly",
+            productType: .autoRenewable,
+            expirationDate: now.addingTimeInterval(7_200)
+        ),
+        StoreState.EntitlementSnapshot(
+            productID: "consumable.fuel.octane87",
+            productType: .consumable,
+            expirationDate: nil
+        ),
+        StoreState.EntitlementSnapshot(
+            productID: "nonconsumable.car",
+            productType: .nonConsumable,
+            expirationDate: nil
+        ),
+    ]
+
+    let info = StoreState.detectedPurchaseInfo(from: snapshots, now: now)
+    #expect(info.tier == .pro)
+    #expect(info.expiresAt == now.addingTimeInterval(7_200))
+}
+
+@Test
+func entitlementDetectionIgnoresExpiredNonRenewable() {
+    let now = Date()
+    let expired = StoreState.EntitlementSnapshot(
+        productID: "com.yueyi.cisum.pro.month.1",
+        productType: .nonRenewable,
+        expirationDate: now.addingTimeInterval(-60)
+    )
+
+    let info = StoreState.detectedPurchaseInfo(from: [expired], now: now)
+    #expect(info.tier == .none)
+    #expect(info.expiresAt == nil)
+}
+
+@Test
+func entitlementDetectionCountsActiveNonRenewable() {
+    let now = Date()
+    let active = StoreState.EntitlementSnapshot(
+        productID: "com.yueyi.cisum.pro.day.7",
+        productType: .nonRenewable,
+        expirationDate: now.addingTimeInterval(86_400)
+    )
+
+    let info = StoreState.detectedPurchaseInfo(from: [active], now: now)
+    #expect(info.tier == .pro)
+    #expect(info.expiresAt == now.addingTimeInterval(86_400))
+}
+
+@Test
+func nonRenewableEntitlementRequiresFutureExpiration() {
+    let now = Date()
+    #expect(StoreState.nonRenewableEntitlementInfo(
+        productID: "com.yueyi.cisum.pro.month.1",
+        expirationDate: now.addingTimeInterval(3_600),
+        now: now
+    ) != nil)
+    #expect(StoreState.nonRenewableEntitlementInfo(
+        productID: "com.yueyi.cisum.pro.month.1",
+        expirationDate: now.addingTimeInterval(-3_600),
+        now: now
+    ) == nil)
+    #expect(StoreState.nonRenewableEntitlementInfo(
+        productID: "com.yueyi.cisum.pro.month.1",
+        expirationDate: nil,
+        now: now
+    ) == nil)
+}
+
+@Test
+func storeStateClearResetsToNone() {
+    // UserDefaults.standard 可能被并发测试污染，只断言确定性写入的 clear 语义。
+    StoreState.clear()
+    #expect(StoreState.cachedPurchaseInfo().tier == .none)
+}
