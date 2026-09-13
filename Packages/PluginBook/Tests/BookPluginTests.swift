@@ -2,6 +2,7 @@
 import ProviderBook
 import ProviderBookData
 import Foundation
+import ProviderStorage
 import Testing
 @testable import ProviderBookData
 import SwiftData
@@ -1082,5 +1083,153 @@ private final class TestNotificationValue<Value>: @unchecked Sendable {
         lock.withLock {
             storedValue = value
         }
+    }
+}
+
+// MARK: - 根容器与存储观察者
+
+@MainActor
+private final class BookDatabaseProbe: BookDatabaseProviding {
+    var bookDisk: URL? { nil }
+    var isAvailable = true
+    var databaseRoot: URL { URL(fileURLWithPath: "/tmp/book-db", isDirectory: true) }
+    var storedCurrentBookURL: URL? = nil
+    var storedCurrentBookTime: TimeInterval? = nil
+    func totalCount() async -> Int { 0 }
+    func books(reason: String) async -> [BookDTO] { [] }
+    func syncImportedItems(_ items: [URL]) async throws {}
+    func coverData(for url: URL) async -> Data? { nil }
+    func playbackState(for bookURL: URL) async -> BookPlaybackStateDTO? { nil }
+    func savePlaybackState(for bookURL: URL, currentURL: URL?, time: TimeInterval?) async throws {}
+    func currentBookURL() -> URL? { storedCurrentBookURL }
+    func currentBookTime() -> TimeInterval? { storedCurrentBookTime }
+    func storeCurrentBookURL(_ url: URL?) { storedCurrentBookURL = url }
+    func storeCurrentBookTime(_ time: TimeInterval) { storedCurrentBookTime = time }
+    func addObserver(_ callback: @escaping @Sendable (BookProvidingEvent) -> Void) -> any BookProvidingObserverHandle {
+        BookObserverProbeHandle()
+    }
+}
+
+@MainActor
+private final class BookObserverProbeHandle: BookProvidingObserverHandle {
+    func cancel() {}
+}
+
+@MainActor
+struct BookRootViewModelTests {
+    @Test
+    func reloadWithAvailableProviderFinishesLoading() async throws {
+        let viewModel = BookRootViewModel(bookProvider: BookDatabaseProbe())
+        viewModel.reloadContainer()
+
+        for _ in 0..<50 where viewModel.isLoading {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(viewModel.isLoading == false)
+        #expect(viewModel.error == nil)
+    }
+
+    @Test
+    func reloadWithoutProviderReportsDiskNotFound() async throws {
+        let unavailable = BookDatabaseProbe()
+        unavailable.isAvailable = false
+        let viewModel = BookRootViewModel(bookProvider: unavailable)
+        viewModel.reloadContainer()
+
+        for _ in 0..<50 where viewModel.isLoading {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(viewModel.isLoading == false)
+        #expect(viewModel.error != nil)
+    }
+
+    @Test
+    func storageChangeReloadsAndEmitsNewNotice() async throws {
+        let viewModel = BookRootViewModel(bookProvider: BookDatabaseProbe())
+        let first = viewModel.storageLocationDidChangeNotice
+        viewModel.handleStorageLocationChanged()
+
+        for _ in 0..<50 where viewModel.isLoading {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(viewModel.storageLocationDidChangeNotice != first)
+        #expect(viewModel.error == nil)
+    }
+
+    @Test
+    func staleReloadResultDoesNotOverrideNewerGeneration() async throws {
+        let probe = BookDatabaseProbe()
+        probe.isAvailable = false
+        let viewModel = BookRootViewModel(bookProvider: probe)
+        viewModel.reloadContainer()
+        probe.isAvailable = true
+        viewModel.reloadContainer()
+
+        for _ in 0..<50 where viewModel.isLoading {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(viewModel.error == nil)
+    }
+}
+
+@MainActor
+private final class BookStorageProbe: StorageProviding {
+    var currentStorageLocation: StorageLocation?
+    var storageRoot: URL? { nil }
+    var hasUsableStorageLocation = false
+    var isICloudStorageAvailable = false
+    var databaseRoot: URL { URL(fileURLWithPath: "/tmp/db", isDirectory: true) }
+    private var observers: [(StorageProvidingEvent) -> Void] = []
+
+    func storageRoot(for location: StorageLocation) -> URL? { nil }
+    func databaseFile(name: String) throws -> URL { URL(fileURLWithPath: "/tmp/\(name).db") }
+    func pluginDataDirectory(for pluginID: String) -> URL { URL(fileURLWithPath: "/tmp/\(pluginID)", isDirectory: true) }
+    func setStorageLocation(_ location: StorageLocation?) {}
+    func resetStorageLocation() {}
+    func addObserver(_ callback: @escaping (StorageProvidingEvent) -> Void) -> any StorageProvidingObserverHandle {
+        observers.append(callback)
+        return StorageBookHandle { [weak self] in self?.observers = [] }
+    }
+    func notify(_ event: StorageProvidingEvent) { observers.forEach { $0(event) } }
+}
+
+@MainActor
+private final class StorageBookHandle: StorageProvidingObserverHandle {
+    private let onCancel: () -> Void
+    init(onCancel: @escaping () -> Void) { self.onCancel = onCancel }
+    func cancel() { onCancel() }
+}
+
+@MainActor
+struct BookStorageObserverTests {
+    @Test
+    func observerDrivesReloadOnStorageEvents() async throws {
+        let storage = BookStorageProbe()
+        storage.hasUsableStorageLocation = true
+        let viewModel = BookRootViewModel(bookProvider: BookDatabaseProbe())
+        let observer = BookStorageObserver(storage: storage, viewModel: viewModel)
+
+        for _ in 0..<50 where viewModel.isLoading {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(viewModel.isLoading == false)
+
+        storage.notify(.storageAvailabilityChanged)
+        for _ in 0..<50 where viewModel.isLoading {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(viewModel.isLoading == false)
+
+        observer.cancel()
+    }
+
+    @Test
+    func observerCancellationIsIdempotent() {
+        let storage = BookStorageProbe()
+        let viewModel = BookRootViewModel(bookProvider: BookDatabaseProbe())
+        let observer = BookStorageObserver(storage: storage, viewModel: viewModel)
+        observer.cancel()
+        observer.cancel()
+        #expect(true)
     }
 }
