@@ -477,3 +477,58 @@ import Testing
         currentAsset: nil
     ))
 }
+
+// MARK: - AudioStateRepo 存取 round-trip
+
+@Suite(.serialized)
+struct AudioStateRepoTests {
+    @Test
+    func playModeRoundTrip() {
+        defer { AudioStateRepo.storePlayMode(MagicPlayMode.sequence.rawValue) }
+
+        AudioStateRepo.storePlayMode(MagicPlayMode.shuffle.rawValue)
+        #expect(AudioStateRepo.getPlayMode() == .shuffle)
+    }
+
+    @Test
+    func currentURLRoundTripAndClear() {
+        defer { AudioStateRepo.storeCurrent(nil) }
+
+        let url = URL(fileURLWithPath: "/tmp/state-repo.mp3")
+        AudioStateRepo.storeCurrent(url)
+        #expect(AudioStateRepo.getCurrent() == url)
+
+        AudioStateRepo.storeCurrent(nil)
+        #expect(AudioStateRepo.getCurrent() == nil)
+    }
+
+    @Test
+    func currentTimeRoundTripAndNormalization() {
+        defer { AudioStateRepo.storeCurrentTime(0) }
+
+        AudioStateRepo.storeCurrentTime(123.5)
+        #expect(AudioStateRepo.getCurrentTime() == 123.5)
+
+        // 非法时间归一化为 0。
+        #expect(AudioStateRepo.normalizedTimeForStorage(.nan) == 0)
+        #expect(AudioStateRepo.normalizedTimeForStorage(-5) == 0)
+        #expect(AudioStateRepo.normalizedTimeForStorage(8) == 8)
+    }
+
+    @Test
+    func storedURLParsesSchemesAndPaths() {
+        #expect(AudioStateRepo.storedURL(from: nil) == nil)
+        #expect(AudioStateRepo.storedURL(from: "   ") == nil)
+        #expect(AudioStateRepo.storedURL(from: "file:///tmp/a.mp3") == URL(fileURLWithPath: "/tmp/a.mp3"))
+        #expect(AudioStateRepo.storedURL(from: "/tmp/b.mp3") == URL(fileURLWithPath: "/tmp/b.mp3"))
+        #expect(AudioStateRepo.storedURL(from: "not-a-url") == nil)
+    }
+
+    @Test
+    func resolvedPlayModePrefersLocalOverCloud() {
+        #expect(AudioStateRepo.resolvedPlayMode(localRawValue: "loop", cloudRawValue: nil) == .loop)
+        #expect(AudioStateRepo.resolvedPlayMode(localRawValue: nil, cloudRawValue: "shuffle") == .shuffle)
+        #expect(AudioStateRepo.resolvedPlayMode(localRawValue: "loop", cloudRawValue: "shuffle") == .loop)
+        #expect(AudioStateRepo.resolvedPlayMode(localRawValue: "bogus", cloudRawValue: "bogus2") == nil)
+    }
+}
