@@ -1,5 +1,5 @@
 import Testing
-@testable import ThemeOceanPlugin
+@testable import PluginThemeOcean
 
 @Test func themeIdentityIsStable() {
     let theme = OceanTheme()
