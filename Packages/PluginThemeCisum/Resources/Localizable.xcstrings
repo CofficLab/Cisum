@@ -141,35 +141,6 @@
         }
       }
     },
-    "Cisum default theme" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cisum default theme"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cisum 默认主题"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cisum 默認主題"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cisum 預設主題"
-          }
-        }
-      }
-    },
     "Cisum's default appearance theme" : {
       "localizations" : {
         "en" : {
@@ -446,35 +417,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "外掛程式"
-          }
-        }
-      }
-    },
-    "Select \"{display}\" under Settings → Appearance." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Select \"{display}\" under Settings → Appearance."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在设置 → 外观 中选择「{display}」。"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 設定 → 外觀 中選擇「{display}」。"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 設定 → 外觀 中選擇「{display}」。"
           }
         }
       }

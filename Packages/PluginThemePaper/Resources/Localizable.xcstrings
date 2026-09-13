@@ -85,35 +85,6 @@
         }
       }
     },
-    "Audiobook reading theme" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Audiobook reading theme"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有声书阅读主题"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有聲書閲讀主題"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有聲書閱讀主題"
-          }
-        }
-      }
-    },
     "Basic Operations" : {
       "localizations" : {
         "en" : {
@@ -390,35 +361,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "外掛程式"
-          }
-        }
-      }
-    },
-    "Select \"{display}\" under Settings → Appearance." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Select \"{display}\" under Settings → Appearance."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在设置 → 外观 中选择「{display}」。"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 設定 → 外觀 中選擇「{display}」。"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 設定 → 外觀 中選擇「{display}」。"
           }
         }
       }

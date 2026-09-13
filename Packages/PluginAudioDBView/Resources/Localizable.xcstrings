@@ -57,35 +57,6 @@
         }
       }
     },
-    "Are you sure you want to delete this file?" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Are you sure you want to delete this file?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "确定要删除这个文件吗？"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "確定要刪除這個檔案嗎？"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "確定要刪除這個檔案嗎？"
-          }
-        }
-      }
-    },
     "Audio file database view" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -871,35 +842,6 @@
         }
       }
     },
-    "File deleted" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "File deleted"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "文件已删除"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "文件已刪除"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "檔案已刪除"
-          }
-        }
-      }
-    },
     "Filters or sorts music records as needed." : {
       "localizations" : {
         "en" : {
@@ -1404,35 +1346,6 @@
         }
       }
     },
-    "Open the library folder and drop in files" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open the library folder and drop in files"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开仓库目录并放入文件"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開啟媒體庫資料夾並放入檔案"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開啟媒體庫資料夾並放入檔案"
-          }
-        }
-      }
-    },
     "Opens the music database view." : {
       "localizations" : {
         "en" : {
@@ -1457,35 +1370,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟音樂資料庫檢視。"
-          }
-        }
-      }
-    },
-    "or" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "or"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "或"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "或"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "或"
           }
         }
       }
@@ -1630,35 +1514,6 @@
         }
       }
     },
-    "Reading library..." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reading library..."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在读取仓库"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在讀取媒體庫"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在讀取媒體庫"
-          }
-        }
-      }
-    },
     "Reading repository" : {
       "localizations" : {
         "en" : {
@@ -1767,35 +1622,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "清除不再需要的記錄。"
-          }
-        }
-      }
-    },
-    "Repository Contents" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Repository Contents"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "仓库内容"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "倉庫內容"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "倉庫內容"
           }
         }
       }
@@ -2310,35 +2136,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Total %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "共 %@"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "共 %@"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "共 %@"
-          }
-        }
-      }
-    },
-    "Total: %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Total: %@"
           }
         },
         "zh-Hans" : {

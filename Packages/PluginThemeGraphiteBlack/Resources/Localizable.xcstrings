@@ -309,35 +309,6 @@
         }
       }
     },
-    "Neutral dark theme" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Neutral dark theme"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "中性深色主题"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "中性深色主題"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "中性深色主題"
-          }
-        }
-      }
-    },
     "Notes" : {
       "localizations" : {
         "en" : {
@@ -418,35 +389,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "外掛程式"
-          }
-        }
-      }
-    },
-    "Select \"{display}\" under Settings → Appearance." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Select \"{display}\" under Settings → Appearance."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在设置 → 外观 中选择「{display}」。"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 設定 → 外觀 中選擇「{display}」。"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 設定 → 外觀 中選擇「{display}」。"
           }
         }
       }

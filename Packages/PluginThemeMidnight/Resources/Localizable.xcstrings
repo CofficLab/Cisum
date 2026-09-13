@@ -337,35 +337,6 @@
         }
       }
     },
-    "Night listening theme" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Night listening theme"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "夜间听歌主题"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "夜間聽歌主題"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "夜間聽歌主題"
-          }
-        }
-      }
-    },
     "Notes" : {
       "localizations" : {
         "en" : {
@@ -446,35 +417,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "外掛程式"
-          }
-        }
-      }
-    },
-    "Select \"{display}\" under Settings → Appearance." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Select \"{display}\" under Settings → Appearance."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在设置 → 外观 中选择「{display}」。"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 設定 → 外觀 中選擇「{display}」。"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 設定 → 外觀 中選擇「{display}」。"
           }
         }
       }

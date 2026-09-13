@@ -393,35 +393,6 @@
         }
       }
     },
-    "Select \"{display}\" under Settings → Appearance." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Select \"{display}\" under Settings → Appearance."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在设置 → 外观 中选择「{display}」。"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 設定 → 外觀 中選擇「{display}」。"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 設定 → 外觀 中選擇「{display}」。"
-          }
-        }
-      }
-    },
     "Select 「{display}」 under Settings → Appearance." : {
 
     },
@@ -449,35 +420,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "柔和粉色點綴，保持乾淨閱讀層次"
-          }
-        }
-      }
-    },
-    "Soft warm theme" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Soft warm theme"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "柔和暖色主题"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "柔和暖色主題"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "柔和暖色主題"
           }
         }
       }

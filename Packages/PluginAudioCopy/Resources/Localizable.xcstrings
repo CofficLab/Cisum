@@ -281,35 +281,6 @@
         }
       }
     },
-    "Copying %lld": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copying %lld"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在复制 %lld"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在複製 %lld"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在複製 %lld"
-          }
-        }
-      }
-    },
     "Copying %lld %@": {
       "localizations": {
         "en": {
@@ -362,64 +333,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在複製 %lld %@，%lld 個失敗"
-          }
-        }
-      }
-    },
-    "Copying %lld files": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copying %lld files"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在复制 %lld 个文件"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在複製 %lld 個檔案"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在複製 %lld 個檔案"
-          }
-        }
-      }
-    },
-    "Current subscription:": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Current subscription:"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前订阅："
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目前訂閱："
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目前訂閱："
           }
         }
       }
@@ -676,35 +589,6 @@
         }
       }
     },
-    "No copy tasks yet": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No copy tasks yet"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂无复制任务"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暫無複製任務"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暫無複製任務"
-          }
-        }
-      }
-    },
     "No files were added": {
       "localizations": {
         "en": {
@@ -873,35 +757,6 @@
         }
       }
     },
-    "Supported formats": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Supported formats"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "支持的格式"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "支援的格式"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "支援的格式"
-          }
-        }
-      }
-    },
     "Supported Formats": {
       "localizations": {
         "en": {
@@ -926,35 +781,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "支援的格式"
-          }
-        }
-      }
-    },
-    "The free version supports up to %lld files": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The free version supports up to %lld files"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基础版本最多支持 %lld 个文件"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基礎版本最多支援 %lld 個檔案"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基礎版本最多支援 %lld 個檔案"
           }
         }
       }
