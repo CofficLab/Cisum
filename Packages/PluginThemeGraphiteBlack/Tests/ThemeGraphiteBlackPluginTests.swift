@@ -1,5 +1,5 @@
 import Testing
-@testable import ThemeGraphiteBlackPlugin
+@testable import PluginThemeGraphiteBlack
 
 @Test func themeIdentityIsStable() {
     let theme = GraphiteBlackTheme()
