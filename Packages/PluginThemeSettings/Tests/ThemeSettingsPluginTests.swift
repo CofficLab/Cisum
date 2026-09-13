@@ -100,3 +100,64 @@ private func makeThemeService() -> ThemeService {
     service.reloadThemes()
     #expect(viewModel.currentThemeID == "test-theme")
 }
+
+// MARK: - ViewModel 与外观筛选
+
+@MainActor
+private final class ThemeSettingsCapabilityProbe: ThemeSettingsCapability {
+    var allThemeContributions: [LumiUIThemeContribution] = []
+    var selectedThemeID = ""
+    var selected: [String] = []
+
+    func selectTheme(_ themeID: String) {
+        selected.append(themeID)
+    }
+}
+
+@MainActor
+struct ThemeSettingsViewModelTests {
+    @Test
+    func initReflectsCapabilityState() {
+        let capability = ThemeSettingsCapabilityProbe()
+        capability.selectedThemeID = "aurora"
+        let viewModel = ThemeSettingsViewModel(capability: capability)
+        #expect(viewModel.currentThemeID == "aurora")
+    }
+
+    @Test
+    func selectThemeForwardsToCapability() {
+        let capability = ThemeSettingsCapabilityProbe()
+        let viewModel = ThemeSettingsViewModel(capability: capability)
+        viewModel.selectTheme("midnight")
+        #expect(capability.selected == ["midnight"])
+    }
+
+    @Test
+    func providerChangeRefreshesSelection() {
+        let capability = ThemeSettingsCapabilityProbe()
+        let viewModel = ThemeSettingsViewModel(capability: capability)
+        capability.selectedThemeID = "forest"
+        viewModel.handleProviderChanged()
+        #expect(viewModel.currentThemeID == "forest")
+    }
+
+    @Test
+    func missingCapabilityKeepsEmptyState() {
+        let viewModel = ThemeSettingsViewModel(capability: nil)
+        viewModel.selectTheme("x")
+        viewModel.handleProviderChanged()
+        #expect(viewModel.themes.isEmpty)
+        #expect(viewModel.currentThemeID == "")
+    }
+}
+
+@Test func appearanceFilterMatchesKinds() {
+    #expect(ThemeAppearanceFilter.all.matches(.dark))
+    #expect(ThemeAppearanceFilter.all.matches(.light))
+    #expect(ThemeAppearanceFilter.dark.matches(.dark))
+    #expect(!ThemeAppearanceFilter.dark.matches(.light))
+    #expect(ThemeAppearanceFilter.light.matches(.light))
+    #expect(!ThemeAppearanceFilter.light.matches(.system))
+    #expect(ThemeAppearanceFilter.system.matches(.system))
+    #expect(!ThemeAppearanceFilter.system.matches(.dark))
+}
