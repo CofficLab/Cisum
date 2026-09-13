@@ -1,7 +1,7 @@
 import Foundation
 import ProviderBook
 import ProviderBookData
-import ProviderBook
+import ProviderPlayback
 import SwiftData
 @testable import PluginBookProgress
 import Testing
@@ -657,4 +657,145 @@ import Testing
     #expect(states.first?.url == realBook)
     #expect(states.first?.currentURL == linkedChapter)
     #expect(states.first?.time == 42)
+}
+
+// MARK: - ViewModel 集成
+
+@MainActor
+private final class BookProgressPlaybackProbe: BookProgressPlaybackCapability {
+    var currentAsset: URL?
+    var state: PlaybackStatus = .idle
+    var currentTime: TimeInterval = 0
+    var played: [(url: URL, startTime: TimeInterval)] = []
+    var seeks: [TimeInterval] = []
+
+    func play(_ url: URL, autoPlay: Bool, startTime: TimeInterval, reason: String) async {
+        played.append((url, startTime))
+    }
+
+    func seek(to time: TimeInterval) {
+        seeks.append(time)
+    }
+}
+
+@MainActor
+struct BookProgressViewModelTests {
+    @Test
+    func sceneActivationRestoresStoredProgress() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("BookProgressVM-\(UUID().uuidString)", isDirectory: true)
+        let book = root.appendingPathComponent("MyBook", isDirectory: true)
+        let chapter = book.appendingPathComponent("chapter.mp3")
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: book, withIntermediateDirectories: true)
+        try Data("audio".utf8).write(to: chapter)
+
+        let playback = BookProgressPlaybackProbe()
+        let viewModel = BookProgressViewModel(
+            targetScene: .audiobooks,
+            playbackCapability: playback,
+            currentBookURL: { book },
+            currentBookTime: { 42 },
+            storeCurrentBookURL: { _ in },
+            storeCurrentBookTime: { _ in },
+            bookDisk: { root },
+            saveBookState: { _, _, _ in }
+        )
+
+        viewModel.handleSceneChange(.audiobooks)
+        for _ in 0..<50 where playback.played.isEmpty {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(playback.played.count == 1)
+        #expect(playback.played.first?.url == book)
+        #expect(playback.played.first?.startTime == 42)
+    }
+
+    @Test
+    func alreadyLoadedAssetOnlySeeks() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("BookProgressVMSeek-\(UUID().uuidString)", isDirectory: true)
+        let book = root.appendingPathComponent("MyBook", isDirectory: true)
+        let chapter = book.appendingPathComponent("chapter.mp3")
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: book, withIntermediateDirectories: true)
+        try Data("audio".utf8).write(to: chapter)
+
+        let playback = BookProgressPlaybackProbe()
+        playback.currentAsset = book
+        let viewModel = BookProgressViewModel(
+            targetScene: .audiobooks,
+            playbackCapability: playback,
+            currentBookURL: { book },
+            currentBookTime: { 30 },
+            storeCurrentBookURL: { _ in },
+            storeCurrentBookTime: { _ in },
+            bookDisk: { root },
+            saveBookState: { _, _, _ in }
+        )
+
+        viewModel.handleSceneChange(.audiobooks)
+        for _ in 0..<50 where playback.seeks.isEmpty {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(playback.seeks == [30])
+        #expect(playback.played.isEmpty)
+    }
+
+    @Test
+    func pausedPlaybackInActiveScenePersistsProgress() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("BookProgressVMPause-\(UUID().uuidString)", isDirectory: true)
+        let book = root.appendingPathComponent("MyBook", isDirectory: true)
+        let chapter = book.appendingPathComponent("chapter.mp3")
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: book, withIntermediateDirectories: true)
+        try Data("audio".utf8).write(to: chapter)
+
+        var storedTime: TimeInterval?
+        var savedStates: [(URL, URL, TimeInterval?)] = []
+        let playback = BookProgressPlaybackProbe()
+        playback.currentAsset = chapter
+        playback.state = .paused
+        playback.currentTime = 15
+        let viewModel = BookProgressViewModel(
+            targetScene: .audiobooks,
+            playbackCapability: playback,
+            currentBookURL: { book },
+            currentBookTime: { storedTime },
+            storeCurrentBookURL: { _ in },
+            storeCurrentBookTime: { storedTime = $0 },
+            bookDisk: { root },
+            saveBookState: { bookURL, currentURL, time in savedStates.append((bookURL, currentURL, time)) }
+        )
+
+        viewModel.handleSceneChange(.audiobooks)
+        viewModel.handlePlayManStateChanged(true)
+        for _ in 0..<50 where savedStates.isEmpty {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(storedTime == 15)
+        #expect(savedStates.count == 1)
+    }
+
+    @Test
+    func deletionOfCurrentBookClearsStoredProgress() {
+        var storedURL: URL? = URL(fileURLWithPath: "/tmp/book")
+        var storedTime: TimeInterval = 100
+        let playback = BookProgressPlaybackProbe()
+        let viewModel = BookProgressViewModel(
+            targetScene: .audiobooks,
+            playbackCapability: playback,
+            currentBookURL: { storedURL },
+            currentBookTime: { storedTime },
+            storeCurrentBookURL: { storedURL = $0 },
+            storeCurrentBookTime: { storedTime = $0 },
+            bookDisk: { nil },
+            saveBookState: { _, _, _ in }
+        )
+
+        viewModel.handleBookDBDeleted(deletedURLs: [URL(fileURLWithPath: "/tmp/book")])
+        #expect(storedURL == nil)
+        #expect(storedTime == 0)
+    }
 }
