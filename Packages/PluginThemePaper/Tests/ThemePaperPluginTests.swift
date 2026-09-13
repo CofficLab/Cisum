@@ -1,5 +1,5 @@
 import Testing
-@testable import ThemePaperPlugin
+@testable import PluginThemePaper
 
 @Test func themeIdentityIsStable() {
     let theme = PaperTheme()
