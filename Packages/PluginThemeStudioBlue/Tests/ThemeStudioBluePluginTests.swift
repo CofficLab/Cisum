@@ -1,5 +1,5 @@
 import Testing
-@testable import ThemeStudioBluePlugin
+@testable import PluginThemeStudioBlue
 
 @Test func themeIdentityIsStable() {
     let theme = StudioBlueTheme()
