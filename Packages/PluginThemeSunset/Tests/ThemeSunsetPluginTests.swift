@@ -1,5 +1,5 @@
 import Testing
-@testable import ThemeSunsetPlugin
+@testable import PluginThemeSunset
 
 @Test func themeIdentityIsStable() {
     let theme = SunsetTheme()
