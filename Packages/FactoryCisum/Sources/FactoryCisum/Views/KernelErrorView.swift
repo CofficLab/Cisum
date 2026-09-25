@@ -1,4 +1,4 @@
-import KernelCore
+import CisumKernel
 import SwiftUI
 
 /// 内核启动错误视图。

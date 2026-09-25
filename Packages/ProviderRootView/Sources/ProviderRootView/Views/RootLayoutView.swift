@@ -1,5 +1,5 @@
 import CisumUIComponents
-import KernelCore
+import CisumKernel
 import SwiftUI
 
 /// 根布局视图（迁移自 FactoryCisum `AppLayoutView`）。

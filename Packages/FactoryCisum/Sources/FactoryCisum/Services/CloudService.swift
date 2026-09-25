@@ -1,4 +1,4 @@
-import KernelCore
+import CisumKernel
 import CloudKit
 import Foundation
 import MagicKit

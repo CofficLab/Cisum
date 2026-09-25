@@ -1,4 +1,4 @@
-import KernelCore
+import CisumKernel
 import SwiftUI
 
 /// 默认 `RootViewProviding` 实现：持有各区域注入视图 + 内核引用，

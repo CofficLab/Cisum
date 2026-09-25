@@ -1,4 +1,4 @@
-import KernelCore
+import CisumKernel
 import CisumUIComponents
 import Foundation
 

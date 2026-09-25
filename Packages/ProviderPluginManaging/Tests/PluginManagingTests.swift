@@ -1,5 +1,5 @@
 import Combine
-import KernelCore
+import CisumKernel
 import Testing
 @testable import ProviderPluginManaging
 

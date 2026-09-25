@@ -1,4 +1,4 @@
-import KernelCore
+import CisumKernel
 import ProviderDocsView
 import ProviderPlayback
 import SwiftUI

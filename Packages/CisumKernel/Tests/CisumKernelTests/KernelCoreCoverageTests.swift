@@ -11,7 +11,7 @@ import ProviderTheme
 import ProviderToast
 import SwiftUI
 import Testing
-@testable import KernelCore
+@testable import CisumKernel
 
 // MARK: - 同步通知捕获
 

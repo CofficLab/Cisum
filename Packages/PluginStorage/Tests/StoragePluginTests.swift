@@ -2,7 +2,7 @@ import Testing
 @testable import PluginStorage
 import Foundation
 import Combine
-import KernelCore
+import CisumKernel
 import ProviderStorage
 
 @Test func storagePluginInfoIsExposed() {

@@ -1,5 +1,5 @@
 import XCTest
-import KernelCore
+import CisumKernel
 import ProviderRootView
 import ProviderToast
 @testable import PluginToast

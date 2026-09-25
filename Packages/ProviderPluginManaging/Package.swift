@@ -12,13 +12,13 @@ let package = Package(
         .library(name: "ProviderPluginManaging", targets: ["ProviderPluginManaging"]),
     ],
     dependencies: [
-        .package(name: "KernelCore", path: "../KernelCore"),
+        .package(name: "CisumKernel", path: "../CisumKernel"),
     ],
     targets: [
         .target(
             name: "ProviderPluginManaging",
             dependencies: [
-                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "CisumKernel", package: "CisumKernel"),
             ],
             path: ".",
             exclude: ["README.md", "Tests"],
@@ -29,7 +29,7 @@ let package = Package(
             name: "ProviderPluginManagingTests",
             dependencies: [
                 "ProviderPluginManaging",
-                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "CisumKernel", package: "CisumKernel"),
             ],
             path: "Tests"
         ),

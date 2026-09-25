@@ -1,4 +1,4 @@
-import KernelCore
+import CisumKernel
 
 /// Scene-specific convenience accessors live beside the Scene provider so the
 /// core package does not depend on this optional capability package.

@@ -1,5 +1,5 @@
 @testable import PluginThemeSettings
-import KernelCore
+import CisumKernel
 import CisumUIComponents
 import SwiftUI
 import Testing

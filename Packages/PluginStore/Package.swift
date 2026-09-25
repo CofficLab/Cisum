@@ -19,7 +19,7 @@ let package = Package(
         .package(path: "../CisumUIComponents"),
         .package(path: "../ProviderStore"),
         .package(path: "../ProviderAudioLibrary"),
-        .package(path: "../KernelCore"),
+        .package(path: "../CisumKernel"),
         .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
     ],
     targets: [
@@ -29,7 +29,7 @@ let package = Package(
                 .product(name: "ProviderStore", package: "ProviderStore"),
                 .product(name: "MagicKit", package: "MagicKit"),
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
-                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "CisumKernel", package: "CisumKernel"),
                 .product(name: "ProviderDocsView", package: "ProviderDocsView"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
             ],

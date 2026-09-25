@@ -1,5 +1,5 @@
 import CisumUIComponents
-import KernelCore
+import CisumKernel
 import ProviderDocsView
 import SwiftUI
 

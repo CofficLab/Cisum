@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-import KernelCore
+import CisumKernel
 import ProviderAudioLibrary
 import ProviderStorage
 import Testing

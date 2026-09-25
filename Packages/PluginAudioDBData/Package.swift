@@ -16,7 +16,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../KernelCore"),
+        .package(path: "../CisumKernel"),
         .package(path: "../MagicKit"),
         .package(path: "../CisumUIComponents"),
         .package(path: "../ProviderAudioLibrary"),
@@ -27,7 +27,7 @@ let package = Package(
         .target(
             name: "PluginAudioDBData",
             dependencies: [
-                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "CisumKernel", package: "CisumKernel"),
                 .product(name: "MagicKit", package: "MagicKit"),
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
@@ -43,7 +43,7 @@ let package = Package(
             name: "AudioDBDataPluginTests",
             dependencies: [
                 "PluginAudioDBData",
-                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "CisumKernel", package: "CisumKernel"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
             ],

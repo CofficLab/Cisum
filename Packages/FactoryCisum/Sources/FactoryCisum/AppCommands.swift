@@ -1,4 +1,4 @@
-import KernelCore
+import CisumKernel
 import Foundation
 import SwiftUI
 

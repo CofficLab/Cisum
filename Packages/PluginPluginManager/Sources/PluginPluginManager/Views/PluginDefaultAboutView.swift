@@ -1,5 +1,5 @@
 import CisumUIComponents
-import KernelCore
+import CisumKernel
 import SwiftUI
 
 /// 所有插件的默认关于页（对齐 Lumi `PluginPluginManager.PluginDefaultAboutView`）。

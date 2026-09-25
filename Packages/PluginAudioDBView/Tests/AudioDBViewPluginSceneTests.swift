@@ -1,4 +1,4 @@
-import KernelCore
+import CisumKernel
 import ProviderScene
 import Testing
 @testable import PluginAudioDBView

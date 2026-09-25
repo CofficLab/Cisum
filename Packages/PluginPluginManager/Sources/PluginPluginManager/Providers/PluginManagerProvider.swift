@@ -1,5 +1,5 @@
 import Foundation
-import KernelCore
+import CisumKernel
 import ProviderPluginManaging
 
 /// PluginPluginManager 自带的 `PluginManaging` 实现（不使用 Provider 包默认实现）。

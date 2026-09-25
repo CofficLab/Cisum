@@ -1,5 +1,5 @@
 import Foundation
-import KernelCore
+import CisumKernel
 import SwiftUI
 
 /// 场景 Provider 的语义变更事件。

@@ -1,6 +1,6 @@
 import CisumUIComponents
 import Foundation
-import KernelCore
+import CisumKernel
 import MagicKit
 import OSLog
 import ProviderBook

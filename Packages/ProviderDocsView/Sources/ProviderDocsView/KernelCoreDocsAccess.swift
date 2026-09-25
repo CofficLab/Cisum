@@ -1,4 +1,4 @@
-import KernelCore
+import CisumKernel
 
 /// Docs-specific convenience accessors live beside the Docs provider so the
 /// core package does not depend on this optional capability package.

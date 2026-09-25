@@ -1,5 +1,5 @@
 import Foundation
-import KernelCore
+import CisumKernel
 import ProviderScene
 import Testing
 @testable import PluginBookScene

@@ -1,4 +1,4 @@
-import KernelCore
+import CisumKernel
 import SwiftUI
 import Testing
 @testable import ProviderDocsView

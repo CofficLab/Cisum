@@ -19,7 +19,7 @@ let package = Package(
         .package(path: "../CisumUIComponents"),
         .package(path: "../ProviderBook"),
         .package(path: "../MagicPlayMan"),
-        .package(path: "../KernelCore"),
+        .package(path: "../CisumKernel"),
         .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
         .package(path: "../ProviderScene"),
         .package(path: "../ProviderPlayback")
@@ -32,7 +32,7 @@ let package = Package(
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
                 .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "MagicPlayMan", package: "MagicPlayMan"),
-                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "CisumKernel", package: "CisumKernel"),
                 .product(name: "ProviderDocsView", package: "ProviderDocsView"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback")

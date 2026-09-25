@@ -1,5 +1,5 @@
 import FactoryCisum
-import KernelCore
+import CisumKernel
 import ProviderContentView
 import ProviderControlView
 import ProviderRootView

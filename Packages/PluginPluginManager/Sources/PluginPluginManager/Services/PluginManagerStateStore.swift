@@ -1,5 +1,5 @@
 import Foundation
-import KernelCore
+import CisumKernel
 
 /// PluginPluginManager 的状态存储服务（Services 层，对齐 Lumi `ProviderStorage.PluginEnabledStateStore`）。
 ///

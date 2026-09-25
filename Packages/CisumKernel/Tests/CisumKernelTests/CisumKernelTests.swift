@@ -1,5 +1,5 @@
 import Testing
-@testable import KernelCore
+@testable import CisumKernel
 import ProviderAppState
 
 @MainActor

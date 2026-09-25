@@ -1,5 +1,5 @@
 import Foundation
-import KernelCore
+import CisumKernel
 import ProviderPlayback
 import Testing
 @testable import PluginLikeButton

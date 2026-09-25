@@ -1,9 +1,10 @@
 import Combine
 import CisumUIComponents
 import Foundation
+import KernelCore
 import SwiftUI
 
-/// Cisum 轻量级内核容器。
+/// Cisum 轻量级内核容器（远程 LumiKernel 门面）。
 ///
 /// ## 架构原则
 ///
@@ -35,26 +36,23 @@ import SwiftUI
 /// ```
 @MainActor
 public final class CisumKernelContainer: ObservableObject {
-    // MARK: - Service Registry
+    // MARK: - Shared Kernel (LumiKernel)
 
-    /// 服务注册表，以协议类型为键存储已注册的服务实例。
-    private var services: [ObjectIdentifier: Any] = [:]
+    /// 远程 LumiKernel 的 `KernelCoreContainer`：Provider 注册表、归属记录与
+    /// 解析能力全部委托给它，与 Lumi / GitOK / Kuzee / Netto 共用同一内核实现。
+    private let kernelCore = KernelCoreContainer()
 
     /// 服务变化订阅（用于转发 ObservableObject 的 objectWillChange）。
     private var serviceSubscriptions: [ObjectIdentifier: AnyCancellable] = [:]
 
-    /// Provider → 注册它的插件 ID。宿主在插件启动前注册的基础设施 Provider
-    /// （activePluginID 为 nil 时）不写此表，表示不归任何插件所有。
-    /// 用于诊断「某个 Provider 是被谁注入的」，以及为未来"插件禁用时自动撤回"
-    /// 预留归属信息。
-    private var providerOwners: [ObjectIdentifier: String] = [:]
-
     /// 当前正在执行生命周期的插件 ID。由 `BuiltinPluginManager` 在每次调用
     /// 插件 `onRegister` / `onBoot` / `onReady` / `onEnable` / `onDisable` /
-    /// `onShutdown` 前后设置/清空；`registerProvider` 据此记录归属。
-    ///
-    /// 对齐 Lumi `KernelCore+Plugin` 的 `activePluginID` 机制。
-    public var activePluginID: String?
+    /// `onShutdown` 前后设置/清空；`registerProvider` 据此记录归属
+    /// （委托到 LumiKernel 的归属机制）。
+    public var activePluginID: String? {
+        get { kernelCore.activePluginID }
+        set { kernelCore.activePluginID = newValue }
+    }
 
     /// 内置插件管理器。
     public let pluginManager: BuiltinPluginManager
@@ -76,9 +74,9 @@ public final class CisumKernelContainer: ObservableObject {
         self.pluginManager.kernel = self
     }
 
-    // MARK: - Generic Service Registry
+    // MARK: - Generic Service Registry (delegated to LumiKernel)
 
-    /// 注册服务实现。
+    /// 注册服务实现（委托 LumiKernel 的 `KernelCoreContainer.registerProvider`）。
     ///
     /// 如果服务实现了 `ObservableObject`，内核会自动将其 `objectWillChange`
     /// 转发到自身，使得依赖该服务的 SwiftUI 视图能正确刷新。
@@ -93,36 +91,34 @@ public final class CisumKernelContainer: ObservableObject {
     ///   - provider: 服务实例。
     /// - Throws: `CisumKernelError.providerAlreadyRegistered` 重复注册。
     public func registerProvider<T>(_ type: T.Type, _ provider: T) throws {
-        let key = ObjectIdentifier(type)
-        if services[key] != nil {
-            throw CisumKernelError.providerAlreadyRegistered(
-                type: type,
-                owner: providerOwners[key]
-            )
+        do {
+            try kernelCore.registerProvider(type, provider)
+        } catch let error as KernelCoreError {
+            if case .providerAlreadyRegistered = error {
+                throw CisumKernelError.providerAlreadyRegistered(
+                    type: type,
+                    owner: kernelCore.providerOwner(type)
+                )
+            }
+            throw error
         }
-        services[key] = provider
-        if let owner = activePluginID {
-            providerOwners[key] = owner
-        }
-        subscribeToObjectWillChange(observable: provider, key: key)
+        subscribeToObjectWillChange(observable: provider, key: ObjectIdentifier(type))
     }
 
-    /// 解析已注册的服务。
+    /// 解析已注册的服务（委托 LumiKernel 的 `KernelCoreContainer.resolveProvider`）。
     ///
     /// - Parameter type: 协议类型，默认从返回值类型推导。
     /// - Returns: 已注册的服务实例，未注册时返回 `nil`。
     public func resolveProvider<T>(_ type: T.Type = T.self) -> T? {
-        services[ObjectIdentifier(type)] as? T
+        kernelCore.resolveProvider(type)
     }
 
-    /// 移除已注册的服务。
+    /// 移除已注册的服务（委托 LumiKernel 的 `KernelCoreContainer.unregisterProvider`）。
     ///
     /// - Parameter type: 协议类型。
     public func unregisterProvider<T>(_ type: T.Type) {
-        let key = ObjectIdentifier(type)
-        services.removeValue(forKey: key)
-        serviceSubscriptions.removeValue(forKey: key)
-        providerOwners.removeValue(forKey: key)
+        kernelCore.unregisterProvider(type)
+        serviceSubscriptions.removeValue(forKey: ObjectIdentifier(type))
     }
 
     // MARK: - 兼容别名（对齐 Lumi KernelCore 命名；旧名保留为薄封装）

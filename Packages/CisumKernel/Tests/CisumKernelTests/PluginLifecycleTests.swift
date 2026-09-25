@@ -1,7 +1,7 @@
 import CisumUIComponents
 import Foundation
 import Testing
-@testable import KernelCore
+@testable import CisumKernel
 
 // MARK: - 生命周期测试探针
 

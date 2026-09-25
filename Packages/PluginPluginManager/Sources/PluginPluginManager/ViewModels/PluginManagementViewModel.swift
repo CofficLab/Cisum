@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-import KernelCore
+import CisumKernel
 import MagicKit
 
 /// 插件管理视图的状态容器（迁移 Phase 4）。

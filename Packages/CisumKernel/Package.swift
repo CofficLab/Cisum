@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "KernelCore",
+    name: "CisumKernel",
     defaultLocalization: "en",
     platforms: [
         .macOS(.v14),
@@ -10,11 +10,15 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "KernelCore",
-            targets: ["KernelCore"]
+            name: "CisumKernel",
+            targets: ["CisumKernel"]
         ),
     ],
     dependencies: [
+        // 共享内核：所有 Coffic App 共用的远程 LumiKernel（Provider 注册表与生命周期核心）。
+        // CisumKernelContainer 门面持有 KernelCoreContainer 并委托注册/解析，应用特有
+        // 服务（事件、插件管理、主题、UI 贡献）保留在本包。
+        .package(name: "LumiKernel", url: "https://github.com/CofficLab/LumiKernel.git", branch: "main"),
         .package(name: "CisumUIComponents", path: "../CisumUIComponents"),
         .package(name: "MagicKit", path: "../MagicKit"),
         // MARK: - Provider Contracts（能力契约独立成包，与 Lumi 的 Provider* 体系对齐）
@@ -31,8 +35,9 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "KernelCore",
+            name: "CisumKernel",
             dependencies: [
+                .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
                 .product(name: "MagicKit", package: "MagicKit"),
                 .product(name: "ProviderAppState", package: "ProviderAppState"),
@@ -47,16 +52,16 @@ let package = Package(
                 .product(name: "ProviderToast", package: "ProviderToast"),
             ],
             path: ".",
-            sources: ["Sources/KernelCore"],
+            sources: ["Sources/CisumKernel"],
             resources: [.process("Resources")]
         ),
         .testTarget(
-            name: "KernelCoreTests",
+            name: "CisumKernelTests",
             dependencies: [
-                "KernelCore",
+                "CisumKernel",
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
             ],
-            path: "Tests/KernelCoreTests"
+            path: "Tests/CisumKernelTests"
         ),
     ],
     swiftLanguageModes: [.v5]

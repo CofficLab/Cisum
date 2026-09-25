@@ -1,5 +1,5 @@
 import CisumUIComponents
-import KernelCore
+import CisumKernel
 import MagicKit
 import MagicPlayMan
 import OSLog

@@ -1,5 +1,5 @@
 import Combine
-import KernelCore
+import CisumKernel
 
 @MainActor
 final class SettingsWindowViewModel: ObservableObject {
