@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-import CisumKernel
+import CisumKernelSupport
 import Testing
 @testable import ProviderScene
 
@@ -44,29 +44,29 @@ struct SceneProvidingTests {
 
     @Test
     func kernelSceneAccessorResolvesRegisteredProvider() throws {
-        let kernel = CisumKernelContainer()
+        let kernel = KernelCoreContainer()
 
-        #expect(kernel.scene == nil)
+        #expect(kernel.resolveProvider((any SceneProviding).self) == nil)
 
         let provider = SceneProviderStub(currentScene: .music)
-        try kernel.registerSceneService(provider)
+        try kernel.registerProvider((any SceneProviding).self, provider)
 
-        #expect(kernel.scene?.currentScene == .music)
-        #expect(kernel.scene?.scenes == AppScene.allCases)
+        #expect(kernel.resolveProvider((any SceneProviding).self)?.currentScene == .music)
+        #expect(kernel.resolveProvider((any SceneProviding).self)?.scenes == AppScene.allCases)
     }
 
     @Test
     func duplicateRegistrationRequiresExplicitUnregister() throws {
-        let kernel = CisumKernelContainer()
-        try kernel.registerSceneService(SceneProviderStub(currentScene: .music))
+        let kernel = KernelCoreContainer()
+        try kernel.registerProvider((any SceneProviding).self, SceneProviderStub(currentScene: .music))
 
-        #expect(throws: CisumKernelError.self) {
-            try kernel.registerSceneService(SceneProviderStub(currentScene: .audiobooks))
+        #expect(throws: KernelCoreError.self) {
+            try kernel.registerProvider((any SceneProviding).self, SceneProviderStub(currentScene: .audiobooks))
         }
 
         kernel.unregisterProvider((any SceneProviding).self)
-        try kernel.registerSceneService(SceneProviderStub(currentScene: .audiobooks))
-        #expect(kernel.scene?.currentScene == .audiobooks)
+        try kernel.registerProvider((any SceneProviding).self, SceneProviderStub(currentScene: .audiobooks))
+        #expect(kernel.resolveProvider((any SceneProviding).self)?.currentScene == .audiobooks)
     }
 
     @Test

@@ -1,15 +1,19 @@
-import CisumKernel
+import ProviderTheme
+import ProviderAppState
+import ProviderControlView
+import ProviderContentView
+import ProviderRootView
+import ProviderScene
+import ProviderDocsView
+import ProviderToast
+import ProviderDevice
+import ProviderCloud
+import CisumKernelSupport
 import CisumUIComponents
 import Foundation
 import MagicKit
 import OSLog
-import ProviderContentView
-import ProviderControlView
-import ProviderDocsView
-import ProviderRootView
-import ProviderScene
 import ProviderSettings
-import ProviderToast
 import SwiftUI
 
 /// Cisum 应用组装工厂（Composition Root）。
@@ -28,7 +32,7 @@ import SwiftUI
 /// let kernel = try await FactoryCisum.createMainKernel(configuration: config)
 ///
 /// // 内部:
-/// CisumKernel()
+/// KernelCoreContainer()
 ///   -> initializePlugins(config.plugins)
 ///   -> 注册基础设施 Provider
 ///   -> kernel.startup()
@@ -46,10 +50,10 @@ public enum CisumBuilder: SuperLog {
     // MARK: - Kernel Registry
 
     /// 已创建的内核列表（支持多内核）。
-    public private(set) static var kernels: [CisumKernel] = []
+    public private(set) static var kernels: [KernelCoreContainer] = []
 
     /// 主内核，取内核列表中的首个。
-    public static var mainKernel: CisumKernel? { kernels.first }
+    public static var mainKernel: KernelCoreContainer? { kernels.first }
 
     // MARK: - Kernel Factory
 
@@ -66,40 +70,40 @@ public enum CisumBuilder: SuperLog {
     public static func createKernel(
         configuration: FactoryCisumConfiguration = FactoryCisumConfiguration(),
         pluginFactory: (any PluginFactory)? = nil
-    ) async throws -> CisumKernel {
-        let kernel = CisumKernel()
+    ) async throws -> KernelCoreContainer {
+        let kernel = KernelCoreContainer()
 
         // 1. 通过插件工厂装配插件清单（对齐 Lumi `pluginFactory.makePlugins()`）
         let factory = pluginFactory ?? DefaultPluginFactory()
-        kernel.pluginManager.initializePlugins(factory.makePlugins())
+        let plugins = factory.makePlugins()
 
         // 2. 注册基础设施 Provider
         let appState = BasicAppStateService()
-        try kernel.registerAppStateService(appState)
+        try kernel.registerProvider((any AppStateProviding).self, appState)
 
-        let pluginService = PluginContributionService(manager: kernel.pluginManager)
-        try kernel.registerPluginService(pluginService)
+        let pluginService = PluginContributionService(kernel: kernel)
+        try kernel.registerProvider((any PluginProviding).self, pluginService)
 
         // 播放引擎由 PluginPlayBack 插件在 onBoot 阶段创建并注册为 PlaybackProviding。
 
         let themeService = ThemeService(contributionsProvider: { [weak kernel] in
-            kernel?.plugin?.getThemeContributions() ?? []
+            kernel?.resolveProvider((any PluginProviding).self)?.getThemeContributions() ?? []
         })
-        try kernel.registerThemeService(themeService)
+        try kernel.registerProvider((any ThemeProviding).self, themeService)
 
-        try kernel.registerCloudService(CloudService())
-        try kernel.registerDeviceService(DeviceService())
-        try kernel.registerDocsService(DefaultDocsViewProvider())
+        try kernel.registerProvider((any CloudProviding).self, CloudService())
+        try kernel.registerProvider((any DeviceProviding).self, DeviceService())
+        try kernel.registerProvider((any DocsViewProviding).self, DefaultDocsViewProvider())
         // 提示 Provider 必须在插件 onBoot 前存在；ToastPlugin 随后替换为真实实现。
         let defaultToast = DefaultToastProvider()
-        try kernel.registerToastService(defaultToast)
+        try kernel.registerProvider((any ToastProviding).self, defaultToast)
         CisumToastBridge.install(defaultToast)
 
         // 视图 Provider 也要在插件 onBoot 前注册，供 ToastPlugin 挂载根覆盖层。
         try registerViewProviders(into: kernel)
 
         // 3. 启动内核（插件 onBoot 注册 Storage 等服务 → 校验 → onReady → 贡献聚合）
-        try await kernel.startup()
+        try await kernel.startAsync(plugins: plugins)
 
         // 3.5 视图 Provider 已在启动前注册，确保根覆盖层可以参与 makeRootView。
         kernel.resolveProvider((any RootViewProviding).self)?
@@ -119,7 +123,7 @@ public enum CisumBuilder: SuperLog {
     }
 
     /// 创建主内核（幂等：首次调用以传入的 configuration 创建，后续调用返回已有实例）。
-    public static func createMainKernel(configuration: FactoryCisumConfiguration) async throws -> CisumKernel {
+    public static func createMainKernel(configuration: FactoryCisumConfiguration) async throws -> KernelCoreContainer {
         if let existing = mainKernel {
             if Self.verbose {
                 logger.info("\(Self.t)Main kernel already exists, returning existing instance")
@@ -130,7 +134,7 @@ public enum CisumBuilder: SuperLog {
     }
 
     /// 销毁指定内核。
-    public static func destroyKernel(_ kernel: CisumKernel) {
+    public static func destroyKernel(_ kernel: KernelCoreContainer) {
         kernels.removeAll { $0 === kernel }
     }
 
@@ -175,13 +179,13 @@ public enum CisumBuilder: SuperLog {
     /// 各视图区域（根布局 / 播放控制区 / 内容区 / 工具栏）是独立的
     /// Provider 契约，默认实现注册进内核；Factory 组装时只做解析 + 注入 +
     /// makeRootView。
-    private static func registerViewProviders(into kernel: CisumKernel) throws {
+    private static func registerViewProviders(into kernel: KernelCoreContainer) throws {
         try kernel.registerProvider((any RootViewProviding).self, DefaultRootViewProvider(kernel: kernel))
         try kernel.registerProvider(
             (any ControlViewProviding).self,
             DefaultControlViewProvider(
-                stateViews: { kernel.plugin?.getStateViews() ?? [] },
-                stateMessage: { kernel.appState?.stateMessage ?? "" }
+                stateViews: { kernel.resolveProvider((any PluginProviding).self)?.getStateViews() ?? [] },
+                stateMessage: { kernel.resolveProvider((any AppStateProviding).self)?.stateMessage ?? "" }
             )
         )
         try kernel.registerProvider((any ContentViewProviding).self, DefaultContentViewProvider())
@@ -195,21 +199,21 @@ public enum CisumBuilder: SuperLog {
     /// 不再经由 `ToolbarProviding` 注入。
     /// 宿主只需要一个视图，无需关心各 Provider 如何组合。
     @MainActor
-    public static func assembleMainView(kernel: CisumKernel) -> AnyView {
+    public static func assembleMainView(kernel: KernelCoreContainer) -> AnyView {
         guard let root = kernel.resolveProvider((any RootViewProviding).self) else {
             return AnyView(Text("RootViewProviding not registered"))
         }
 
         if let control = kernel.resolveProvider((any ControlViewProviding).self) {
-            control.setDemoMode(kernel.appState?.isDemoMode ?? false)
-            control.setHeroView(kernel.plugin?.getHeroView())
-            control.setRightAlbumView(kernel.plugin?.getRightAlbumView())
-            control.setControlButtonsView(kernel.plugin?.getControlButtonsView())
-            control.setProgressView(kernel.plugin?.getProgressView())
+            control.setDemoMode(kernel.resolveProvider((any AppStateProviding).self)?.isDemoMode ?? false)
+            control.setHeroView(kernel.resolveProvider((any PluginProviding).self)?.getHeroView())
+            control.setRightAlbumView(kernel.resolveProvider((any PluginProviding).self)?.getRightAlbumView())
+            control.setControlButtonsView(kernel.resolveProvider((any PluginProviding).self)?.getControlButtonsView())
+            control.setProgressView(kernel.resolveProvider((any PluginProviding).self)?.getProgressView())
             root.setControlView(control.makeControlView())
         }
         if let content = kernel.resolveProvider((any ContentViewProviding).self) {
-            content.setDemoMode(kernel.appState?.isDemoMode ?? false)
+            content.setDemoMode(kernel.resolveProvider((any AppStateProviding).self)?.isDemoMode ?? false)
             refreshContentTabs(content, kernel: kernel)
             root.setContentView(content.makeContentView())
         }
@@ -221,10 +225,10 @@ public enum CisumBuilder: SuperLog {
     /// 对齐 Lumi 插件通过 Provider 注入内容的范式；Cisum 侧由
     /// `PluginContributionService` 聚合插件贡献，此处转成 `ContentTabItem` 注入。
     @MainActor
-    private static func refreshContentTabs(_ content: any ContentViewProviding, kernel: CisumKernel) {
-        let contribution = kernel.plugin?.getTabViews(
+    private static func refreshContentTabs(_ content: any ContentViewProviding, kernel: KernelCoreContainer) {
+        let contribution = kernel.resolveProvider((any PluginProviding).self)?.getTabViews(
             reason: "AppTabView",
-            demoMode: kernel.appState?.isDemoMode ?? false
+            demoMode: kernel.resolveProvider((any AppStateProviding).self)?.isDemoMode ?? false
         ) ?? []
         content.setTabs(
             contribution.enumerated().map { index, tab in
@@ -241,14 +245,14 @@ public enum CisumBuilder: SuperLog {
     // MARK: - Private
 
     /// 订阅插件启用/禁用变更通知，触发贡献重建。
-    private static func subscribeToPluginChanges(kernel: CisumKernel) {
+    private static func subscribeToPluginChanges(kernel: KernelCoreContainer) {
         NotificationCenter.default.addObserver(
             forName: .cisumEnabledPluginsDidChange,
             object: nil,
             queue: .main
         ) { _ in
             Task { @MainActor in
-                kernel.pluginManager.rebuildAllContributions(in: kernel)
+                kernel.resolveProvider((any PluginProviding).self)?.invalidateCaches()
             }
         }
     }
@@ -259,8 +263,8 @@ public enum CisumBuilder: SuperLog {
     /// `sceneBox.scene?.currentScene`），启动装配时只组装一次；场景切换不会
     /// 触发重建，导致内容区停留在启动场景的 Tab。此处订阅
     /// `SceneProviding.selectionChanged`，切换后重新聚合注入，使内容区跟随场景。
-    private static func subscribeToSceneChanges(kernel: CisumKernel) {
-        let handle = kernel.scene?.addObserver { [weak kernel] event in
+    private static func subscribeToSceneChanges(kernel: KernelCoreContainer) {
+        let handle = kernel.resolveProvider((any SceneProviding).self)?.addObserver { [weak kernel] event in
             guard case .selectionChanged = event else { return }
             Task { @MainActor in
                 guard let kernel else { return }

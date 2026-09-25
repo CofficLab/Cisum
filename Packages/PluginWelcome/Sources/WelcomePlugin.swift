@@ -1,27 +1,47 @@
-import CisumKernel
 import ProviderDocsView
-import CisumUIComponents
 import ProviderStorage
+import CisumKernelSupport
+import CisumUIComponents
 import SwiftUI
 
-public actor WelcomePlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class WelcomePlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: WelcomePlugin.self)
+
     public static let shared = WelcomePlugin()
     public nonisolated static let emoji = WelcomePluginInfo.emoji
     public static let verbose = false
-    public static let metadata = PluginMetadata(
-        displayName: WelcomePluginInfo.title,
+    public let order = WelcomePluginInfo.order
+    public let iconName = WelcomePluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: WelcomePlugin.self),
+        name: WelcomePluginInfo.title,
         description: WelcomePluginInfo.description,
-        iconName: WelcomePluginInfo.iconName,
-        order: WelcomePluginInfo.order,
-        category: .tool,
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
+        policy: .disabled,
+        permissions: []
     )
 
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { WelcomePluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { WelcomePluginManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { WelcomePluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { WelcomePluginManualView() })
+        }
+    }
+
+    @MainActor
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+    }
+
+    @MainActor
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            if let view = self.addGuideView() { contrib.addGuideView(view) }
         }
     }
 
@@ -32,8 +52,8 @@ public actor WelcomePlugin: SuperPlugin, SuperLog {
     /// OnReady 阶段（Storage 服务已注册）将 `WelcomePluginHost` 桥接到内核
     /// `StorageProviding`。
     @MainActor
-    public func onReady(kernel: CisumKernel) async throws {
-        guard let storage = kernel.storage else { return }
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
+        guard let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
         Self.storage = storage
         WelcomePluginHost.configure(
             hasStorageLocation: { Self.storage?.hasUsableStorageLocation ?? false },

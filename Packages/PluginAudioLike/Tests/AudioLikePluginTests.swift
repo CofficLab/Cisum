@@ -1,8 +1,8 @@
+import ProviderScene
+import ProviderPlayback
 import Foundation
 @testable import PluginAudioLike
 import ProviderAudioLike
-import ProviderPlayback
-import ProviderScene
 import Testing
 
 private final class NotificationObserverToken: @unchecked Sendable {

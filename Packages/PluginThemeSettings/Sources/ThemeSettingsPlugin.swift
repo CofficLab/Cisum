@@ -1,7 +1,7 @@
-import CisumUIComponents
-import CisumKernel
 import ProviderDocsView
 import ProviderTheme
+import CisumUIComponents
+import CisumKernelSupport
 import SwiftUI
 import MagicKit
 
@@ -16,17 +16,24 @@ import MagicKit
 /// 入口在 `onBoot` 创建并持有长期存在的 `ThemeSettingsViewModel` 与
 /// `ThemeProvidingObserver`，设置导航项注入同一个 ViewModel；View 不自行创建
 /// 状态对象。
-public actor ThemeSettingsPlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class ThemeSettingsPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: ThemeSettingsPlugin.self)
+
     nonisolated static let verbose = false
 
     public static let shared = ThemeSettingsPlugin()
-    public static let metadata = PluginMetadata(
-        displayName: ThemeSettingsPluginInfo.title,
+    public let order = ThemeSettingsPluginInfo.order
+    public let iconName = ThemeSettingsPluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: ThemeSettingsPlugin.self),
+        name: ThemeSettingsPluginInfo.title,
         description: ThemeSettingsPluginInfo.description,
-        iconName: ThemeSettingsPluginInfo.iconName,
-        order: ThemeSettingsPluginInfo.order,
+        version: "1.0.0",
+        category: .system,
+        stage: .stable,
         policy: .alwaysOn,
-        category: .settings,
+        permissions: []
     )
 
     nonisolated(unsafe) private var settingsViewModel: ThemeSettingsViewModel?
@@ -35,30 +42,34 @@ public actor ThemeSettingsPlugin: SuperPlugin, SuperLog {
     public init() {}
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { ThemeSettingsPluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { ThemeSettingsPluginManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { ThemeSettingsPluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { ThemeSettingsPluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(view) }
+        }
         installSettingsState(kernel: kernel)
     }
 
     @MainActor
-    public func onEnable(kernel: CisumKernel) async throws {
+    public func onEnable(kernel: KernelCoreContainer) async throws {
         installSettingsState(kernel: kernel)
     }
 
     @MainActor
-    public func onDisable(kernel: CisumKernel) async throws {
+    public func onDisable(kernel: KernelCoreContainer) async throws {
         teardownSettingsState()
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
         teardownSettingsState()
     }
 
@@ -74,7 +85,7 @@ public actor ThemeSettingsPlugin: SuperPlugin, SuperLog {
         return PluginSettingNavigationItem(
             id: "appearance",
             title: String(localized: "Appearance", bundle: .module),
-            description: Self.metadata.description,
+            description: metadata.description,
             iconName: "paintpalette",
             order: 2,
             destination: AnyView(ThemeSettingsDetailView(viewModel: viewModel))
@@ -84,9 +95,9 @@ public actor ThemeSettingsPlugin: SuperPlugin, SuperLog {
     // MARK: - Settings state assembly
 
     @MainActor
-    private func installSettingsState(kernel: CisumKernel) {
+    private func installSettingsState(kernel: KernelCoreContainer) {
         guard settingsViewModel == nil else { return }
-        guard let theme = kernel.theme else { return }
+        guard let theme = kernel.resolveProvider((any ThemeProviding).self) else { return }
         let viewModel = ThemeSettingsViewModel(
             capability: ThemeSettingsCapabilityAdapter(theme: theme)
         )

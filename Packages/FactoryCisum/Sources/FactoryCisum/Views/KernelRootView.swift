@@ -1,6 +1,6 @@
 import CisumUIComponents
 import Foundation
-import CisumKernel
+import CisumKernelSupport
 import MagicKit
 import SwiftUI
 
@@ -8,7 +8,7 @@ import SwiftUI
 ///
 /// 将内核的非播放 UI 配置投影为 SwiftUI 环境值，并用插件的 RootView 包裹内部布局。
 struct KernelRootView: View {
-    @ObservedObject var kernel: CisumKernel
+    @ObservedObject var kernel: KernelCoreContainer
     @ObservedObject private var themeRegistry = LumiUIThemeRegistry.shared
     /// 插件贡献版本号：插件启用/禁用变化时 +1，触发根视图重新组装。
     @State private var contributionRevision = 0
@@ -62,7 +62,7 @@ struct KernelRootView: View {
 
     @ViewBuilder
     private func wrap(_ content: AnyView) -> some View {
-        if let wrapped = kernel.plugin?.wrapWithCurrentRoot(content: { content }) {
+        if let wrapped = kernel.resolveProvider((any PluginProviding).self)?.wrapWithCurrentRoot(content: { content }) {
             wrapped
         } else {
             content

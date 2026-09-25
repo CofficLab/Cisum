@@ -4,6 +4,7 @@ import MagicPlayMan
 import OSLog
 
 public actor BookPlayModeStore: SuperLog {
+
     public static let emoji = "💾"
     public static let verbose = false
 

@@ -1,5 +1,5 @@
 import Foundation
-import CisumKernel
+import CisumKernelSupport
 import ProviderPluginManaging
 import SwiftUI
 import Testing
@@ -7,39 +7,32 @@ import Testing
 
 // MARK: - 探针实现
 
-/// 可配置探针插件：policy optIn，允许用户启停。
-actor ProbeConfigurablePlugin: SuperPlugin {
-    nonisolated static let shared = ProbeConfigurablePlugin()
-    nonisolated static var metadata: PluginMetadata {
-        PluginMetadata(
-            id: "probe-configurable",
-            displayName: "Configurable",
-            description: "",
-            order: 1,
-            policy: .optIn
-        )
-    }
+/// 可配置探针插件：policy disabledByDefault，允许用户启停。
+@MainActor
+final class ProbeConfigurablePlugin: SuperPlugin {
+    let id = "probe-configurable"
+    let order: Int = 1
+    let metadata = PluginMetadata(
+        id: "probe-configurable",
+        name: "Configurable",
+        description: "",
+        policy: .disabledByDefault
+    )
 
-    nonisolated var id: String { "probe-configurable" }
-
-    @MainActor
     func addSettingView() -> AnyView? { AnyView(Text("configurable")) }
 }
 
 /// 常驻探针插件：policy alwaysOn，不可用户切换。
-actor ProbeAlwaysOnPlugin: SuperPlugin {
-    nonisolated static let shared = ProbeAlwaysOnPlugin()
-    nonisolated static var metadata: PluginMetadata {
-        PluginMetadata(
-            id: "probe-alwayson",
-            displayName: "AlwaysOn",
-            description: "",
-            order: 2,
-            policy: .alwaysOn
-        )
-    }
-
-    nonisolated var id: String { "probe-alwayson" }
+@MainActor
+final class ProbeAlwaysOnPlugin: SuperPlugin {
+    let id = "probe-alwayson"
+    let order: Int = 2
+    let metadata = PluginMetadata(
+        id: "probe-alwayson",
+        name: "AlwaysOn",
+        description: "",
+        policy: .alwaysOn
+    )
 }
 
 /// 管理能力探针。
@@ -248,25 +241,28 @@ struct PluginManagerObserverTests {
 
 @MainActor
 struct PluginManagerProviderTests {
-    private func makeProvider() -> (CisumKernel, BuiltinPluginManager, PluginManagerProvider) {
-        let kernel = CisumKernel()
+    private func makeProvider() async -> (KernelCoreContainer, PluginManagerProvider) {
+        let kernel = KernelCoreContainer()
         // 注入状态存储：isPluginEnabled 依赖 kernel.stateStore 读用户覆盖。
         let dir = FileManager.default.temporaryDirectory
             .appendingPathComponent("PluginManagerTests-\(UUID().uuidString)", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         kernel.stateStore = PluginManagerStateStore(pluginDataDirectory: dir)
 
-        let manager = kernel.pluginManager
         let configurable = ProbeConfigurablePlugin()
         let alwaysOn = ProbeAlwaysOnPlugin()
-        manager.initializePlugins([configurable, alwaysOn])
-        let provider = PluginManagerProvider(manager: manager, kernel: kernel)
-        return (kernel, manager, provider)
+        try? kernel.registerPlugin(configurable)
+        try? kernel.registerPlugin(alwaysOn)
+        // 启动内核（empty incoming）：enable/disable 要求 lifecycleState == .running。
+        try? await kernel.startAsync(plugins: [])
+        let provider = PluginManagerProvider(kernel: kernel)
+        return (kernel, provider)
     }
 
     @Test
-    func exposesPluginRegistry() {
-        let (_, _, provider) = makeProvider()
+    func exposesPluginRegistry() async {
+        let (kernel, provider) = await makeProvider()
+        _ = kernel
         #expect(provider.pluginCount == 2)
         #expect(provider.allPlugins.count == 2)
         #expect(provider.configurablePlugins.count == 1)
@@ -278,8 +274,9 @@ struct PluginManagerProviderTests {
     }
 
     @Test
-    func enabledPluginsFiltersCandidates() {
-        let (_, _, provider) = makeProvider()
+    func enabledPluginsFiltersCandidates() async {
+        let (kernel, provider) = await makeProvider()
+        _ = kernel
         let alwaysOn = provider.plugin(id: "probe-alwayson")!
         let configurable = provider.plugin(id: "probe-configurable")!
 
@@ -291,7 +288,7 @@ struct PluginManagerProviderTests {
 
     @Test
     func enableAndDisableRoundTrip() async {
-        let (kernel, _, provider) = makeProvider()
+        let (kernel, provider) = await makeProvider()
         _ = kernel // 保持 kernel 存活：PluginManagerProvider 弱引用内核。
         let enabled = await provider.enablePlugin(id: "probe-configurable")
         #expect(enabled)
@@ -305,7 +302,7 @@ struct PluginManagerProviderTests {
 
     @Test
     func enableUnknownPluginFailsWithError() async {
-        let (kernel, _, provider) = makeProvider()
+        let (kernel, provider) = await makeProvider()
         _ = kernel
         let result = await provider.enablePlugin(id: "missing")
         #expect(!result)
@@ -313,17 +310,21 @@ struct PluginManagerProviderTests {
     }
 
     @Test
-    func enableNonConfigurablePluginFails() async {
-        let (kernel, _, provider) = makeProvider()
+    func disableAlwaysOnPluginFails() async {
+        let (kernel, provider) = await makeProvider()
         _ = kernel
-        let result = await provider.enablePlugin(id: "probe-alwayson")
+        // alwaysOn 插件默认已启用：enable 幂等成功；disable 受策略保护失败。
+        let enabled = await provider.enablePlugin(id: "probe-alwayson")
+        #expect(enabled)
+        #expect(provider.lastErrorDescription == nil)
+        let result = await provider.disablePlugin(id: "probe-alwayson")
         #expect(!result)
         #expect(provider.lastErrorDescription != nil)
     }
 
     @Test
-    func observerHandleCancelIsIdempotent() {
-        let (kernel, _, provider) = makeProvider()
+    func observerHandleCancelIsIdempotent() async {
+        let (kernel, provider) = await makeProvider()
         _ = kernel
         let handle = provider.addObserver { _ in }
         handle.cancel()
@@ -338,16 +339,16 @@ struct PluginManagerProviderTests {
 struct PluginPluginManagerLifecycleTests {
     @Test
     func onRegisterWithNoDocsIsSafe() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let plugin = PluginPluginManager()
         try await plugin.onRegister(kernel: kernel)
     }
 
     @Test
     func onBootWithoutStorageKeepsKernelReference() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let plugin = PluginPluginManager()
-        try await plugin.onBoot(kernel: kernel)
+        try await plugin.onBootAsync(kernel: kernel)
 
         // 无 storage 时不注入 stateStore，但保留 kernel 供导航项使用。
         #expect(plugin.addSettingNavigationItem() != nil)
@@ -361,12 +362,12 @@ struct PluginPluginManagerLifecycleTests {
 
     @Test
     func shutdownTearsDownState() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let plugin = PluginPluginManager()
-        try await plugin.onBoot(kernel: kernel)
+        try await plugin.onBootAsync(kernel: kernel)
         #expect(plugin.addSettingNavigationItem() != nil)
 
-        try await plugin.onShutdown(kernel: kernel)
+        try await plugin.onShutdownAsync(kernel: kernel)
         // shutdown 后导航项仍可构造（kernel 仍持有），不崩溃。
         #expect(plugin.addSettingNavigationItem() != nil)
     }

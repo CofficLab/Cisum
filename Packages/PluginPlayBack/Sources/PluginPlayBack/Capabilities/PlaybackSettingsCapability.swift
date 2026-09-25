@@ -1,5 +1,5 @@
-import Foundation
 import ProviderPlayback
+import Foundation
 import MagicKit
 
 /// 播放设置页需要的最小播放状态能力。

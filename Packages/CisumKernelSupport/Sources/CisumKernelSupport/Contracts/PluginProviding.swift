@@ -1,5 +1,6 @@
 import CisumUIComponents
 import Foundation
+import KernelCore
 import SwiftUI
 
 @MainActor

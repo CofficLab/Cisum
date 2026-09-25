@@ -1,4 +1,4 @@
-import CisumKernel
+import CisumKernelSupport
 import SwiftUI
 import Testing
 @testable import ProviderDocsView
@@ -55,17 +55,17 @@ struct DocsViewProvidingTests {
 
     @Test
     func kernelRegistersAndResolvesDocsProviderAndRejectsDuplicates() throws {
-        let kernel = CisumKernelContainer()
+        let kernel = KernelCoreContainer()
         let first = DefaultDocsViewProvider()
         let second = DefaultDocsViewProvider()
 
-        #expect(kernel.docs == nil)
-        try kernel.registerDocsService(first)
-        #expect(kernel.docs === first)
-        #expect(throws: CisumKernelError.self) {
-            try kernel.registerDocsService(second)
+        #expect(kernel.resolveProvider((any DocsViewProviding).self) == nil)
+        try kernel.registerProvider((any DocsViewProviding).self, first)
+        #expect(kernel.resolveProvider((any DocsViewProviding).self) === first)
+        #expect(throws: KernelCoreError.self) {
+            try kernel.registerProvider((any DocsViewProviding).self, second)
         }
-        #expect(kernel.docs === first)
+        #expect(kernel.resolveProvider((any DocsViewProviding).self) === first)
     }
 }
 

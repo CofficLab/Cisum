@@ -1,32 +1,40 @@
-import CisumUIComponents
-import CisumKernel
 import ProviderDocsView
+import CisumUIComponents
+import CisumKernelSupport
 import Foundation
 import MagicKit
 
-public actor FileLogPlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class FileLogPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: FileLogPlugin.self)
+
     nonisolated static let verbose = false
 
     public static let shared = FileLogPlugin()
-    public static let metadata = PluginMetadata(
-        displayName: FileLogPluginInfo.title,
+    public let order = 1
+    public let iconName = FileLogPluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: FileLogPlugin.self),
+        name: FileLogPluginInfo.title,
         description: FileLogPluginInfo.description,
-        iconName: FileLogPluginInfo.iconName,
-        order: 1,
+        version: "1.0.0",
         category: .system,
+        stage: .stable,
+        policy: .disabled,
+        permissions: []
     )
 
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { FileLogPluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { FileLogPluginManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { FileLogPluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { FileLogPluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
         FileLogCoordinator.shared.configuration = AppFileLogConfiguration()
         FileLogCoordinator.shared.start()
 
@@ -36,7 +44,7 @@ public actor FileLogPlugin: SuperPlugin, SuperLog {
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         #if os(macOS)
             FileLogTerminationObserver.shared.stopObserving()
         #endif

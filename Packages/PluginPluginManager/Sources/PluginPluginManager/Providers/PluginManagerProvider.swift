@@ -1,23 +1,22 @@
 import Foundation
-import CisumKernel
+import CisumKernelSupport
 import ProviderPluginManaging
 
 /// PluginPluginManager 自带的 `PluginManaging` 实现（不使用 Provider 包默认实现）。
 ///
-/// 直接封装 `BuiltinPluginManager` + 内核：读取全部插件与启用状态，驱动运行期
-/// 启停（写入用户覆盖 + 重建贡献 + 持久化），并订阅内核
-/// `.cisumEnabledPluginsDidChange` 通知，转发为 `enabledPluginsChanged` 语义事件。
+/// 直接封装共享内核 `KernelCoreContainer`：读取全部插件与启用状态，驱动运行期
+/// 启停（对齐 LumiKernel `enablePlugin/disablePlugin` 生命周期 + 贡献回收 +
+/// 持久化），并在启停成功后发布 `.cisumEnabledPluginsDidChange` 通知，
+/// 供宿主重建 UI 贡献聚合。
 @MainActor
 public final class PluginManagerProvider: PluginManaging {
     public private(set) var lastErrorDescription: String?
-    private let manager: BuiltinPluginManager
-    private weak var kernel: CisumKernel?
+    private weak var kernel: KernelCoreContainer?
 
     private var observerCallbacks: [UUID: (PluginManagingEvent) -> Void] = [:]
     private var notificationToken: NSObjectProtocol?
 
-    public init(manager: BuiltinPluginManager, kernel: CisumKernel) {
-        self.manager = manager
+    public init(kernel: KernelCoreContainer) {
         self.kernel = kernel
 
         // 订阅内核的已启用插件变更通知，转发为 Provider 语义事件。
@@ -35,31 +34,33 @@ public final class PluginManagerProvider: PluginManaging {
     // MARK: - PluginManaging
 
     public var allPlugins: [any SuperPlugin] {
-        manager.allPlugins
+        kernel?.allPlugins ?? []
     }
 
     public var configurablePlugins: [any SuperPlugin] {
-        manager.allPlugins.filter { type(of: $0).metadata.policy.allowUserToggle }
+        allPlugins.filter { $0.metadata.policy.isConfigurable }
     }
 
     public var pluginCount: Int {
-        manager.allPlugins.count
+        allPlugins.count
     }
 
     public var enabledCount: Int {
-        manager.enabledPlugins.count
+        guard let kernel else { return 0 }
+        return kernel.allPlugins.filter { kernel.isPluginEnabled(id: $0.id) }.count
     }
 
     public func plugin(id: String) -> (any SuperPlugin)? {
-        manager.plugin(by: id)
+        kernel?.resolvePlugin(id: id)
     }
 
     public func isRegistered(id: String) -> Bool {
-        manager.plugin(by: id) != nil
+        kernel?.isPluginRegistered(id: id) ?? false
     }
 
     public func enabledPlugins(from candidates: [any SuperPlugin]) -> [any SuperPlugin] {
-        candidates.filter { manager.isPluginEnabled($0) }
+        guard let kernel else { return [] }
+        return candidates.filter { kernel.isPluginEnabled(id: $0.id) }
     }
 
     // MARK: - Plugin Control
@@ -70,8 +71,9 @@ public final class PluginManagerProvider: PluginManaging {
             return false
         }
         do {
-            try await manager.enablePlugin(id: id, kernel: kernel)
+            try await kernel.enablePlugin(id: id)
             lastErrorDescription = nil
+            notifyPluginsDidChange()
             return true
         } catch {
             lastErrorDescription = error.localizedDescription
@@ -85,8 +87,9 @@ public final class PluginManagerProvider: PluginManaging {
             return false
         }
         do {
-            try await manager.disablePlugin(id: id, kernel: kernel)
+            try await kernel.disablePlugin(id: id)
             lastErrorDescription = nil
+            notifyPluginsDidChange()
             return true
         } catch {
             lastErrorDescription = error.localizedDescription
@@ -95,8 +98,8 @@ public final class PluginManagerProvider: PluginManaging {
     }
 
     public func isEnabled(id: String) -> Bool {
-        guard let plugin = manager.plugin(by: id) else { return false }
-        return manager.isPluginEnabled(plugin)
+        guard let kernel else { return false }
+        return kernel.isPluginEnabled(id: id)
     }
 
     // MARK: - PluginManaging Observer
@@ -107,6 +110,11 @@ public final class PluginManagerProvider: PluginManaging {
         let id = UUID()
         observerCallbacks[id] = callback
         return PluginManagerObserverHandle(owner: self, id: id)
+    }
+
+    private func notifyPluginsDidChange() {
+        NotificationCenter.default.post(name: .cisumEnabledPluginsDidChange, object: nil)
+        send(.enabledPluginsChanged)
     }
 
     private func send(_ event: PluginManagingEvent) {

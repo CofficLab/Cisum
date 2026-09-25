@@ -1,5 +1,5 @@
 import Foundation
-import CisumKernel
+import CisumKernelSupport
 import SwiftUI
 
 /// 场景 Provider 的语义变更事件。
@@ -22,20 +22,20 @@ public protocol SceneProvidingObserverHandle: AnyObject {
 /// 场景为 Provider 内置的固定枚举（`AppScene.allCases`），不再由插件通过
 /// `SuperPlugin.addSceneItem()` 动态贡献；本协议把场景管理从 `PluginProviding`
 /// 中独立出来，使场景能力成为与插件 UI 聚合平行的独立 Provider，注册进
-/// `CisumKernel` 后以 `kernel.scene` 暴露。
+/// `KernelCoreContainer` 后以 `kernel.resolveProvider((any SceneProviding).self)` 暴露。
 ///
 /// ## 使用示例
 ///
 /// ```swift
-/// let scenes = kernel.scene?.scenes ?? []
-/// let current = kernel.scene?.currentScene
-/// kernel.scene?.setCurrentScene(.music)
-/// kernel.scene?.restoreCurrentScene()
+/// let scenes = kernel.resolveProvider((any SceneProviding).self)?.scenes ?? []
+/// let current = kernel.resolveProvider((any SceneProviding).self)?.currentScene
+/// kernel.resolveProvider((any SceneProviding).self)?.setCurrentScene(.music)
+/// kernel.resolveProvider((any SceneProviding).self)?.restoreCurrentScene()
 /// ```
 ///
 /// 协议只声明能力，不关心具体实现。使用 `AnyObject` + `ObservableObject`：
 /// 协议可无泛型约束地作为存在类型（`any SceneProviding`）注册进
-/// `CisumKernel` 的 Provider 注册表，并自动转发 `objectWillChange`。
+/// `KernelCoreContainer` 的 Provider 注册表，并自动转发 `objectWillChange`。
 @MainActor
 public protocol SceneProviding: AnyObject, ObservableObject {
     /// 所有可用场景（固定内置，即 `AppScene.allCases`）。

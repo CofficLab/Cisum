@@ -1,12 +1,12 @@
 import CisumUIComponents
-import CisumKernel
+import CisumKernelSupport
 import SwiftUI
 
 /// Factory 的主窗口启动视图。
 ///
 /// 负责创建 Kernel，并在 Kernel 准备完成后显示 `KernelRootView`。
 public struct WindowMain: View {
-    @State private var kernel: CisumKernel?
+    @State private var kernel: KernelCoreContainer?
     @State private var initializationError: Error?
     @State private var isInitializing = true
     private let configuration: FactoryCisumConfiguration

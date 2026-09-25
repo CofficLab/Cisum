@@ -1,5 +1,5 @@
-import Foundation
 import ProviderPlayback
+import Foundation
 import MagicKit
 
 /// OpenButton 需要的最小播放能力边界。

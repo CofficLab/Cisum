@@ -1,6 +1,6 @@
+import ProviderPlayback
 import Foundation
 import OSLog
-import ProviderPlayback
 import MagicKit
 
 /// AudioDB 能够发出的播放能力。

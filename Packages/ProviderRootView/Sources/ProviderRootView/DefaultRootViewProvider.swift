@@ -1,4 +1,4 @@
-import CisumKernel
+import CisumKernelSupport
 import SwiftUI
 
 /// 默认 `RootViewProviding` 实现：持有各区域注入视图 + 内核引用，
@@ -16,9 +16,9 @@ public final class DefaultRootViewProvider: RootViewProviding {
     public private(set) var isContentViewVisible = false
     private let eventObservers = KernelEventObserverStore<RootViewProvidingEvent>()
 
-    private let kernel: CisumKernel
+    private let kernel: KernelCoreContainer
 
-    public init(kernel: CisumKernel) {
+    public init(kernel: KernelCoreContainer) {
         self.kernel = kernel
     }
 

@@ -1,5 +1,5 @@
-import Foundation
 import ProviderPlayback
+import Foundation
 import MagicKit
 
 /// 播放进度视图需要的最小播放能力。

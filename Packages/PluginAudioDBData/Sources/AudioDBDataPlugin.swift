@@ -1,49 +1,49 @@
-import CisumKernel
+import ProviderAudioNavigation
+import ProviderAudioLibrary
+import ProviderStorage
+import CisumKernelSupport
 import MagicKit
 import OSLog
-import ProviderAudioLibrary
-import ProviderAudioNavigation
 
 /// 音频数据库数据层插件。
 ///
 /// 该插件是音频 SwiftData 容器、AudioRepo 和音频库 Provider 的唯一组装入口；
 /// UI 插件通过 `AudioLibraryProviding` 使用它，不再自行构造数据库。
-public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: AudioDBDataPlugin.self)
+
     public nonisolated static let emoji = "💾"
     public nonisolated static let verbose = false
 
     public static let shared = AudioDBDataPlugin()
-    public static let metadata = PluginMetadata(
-        displayName: "Audio Database Data",
+    public let order = 1
+    public let iconName = "externaldrive.badge.timemachine"
+    public let metadata = PluginMetadata(
+        id: String(describing: AudioDBDataPlugin.self),
+        name: "Audio Database Data",
         description: "Provides the audio database and keeps the audio library synchronized.",
-        iconName: "externaldrive.badge.timemachine",
-        order: 1,
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
         policy: .alwaysOn,
-        category: .library
+        permissions: []
     )
 
-    nonisolated(unsafe) private weak var kernel: CisumKernel?
+    nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var libraryProvider: AudioLibraryProvider?
     nonisolated(unsafe) private var navigationProvider: AudioTrackNavigationProvider?
     nonisolated(unsafe) private var storageObserver: AudioStorageObserver?
     nonisolated(unsafe) private var fileSystemMonitor: AudioFileSystemMonitor?
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         try installProviders(kernel: kernel)
     }
 
     @MainActor
-    public func onReady(kernel: CisumKernel) async throws {
-        self.kernel = kernel
-        try installProviders(kernel: kernel)
-        setupStorageLocationObserver(kernel: kernel)
-        startFileSystemMonitor()
-    }
-
-    @MainActor
-    public func onEnable(kernel: CisumKernel) async throws {
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         try installProviders(kernel: kernel)
         setupStorageLocationObserver(kernel: kernel)
@@ -51,13 +51,21 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
     }
 
     @MainActor
-    public func onDisable(kernel: CisumKernel) async throws {
+    public func onEnable(kernel: KernelCoreContainer) async throws {
+        self.kernel = kernel
+        try installProviders(kernel: kernel)
+        setupStorageLocationObserver(kernel: kernel)
+        startFileSystemMonitor()
+    }
+
+    @MainActor
+    public func onDisable(kernel: KernelCoreContainer) async throws {
         teardownSynchronization()
         removeProviders(from: kernel)
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         teardownSynchronization()
         removeProviders(from: kernel)
         self.kernel = nil
@@ -114,8 +122,8 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
     }
 
     @MainActor
-    private func setupStorageLocationObserver(kernel: CisumKernel) {
-        guard storageObserver == nil, let storage = kernel.storage else { return }
+    private func setupStorageLocationObserver(kernel: KernelCoreContainer) {
+        guard storageObserver == nil, let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
         storageObserver = AudioStorageObserver(provider: storage) { [weak self] _ in
             Task { @MainActor [weak self] in
                 await self?.restartFileSystemMonitor()
@@ -147,13 +155,13 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
     // MARK: - Provider installation
 
     @MainActor
-    private func installProviders(kernel: CisumKernel) throws {
+    private func installProviders(kernel: KernelCoreContainer) throws {
         try installLibraryProvider(kernel: kernel)
         try installNavigationProvider(kernel: kernel)
     }
 
     @MainActor
-    private func removeProviders(from kernel: CisumKernel) {
+    private func removeProviders(from kernel: KernelCoreContainer) {
         removeNavigationProvider(from: kernel)
         removeLibraryProvider(from: kernel)
     }
@@ -161,15 +169,15 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
     // MARK: - AudioLibraryProviding
 
     @MainActor
-    private func installLibraryProvider(kernel: CisumKernel) throws {
-        guard libraryProvider == nil, let storage = kernel.storage else { return }
+    private func installLibraryProvider(kernel: KernelCoreContainer) throws {
+        guard libraryProvider == nil, let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
         let provider = AudioLibraryProvider(storage: storage)
         self.libraryProvider = provider
-        try kernel.registerAudioLibrary(provider)
+        try kernel.registerProvider((any AudioLibraryProviding).self, provider)
     }
 
     @MainActor
-    private func removeLibraryProvider(from kernel: CisumKernel) {
+    private func removeLibraryProvider(from kernel: KernelCoreContainer) {
         guard libraryProvider != nil else { return }
         libraryProvider?.shutdown()
         kernel.unregisterProvider(AudioLibraryProviding.self)
@@ -183,7 +191,7 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
     /// Provider 由本插件组装；消费插件只依赖协议，不依赖
     /// `AudioRepo` 或本插件的具体实现。
     @MainActor
-    private func installNavigationProvider(kernel: CisumKernel) throws {
+    private func installNavigationProvider(kernel: KernelCoreContainer) throws {
         guard navigationProvider == nil else { return }
         let provider = libraryProvider
         let repoProvider: @MainActor @Sendable () async -> AudioLibraryProvider? = {
@@ -248,11 +256,11 @@ public actor AudioDBDataPlugin: SuperPlugin, SuperLog {
             }
         )
         navigationProvider = navigation
-        try kernel.registerAudioTrackNavigation(navigation)
+        try kernel.registerProvider((any AudioTrackNavigationProviding).self, navigation)
     }
 
     @MainActor
-    private func removeNavigationProvider(from kernel: CisumKernel) {
+    private func removeNavigationProvider(from kernel: KernelCoreContainer) {
         guard navigationProvider != nil else { return }
         kernel.unregisterProvider((any AudioTrackNavigationProviding).self)
         navigationProvider = nil

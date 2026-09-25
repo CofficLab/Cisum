@@ -36,6 +36,7 @@ public enum AudioLikeRepositoryConfiguration {
 }
 
 public actor AudioLikeRepo: SuperLog {
+
     public static let emoji = "💖"
     public static let verbose = false
 

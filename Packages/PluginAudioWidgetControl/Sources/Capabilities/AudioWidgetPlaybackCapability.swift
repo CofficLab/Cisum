@@ -1,5 +1,5 @@
-import Foundation
 import ProviderPlayback
+import Foundation
 import MagicKit
 
 /// Widget 控制所需的最小播放能力。

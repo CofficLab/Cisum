@@ -22,9 +22,9 @@ public protocol StorageProvidingObserverHandle: AnyObject {
 /// ## 使用示例
 ///
 /// ```swift
-/// let root = kernel.storage?.storageRoot
-/// try let db = kernel.storage?.databaseFile(name: "audio")
-/// kernel.storage?.setStorageLocation(.icloud)
+/// let root = kernel.resolveProvider((any StorageProviding).self)?.storageRoot
+/// try let db = kernel.resolveProvider((any StorageProviding).self)?.databaseFile(name: "audio")
+/// kernel.resolveProvider((any StorageProviding).self)?.setStorageLocation(.icloud)
 /// ```
 @MainActor
 public protocol StorageProviding: AnyObject, ObservableObject {

@@ -1,3 +1,4 @@
+import ProviderStorage
 import Foundation
 import ProviderScene
 
@@ -19,7 +20,7 @@ public final class PlaybackStateStore {
 
     private let fileURL: URL
 
-    /// - Parameter rootDirectory: 数据库根目录（`kernel.storage?.databaseRoot`）。
+    /// - Parameter rootDirectory: 数据库根目录（`kernel.resolveProvider((any StorageProviding).self)?.databaseRoot`）。
     public init(rootDirectory: URL) {
         self.fileURL = rootDirectory
             .appendingPathComponent(Self.subdirectory, isDirectory: true)

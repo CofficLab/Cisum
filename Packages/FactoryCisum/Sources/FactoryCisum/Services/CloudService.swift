@@ -1,8 +1,8 @@
-import CisumKernel
+import ProviderCloud
+import CisumKernelSupport
 import CloudKit
 import Foundation
 import MagicKit
-import ProviderCloud
 
 /// `CloudProviding` 的具体实现。
 ///

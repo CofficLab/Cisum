@@ -1,39 +1,47 @@
-import CisumKernel
+import ProviderScene
 import ProviderDocsView
+import ProviderPlayback
+import CisumKernelSupport
 import CisumUIComponents
 import ProviderAudioLibrary
-import ProviderPlayback
-import ProviderScene
 import SwiftUI
 import MagicKit
 
-public actor AudioPlayModePlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class AudioPlayModePlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: AudioPlayModePlugin.self)
+
     nonisolated static let verbose = false
 
     public static let shared = AudioPlayModePlugin()
-    public static let metadata = PluginMetadata(
-        displayName: AudioPlayModePluginInfo.title,
+    public let order = AudioPlayModePluginInfo.order
+    public let iconName = AudioPlayModePluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: AudioPlayModePlugin.self),
+        name: AudioPlayModePluginInfo.title,
         description: AudioPlayModePluginInfo.description,
-        iconName: AudioPlayModePluginInfo.iconName,
-        order: AudioPlayModePluginInfo.order,
-        category: .playback,
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
+        policy: .disabled,
+        permissions: []
     )
 
     nonisolated(unsafe) private let sceneBox = SceneBox()
-    nonisolated(unsafe) private weak var kernel: CisumKernel?
+    nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var viewModel: AudioPlayModeViewModel?
     nonisolated(unsafe) private var observer: AudioPlayModeObserver?
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { AudioPlayModePluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { AudioPlayModePluginManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { AudioPlayModePluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { AudioPlayModePluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         // 跨插件 Provider（Scene / Playback）在 onReady 中解析，
         // 不假设其他插件已完成 Provider 注册。
@@ -41,23 +49,23 @@ public actor AudioPlayModePlugin: SuperPlugin, SuperLog {
 
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
     @MainActor
-    public func onReady(kernel: CisumKernel) async throws {
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onEnable(kernel: CisumKernel) async throws {
+    public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onDisable(kernel: CisumKernel) async throws {
+    public func onDisable(kernel: KernelCoreContainer) async throws {
         teardownState()
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         sceneBox.scene = nil
         teardownState()
     }
@@ -71,7 +79,7 @@ public actor AudioPlayModePlugin: SuperPlugin, SuperLog {
 
     /// 创建并持有播放模式 ViewModel 与观察者（幂等）。
     @MainActor
-    private func installState(kernel: CisumKernel) {
+    private func installState(kernel: KernelCoreContainer) {
         guard viewModel == nil else { return }
 
         guard let scene = kernel.resolveProvider((any SceneProviding).self),

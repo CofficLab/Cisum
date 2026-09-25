@@ -1,7 +1,7 @@
+import ProviderScene
+import ProviderPlayback
 import OSLog
 import MagicPlayMan
-import ProviderPlayback
-import ProviderScene
 import MagicKit
 
 @MainActor

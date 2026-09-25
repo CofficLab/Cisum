@@ -1,2 +1,2 @@
 /// Compatibility facade. Plugin contracts now live in KernelCore, matching Lumi.
-@_exported import CisumKernel
+@_exported import CisumKernelSupport

@@ -1,12 +1,11 @@
+import ProviderToast
 import Foundation
 import MagicKit
 import MagicPlayMan
 import OSLog
 import ProviderBook
-import ProviderBook
 import ProviderPlayback
 import ProviderScene
-import ProviderToast
 import SwiftUI
 
 /// 书籍播放控制的集中状态容器（迁移 Phase 5）。

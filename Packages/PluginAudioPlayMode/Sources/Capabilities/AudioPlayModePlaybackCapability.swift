@@ -1,6 +1,6 @@
+import ProviderPlayback
 import Foundation
 import MagicPlayMan
-import ProviderPlayback
 import MagicKit
 
 /// AudioPlayMode 需要的最小播放能力边界。

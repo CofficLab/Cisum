@@ -1,8 +1,8 @@
+import ProviderScene
+import ProviderPlayback
 import Foundation
 import MagicKit
 import MagicPlayMan
-import ProviderPlayback
-import ProviderScene
 import os
 
 /// 订阅播放、场景和音频库外部事件，并把事件回写给 ViewModel。

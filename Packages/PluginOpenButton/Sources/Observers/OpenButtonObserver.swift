@@ -1,5 +1,5 @@
-import Foundation
 import ProviderPlayback
+import Foundation
 import MagicKit
 
 @MainActor

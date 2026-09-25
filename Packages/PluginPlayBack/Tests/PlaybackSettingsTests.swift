@@ -1,8 +1,8 @@
+import ProviderScene
+import ProviderPlayback
 import Combine
 import Foundation
-import CisumKernel
-import ProviderPlayback
-import ProviderScene
+import CisumKernelSupport
 import Testing
 @testable import PluginPlayBack
 
@@ -206,16 +206,16 @@ struct PlaybackSettingsTests {
 
     @Test
     func pluginShutdownUnregistersBothPlaybackProviderContracts() async throws {
-        let kernel = CisumKernelContainer()
+        let kernel = KernelCoreContainer()
         let plugin = PluginPlayBack()
         kernel.activePluginID = plugin.id
 
-        try await plugin.onBoot(kernel: kernel)
+        try await plugin.onBootAsync(kernel: kernel)
 
         #expect(kernel.resolveProvider(PlaybackProviding.self) != nil)
         #expect(kernel.resolveProvider((any PlaybackMediaProviding).self) != nil)
 
-        try await plugin.onShutdown(kernel: kernel)
+        try await plugin.onShutdownAsync(kernel: kernel)
 
         #expect(kernel.resolveProvider(PlaybackProviding.self) == nil)
         #expect(kernel.resolveProvider((any PlaybackMediaProviding).self) == nil)

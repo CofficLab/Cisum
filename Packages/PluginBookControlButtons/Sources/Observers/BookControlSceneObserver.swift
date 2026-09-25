@@ -1,7 +1,7 @@
+import ProviderScene
 import Foundation
 import MagicKit
 import OSLog
-import ProviderScene
 
 /// 场景观察者：订阅 `SceneProviding` 的场景切换事件，驱动书籍控制的
 /// 激活 / 停用（`BookControlViewModel.handleSceneChange`）。

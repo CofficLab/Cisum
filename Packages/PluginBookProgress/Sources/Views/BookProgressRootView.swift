@@ -2,7 +2,6 @@ import Foundation
 import CisumUIComponents
 import OSLog
 import ProviderBook
-import ProviderBook
 import SwiftUI
 
 public typealias BookProgressURLProvider = @MainActor () -> URL?

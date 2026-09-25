@@ -16,7 +16,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../CisumKernel"),
+        .package(path: "../CisumKernelSupport"),
         .package(path: "../MagicKit"),
         .package(path: "../ProviderBook"),
         .package(path: "../ProviderStorage"),
@@ -25,7 +25,7 @@ let package = Package(
         .target(
             name: "PluginBookDBData",
             dependencies: [
-                .product(name: "CisumKernel", package: "CisumKernel"),
+                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
                 .product(name: "MagicKit", package: "MagicKit"),
                 .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "ProviderBookData", package: "ProviderBook"),
@@ -37,7 +37,7 @@ let package = Package(
             name: "BookDBDataPluginTests",
             dependencies: [
                 "PluginBookDBData",
-                .product(name: "CisumKernel", package: "CisumKernel"),
+                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
                 .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
             ],

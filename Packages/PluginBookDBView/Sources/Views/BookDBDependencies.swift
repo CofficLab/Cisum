@@ -1,5 +1,4 @@
 import ProviderBook
-import ProviderBook
 import SwiftUI
 
 /// 有声书仓库设置页依赖：通过 Provider 访问书籍数据。

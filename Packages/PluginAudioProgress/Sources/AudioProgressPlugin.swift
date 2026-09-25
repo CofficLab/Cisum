@@ -1,38 +1,48 @@
-import CisumKernel
-import ProviderDocsView
-import CisumUIComponents
+import ProviderAudioLike
 import ProviderAudioLibrary
-import ProviderPlayback
 import ProviderScene
+import ProviderDocsView
+import ProviderPlayback
+import ProviderStorage
+import CisumKernelSupport
+import CisumUIComponents
 import SwiftUI
 
-public actor AudioProgressPlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class AudioProgressPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: AudioProgressPlugin.self)
+
     public static let shared = AudioProgressPlugin()
     public nonisolated static let emoji = "💾"
     public static let verbose = false
-    public static let metadata = PluginMetadata(
-        displayName: String(localized: String.LocalizationValue(AudioProgressPluginInfo.titleKey), bundle: .module),
+    public let order = 0
+    public let iconName = "waveform"
+    public let metadata = PluginMetadata(
+        id: String(describing: AudioProgressPlugin.self),
+        name: String(localized: String.LocalizationValue(AudioProgressPluginInfo.titleKey), bundle: .module),
         description: String(localized: String.LocalizationValue(AudioProgressPluginInfo.descriptionKey), bundle: .module),
-        iconName: "waveform",
-        order: 0,
-        category: .playback,
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
+        policy: .disabled,
+        permissions: []
     )
 
     nonisolated(unsafe) private let sceneBox = SceneBox()
-    nonisolated(unsafe) private weak var kernel: CisumKernel?
+    nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var progressViewModel: AudioProgressViewModel?
     nonisolated(unsafe) private var progressObserver: AudioProgressObserver?
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { AudioProgressPluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { AudioProgressPluginManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { AudioProgressPluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { AudioProgressPluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         // 跨插件 Provider（Scene / Playback）在 onReady 中解析，
         // 不假设其他插件已完成 Provider 注册。
@@ -40,23 +50,23 @@ public actor AudioProgressPlugin: SuperPlugin, SuperLog {
 
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
     @MainActor
-    public func onReady(kernel: CisumKernel) async throws {
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onEnable(kernel: CisumKernel) async throws {
+    public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onDisable(kernel: CisumKernel) async throws {
+    public func onDisable(kernel: KernelCoreContainer) async throws {
         teardownState()
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         sceneBox.scene = nil
         teardownState()
     }
@@ -71,7 +81,7 @@ public actor AudioProgressPlugin: SuperPlugin, SuperLog {
 
     /// 创建并持有播放进度 ViewModel 与观察者（幂等）。
     @MainActor
-    private func installState(kernel: CisumKernel) {
+    private func installState(kernel: KernelCoreContainer) {
         guard progressObserver == nil else { return }
 
         guard let scene = kernel.resolveProvider((any SceneProviding).self),
@@ -81,8 +91,8 @@ public actor AudioProgressPlugin: SuperPlugin, SuperLog {
         let viewModel = AudioProgressViewModel(
             audioScene: .music,
             playbackCapability: makePlaybackCapability(from: playback),
-            audioLibrary: { kernel.audioLibrary },
-            audioLike: { kernel.audioLike },
+            audioLibrary: { kernel.resolveProvider((any AudioLibraryProviding).self) },
+            audioLike: { kernel.resolveProvider((any AudioLikeProviding).self) },
             saveWidgetData: { title, artist, isPlaying, coverArt in
                 AudioProgressHost.saveWidgetData(title: title, artist: artist, isPlaying: isPlaying, coverArt: coverArt)
             }
@@ -90,8 +100,8 @@ public actor AudioProgressPlugin: SuperPlugin, SuperLog {
         let observer = AudioProgressObserver(
             scene: scene,
             playback: playback,
-            library: kernel.audioLibrary,
-            storage: kernel.storage,
+            library: kernel.resolveProvider((any AudioLibraryProviding).self),
+            storage: kernel.resolveProvider((any StorageProviding).self),
             viewModel: viewModel,
         )
         progressViewModel = viewModel
@@ -114,9 +124,9 @@ public actor AudioProgressPlugin: SuperPlugin, SuperLog {
         }
         let viewModel = AudioProgressViewModel(
             audioScene: .music,
-            playbackCapability: makePlaybackCapability(from: kernel?.playback),
-            audioLibrary: { self.kernel?.audioLibrary },
-            audioLike: { self.kernel?.audioLike },
+            playbackCapability: makePlaybackCapability(from: kernel?.resolveProvider((any PlaybackProviding).self)),
+            audioLibrary: { self.kernel?.resolveProvider((any AudioLibraryProviding).self) },
+            audioLike: { self.kernel?.resolveProvider((any AudioLikeProviding).self) },
             saveWidgetData: { title, artist, isPlaying, coverArt in
                 AudioProgressHost.saveWidgetData(title: title, artist: artist, isPlaying: isPlaying, coverArt: coverArt)
             }

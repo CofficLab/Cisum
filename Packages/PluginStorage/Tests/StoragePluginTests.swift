@@ -1,14 +1,13 @@
+import ProviderStorage
 import Testing
 @testable import PluginStorage
 import Foundation
 import Combine
-import CisumKernel
-import ProviderStorage
+import CisumKernelSupport
 
 @Test func storagePluginInfoIsExposed() {
     #expect(StoragePluginInfo.titleKey == "Storage Settings")
     #expect(StoragePluginLocation.local.rawValue == "local")
-    #expect(StoragePlugin.shouldRegister)
 }
 
 @Test func fileItemReportsDirectoryReadFailures() {
@@ -1071,8 +1070,8 @@ import ProviderStorage
     #expect(originalViewModel?.location == nil)
 
     let provider = TestStorageProviding()
-    let kernel = CisumKernel()
-    try kernel.registerStorage(provider)
+    let kernel = KernelCoreContainer()
+    try kernel.registerProvider((any StorageProviding).self, provider)
     try await plugin.onEnable(kernel: kernel)
 
     #expect(plugin.settingsViewModel === originalViewModel)

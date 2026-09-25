@@ -1,8 +1,9 @@
-import Combine
-import Foundation
-import CisumKernel
+import ProviderAudioNavigation
 import ProviderAudioLibrary
 import ProviderStorage
+import Combine
+import Foundation
+import CisumKernelSupport
 import Testing
 @testable import PluginAudioDBData
 
@@ -260,8 +261,8 @@ struct AudioLibraryProviderTests {
         defer { try? FileManager.default.removeItem(at: root) }
 
         let storage = TestStorageProvider(storageRoot: storageRoot, databaseRoot: root.appendingPathComponent("Database"))
-        let kernel = CisumKernelContainer()
-        try kernel.registerStorage(storage)
+        let kernel = KernelCoreContainer()
+        try kernel.registerProvider((any StorageProviding).self, storage)
         let plugin = AudioDBDataPlugin()
         let audioURL = storageRoot
             .appendingPathComponent(AudioPluginInfo.effectiveDBDirName, isDirectory: true)
@@ -275,8 +276,8 @@ struct AudioLibraryProviderTests {
         try await plugin.onBoot(kernel: kernel)
         try await plugin.onReady(kernel: kernel)
 
-        let library = try #require(kernel.audioLibrary)
-        let navigation = try #require(kernel.audioTrackNavigation)
+        let library = try #require(kernel.resolveProvider((any AudioLibraryProviding).self))
+        let navigation = try #require(kernel.resolveProvider((any AudioTrackNavigationProviding).self))
         for _ in 0..<100 where await library.totalCount() == 0 {
             try await Task.sleep(nanoseconds: 20_000_000)
         }
@@ -319,16 +320,16 @@ struct AudioLibraryProviderTests {
         #expect(await library.contains(switchedAudioURL))
 
         try await plugin.onDisable(kernel: kernel)
-        #expect(kernel.audioLibrary == nil)
-        #expect(kernel.audioTrackNavigation == nil)
+        #expect(kernel.resolveProvider((any AudioLibraryProviding).self) == nil)
+        #expect(kernel.resolveProvider((any AudioTrackNavigationProviding).self) == nil)
         #expect(storage.activeObserverCount == 0)
 
         try await plugin.onEnable(kernel: kernel)
-        let reenabledNavigation = try #require(kernel.audioTrackNavigation)
-        for _ in 0..<100 where await kernel.audioLibrary?.totalCount() == 0 {
+        let reenabledNavigation = try #require(kernel.resolveProvider((any AudioTrackNavigationProviding).self))
+        for _ in 0..<100 where await kernel.resolveProvider((any AudioLibraryProviding).self)?.totalCount() == 0 {
             try await Task.sleep(nanoseconds: 20_000_000)
         }
-        #expect(await kernel.audioLibrary?.totalCount() == 1)
+        #expect(await kernel.resolveProvider((any AudioLibraryProviding).self)?.totalCount() == 1)
 
         storage.updateStorageRoot(nil)
         await #expect(throws: AudioPluginError.self) {
@@ -345,25 +346,25 @@ struct AudioLibraryProviderTests {
         }
 
         try await plugin.onShutdown(kernel: kernel)
-        #expect(kernel.audioLibrary == nil)
-        #expect(kernel.audioTrackNavigation == nil)
+        #expect(kernel.resolveProvider((any AudioLibraryProviding).self) == nil)
+        #expect(kernel.resolveProvider((any AudioTrackNavigationProviding).self) == nil)
         #expect(storage.activeObserverCount == 0)
     }
 
     @Test
     func navigationProviderReportsUnavailableLibraryWhenStorageWasNotInjected() async throws {
-        let kernel = CisumKernelContainer()
+        let kernel = KernelCoreContainer()
         let plugin = AudioDBDataPlugin()
 
         try await plugin.onReady(kernel: kernel)
 
-        let navigation = try #require(kernel.audioTrackNavigation)
+        let navigation = try #require(kernel.resolveProvider((any AudioTrackNavigationProviding).self))
         await #expect(throws: AudioPluginError.self) {
             try await navigation.nextURL(after: nil, verbose: false)
         }
 
         try await plugin.onShutdown(kernel: kernel)
-        #expect(kernel.audioTrackNavigation == nil)
-        #expect(kernel.audioLibrary == nil)
+        #expect(kernel.resolveProvider((any AudioTrackNavigationProviding).self) == nil)
+        #expect(kernel.resolveProvider((any AudioLibraryProviding).self) == nil)
     }
 }

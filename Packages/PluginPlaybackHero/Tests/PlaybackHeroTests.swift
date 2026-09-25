@@ -1,6 +1,6 @@
-import CisumKernel
 import ProviderDocsView
 import ProviderPlayback
+import CisumKernelSupport
 import SwiftUI
 import Testing
 @testable import PluginPlaybackHero
@@ -138,25 +138,25 @@ struct PlaybackHeroTests {
 
     @Test
     func pluginAssemblesDocsAndPlaybackViewsThenReleasesObserver() async throws {
-        let kernel = CisumKernelContainer()
+        let kernel = KernelCoreContainer()
         let docs = DefaultDocsViewProvider()
-        try kernel.registerDocsService(docs)
+        try kernel.registerProvider((any DocsViewProviding).self, docs)
         let playback = PlaybackStub()
         let media = MediaStub()
-        try kernel.registerPlayback(playback)
+        try kernel.registerProvider((any PlaybackProviding).self, playback)
         try kernel.registerProvider((any PlaybackMediaProviding).self, media)
         let plugin = PlaybackHeroPlugin()
 
         try await plugin.onRegister(kernel: kernel)
-        try await plugin.onBoot(kernel: kernel)
-        try await plugin.onReady(kernel: kernel)
+        try await plugin.onBootAsync(kernel: kernel)
+        try await plugin.onReadyAsync(kernel: kernel)
 
         #expect(docs.aboutEntries.contains { $0.id == plugin.id })
         #expect(docs.manualEntries.contains { $0.id == plugin.id })
         #expect(plugin.addHeroView() != nil)
         #expect(plugin.addRightAlbumView() != nil)
 
-        try await plugin.onShutdown(kernel: kernel)
+        try await plugin.onShutdownAsync(kernel: kernel)
         #expect(plugin.addHeroView() == nil)
         #expect(plugin.addRightAlbumView() == nil)
     }

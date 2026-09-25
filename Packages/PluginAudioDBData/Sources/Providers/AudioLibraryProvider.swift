@@ -1,8 +1,8 @@
+import ProviderAudioLibrary
+import ProviderStorage
 import Foundation
 import MagicKit
 import OSLog
-import ProviderAudioLibrary
-import ProviderStorage
 
 /// 音频数据库 Provider：负责构造 `AudioRepo` 并暴露给视图层。
 ///

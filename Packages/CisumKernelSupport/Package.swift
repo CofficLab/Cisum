@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "CisumKernel",
+    name: "CisumKernelSupport",
     defaultLocalization: "en",
     platforms: [
         .macOS(.v14),
@@ -10,58 +10,42 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "CisumKernel",
-            targets: ["CisumKernel"]
+            name: "CisumKernelSupport",
+            targets: ["CisumKernelSupport"]
         ),
     ],
     dependencies: [
-        // 共享内核：所有 Coffic App 共用的远程 LumiKernel（Provider 注册表与生命周期核心）。
-        // CisumKernelContainer 门面持有 KernelCoreContainer 并委托注册/解析，应用特有
-        // 服务（事件、插件管理、主题、UI 贡献）保留在本包。
+        // 共享内核：远程 LumiKernel（Provider 注册表、插件生命周期引擎、贡献 Token）。
+        // 本包只承载 Cisum 应用特有层：UI 贡献注册表、事件系统、主题/状态服务、
+        // 插件协议兼容扩展。
         .package(name: "LumiKernel", url: "https://github.com/CofficLab/LumiKernel.git", branch: "main"),
         .package(name: "CisumUIComponents", path: "../CisumUIComponents"),
         .package(name: "MagicKit", path: "../MagicKit"),
-        // MARK: - Provider Contracts（能力契约独立成包，与 Lumi 的 Provider* 体系对齐）
         .package(name: "ProviderAppState", path: "../ProviderAppState"),
         .package(name: "ProviderAudioLibrary", path: "../ProviderAudioLibrary"),
-        .package(name: "ProviderAudioLike", path: "../ProviderAudioLike"),
-        .package(name: "ProviderAudioNavigation", path: "../ProviderAudioNavigation"),
         .package(name: "ProviderCloud", path: "../ProviderCloud"),
         .package(name: "ProviderDevice", path: "../ProviderDevice"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(name: "ProviderStorage", path: "../ProviderStorage"),
         .package(name: "ProviderTheme", path: "../ProviderTheme"),
-        .package(name: "ProviderToast", path: "../ProviderToast"),
     ],
     targets: [
         .target(
-            name: "CisumKernel",
+            name: "CisumKernelSupport",
             dependencies: [
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
                 .product(name: "MagicKit", package: "MagicKit"),
                 .product(name: "ProviderAppState", package: "ProviderAppState"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
-                .product(name: "ProviderAudioLike", package: "ProviderAudioLike"),
-                .product(name: "ProviderAudioNavigation", package: "ProviderAudioNavigation"),
                 .product(name: "ProviderCloud", package: "ProviderCloud"),
                 .product(name: "ProviderDevice", package: "ProviderDevice"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
                 .product(name: "ProviderTheme", package: "ProviderTheme"),
-                .product(name: "ProviderToast", package: "ProviderToast"),
             ],
             path: ".",
-            sources: ["Sources/CisumKernel"],
-            resources: [.process("Resources")]
-        ),
-        .testTarget(
-            name: "CisumKernelTests",
-            dependencies: [
-                "CisumKernel",
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
-            ],
-            path: "Tests/CisumKernelTests"
+            sources: ["Sources/CisumKernelSupport"]
         ),
     ],
     swiftLanguageModes: [.v5]

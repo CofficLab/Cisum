@@ -17,7 +17,7 @@ let package = Package(
     dependencies: [
         .package(path: "../MagicKit"),
         .package(path: "../CisumUIComponents"),
-        .package(path: "../CisumKernel"),
+        .package(path: "../CisumKernelSupport"),
         .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
         .package(path: "../ProviderTheme"),
     ],
@@ -26,7 +26,7 @@ let package = Package(
             name: "PluginThemeSettings",
             dependencies: [
                 .product(name: "MagicKit", package: "MagicKit"),
-"CisumUIComponents", "CisumKernel", "ProviderDocsView", "ProviderTheme"],
+"CisumUIComponents", "CisumKernelSupport", "ProviderDocsView", "ProviderTheme"],
             path: ".",
             sources: ["Sources"],
             resources: [

@@ -10,12 +10,12 @@
       }
     },
     {
-      "identity" : "magicalert",
+      "identity" : "lumiui",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/nookery/MagicAlert.git",
+      "location" : "https://github.com/CofficLab/LumiUI",
       "state" : {
-        "revision" : "c01ea99ac87530ecc804f082c9311d884bc53418",
-        "version" : "1.0.1"
+        "revision" : "3b3e3dc58c1c6738030b3493d747371fad941619",
+        "version" : "1.5.1"
       }
     },
     {

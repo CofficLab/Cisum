@@ -1,3 +1,4 @@
+import ProviderToast
 import Combine
 import Foundation
 import MagicPlayMan
@@ -5,7 +6,6 @@ import MagicKit
 import os
 import ProviderScene
 import ProviderPlayback
-import ProviderToast
 
 /// 播放控制按钮的状态容器。
 ///

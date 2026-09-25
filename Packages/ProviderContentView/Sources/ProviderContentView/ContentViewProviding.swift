@@ -34,7 +34,7 @@ public struct ContentTabItem: Identifiable {
 /// Tab 注入进来（`setTabs(_:)`），RootView 的内容区据此渲染。
 ///
 /// 使用 `AnyView` 而非 `associatedtype`：协议可无泛型约束地作为存在类型
-/// （`any ContentViewProviding`）注册进 `CisumKernel` 的 Provider 注册表。
+/// （`any ContentViewProviding`）注册进 `KernelCoreContainer` 的 Provider 注册表。
 @MainActor
 public protocol ContentViewProviding: AnyObject, ObservableObject {
     /// 当前内容区 Tab 列表（按 `order` 升序）。

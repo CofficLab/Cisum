@@ -1,5 +1,4 @@
 import Foundation
-import ProviderBook
 import OSLog
 
 extension BookDB {

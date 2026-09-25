@@ -1,7 +1,7 @@
+import ProviderAudioNavigation
 import Foundation
 import MagicKit
 import OSLog
-import ProviderAudioNavigation
 
 /// 音频曲目导航能力的具体实现。
 ///

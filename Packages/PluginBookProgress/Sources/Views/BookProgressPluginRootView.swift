@@ -1,7 +1,6 @@
 import CisumUIComponents
 import OSLog
 import ProviderBook
-import ProviderBook
 import SwiftUI
 
 struct BookProgressPluginRootView<Content>: View where Content: View {

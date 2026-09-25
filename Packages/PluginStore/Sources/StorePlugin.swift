@@ -1,41 +1,52 @@
-import CisumUIComponents
-import CisumKernel
 import ProviderDocsView
+import CisumUIComponents
+import CisumKernelSupport
 import SwiftUI
 import MagicKit
 import ProviderStore
 
-public actor StorePlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class StorePlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: StorePlugin.self)
+
     nonisolated static let verbose = false
 
     public static let shared = StorePlugin()
-    public static let metadata = PluginMetadata(
-        displayName: String(localized: String.LocalizationValue(StorePluginInfo.titleKey), bundle: .module),
+    public let order = 80
+    public let iconName = StorePluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: StorePlugin.self),
+        name: String(localized: String.LocalizationValue(StorePluginInfo.titleKey), bundle: .module),
         description: String(localized: String.LocalizationValue(StorePluginInfo.descriptionKey), bundle: .module),
-        iconName: StorePluginInfo.iconName,
-        order: 80,
+        version: "1.0.0",
+        category: .system,
+        stage: .stable,
         policy: .alwaysOn,
-        category: .settings,
+        permissions: []
     )
 
     nonisolated(unsafe) private var storeViewModel: StoreViewModel?
     nonisolated(unsafe) private var storeObserver: StoreObserver?
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { StorePluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { StorePluginManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { StorePluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { StorePluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(view) }
+        }
         installState()
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
         teardownState()
     }
 
@@ -45,8 +56,8 @@ public actor StorePlugin: SuperPlugin, SuperLog {
         return PluginSettingNavigationItem(
             id: "store",
             title: String(localized: String.LocalizationValue(StorePluginInfo.titleKey), bundle: .module),
-            description: Self.metadata.description,
-            iconName: Self.metadata.iconName,
+            description: metadata.description,
+            iconName: iconName,
             order: 80,
             destination: AnyView(StoreSetting(viewModel: viewModel))
         )

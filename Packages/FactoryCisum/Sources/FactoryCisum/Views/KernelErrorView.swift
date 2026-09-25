@@ -1,4 +1,4 @@
-import CisumKernel
+import CisumKernelSupport
 import SwiftUI
 
 /// 内核启动错误视图。

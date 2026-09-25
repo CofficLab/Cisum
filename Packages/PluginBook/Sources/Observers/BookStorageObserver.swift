@@ -1,6 +1,6 @@
+import ProviderStorage
 import Foundation
 import OSLog
-import ProviderStorage
 import MagicKit
 
 /// 书籍存储位置变化的集中观察者（迁移 Phase 3）。

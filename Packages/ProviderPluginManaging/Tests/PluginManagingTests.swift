@@ -1,5 +1,5 @@
 import Combine
-import CisumKernel
+import CisumKernelSupport
 import Testing
 @testable import ProviderPluginManaging
 

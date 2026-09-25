@@ -18,7 +18,7 @@ public protocol ToolbarProvidingObserverHandle: AnyObject {
 /// `SuperPlugin.addToolBarButtons()` 贡献；本协议作为可选整体注入契约保留。
 ///
 /// 使用 `AnyView` 而非 `associatedtype`：协议可无泛型约束地作为存在类型
-/// （`any ToolbarProviding`）注册进 `CisumKernel` 的 Provider 注册表。
+/// （`any ToolbarProviding`）注册进 `KernelCoreContainer` 的 Provider 注册表。
 @MainActor
 public protocol ToolbarProviding: AnyObject, ObservableObject {
     /// 返回工具栏视图（如场景切换器）。

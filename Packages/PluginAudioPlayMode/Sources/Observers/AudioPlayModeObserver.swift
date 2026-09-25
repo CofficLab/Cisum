@@ -1,6 +1,6 @@
-import MagicPlayMan
-import ProviderPlayback
 import ProviderScene
+import ProviderPlayback
+import MagicPlayMan
 import MagicKit
 
 @MainActor

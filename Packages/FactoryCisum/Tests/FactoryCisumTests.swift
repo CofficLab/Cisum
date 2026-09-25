@@ -1,8 +1,8 @@
-import FactoryCisum
-import CisumKernel
-import ProviderContentView
 import ProviderControlView
+import ProviderContentView
 import ProviderRootView
+import FactoryCisum
+import CisumKernelSupport
 import Testing
 
 @MainActor
@@ -28,13 +28,13 @@ struct FactoryCisumTests {
 
     @Test
     func mainViewAssemblyFallsBackWhenRootProviderIsMissing() {
-        let view = CisumBuilder.assembleMainView(kernel: CisumKernel())
+        let view = CisumBuilder.assembleMainView(kernel: KernelCoreContainer())
         _ = view
     }
 
     @Test
     func mainViewAssemblyInjectsControlAndContentProviders() throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let root = DefaultRootViewProvider(kernel: kernel)
         let control = DefaultControlViewProvider()
         let content = DefaultContentViewProvider()

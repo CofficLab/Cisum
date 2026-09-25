@@ -1,5 +1,5 @@
 import CisumUIComponents
-import CisumKernel
+import CisumKernelSupport
 import PluginAudio
 import PluginAudioCopy
 import PluginAudioDBData

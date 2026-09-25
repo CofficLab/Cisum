@@ -1,7 +1,7 @@
+import ProviderPlayback
 import Foundation
 import OSLog
 import MagicPlayMan
-import ProviderPlayback
 import MagicKit
 
 /// 播放观察者：订阅 `PlaybackProviding` 的播放事件，转发到

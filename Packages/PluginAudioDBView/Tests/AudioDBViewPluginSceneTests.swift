@@ -1,5 +1,5 @@
-import CisumKernel
 import ProviderScene
+import CisumKernelSupport
 import Testing
 @testable import PluginAudioDBView
 
@@ -14,9 +14,9 @@ import Testing
 struct AudioDBViewPluginSceneTests {
     @Test
     func contributesMusicTabWithSceneProviderResolvedAtReady() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         // onBoot 阶段存在的临时 Provider；它不会被替换后再更新场景。
-        try kernel.registerSceneService(StubSceneProvider(currentScene: .audiobooks))
+        try kernel.registerProvider((any SceneProviding).self, StubSceneProvider(currentScene: .audiobooks))
 
         let plugin = AudioDBViewPlugin()
         try await plugin.onBoot(kernel: kernel)
@@ -43,18 +43,18 @@ struct AudioDBViewPluginSceneTests {
 
     @Test
     func duplicateSceneRegistrationThrowsUntilUnregistered() async throws {
-        let kernel = CisumKernel()
-        try kernel.registerSceneService(StubSceneProvider(currentScene: .music))
+        let kernel = KernelCoreContainer()
+        try kernel.registerProvider((any SceneProviding).self, StubSceneProvider(currentScene: .music))
 
         // 重复注册同一个 key 必须抛 providerAlreadyRegistered。
         #expect(throws: CisumKernelError.self) {
-            try kernel.registerSceneService(StubSceneProvider(currentScene: .audiobooks))
+            try kernel.registerProvider((any SceneProviding).self, StubSceneProvider(currentScene: .audiobooks))
         }
 
         // 显式 unregister 后允许再次注册（Lumi 风格的合法替换路径）。
         kernel.unregisterProvider(SceneProviding.self)
-        try kernel.registerSceneService(StubSceneProvider(currentScene: .audiobooks))
-        #expect(kernel.scene?.currentScene == .audiobooks)
+        try kernel.registerProvider((any SceneProviding).self, StubSceneProvider(currentScene: .audiobooks))
+        #expect(kernel.resolveProvider((any SceneProviding).self)?.currentScene == .audiobooks)
     }
 }
 

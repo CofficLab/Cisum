@@ -3,7 +3,6 @@ import Testing
 import Foundation
 import ProviderBook
 import ProviderBookData
-import ProviderBook
 import SwiftData
 import UniformTypeIdentifiers
 
@@ -788,9 +787,9 @@ import UniformTypeIdentifiers
     #expect(item != nil)
     #expect(item?.id == "bookdb")
     #expect(item?.title == BookDBViewPluginInfo.titleKey)
-    #expect(item?.description == BookDBViewPlugin.metadata.description)
+    #expect(item?.description == BookDBViewPlugin().metadata.description)
     #expect(item?.iconName == BookDBViewPluginInfo.iconName)
-    #expect(item?.order == BookDBViewPlugin.metadata.order)
+    #expect(item?.order == BookDBViewPlugin().order)
 }
 
 // MARK: - Book tree builder

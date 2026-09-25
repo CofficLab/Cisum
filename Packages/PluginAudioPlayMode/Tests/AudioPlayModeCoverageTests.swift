@@ -1,7 +1,7 @@
+import ProviderScene
+import ProviderPlayback
 import Foundation
 import MagicPlayMan
-import ProviderPlayback
-import ProviderScene
 import Testing
 @testable import PluginAudioPlayMode
 

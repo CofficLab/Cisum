@@ -6,6 +6,7 @@ import CisumUIComponents
 
 
 public actor DBSynced: ModelActor, ObservableObject, SuperLog {
+
     public static let emoji = "📦"
 
     public let modelContainer: ModelContainer

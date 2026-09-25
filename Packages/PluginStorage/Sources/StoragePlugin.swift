@@ -1,21 +1,28 @@
-import CisumKernel
 import ProviderDocsView
+import ProviderStorage
+import CisumKernelSupport
 import CisumUIComponents
 import OSLog
-import ProviderStorage
 import SwiftUI
 
-public actor StoragePlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: StoragePlugin.self)
+
     public static let shared = StoragePlugin()
     public nonisolated static let emoji = "💾"
     public static let verbose = false
-    public static let metadata = PluginMetadata(
-        displayName: String(localized: String.LocalizationValue(StoragePluginInfo.titleKey), bundle: .module),
+    public let order = 10
+    public let iconName = StoragePluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: StoragePlugin.self),
+        name: String(localized: String.LocalizationValue(StoragePluginInfo.titleKey), bundle: .module),
         description: String(localized: String.LocalizationValue(StoragePluginInfo.descriptionKey), bundle: .module),
-        iconName: StoragePluginInfo.iconName,
-        order: 10,
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
         policy: .alwaysOn,
-        category: .library,
+        permissions: []
     )
 
     nonisolated(unsafe) var settingsViewModel: StorageSettingsViewModel?
@@ -24,38 +31,42 @@ public actor StoragePlugin: SuperPlugin, SuperLog {
     public init() {}
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { StoragePluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { StoragePluginManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { StoragePluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { StoragePluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(view) }
+        }
         let provider = StorageProvider()
         StorageProvider.current = provider
-        try kernel.registerStorage(provider)
+        try kernel.registerProvider((any StorageProviding).self, provider)
 
         // 插件启用状态持久化存储由 PluginPluginManager.onBoot 注入
-        // （解析 kernel.storage 的根目录，写入 `<databaseRoot>/PluginManager/`）。
+        // （解析 kernel.resolveProvider((any StorageProviding).self) 的根目录，写入 `<databaseRoot>/PluginManager/`）。
 
         installSettingsState(kernel: kernel)
     }
 
     @MainActor
-    public func onEnable(kernel: CisumKernel) async throws {
+    public func onEnable(kernel: KernelCoreContainer) async throws {
         installSettingsState(kernel: kernel)
     }
 
     @MainActor
-    public func onDisable(kernel: CisumKernel) async throws {
+    public func onDisable(kernel: KernelCoreContainer) async throws {
         teardownSettingsState()
     }
 
     /// 内核关闭时清空静态引用，避免卸载后残留对内核生命周期服务的持有。
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
         teardownSettingsState()
         StorageProvider.current = nil
     }
@@ -74,7 +85,7 @@ public actor StoragePlugin: SuperPlugin, SuperLog {
         return PluginSettingNavigationItem(
             id: "storage",
             title: String(localized: String.LocalizationValue(StoragePluginInfo.titleKey), bundle: .module),
-            description: Self.metadata.description,
+            description: metadata.description,
             iconName: StoragePluginInfo.iconName,
             order: 10,
             destination: AnyView(
@@ -89,8 +100,8 @@ public actor StoragePlugin: SuperPlugin, SuperLog {
     // MARK: - Settings state assembly
 
     @MainActor
-    private func installSettingsState(kernel: CisumKernel) {
-        guard let storage = kernel.storage else { return }
+    private func installSettingsState(kernel: KernelCoreContainer) {
+        guard let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
         installSettingsState(storage: storage)
     }
 

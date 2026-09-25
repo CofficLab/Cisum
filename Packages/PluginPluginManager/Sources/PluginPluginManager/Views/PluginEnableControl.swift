@@ -1,5 +1,5 @@
 import CisumUIComponents
-import CisumKernel
+import CisumKernelSupport
 import SwiftUI
 
 /// 展示并控制单个插件的启用状态（对齐 Lumi `PluginPluginManager.PluginEnableControl`）。
@@ -20,7 +20,7 @@ struct PluginEnableControl: View {
 
     var body: some View {
         Group {
-            if type(of: plugin).metadata.policy.allowUserToggle {
+            if plugin.metadata.policy.isConfigurable {
                 Toggle(isOn: Binding(
                     get: { viewModel.isEnabled(id: plugin.id) },
                     set: { newValue in toggle(newValue) }
@@ -55,8 +55,8 @@ struct PluginEnableControl: View {
 
     @ViewBuilder
     private var policyTag: some View {
-        switch type(of: plugin).metadata.policy {
-        case .alwaysOn:
+        switch plugin.metadata.policy {
+        case .required, .alwaysOn:
             AppTag(
                 String(localized: "Always Enabled", bundle: .module),
                 systemImage: "lock.fill",
@@ -68,7 +68,7 @@ struct PluginEnableControl: View {
                 systemImage: "minus.circle",
                 style: .subtle
             )
-        case .optOut, .optIn:
+        case .enabledByDefault, .disabledByDefault:
             EmptyView()
         }
     }

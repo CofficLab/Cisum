@@ -1,4 +1,6 @@
-import CisumKernel
+import ProviderTheme
+import ProviderStorage
+import CisumKernelSupport
 import Foundation
 import SwiftUI
 
@@ -92,7 +94,7 @@ private final class CisumMenuInstaller {
         }
     }
 
-    private func makeGroups(kernel: CisumKernel) -> [CisumMenuGroup] {
+    private func makeGroups(kernel: KernelCoreContainer) -> [CisumMenuGroup] {
         [
             CisumMenuGroup(
                 id: debugMenuID,
@@ -107,7 +109,7 @@ private final class CisumMenuInstaller {
         ]
     }
 
-    private func makeDebugItems(kernel: CisumKernel) -> [CisumMenuItem] {
+    private func makeDebugItems(kernel: KernelCoreContainer) -> [CisumMenuItem] {
         [
             CisumMenuItem(id: "debug.openAppSupport", title: menuString("Open App Support Directory")) {
                 self.openDirectory(
@@ -129,15 +131,15 @@ private final class CisumMenuInstaller {
             },
             CisumMenuItem(id: "debug.openDatabase", title: menuString("Open Database Directory")) {
                 self.openDirectory(
-                    kernel.storage?.databaseRoot,
+                    kernel.resolveProvider((any StorageProviding).self)?.databaseRoot,
                     missingMessage: self.menuString("Database directory does not exist")
                 )
             },
         ]
     }
 
-    private func makeThemeItems(kernel: CisumKernel) -> [CisumMenuItem] {
-        guard let theme = kernel.theme else { return [] }
+    private func makeThemeItems(kernel: KernelCoreContainer) -> [CisumMenuItem] {
+        guard let theme = kernel.resolveProvider((any ThemeProviding).self) else { return [] }
         return theme.allThemeContributions.map { contribution in
             CisumMenuItem(
                 id: "\(themeMenuID).select.\(contribution.id)",

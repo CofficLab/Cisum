@@ -1,8 +1,8 @@
+import ProviderPlayback
 import Combine
 import Foundation
 import MagicKit
 import MagicPlayMan
-import ProviderPlayback
 import SwiftUI
 import os
 

@@ -1,8 +1,8 @@
+import ProviderStorage
 import Combine
 import Foundation
-import CisumKernel
+import CisumKernelSupport
 import ProviderBook
-import ProviderStorage
 import Testing
 @testable import PluginBookDBData
 
@@ -258,7 +258,7 @@ struct BookDatabaseProviderTests {
 
     @Test
     func pluginLifecycleSkipsRegistrationUntilStorageIsAvailable() async throws {
-        let kernel = CisumKernelContainer()
+        let kernel = KernelCoreContainer()
         let plugin = BookDBDataPlugin()
 
         try await plugin.onBoot(kernel: kernel)
@@ -282,8 +282,8 @@ struct BookDatabaseProviderTests {
         defer { try? FileManager.default.removeItem(at: root) }
 
         let storage = BookTestStorageProvider(storageRoot: storageRoot, databaseRoot: root.appendingPathComponent("Database"))
-        let kernel = CisumKernelContainer()
-        try kernel.registerStorage(storage)
+        let kernel = KernelCoreContainer()
+        try kernel.registerProvider((any StorageProviding).self, storage)
         let plugin = BookDBDataPlugin()
 
         try await plugin.onBoot(kernel: kernel)
@@ -315,8 +315,8 @@ struct BookDatabaseProviderTests {
 
         let storage = BookTestStorageProvider(storageRoot: storageRoot, databaseRoot: root.appendingPathComponent("Database"))
         let existingProvider = BookDatabaseProvider(storage: storage)
-        let kernel = CisumKernelContainer()
-        try kernel.registerStorage(storage)
+        let kernel = KernelCoreContainer()
+        try kernel.registerProvider((any StorageProviding).self, storage)
         try kernel.registerProvider(BookDatabaseProviding.self, existingProvider)
         let plugin = BookDBDataPlugin()
 

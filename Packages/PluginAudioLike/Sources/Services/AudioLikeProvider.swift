@@ -1,7 +1,7 @@
-import Foundation
-import CisumKernel
 import ProviderAudioLike
 import ProviderStorage
+import Foundation
+import CisumKernelSupport
 
 /// 喜欢数据的唯一实现入口。
 ///

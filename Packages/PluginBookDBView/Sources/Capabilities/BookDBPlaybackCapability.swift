@@ -1,6 +1,6 @@
+import ProviderPlayback
 import Foundation
 import OSLog
-import ProviderPlayback
 import MagicKit
 
 /// 有声书库需要的最小播放能力。

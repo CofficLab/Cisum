@@ -1,4 +1,5 @@
-import CisumKernel
+import ProviderToast
+import CisumKernelSupport
 import MagicKit
 import ProviderSettings
 import PluginToast
@@ -9,7 +10,7 @@ import SwiftUI
 /// 负责创建主内核，并在内核就绪后把插件设置 Provider 注入 `ProviderSettings.SettingsWindow`。
 /// 设置窗口 UI 本身不感知内核/工厂，与主窗口共享同一内核实例。
 public struct SettingsWindowHost: View {
-    @State private var kernel: CisumKernel?
+    @State private var kernel: KernelCoreContainer?
     @State private var initializationError: Error?
     @State private var isInitializing = true
     private let configuration: FactoryCisumConfiguration
@@ -26,9 +27,9 @@ public struct SettingsWindowHost: View {
                 KernelErrorView(error: initializationError)
             } else if let kernel {
                 let settings = ProviderSettings.SettingsWindow(
-                    settings: kernel.plugin
+                    settings: kernel.resolveProvider((any PluginProviding).self)
                 )
-                if let provider = kernel.toast as? ToastProvider {
+                if let provider = kernel.resolveProvider((any ToastProviding).self) as? ToastProvider {
                     ToastOverlay(content: settings, center: provider)
                 } else {
                     settings

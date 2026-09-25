@@ -1,6 +1,6 @@
 import Combine
 import CisumUIComponents
-import CisumKernel
+import CisumKernelSupport
 import SwiftUI
 import Testing
 @testable import ProviderSettings

@@ -1,5 +1,5 @@
 import CisumUIComponents
-import CisumKernel
+import CisumKernelSupport
 import SwiftUI
 
 /// 插件管理页左侧列表中的单行渲染（对齐 Lumi `PluginPluginManager.PluginListRow`）。
@@ -37,7 +37,7 @@ struct PluginListRow: View {
     /// 左侧图标 + 启用状态指示点。
     private var leadingAccessory: some View {
         VStack(spacing: 6) {
-            Image(systemName: type(of: plugin).metadata.iconName)
+            Image(systemName: plugin.iconName)
                 .font(.appBody)
                 .foregroundStyle(isSelected ? theme.primary : theme.textSecondary)
                 .frame(width: 22, height: 22)
@@ -53,13 +53,13 @@ struct PluginListRow: View {
     private var textContent: some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 6) {
-                Text(type(of: plugin).metadata.displayName)
+                Text(plugin.metadata.name)
                     .font(.appCaptionEmphasized)
                     .foregroundStyle(theme.textPrimary)
                     .lineLimit(1)
             }
 
-            Text(type(of: plugin).metadata.description.isEmpty ? plugin.id : type(of: plugin).metadata.description)
+            Text(plugin.metadata.description.isEmpty ? plugin.id : plugin.metadata.description)
                 .font(.appMicro)
                 .foregroundStyle(theme.textSecondary)
                 .lineLimit(2)

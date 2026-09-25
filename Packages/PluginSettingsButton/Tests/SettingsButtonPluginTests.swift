@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import PluginSettingsButton
 
-@Test func pluginMetadataIsStable() {
+@Test @MainActor func pluginMetadataIsStable() {
     #expect(SettingsButtonPluginInfo.toolbarItemId == "settings-button")
     #expect(SettingsButtonPluginInfo.settingsWindowID == "cisum.settings")
     #expect(SettingsButtonPluginInfo.iconName == "gearshape")
@@ -10,8 +10,8 @@ import Testing
     #expect(SettingsButtonView.title == "Settings")
 }
 
-@Test func pluginMetadataDescribesSettingsEntry() {
-    #expect(SettingsButtonPlugin.metadata.displayName == "Settings")
-    #expect(SettingsButtonPlugin.metadata.category == .settings)
-    #expect(SettingsButtonPlugin.metadata.policy == .alwaysOn)
+@Test @MainActor func pluginMetadataDescribesSettingsEntry() {
+    #expect(SettingsButtonPlugin().metadata.name == "Settings")
+    #expect(SettingsButtonPlugin().metadata.category == .system)
+    #expect(SettingsButtonPlugin().metadata.policy == .alwaysOn)
 }

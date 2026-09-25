@@ -1,7 +1,7 @@
+import ProviderToast
 import Foundation
 import MagicPlayMan
 import ProviderPlayback
-import ProviderToast
 import Testing
 @testable import PluginAudioControlButtons
 

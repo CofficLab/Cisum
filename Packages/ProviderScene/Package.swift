@@ -12,14 +12,14 @@ let package = Package(
         .library(name: "ProviderScene", targets: ["ProviderScene"]),
     ],
     dependencies: [
-        .package(name: "CisumKernel", path: "../CisumKernel"),
+        .package(name: "CisumKernelSupport", path: "../CisumKernelSupport"),
         .package(name: "CisumUIComponents", path: "../CisumUIComponents"),
     ],
     targets: [
         .target(
             name: "ProviderScene",
             dependencies: [
-                .product(name: "CisumKernel", package: "CisumKernel"),
+                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
             ],
             path: ".",
@@ -31,7 +31,7 @@ let package = Package(
             name: "ProviderSceneTests",
             dependencies: [
                 "ProviderScene",
-                .product(name: "CisumKernel", package: "CisumKernel"),
+                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
             ],
             path: "Tests"
         ),

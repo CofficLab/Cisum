@@ -1,7 +1,7 @@
+import ProviderScene
+import ProviderPlayback
 import Foundation
 import OSLog
-import ProviderPlayback
-import ProviderScene
 import MagicKit
 
 /// 书籍喜欢状态变化观察者（迁移 Phase 5）。

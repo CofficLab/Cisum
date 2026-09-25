@@ -1,8 +1,8 @@
-import Foundation
 import ProviderAudioLibrary
-import ProviderPlayback
 import ProviderScene
+import ProviderPlayback
 import ProviderStorage
+import Foundation
 import MagicKit
 
 /// 音频进度的数据库删除与存储重置观察者（迁移 Phase 5）。

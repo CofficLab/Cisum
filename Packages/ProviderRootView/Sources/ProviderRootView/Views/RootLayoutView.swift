@@ -1,5 +1,5 @@
 import CisumUIComponents
-import CisumKernel
+import CisumKernelSupport
 import SwiftUI
 
 /// 根布局视图（迁移自 FactoryCisum `AppLayoutView`）。
@@ -11,12 +11,12 @@ struct RootLayoutView: View {
     @ObservedObject private var viewModel: RootLayoutViewModel
     @ObservedObject private var themeRegistry = LumiUIThemeRegistry.shared
     let provider: DefaultRootViewProvider
-    let kernel: CisumKernel
+    let kernel: KernelCoreContainer
     @State private var isDetailVisible = false
     @State private var rememberedHeight: CGFloat = 0
     @State private var autoResizing = false
 
-    init(provider: DefaultRootViewProvider, kernel: CisumKernel) {
+    init(provider: DefaultRootViewProvider, kernel: KernelCoreContainer) {
         _viewModel = ObservedObject(wrappedValue: RootLayoutViewModel(provider: provider))
         _isDetailVisible = State(initialValue: provider.isContentViewVisible)
         self.provider = provider
@@ -67,10 +67,10 @@ struct RootLayoutView: View {
             ToolbarItem(placement: .navigation) {
                 toolbarArea
             }
-            if !(kernel.plugin?.getToolBarButtons() ?? []).isEmpty {
+            if !(kernel.resolveProvider((any PluginProviding).self)?.getToolBarButtons() ?? []).isEmpty {
                 ToolbarItemGroup(placement: .cancellationAction) {
                     Spacer()
-                    ForEach(Array((kernel.plugin?.getToolBarButtons() ?? []).enumerated()), id: \.offset) { _, item in
+                    ForEach(Array((kernel.resolveProvider((any PluginProviding).self)?.getToolBarButtons() ?? []).enumerated()), id: \.offset) { _, item in
                         item.view
                     }
                 }
@@ -103,7 +103,7 @@ struct RootLayoutView: View {
         } else {
             HStack {
                 Spacer()
-                ForEach(Array((kernel.plugin?.getStatusViews() ?? []).enumerated()), id: \.offset) { _, view in
+                ForEach(Array((kernel.resolveProvider((any PluginProviding).self)?.getStatusViews() ?? []).enumerated()), id: \.offset) { _, view in
                     view
                 }
             }

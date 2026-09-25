@@ -1,42 +1,49 @@
-import CisumKernel
-import OSLog
+import ProviderScene
 import ProviderDocsView
+import ProviderPlayback
+import CisumKernelSupport
+import OSLog
 import CisumUIComponents
 import ProviderBook
-import ProviderBook
-import ProviderPlayback
-import ProviderScene
 import SwiftUI
 import MagicKit
 
-public actor BookProgressPlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class BookProgressPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: BookProgressPlugin.self)
+
     nonisolated static let verbose = false
 
     public static let shared = BookProgressPlugin()
-    public static let metadata = PluginMetadata(
-        displayName: BookProgressPluginInfo.title,
+    public let order = BookProgressPluginInfo.order
+    public let iconName = BookProgressPluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: BookProgressPlugin.self),
+        name: BookProgressPluginInfo.title,
         description: BookProgressPluginInfo.description,
-        iconName: BookProgressPluginInfo.iconName,
-        order: BookProgressPluginInfo.order,
-        category: .playback,
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
+        policy: .disabled,
+        permissions: []
     )
 
     nonisolated(unsafe) private let sceneBox = SceneBox()
-    nonisolated(unsafe) private weak var kernel: CisumKernel?
+    nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var progressViewModel: BookProgressViewModel?
     nonisolated(unsafe) private var progressObserver: BookProgressObserver?
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
+    public func onRegister(kernel: KernelCoreContainer) throws {
         if Self.verbose { os_log("\(Self.t)🔌 onRegister") }
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { BookProgressPluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { BookProgressPluginManualView() })
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { BookProgressPluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { BookProgressPluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
         // 跨插件 Provider（Scene / Playback）在 onReady 中解析，
@@ -45,26 +52,26 @@ public actor BookProgressPlugin: SuperPlugin, SuperLog {
 
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
     @MainActor
-    public func onReady(kernel: CisumKernel) async throws {
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         if Self.verbose { os_log("\(Self.t)🟢 onReady") }
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onEnable(kernel: CisumKernel) async throws {
+    public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)✅ onEnable") }
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onDisable(kernel: CisumKernel) async throws {
+    public func onDisable(kernel: KernelCoreContainer) async throws {
         if Self.verbose { os_log("\(Self.t)⏹️ onDisable") }
         teardownState()
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         if Self.verbose { os_log("\(Self.t)🛑 onShutdown") }
         sceneBox.scene = nil
         teardownState()
@@ -80,7 +87,7 @@ public actor BookProgressPlugin: SuperPlugin, SuperLog {
 
     /// 创建并持有播放进度 ViewModel 与观察者（幂等）。
     @MainActor
-    private func installState(kernel: CisumKernel) {
+    private func installState(kernel: KernelCoreContainer) {
         guard progressViewModel == nil else { return }
 
         guard let scene = kernel.resolveProvider((any SceneProviding).self),
@@ -134,7 +141,7 @@ public actor BookProgressPlugin: SuperPlugin, SuperLog {
         }
         let viewModel = BookProgressViewModel(
             targetScene: .audiobooks,
-            playbackCapability: makePlaybackCapability(from: kernel?.playback),
+            playbackCapability: makePlaybackCapability(from: kernel?.resolveProvider((any PlaybackProviding).self)),
             currentBookURL: { nil },
             currentBookTime: { nil },
             storeCurrentBookURL: { _ in },

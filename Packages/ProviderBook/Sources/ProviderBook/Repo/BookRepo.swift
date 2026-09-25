@@ -1,6 +1,6 @@
+import ProviderBook
 import Combine
 import Foundation
-import ProviderBook
 import CisumUIComponents
 import OSLog
 import SwiftUI

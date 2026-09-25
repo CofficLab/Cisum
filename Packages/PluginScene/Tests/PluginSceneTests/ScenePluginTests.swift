@@ -1,26 +1,21 @@
-import Foundation
-import CisumKernel
 import ProviderScene
+import Foundation
+import CisumKernelSupport
 @testable import PluginScene
 import Testing
 
-private actor SceneDependentProbePlugin: SuperPlugin {
-    static let shared = SceneDependentProbePlugin()
+@MainActor
+private final class SceneDependentProbePlugin: SuperPlugin {
+    let id = "scene-dependent-probe"
+    let order: Int = 9999
+    let metadata = PluginMetadata(
+        id: "scene-dependent-probe",
+        name: "Scene dependent probe",
+        description: ""
+    )
 
-    nonisolated var id: String { "scene-dependent-probe" }
-
-    static var metadata: PluginMetadata {
-        PluginMetadata(
-            id: "scene-dependent-probe",
-            displayName: "Scene dependent probe",
-            description: "",
-            order: 0
-        )
-    }
-
-    @MainActor
-    func onBoot(kernel: CisumKernel) async throws {
-        guard kernel.scene != nil else {
+    func onBootAsync(kernel: KernelCoreContainer) async throws {
+        guard kernel.resolveProvider((any SceneProviding).self) != nil else {
             throw CisumKernelError.serviceNotAvailable(service: "SceneProviding")
         }
     }
@@ -30,14 +25,14 @@ private actor SceneDependentProbePlugin: SuperPlugin {
 struct ScenePluginTests {
     @Test
     func registersAndUnregistersSceneProvider() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let plugin = ScenePlugin()
 
-        try await plugin.onBoot(kernel: kernel)
-        #expect(kernel.scene != nil)
+        try await plugin.onBootAsync(kernel: kernel)
+        #expect(kernel.resolveProvider((any SceneProviding).self) != nil)
 
-        try await plugin.onShutdown(kernel: kernel)
-        #expect(kernel.scene == nil)
+        try await plugin.onShutdownAsync(kernel: kernel)
+        #expect(kernel.resolveProvider((any SceneProviding).self) == nil)
     }
 
     @Test
@@ -51,18 +46,13 @@ struct ScenePluginTests {
 
     @Test
     func bootsBeforeSameOrderSceneDependentPlugins() async throws {
-        let kernel = CisumKernel()
-        let manager = kernel.pluginManager
+        let kernel = KernelCoreContainer()
 
-        // The dependent plugin is intentionally registered first and has the
-        // old order value 0. ScenePlugin must still register its provider first.
-        manager.initializePlugins([
-            SceneDependentProbePlugin(),
-            ScenePlugin(),
-        ])
-
-        try await manager.onBoot(kernel: kernel)
-        #expect(kernel.scene != nil)
+        // The dependent plugin is intentionally ordered after ScenePlugin
+        // (old order value 0 -> 9999) and must boot after ScenePlugin
+        // registers its provider first.
+        try await kernel.startAsync(plugins: [SceneDependentProbePlugin(), ScenePlugin()])
+        #expect(kernel.resolveProvider((any SceneProviding).self) != nil)
     }
 
     @Test
@@ -220,10 +210,10 @@ struct ScenePluginTests {
 
     @Test
     func pluginAssemblySurvivesEnableDisableCycles() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let plugin = ScenePlugin()
 
-        try await plugin.onBoot(kernel: kernel)
+        try await plugin.onBootAsync(kernel: kernel)
         try await plugin.onReady(kernel: kernel)
 
         let first = plugin.addSettingNavigationItem()?.destination
@@ -237,6 +227,6 @@ struct ScenePluginTests {
         // 禁用再启用后仍可注入设置导航项。
         #expect(plugin.addSettingNavigationItem() != nil)
 
-        try await plugin.onShutdown(kernel: kernel)
+        try await plugin.onShutdownAsync(kernel: kernel)
     }
 }

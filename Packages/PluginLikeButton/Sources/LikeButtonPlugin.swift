@@ -1,37 +1,48 @@
-import CisumUIComponents
-import CisumKernel
 import ProviderDocsView
 import ProviderPlayback
+import CisumUIComponents
+import CisumKernelSupport
 import SwiftUI
 import MagicKit
 
-public actor LikeButtonPlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: LikeButtonPlugin.self)
+
     nonisolated static let verbose = false
 
     public static let shared = LikeButtonPlugin()
-    public static let metadata = PluginMetadata(
-        displayName: String(localized: "Like Button", bundle: .module),
+    public let order = 9999
+    public let iconName = LikeButtonPluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: LikeButtonPlugin.self),
+        name: String(localized: "Like Button", bundle: .module),
         description: LikeButtonPluginInfo.description,
-        iconName: LikeButtonPluginInfo.iconName,
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
         policy: .disabled,
-        category: .like,
+        permissions: []
     )
 
-    nonisolated(unsafe) private weak var kernel: CisumKernel?
+    nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var viewModel: LikeButtonViewModel?
     nonisolated(unsafe) private var observer: LikeButtonObserver?
 
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { LikeButtonPluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { LikeButtonPluginManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { LikeButtonPluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { LikeButtonPluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            contrib.addToolBarButtons(self.addToolBarButtons())
+        }
         self.kernel = kernel
         // 跨插件 Provider（Playback）在 onReady 中解析，
         // 不假设其他插件已完成 Provider 注册。
@@ -39,23 +50,24 @@ public actor LikeButtonPlugin: SuperPlugin, SuperLog {
 
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
     @MainActor
-    public func onReady(kernel: CisumKernel) async throws {
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onEnable(kernel: CisumKernel) async throws {
+    public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onDisable(kernel: CisumKernel) async throws {
+    public func onDisable(kernel: KernelCoreContainer) async throws {
         teardownState()
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
         teardownState()
     }
 
@@ -68,7 +80,7 @@ public actor LikeButtonPlugin: SuperPlugin, SuperLog {
     // MARK: - State assembly
 
     @MainActor
-    private func installState(kernel: CisumKernel) {
+    private func installState(kernel: KernelCoreContainer) {
         guard viewModel == nil else { return }
 
         guard let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }

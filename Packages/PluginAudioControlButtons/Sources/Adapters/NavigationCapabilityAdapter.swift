@@ -1,5 +1,5 @@
-import Foundation
 import ProviderAudioNavigation
+import Foundation
 
 /// ControlButtons 所需的曲目导航能力适配器，由插件入口解析 Kernel Provider 后组装。
 @MainActor

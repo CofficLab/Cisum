@@ -1,16 +1,20 @@
+import ProviderRootView
+import ProviderScene
+import ProviderDocsView
+import ProviderToast
+import ProviderPlayback
 import CisumUIComponents
 import Foundation
-import CisumKernel
+import CisumKernelSupport
 import MagicKit
 import OSLog
 import ProviderBook
-import ProviderDocsView
-import ProviderPlayback
-import ProviderRootView
-import ProviderScene
 import SwiftUI
 
-public actor BookControlButtonsPlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: BookControlButtonsPlugin.self)
+
     nonisolated static let verbose = false
 
     // MARK: - Plugin registration metadata
@@ -22,32 +26,39 @@ public actor BookControlButtonsPlugin: SuperPlugin, SuperLog {
     public static let order = 8
 
     public static let shared = BookControlButtonsPlugin()
-    public static let metadata = PluginMetadata(
-        displayName: title,
+    public let order = order
+    public let iconName = iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: BookControlButtonsPlugin.self),
+        name: title,
         description: description,
-        iconName: iconName,
-        order: order,
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
         policy: .alwaysOn,
-        category: .playback,
+        permissions: []
     )
 
-    private nonisolated(unsafe) weak var kernel: CisumKernel?
+    private nonisolated(unsafe) weak var kernel: KernelCoreContainer?
     private nonisolated(unsafe) var controlViewModel: BookControlViewModel?
     private nonisolated(unsafe) var sceneObserver: BookControlSceneObserver?
     private nonisolated(unsafe) var playbackObserver: BookControlPlaybackObserver?
     private nonisolated(unsafe) var bookProviderObserver: (any BookProvidingObserverHandle)?
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
+    public func onRegister(kernel: KernelCoreContainer) throws {
         if Self.verbose { os_log("\(Self.t)🔌 onRegister") }
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { BookControlPluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { BookControlPluginManualView() })
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { BookControlPluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { BookControlPluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            if let view = self.addControlButtonsView() { contrib.addControlButtonsView(view) }
+        }
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
         // 跨插件 Provider（Scene / Playback）在 onReady 中解析，
@@ -56,26 +67,27 @@ public actor BookControlButtonsPlugin: SuperPlugin, SuperLog {
 
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
     @MainActor
-    public func onReady(kernel: CisumKernel) async throws {
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         if Self.verbose { os_log("\(Self.t)🟢 onReady") }
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onEnable(kernel: CisumKernel) async throws {
+    public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)✅ onEnable") }
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onDisable(kernel: CisumKernel) async throws {
+    public func onDisable(kernel: KernelCoreContainer) async throws {
         if Self.verbose { os_log("\(Self.t)⏹️ onDisable") }
         teardownState()
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
         if Self.verbose { os_log("\(Self.t)🛑 onShutdown") }
         teardownState()
     }
@@ -83,7 +95,7 @@ public actor BookControlButtonsPlugin: SuperPlugin, SuperLog {
     /// 仅在有声书场景向播放控制区注入书籍专用按钮。
     @MainActor
     public func addControlButtonsView() -> AnyView? {
-        guard kernel?.scene?.currentScene == .audiobooks else { return nil }
+        guard kernel?.resolveProvider((any SceneProviding).self)?.currentScene == .audiobooks else { return nil }
         let viewModel = resolveViewModel()
         return AnyView(
             BookControlButtonsView(viewModel: viewModel) { [weak self] in
@@ -97,7 +109,7 @@ public actor BookControlButtonsPlugin: SuperPlugin, SuperLog {
 
     /// 创建并持有播放控制 ViewModel、场景 / 播放观察者与数据库通知（幂等）。
     @MainActor
-    private func installState(kernel: CisumKernel) {
+    private func installState(kernel: KernelCoreContainer) {
         guard controlViewModel == nil else { return }
 
         guard let scene = kernel.resolveProvider((any SceneProviding).self),
@@ -106,7 +118,7 @@ public actor BookControlButtonsPlugin: SuperPlugin, SuperLog {
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
             playbackCapability: makePlaybackCapability(from: playback),
-            toastProvider: kernel.toast,
+            toastProvider: kernel.resolveProvider((any ToastProviding).self),
             bookDisk: { kernel.resolveProvider(BookDatabaseProviding.self)?.bookDisk }
         )
         sceneObserver = BookControlSceneObserver(scene: scene, viewModel: viewModel)
@@ -162,8 +174,8 @@ public actor BookControlButtonsPlugin: SuperPlugin, SuperLog {
         }
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackCapability: makePlaybackCapability(from: kernel?.playback),
-            toastProvider: kernel?.toast,
+            playbackCapability: makePlaybackCapability(from: kernel?.resolveProvider((any PlaybackProviding).self)),
+            toastProvider: kernel?.resolveProvider((any ToastProviding).self),
             bookDisk: { [weak self] in
                 self?.kernel?.resolveProvider(BookDatabaseProviding.self)?.bookDisk
             }

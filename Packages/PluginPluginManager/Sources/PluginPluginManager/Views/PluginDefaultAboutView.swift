@@ -1,5 +1,5 @@
 import CisumUIComponents
-import CisumKernel
+import CisumKernelSupport
 import SwiftUI
 
 /// 所有插件的默认关于页（对齐 Lumi `PluginPluginManager.PluginDefaultAboutView`）。
@@ -69,11 +69,11 @@ struct PluginDefaultAboutView: View {
 
     private var policyValue: String {
         switch metadata.policy {
-        case .alwaysOn:
+        case .required, .alwaysOn:
             String(localized: "Always Enabled", bundle: .module)
         case .disabled:
             String(localized: "Disable Permanently", bundle: .module)
-        case .optOut, .optIn:
+        case .enabledByDefault, .disabledByDefault:
             isEnabled ? "Enabled" : "Disabled"
         }
     }

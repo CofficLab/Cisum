@@ -17,11 +17,12 @@ let package = Package(
     dependencies: [
         .package(path: "../MagicKit"),
         .package(path: "../CisumUIComponents"),
-        .package(path: "../CisumKernel"),
+        .package(path: "../CisumKernelSupport"),
         .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
         .package(path: "../ProviderAudioLibrary"),
         .package(path: "../MagicPlayMan"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
+        .package(path: "../ProviderAudioNavigation"),
     ],
     targets: [
         .target(
@@ -29,11 +30,12 @@ let package = Package(
             dependencies: [
                 .product(name: "MagicKit", package: "MagicKit"),
                 .product(name: "CisumUIComponents", package: "CisumUIComponents"),
-                .product(name: "CisumKernel", package: "CisumKernel"),
+                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
                 .product(name: "ProviderDocsView", package: "ProviderDocsView"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "MagicPlayMan", package: "MagicPlayMan"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
+                .product(name: "ProviderAudioNavigation", package: "ProviderAudioNavigation"),
             ],
             path: ".",
             sources: ["Sources"],

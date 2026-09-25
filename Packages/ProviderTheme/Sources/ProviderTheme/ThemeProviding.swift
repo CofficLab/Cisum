@@ -22,9 +22,9 @@ public protocol ThemeProvidingObserverHandle: AnyObject {
 /// ## 使用示例
 ///
 /// ```swift
-/// kernel.theme?.selectTheme("cisum")
-/// let scheme = kernel.theme?.preferredColorScheme
-/// kernel.theme?.syncToCisumUI()
+/// kernel.resolveProvider((any ThemeProviding).self)?.selectTheme("cisum")
+/// let scheme = kernel.resolveProvider((any ThemeProviding).self)?.preferredColorScheme
+/// kernel.resolveProvider((any ThemeProviding).self)?.syncToCisumUI()
 /// ```
 @MainActor
 public protocol ThemeProviding: AnyObject, ObservableObject {

@@ -1,36 +1,48 @@
-import CisumKernel
-import ProviderDocsView
-import CisumUIComponents
+import ProviderAppState
 import ProviderScene
+import ProviderDocsView
+import CisumKernelSupport
+import CisumUIComponents
 import SwiftUI
 import MagicKit
 
-public actor AudioDemoPlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class AudioDemoPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: AudioDemoPlugin.self)
+
     nonisolated static let verbose = false
 
     public static let shared = AudioDemoPlugin()
-    public static let metadata = PluginMetadata(
-        displayName: AudioDemoPluginInfo.title,
+    public let order = 1
+    public let iconName = AudioDemoPluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: AudioDemoPlugin.self),
+        name: AudioDemoPluginInfo.title,
         description: AudioDemoPluginInfo.description,
-        iconName: AudioDemoPluginInfo.iconName,
-        order: 1,
-        category: .tool,
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
+        policy: .disabled,
+        permissions: []
     )
 
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { AudioDemoPluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { AudioDemoPluginManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { AudioDemoPluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { AudioDemoPluginManualView() })
         }
     }
 
-    nonisolated(unsafe) private weak var kernel: CisumKernel?
+    nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private let sceneBox = SceneBox()
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            contrib.addTabView { reason, demoMode in self.addTabView(reason: reason, demoMode: demoMode) }
+        }
         self.kernel = kernel
         // 跨插件 Provider（Scene）在 onReady 中解析，
         // 不假设其他插件已完成 Provider 注册。
@@ -38,23 +50,24 @@ public actor AudioDemoPlugin: SuperPlugin, SuperLog {
 
     /// 所有 Provider 插件完成 onBoot 后再解析 Scene Provider。
     @MainActor
-    public func onReady(kernel: CisumKernel) async throws {
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         installScene(kernel: kernel)
     }
 
     @MainActor
-    public func onEnable(kernel: CisumKernel) async throws {
+    public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         installScene(kernel: kernel)
     }
 
     @MainActor
-    public func onDisable(kernel: CisumKernel) async throws {
+    public func onDisable(kernel: KernelCoreContainer) async throws {
         sceneBox.scene = nil
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
         sceneBox.scene = nil
     }
 
@@ -66,8 +79,8 @@ public actor AudioDemoPlugin: SuperPlugin, SuperLog {
         let addButton = AnyView(
             AudioDemoAddButton(
                 isImporting: Binding<Bool>(
-                    get: { self.kernel?.appState?.isImporting ?? false },
-                    set: { self.kernel?.appState?.setImporting($0) }
+                    get: { self.kernel?.resolveProvider((any AppStateProviding).self)?.isImporting ?? false },
+                    set: { self.kernel?.resolveProvider((any AppStateProviding).self)?.setImporting($0) }
                 )
             )
                 .font(.title2)
@@ -91,7 +104,7 @@ public actor AudioDemoPlugin: SuperPlugin, SuperLog {
     // MARK: - State assembly
 
     @MainActor
-    private func installScene(kernel: CisumKernel) {
+    private func installScene(kernel: KernelCoreContainer) {
         guard let scene = kernel.resolveProvider((any SceneProviding).self) else { return }
         sceneBox.scene = scene
     }

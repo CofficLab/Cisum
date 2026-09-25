@@ -1,28 +1,47 @@
-import CisumUIComponents
-import CisumKernel
 import ProviderDocsView
+import CisumUIComponents
+import CisumKernelSupport
 import SwiftUI
 import MagicKit
 
-public actor ThemeMonoPlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class ThemeMonoPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: ThemeMonoPlugin.self)
+
     nonisolated static let verbose = false
 
     public static let shared = ThemeMonoPlugin()
-    public static let metadata = PluginMetadata(
-        displayName: MonoTheme().displayName,
+    public let order = 170
+    public let iconName = MonoTheme().iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: ThemeMonoPlugin.self),
+        name: MonoTheme().displayName,
         description: MonoTheme().description,
-        iconName: MonoTheme().iconName,
-        order: 170,
+        version: "1.0.0",
+        category: .design,
+        stage: .stable,
         policy: .alwaysOn,
-        category: .theme,
+        permissions: []
     )
 
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { ThemeMonoPluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { ThemeMonoPluginManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { ThemeMonoPluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { ThemeMonoPluginManualView() })
+        }
+    }
+
+    @MainActor
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+    }
+
+    @MainActor
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            contrib.addThemeContributions(self.addThemeContributions())
         }
     }
 

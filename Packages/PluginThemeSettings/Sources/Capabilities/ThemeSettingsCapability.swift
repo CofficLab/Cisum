@@ -1,6 +1,6 @@
+import ProviderTheme
 import CisumUIComponents
 import LumiUI
-import ProviderTheme
 import MagicKit
 
 /// 主题设置页面需要的最小主题能力。

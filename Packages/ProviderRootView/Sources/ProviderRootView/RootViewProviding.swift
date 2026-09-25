@@ -29,7 +29,7 @@ public protocol RootViewProvidingObserverHandle: AnyObject {
 ///
 /// 协议只声明能力，不关心具体实现。使用 `AnyView` 而非 `associatedtype`：
 /// 协议可无泛型约束地作为存在类型（`any RootViewProviding`）注册进
-/// `CisumKernel` 的 Provider 注册表。状态变更通过 `addObserver` 监听机制
+/// `KernelCoreContainer` 的 Provider 注册表。状态变更通过 `addObserver` 监听机制
 /// 通知（不依赖 `ObservableObject`）。
 @MainActor
 public protocol RootViewProviding: AnyObject {

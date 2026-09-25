@@ -1,4 +1,4 @@
-import CisumKernel
+import CisumKernelSupport
 import ProviderPluginManaging
 import MagicKit
 

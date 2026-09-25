@@ -1,5 +1,5 @@
-import CisumKernel
 import ProviderDocsView
+import CisumKernelSupport
 import SwiftUI
 import Testing
 @testable import PluginSettingGeneral
@@ -24,12 +24,12 @@ struct GeneralSettingsTests {
     @Test
     func pluginRegistersItsDocsAndContributesGeneralNavigation() async throws {
         let docs = DefaultDocsViewProvider()
-        let kernel = CisumKernelContainer()
-        try kernel.registerDocsService(docs)
+        let kernel = KernelCoreContainer()
+        try kernel.registerProvider((any DocsViewProviding).self, docs)
         let plugin = SettingGeneralPlugin()
 
         try await plugin.onRegister(kernel: kernel)
-        try await plugin.onBoot(kernel: kernel)
+        try await plugin.onBootAsync(kernel: kernel)
 
         #expect(docs.aboutEntries.contains { $0.id == plugin.id })
         #expect(docs.manualEntries.contains { $0.id == plugin.id })
@@ -38,12 +38,12 @@ struct GeneralSettingsTests {
         let item = try #require(plugin.addSettingNavigationItem())
         #expect(item.id == "general")
         #expect(item.title == "General")
-        #expect(item.order == SettingGeneralPlugin.metadata.order)
+        #expect(item.order == plugin.order)
     }
 
     @Test
     func pluginRegistrationIsSafeWithoutDocsProvider() async throws {
         let plugin = SettingGeneralPlugin()
-        try await plugin.onRegister(kernel: CisumKernelContainer())
+        try await plugin.onRegister(kernel: KernelCoreContainer())
     }
 }

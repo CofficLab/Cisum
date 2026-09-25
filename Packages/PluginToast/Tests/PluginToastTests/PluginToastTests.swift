@@ -1,7 +1,7 @@
-import XCTest
-import CisumKernel
 import ProviderRootView
 import ProviderToast
+import XCTest
+import CisumKernelSupport
 @testable import PluginToast
 
 @MainActor
@@ -23,18 +23,18 @@ final class PluginToastTests: XCTestCase {
     }
 
     func testPluginRegistersProviderAndRootOverlay() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let root = DefaultRootViewProvider(kernel: kernel)
         try kernel.registerProvider((any RootViewProviding).self, root)
         let plugin = ToastPlugin()
 
-        try await plugin.onBoot(kernel: kernel)
+        try await plugin.onBootAsync(kernel: kernel)
 
         let center = await plugin.center
-        XCTAssertTrue((kernel.toast as AnyObject?) === center)
+        XCTAssertTrue((kernel.resolveProvider((any ToastProviding).self) as AnyObject?) === center)
         XCTAssertEqual(root.overlays.map(\.id), ["cisum.toast"])
 
-        try await plugin.onShutdown(kernel: kernel)
+        try await plugin.onShutdownAsync(kernel: kernel)
         XCTAssertTrue(root.overlays.isEmpty)
     }
 }

@@ -13,7 +13,7 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../MagicKit"),
-        .package(path: "../CisumKernel"),
+        .package(path: "../CisumKernelSupport"),
         .package(path: "../ProviderRootView"),
         .package(path: "../ProviderToast"),
     ],
@@ -22,7 +22,7 @@ let package = Package(
             name: "PluginToast",
             dependencies: [
                 .product(name: "MagicKit", package: "MagicKit"),
-                .product(name: "CisumKernel", package: "CisumKernel"),
+                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
                 .product(name: "ProviderRootView", package: "ProviderRootView"),
                 .product(name: "ProviderToast", package: "ProviderToast"),
             ],
@@ -35,7 +35,7 @@ let package = Package(
             name: "PluginToastTests",
             dependencies: [
                 "PluginToast",
-                .product(name: "CisumKernel", package: "CisumKernel"),
+                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
                 .product(name: "ProviderRootView", package: "ProviderRootView"),
                 .product(name: "ProviderToast", package: "ProviderToast"),
             ],

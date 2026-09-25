@@ -1,4 +1,4 @@
-import CisumKernel
+import CisumKernelSupport
 import SwiftUI
 import Testing
 @testable import ProviderRootView
@@ -12,7 +12,7 @@ struct DefaultRootViewProviderTests {
 
     @Test
     func injectedViewsAndVisibilityArePublishedThroughEvents() {
-        let provider = DefaultRootViewProvider(kernel: CisumKernelContainer())
+        let provider = DefaultRootViewProvider(kernel: KernelCoreContainer())
         var events: [RootViewProvidingEvent] = []
         let handle = provider.addObserver { events.append($0) }
 
@@ -42,7 +42,7 @@ struct DefaultRootViewProviderTests {
 
     @Test
     func layoutViewModelMirrorsProviderStateAndIgnoresOverlayOnlyEvents() {
-        let provider = DefaultRootViewProvider(kernel: CisumKernelContainer())
+        let provider = DefaultRootViewProvider(kernel: KernelCoreContainer())
         let viewModel = RootLayoutViewModel(provider: provider)
 
         #expect(viewModel.controlView == nil)
@@ -67,7 +67,7 @@ struct DefaultRootViewProviderTests {
 
     @Test
     func overlaysAreDeduplicatedOrderedAndOnlyNotifyOnChanges() {
-        let provider = DefaultRootViewProvider(kernel: CisumKernelContainer())
+        let provider = DefaultRootViewProvider(kernel: KernelCoreContainer())
         var events: [String] = []
         let recorder = OverlayRecorder()
         let handle = provider.addObserver { event in

@@ -1,26 +1,32 @@
-import CisumKernel
-import MagicKit
 import ProviderRootView
 import ProviderToast
+import CisumKernelSupport
+import MagicKit
 
-public actor ToastPlugin: SuperPlugin {
+@MainActor
+public final class ToastPlugin: SuperPlugin {
+    public let id = String(describing: ToastPlugin.self)
+
     public static let shared = ToastPlugin()
-    public static let metadata = PluginMetadata(
-        displayName: "Toast",
+        public let order = 10
+    public let iconName = "bell.badge"
+    public let metadata = PluginMetadata(
+        id: String(describing: ToastPlugin.self),
+        name: "Toast",
         description: "Global messages, loading state, and error notices.",
-        iconName: "bell.badge",
-        order: 10,
+        version: "1.0.0",
+        category: .core,
+        stage: .stable,
         policy: .alwaysOn,
-        category: .core
+        permissions: []
     )
-
     public let center = ToastProvider()
     private static let overlayID = "cisum.toast"
 
     public init() {}
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
         kernel.unregisterProvider((any ToastProviding).self)
         try kernel.registerProvider((any ToastProviding).self, center)
         CisumToastBridge.install(center)
@@ -33,7 +39,7 @@ public actor ToastPlugin: SuperPlugin {
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         center.dismissAll()
         kernel.resolveProvider((any RootViewProviding).self)?.removeOverlays(ids: [Self.overlayID])
         CisumToastBridge.install(DefaultToastProvider())

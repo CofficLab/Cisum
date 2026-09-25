@@ -1,5 +1,5 @@
-import Foundation
 import ProviderToast
+import Foundation
 import Combine
 
 public final class ToastProvider: ObservableObject, ToastProviding {

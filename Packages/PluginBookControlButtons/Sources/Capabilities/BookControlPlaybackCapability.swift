@@ -1,7 +1,7 @@
+import ProviderPlayback
 import Foundation
 import MagicPlayMan
 import OSLog
-import ProviderPlayback
 import MagicKit
 
 /// BookControl 能够发出的最小播放命令边界。

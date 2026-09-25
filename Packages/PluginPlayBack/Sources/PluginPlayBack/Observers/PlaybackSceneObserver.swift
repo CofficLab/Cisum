@@ -1,6 +1,6 @@
+import ProviderScene
 import Foundation
 import MagicPlayMan
-import ProviderScene
 import MagicKit
 import os
 

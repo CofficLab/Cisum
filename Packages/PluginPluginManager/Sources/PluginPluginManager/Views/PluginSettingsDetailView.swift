@@ -1,6 +1,6 @@
-import CisumUIComponents
-import CisumKernel
 import ProviderDocsView
+import CisumUIComponents
+import CisumKernelSupport
 import SwiftUI
 
 /// 插件管理页右侧的详情面板（对齐 Lumi `PluginPluginManager.PluginSettingsDetailView`）。
@@ -50,20 +50,20 @@ struct PluginSettingsDetailView: View {
 
             VStack(alignment: .leading, spacing: 7) {
                 HStack(spacing: 8) {
-                    Text(type(of: plugin).metadata.displayName)
+                    Text(plugin.metadata.name)
                         .font(.title2.weight(.semibold))
                         .foregroundStyle(theme.textPrimary)
 
-                    if type(of: plugin).metadata.stage != .stable {
+                    if plugin.metadata.stage != .stable {
                         AppTag(
-                            type(of: plugin).metadata.stage.displayName,
+                            plugin.metadata.stage.displayName,
                             style: .subtle
                         )
                     }
                 }
 
-                if !type(of: plugin).metadata.description.isEmpty {
-                    Text(type(of: plugin).metadata.description)
+                if !plugin.metadata.description.isEmpty {
+                    Text(plugin.metadata.description)
                         .font(.appCaption)
                         .foregroundStyle(theme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -80,7 +80,7 @@ struct PluginSettingsDetailView: View {
 
     /// 头部左侧的大号分类图标。
     private var categoryIcon: some View {
-        Image(systemName: type(of: plugin).metadata.category.systemImage)
+        Image(systemName: plugin.metadata.category.systemImage)
             .font(.system(size: 38, weight: .semibold))
             .foregroundStyle(theme.primary)
             .frame(width: 64, height: 64)
@@ -112,7 +112,7 @@ struct PluginSettingsDetailView: View {
     /// 保证未贡献 about 的插件也有完整的关于页。
     private var defaultAboutView: some View {
         PluginDefaultAboutView(
-            metadata: type(of: plugin).metadata,
+            metadata: plugin.metadata,
             isEnabled: viewModel.isEnabled(id: plugin.id)
         )
     }

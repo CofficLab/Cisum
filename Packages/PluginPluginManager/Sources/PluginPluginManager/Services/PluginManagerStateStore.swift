@@ -1,5 +1,6 @@
+import ProviderStorage
 import Foundation
-import CisumKernel
+import CisumKernelSupport
 
 /// PluginPluginManager 的状态存储服务（Services 层，对齐 Lumi `ProviderStorage.PluginEnabledStateStore`）。
 ///
@@ -58,6 +59,21 @@ public final class PluginManagerStateStore: PluginStatePersisting {
         cache.removeValue(forKey: pluginID)
         persist()
     }
+
+
+    // MARK: - LumiKernel PluginStatePersisting 适配（对齐共享内核命名）
+
+    public func enabledState(pluginID: String) -> Bool? {
+        override(for: pluginID)
+    }
+
+    public func setEnabled(_ enabled: Bool, pluginID: String) {
+        setOverride(enabled, for: pluginID)
+    }
+    public func removeState(pluginID: String) {
+        clearOverride(for: pluginID)
+    }
+
 
     /// 清除所有覆盖值。
     public func reset() {

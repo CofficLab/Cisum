@@ -1,40 +1,48 @@
-import CisumKernel
+import ProviderScene
 import ProviderDocsView
+import ProviderPlayback
+import CisumKernelSupport
 import CisumUIComponents
 import OSLog
-import ProviderPlayback
-import ProviderScene
 import SwiftUI
 import MagicKit
 
-public actor BookPlayModePlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class BookPlayModePlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: BookPlayModePlugin.self)
+
     nonisolated static let verbose = false
 
     public static let shared = BookPlayModePlugin()
-    public static let metadata = PluginMetadata(
-        displayName: BookPlayModePluginInfo.title,
+    public let order = BookPlayModePluginInfo.order
+    public let iconName = BookPlayModePluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: BookPlayModePlugin.self),
+        name: BookPlayModePluginInfo.title,
         description: BookPlayModePluginInfo.description,
-        iconName: BookPlayModePluginInfo.iconName,
-        order: BookPlayModePluginInfo.order,
-        category: .playback,
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
+        policy: .disabled,
+        permissions: []
     )
 
     nonisolated(unsafe) private let sceneBox = SceneBox()
-    nonisolated(unsafe) private weak var kernel: CisumKernel?
+    nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var viewModel: BookPlayModeViewModel?
     nonisolated(unsafe) private var observer: BookPlayModeObserver?
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
+    public func onRegister(kernel: KernelCoreContainer) throws {
         if Self.verbose { os_log("\(Self.t)🔌 onRegister") }
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { BookPlayModePluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { BookPlayModePluginManualView() })
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { BookPlayModePluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { BookPlayModePluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
         // 跨插件 Provider（Scene / Playback）在 onReady 中解析，
@@ -43,26 +51,26 @@ public actor BookPlayModePlugin: SuperPlugin, SuperLog {
 
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
     @MainActor
-    public func onReady(kernel: CisumKernel) async throws {
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         if Self.verbose { os_log("\(Self.t)🟢 onReady") }
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onEnable(kernel: CisumKernel) async throws {
+    public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)✅ onEnable") }
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onDisable(kernel: CisumKernel) async throws {
+    public func onDisable(kernel: KernelCoreContainer) async throws {
         if Self.verbose { os_log("\(Self.t)⏹️ onDisable") }
         teardownState()
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         if Self.verbose { os_log("\(Self.t)🛑 onShutdown") }
         sceneBox.scene = nil
         teardownState()
@@ -77,7 +85,7 @@ public actor BookPlayModePlugin: SuperPlugin, SuperLog {
 
     /// 创建并持有播放模式 ViewModel 与观察者（幂等）。
     @MainActor
-    private func installState(kernel: CisumKernel) {
+    private func installState(kernel: KernelCoreContainer) {
         guard viewModel == nil else { return }
 
         guard let scene = kernel.resolveProvider((any SceneProviding).self),

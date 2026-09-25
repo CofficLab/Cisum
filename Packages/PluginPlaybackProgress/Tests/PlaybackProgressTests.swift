@@ -1,7 +1,7 @@
-import Foundation
-import CisumKernel
-import ProviderPlayback
 import ProviderDocsView
+import ProviderPlayback
+import Foundation
+import CisumKernelSupport
 import Testing
 @testable import PluginPlaybackProgress
 
@@ -189,11 +189,11 @@ struct PlaybackProgressTests {
 
     @Test
     func pluginRegistersDocsAndRestoresObserverAcrossLifecycle() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let playback = PlaybackStub(currentTime: 5, duration: 25)
         let docs = DefaultDocsViewProvider()
-        try kernel.registerPlayback(playback)
-        try kernel.registerDocsService(docs)
+        try kernel.registerProvider((any PlaybackProviding).self, playback)
+        try kernel.registerProvider((any DocsViewProviding).self, docs)
 
         let plugin = PlaybackProgressPlugin()
         try await plugin.onRegister(kernel: kernel)
@@ -202,12 +202,12 @@ struct PlaybackProgressTests {
         _ = docs.aboutEntries.first?.makeView()
         _ = docs.manualEntries.first?.makeView()
 
-        try await plugin.onBoot(kernel: kernel)
-        try await plugin.onReady(kernel: kernel)
+        try await plugin.onBootAsync(kernel: kernel)
+        try await plugin.onReadyAsync(kernel: kernel)
         #expect(plugin.addProgressView() != nil)
         #expect(playback.observerCount == 1)
 
-        try await plugin.onReady(kernel: kernel)
+        try await plugin.onReadyAsync(kernel: kernel)
         #expect(playback.observerCount == 1)
 
         try await plugin.onDisable(kernel: kernel)
@@ -216,19 +216,19 @@ struct PlaybackProgressTests {
         try await plugin.onEnable(kernel: kernel)
         #expect(playback.observerCount == 1)
 
-        try await plugin.onShutdown(kernel: kernel)
+        try await plugin.onShutdownAsync(kernel: kernel)
         #expect(playback.observerCount == 0)
     }
 
     @Test
     func pluginHandlesMissingOptionalProviders() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let plugin = PlaybackProgressPlugin()
 
         try await plugin.onRegister(kernel: kernel)
-        try await plugin.onReady(kernel: kernel)
+        try await plugin.onReadyAsync(kernel: kernel)
         #expect(plugin.addProgressView() != nil)
-        try await plugin.onShutdown(kernel: kernel)
+        try await plugin.onShutdownAsync(kernel: kernel)
     }
 
     @Test

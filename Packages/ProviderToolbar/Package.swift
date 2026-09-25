@@ -12,14 +12,14 @@ let package = Package(
         .library(name: "ProviderToolbar", targets: ["ProviderToolbar"]),
     ],
     dependencies: [
-        .package(name: "CisumKernel", path: "../CisumKernel"),
+        .package(name: "CisumKernelSupport", path: "../CisumKernelSupport"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
     ],
     targets: [
         .target(
             name: "ProviderToolbar",
             dependencies: [
-                .product(name: "CisumKernel", package: "CisumKernel"),
+                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
             ],
             path: ".",
