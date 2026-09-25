@@ -1,31 +1,14 @@
+#if os(macOS)
 import FactoryCisum
-import PluginStore
 import SwiftUI
 
-/// 宿主在编译期确定的内核组装配置。
+/// macOS 应用入口：只做场景组装，窗口内容由 Factory 提供。
 ///
-/// 插件清单由 `FactoryCisum` 的 `DefaultPluginFactory` 直接装配（对齐 Lumi，
-/// Factory 是唯一知道"应用由哪些插件组成"的地方），宿主不再注入插件列表。
-@MainActor
-private enum CisumAppAssembly {
-    static let configuration = FactoryCisumConfiguration()
-}
-
-@main
-struct NewApp: App {
-    #if os(macOS)
+/// 主窗口与设置窗口共享同一内核（`FactoryCisum.createMainKernel` 幂等）。
+struct CisumMacApp: App {
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
-    #endif
-
-    init() {
-        #if os(macOS)
-        UserDefaults.standard.set(true, forKey: "ApplePersistenceIgnoreState")
-        #endif
-        StoreService.bootstrap()
-    }
 
     var body: some Scene {
-        #if os(macOS)
         WindowGroup(AppBootstrap.appName, id: AppBootstrap.mainWindowID) {
             FactoryCisum.makeMainWindow(configuration: CisumAppAssembly.configuration)
         }
@@ -40,6 +23,8 @@ struct NewApp: App {
             FactoryCisum.makeCommands()
         }
 
+        // 与 Lumi 使用相同的普通 Window Scene，避免 macOS Settings 容器
+        // 额外注入边距/安全区域，导致共享设置视图被裁切。
         Window("设置", id: AppBootstrap.settingsWindowID) {
             FactoryCisum.makeSettingsWindow(configuration: CisumAppAssembly.configuration)
         }
@@ -49,10 +34,6 @@ struct NewApp: App {
             width: AppBootstrap.defaultSettingsWindowSize.width,
             height: AppBootstrap.defaultSettingsWindowSize.height
         )
-        #else
-        WindowGroup(AppBootstrap.appName, id: AppBootstrap.mainWindowID) {
-            FactoryCisum.makeMainWindow(configuration: CisumAppAssembly.configuration)
-        }
-        #endif
     }
 }
+#endif
