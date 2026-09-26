@@ -18,11 +18,19 @@ public final class BasicAppStateService: ObservableObject, AppStateProviding {
     @Published public private(set) var stateMessage = ""
 
     private let observers = KernelEventObserverStore<AppStateProvidingEvent>()
+    private let defaults: UserDefaults
 
     public var hasDragOperation: Bool { isDropping }
 
-    public init() {
-        isDBViewVisible = UserDefaults.standard.bool(forKey: Self.showDBKey)
+    public convenience init() {
+        self.init(defaults: .standard)
+    }
+
+    init(defaults: UserDefaults) {
+        self.defaults = defaults
+        // A fresh install should open on its library scene. Preserve an explicit
+        // false value so users who collapsed the content area keep that choice.
+        isDBViewVisible = defaults.object(forKey: Self.showDBKey) as? Bool ?? true
     }
 
     public func enterDemoMode() {
@@ -83,7 +91,7 @@ public final class BasicAppStateService: ObservableObject, AppStateProviding {
     private func setDBView(_ visible: Bool) {
         guard isDBViewVisible != visible else { return }
         isDBViewVisible = visible
-        UserDefaults.standard.set(visible, forKey: Self.showDBKey)
+        defaults.set(visible, forKey: Self.showDBKey)
         observers.send(.dbViewVisibilityChanged(visible))
     }
 

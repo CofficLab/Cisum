@@ -43,6 +43,28 @@ import Testing
         }
     }
 
+    @Test func dbViewDefaultsVisibleWhenPreferenceIsUnset() {
+        let suiteName = "BasicAppStateServiceTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let service = BasicAppStateService(defaults: defaults)
+
+        #expect(service.isDBViewVisible)
+        #expect(defaults.object(forKey: Self.showDBKey) == nil)
+    }
+
+    @Test func dbViewRestoresExplicitlyHiddenPreference() {
+        let suiteName = "BasicAppStateServiceTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set(false, forKey: Self.showDBKey)
+
+        let service = BasicAppStateService(defaults: defaults)
+
+        #expect(!service.isDBViewVisible)
+    }
+
     @Test func demoModeToggleIsIdempotentAndBroadcasts() {
         let service = BasicAppStateService()
         var events: [AppStateProvidingEvent] = []
