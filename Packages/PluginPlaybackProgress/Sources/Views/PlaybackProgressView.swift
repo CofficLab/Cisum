@@ -26,5 +26,6 @@ struct PlaybackProgressView: View {
             duration: viewModel.duration,
             onSeek: handleSeek
         )
+        .accessibilityIdentifier("cisum.player.progress")
     }
 }

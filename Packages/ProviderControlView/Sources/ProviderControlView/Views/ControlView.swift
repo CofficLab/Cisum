@@ -63,6 +63,7 @@ struct ControlView: View {
             .ignoresSafeArea()
         #endif
         .frame(minHeight: CisumPlayerLayout.controlMinimumHeight)
+        .accessibilityIdentifier("cisum.player.controls")
     }
 
     @ViewBuilder

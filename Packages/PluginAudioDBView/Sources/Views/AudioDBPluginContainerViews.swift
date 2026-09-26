@@ -117,6 +117,7 @@ struct AudioDBPluginTabView: View {
             dbViewModel: dbViewModel,
             dependencies: dependencies
         )
+        .accessibilityIdentifier("cisum.scene.music")
     }
 
     private var dependencies: AudioDBDependencies {

@@ -74,6 +74,7 @@ struct CopyStateView: View, SuperLog, SuperThread {
                     .accessibilityLabel(CopyStatePresentation.detailsButtonLabel(isShowing: viewModel.showCopying))
                     .help(CopyStatePresentation.detailsButtonLabel(isShowing: viewModel.showCopying))
                 }
+                .accessibilityIdentifier("cisum.copy.state")
                 .font(.callout)
                 .foregroundStyle(appTheme.textPrimary)
                 .padding(.horizontal, 16)

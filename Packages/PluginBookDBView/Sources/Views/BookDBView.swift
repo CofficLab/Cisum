@@ -53,6 +53,7 @@ public struct BookDBView: View, SuperLog, SuperThread {
         )
         .onDrop(of: [UTType.fileURL], isTargeted: $isDropping, perform: handleDrop)
         .onAppear(perform: handleOnAppear)
+        .accessibilityIdentifier("cisum.scene.audiobooks")
     }
 }
 

@@ -20,6 +20,7 @@ struct SceneSwitcher: View {
             } label: {
                 Image(systemName: current.iconName)
             }
+            .accessibilityIdentifier("cisum.scene.switcher")
             .popover(isPresented: $isPresented) {
                 PostersView(viewModel: viewModel, dismissAction: { isPresented = false })
                     .frame(minWidth: 350)
