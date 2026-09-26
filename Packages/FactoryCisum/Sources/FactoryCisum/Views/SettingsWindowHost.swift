@@ -23,16 +23,22 @@ public struct SettingsWindowHost: View {
         Group {
             if isInitializing {
                 KernelLoadingView()
+                    .accessibilityElement(children: .contain)
             } else if let initializationError {
                 KernelErrorView(error: initializationError)
+                    .accessibilityElement(children: .contain)
             } else if let kernel {
                 let settings = ProviderSettings.SettingsWindow(
                     settings: kernel.resolveProvider((any PluginProviding).self)
                 )
                 if let provider = kernel.resolveProvider((any ToastProviding).self) as? ToastProvider {
                     ToastOverlay(content: settings, center: provider)
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("cisum.settings.ready")
                 } else {
                     settings
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("cisum.settings.ready")
                 }
             }
         }

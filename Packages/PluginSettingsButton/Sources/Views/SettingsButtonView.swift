@@ -22,5 +22,6 @@ public struct SettingsButtonView: View {
         }
         .help(Text(String(localized: "Open Settings", bundle: .module)))
         .accessibilityLabel(Text(Self.title))
+        .accessibilityIdentifier("cisum.settings.button")
     }
 }

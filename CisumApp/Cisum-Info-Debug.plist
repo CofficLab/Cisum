@@ -8,12 +8,12 @@
 	<true/>
 	<key>NSUbiquitousContainers</key>
 	<dict>
-		<key>iCloud.yueyi.cisum</key>
+		<key>iCloud.yueyi.cisum.debug</key>
 		<dict>
 			<key>NSUbiquitousContainerIsDocumentScopePublic</key>
 			<true/>
 			<key>NSUbiquitousContainerName</key>
-			<string>Cisum</string>
+			<string>Cisum-Debug</string>
 			<key>NSUbiquitousContainerSupportedFolderLevels</key>
 			<string>ANY</string>
 		</dict>

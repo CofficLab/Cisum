@@ -73,7 +73,14 @@ enum AudioWidgetPlaybackRequestPolicy {
 }
 
 enum AudioWidgetCommandStore {
-    static let suiteName = "group.com.yueyi.cisum"
+    /// App 与 Widget 从各自 Info.plist 读取同一值；这样 Debug 不会访问正式版的共享容器。
+    static var suiteName: String {
+        let configured = Bundle.main.object(forInfoDictionaryKey: "CisumAppGroupIdentifier") as? String
+        if let configured, !configured.isEmpty {
+            return configured
+        }
+        return "group.com.yueyi.cisum"
+    }
 
     static func withLock<T>(_ operation: () throws -> T) rethrows -> T {
         guard let lockURL = FileManager.default

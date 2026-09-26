@@ -19,10 +19,14 @@ public struct WindowMain: View {
         Group {
             if isInitializing {
                 KernelLoadingView()
+                    .accessibilityElement(children: .contain)
             } else if let initializationError {
                 KernelErrorView(error: initializationError)
+                    .accessibilityElement(children: .contain)
             } else if let kernel {
                 KernelRootView(kernel: kernel)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("cisum.kernel.ready")
             }
         }
         .appThemedAppearance()

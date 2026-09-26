@@ -36,5 +36,6 @@ struct KernelErrorView: View {
         }
         .padding(32)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityIdentifier("cisum.kernel.startup-error")
     }
 }
