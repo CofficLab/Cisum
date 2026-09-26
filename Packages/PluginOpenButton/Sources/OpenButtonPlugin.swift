@@ -39,9 +39,11 @@ public final class OpenButtonPlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        #if os(macOS)
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             contrib.addToolBarButtons(self.addToolBarButtons())
         }
+        #endif
         self.kernel = kernel
         // 跨插件 Provider（Playback）在 onReady 中解析，
         // 不假设其他插件已完成 Provider 注册。

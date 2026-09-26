@@ -44,9 +44,11 @@ public final class SettingsButtonPlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        #if os(macOS)
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             contrib.addToolBarButtons(self.addToolBarButtons())
         }
+        #endif
     }
 
     #if os(macOS)
