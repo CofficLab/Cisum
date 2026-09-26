@@ -133,6 +133,20 @@ final class CisumLaunchUITests: CisumUITestBase {
         #endif
     }
 
+    func testLaunchShowsAContentScene() {
+        // Do not open the scene switcher or toggle content visibility here:
+        // this checks the state users actually get immediately after launch.
+        let musicScene = element(identifier: "cisum.scene.music")
+        let audiobooksScene = element(identifier: "cisum.scene.audiobooks")
+        let hasContentScene = musicScene.waitForExistence(timeout: 10)
+            || audiobooksScene.waitForExistence(timeout: 10)
+
+        XCTAssertTrue(
+            hasContentScene,
+            "Cisum reached kernel-ready but launched without a visible music-library or audiobook scene; this matches the collapsed-player-only screen."
+        )
+    }
+
     func testSettingsCommandOpensDedicatedWindow() throws {
         #if os(macOS)
         openSettingsWindowViaMenu()
