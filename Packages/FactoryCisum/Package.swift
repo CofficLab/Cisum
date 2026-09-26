@@ -149,6 +149,10 @@ let package = Package(
                 .product(name: "PluginWelcome", package: "PluginWelcome"),
             ],
             path: ".",
+            exclude: [
+                "README.md",
+                "Tests",
+            ],
             sources: ["Sources/FactoryCisum"],
             resources: [
                 .process("Resources"),
