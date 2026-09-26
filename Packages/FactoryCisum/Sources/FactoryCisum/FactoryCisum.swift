@@ -82,7 +82,11 @@ public enum CisumBuilder: SuperLog {
         try kernel.registerProvider((any AppStateProviding).self, appState)
 
         let pluginService = PluginContributionService(kernel: kernel)
+        // 同一实例按两个协议类型分别注册：宿主经 PluginProviding 查询聚合结果，
+        // 插件经 PluginContributionProviding 在 onBoot 登记贡献。只注册其一会导致
+        // 所有插件贡献（工具栏按钮/标签页/状态/主题等）解析失败、静默丢失。
         try kernel.registerProvider((any PluginProviding).self, pluginService)
+        try kernel.registerProvider((any PluginContributionProviding).self, pluginService)
 
         // 播放引擎由 PluginPlayBack 插件在 onBoot 阶段创建并注册为 PlaybackProviding。
 
