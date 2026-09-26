@@ -47,6 +47,11 @@ let package = Package(
             path: ".",
             sources: ["Sources/CisumKernelSupport"]
         ),
+        .testTarget(
+            name: "CisumKernelSupportTests",
+            dependencies: ["CisumKernelSupport"],
+            path: "Tests/CisumKernelSupportTests"
+        ),
     ],
     swiftLanguageModes: [.v5]
 )
