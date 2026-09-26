@@ -1,55 +1,46 @@
 # PluginAudioDBData
 
-音频目录数据插件。它是 `AudioLibraryProviding`、`AudioLibraryOrderingProviding` 和
-`AudioTrackNavigationProviding` 的唯一实现与注册入口，内部持有 SwiftData 模型、数据库、仓库、文件系统同步和事件桥接。
+The audio database data layer plugin. It is the single assembly and registration point for `AudioLibraryProviding` and `AudioTrackNavigationProviding`, owning the SwiftData model, the database container, the repository, filesystem synchronization, and event bridging. UI plugins consume it only through kernel-resolved provider protocols and never construct `AudioRepo` directly.
 
-数据插件同时负责音频目录的一致性生命周期：启动时建立文件系统监控，执行首次扫描，
-处理新增/修改/删除文件，并在存储位置变化时重建 Repository 与监控器。文件系统同步不再由
-独立的 `PluginAudioJob` 插件驱动。
+## Functional Logic
 
-其他音频插件只能通过 Kernel 解析 Provider 协议，不能构造 `AudioRepo` 或访问全局 Host。
+- **Core responsibility**: Own the audio catalog's consistency lifecycle. It assembles the SwiftData container and repository, scans the audio directory, keeps the in-memory database in sync with the filesystem (new / changed / deleted files), and rebuilds everything when the storage location changes. Filesystem synchronization is driven here rather than by a separate job plugin.
+- **Key types / protocols**:
+  - `AudioDBDataPlugin` — plugin entry (`AsyncSuperPlugin`, `SuperLog`), `id = "AudioDBDataPlugin"`, `order = 1`, `iconName = "externaldrive.badge.timemachine"`, `emoji = "💾"`, `policy = .alwaysOn`.
+  - `AudioLibraryProvider` — concrete implementation of `AudioLibraryProviding` (queries, navigation, sort/random sort, delete, sync) backed by `AudioRepo`.
+  - `AudioTrackNavigationProvider` — concrete implementation of `AudioTrackNavigationProviding` (next/previous/first/last URL) built on closures over the library provider.
+  - `AudioModel` — the SwiftData audio record (title, path, order, folder flag, etc.).
+  - `AudioDB` — the SwiftData container; `AudioRepo` — the repository over the database + filesystem; `AudioConfigRepo` — config persistence.
+  - `AudioFileSystemMonitor` — observes the audio directory and reconciles filesystem changes with the data layer.
+  - `AudioStorageObserver` — watches `StorageProviding` and triggers a monitor rebuild on location changes.
+  - Errors split by topic: `AudioPluginError` (config/host), `AudioRecordDBError` (record read/write), `AudioModelError` (validation/file state), `AudioRepoError` (filesystem/sync), plus `AudioErrorLocalization`.
+  - `URL+Directory` extension and `AudioEvent` typed events.
+- **Plugin registration**: Registers with ID `AudioDBDataPlugin`. On boot/ready/enable it registers `AudioLibraryProviding` and `AudioTrackNavigationProviding` with the kernel, starts `AudioStorageObserver`, and launches `AudioFileSystemMonitor`. On disable/shutdown it tears down synchronization and unregisters the providers.
+- **Workflow / data flow**:
+  1. `onBootAsync` installs the providers; `onReadyAsync` additionally sets up the storage observer and starts the filesystem monitor.
+  2. The monitor performs a first full scan, then reconciles incremental changes. Empty full syncs are only allowed for a readable, empty directory; otherwise an empty result set is ignored so a transient scan error cannot wipe the library.
+  3. When the storage location changes, the storage observer cancels the old monitor and restarts a fresh one against the new repository.
+  4. Navigation, sort, random sort, and delete operations go through `AudioRepo`; symlinked duplicates are resolved/deduplicated, and files outside the library root are rejected for deletion.
+- **Dependencies** (from `Package.swift`): `CisumKernelSupport`, `MagicKit`, `CisumUIComponents`, `ProviderAudioLibrary`, `ProviderAudioNavigation`, `ProviderStorage`.
 
-## Directory layout
+## Testing Logic
 
-```text
-PluginAudioDBData/
-├── Package.swift
-├── Resources/
-├── Sources/
-│   ├── Plugin/
-│   │   └── AudioDBDataPlugin.swift
-│   ├── Providers/
-│   │   ├── AudioLibraryProvider.swift
-│   │   └── AudioTrackNavigationProvider.swift
-│   ├── Observers/
-│   │   └── AudioStorageObserver.swift
-│   ├── Models/
-│   │   └── AudioModel.swift
-│   ├── Persistence/
-│   │   ├── AudioDB.swift
-│   │   ├── AudioRepo.swift
-│   │   └── AudioConfigRepo.swift
-│   ├── Synchronization/
-│   │   └── AudioFileSystemMonitor.swift
-│   ├── Events/
-│   │   └── AudioEvent.swift
-│   ├── Errors/
-│   │   ├── AudioPluginError.swift        # 插件配置与运行环境错误
-│   │   ├── AudioRecordDBError.swift      # 记录写库与查询错误
-│   │   ├── AudioModelError.swift         # 模型数据校验与文件状态错误
-│   │   ├── AudioRepoError.swift          # 仓库文件系统/网络/同步错误
-│   │   └── AudioErrorLocalization.swift  # 错误文案本地化辅助
-│   └── Extensions/
-│       └── URL+Directory.swift
-└── Tests/
-    ├── AudioDBPluginTests.swift
-    └── AudioFileSystemMonitorTests.swift
-```
-
-目录的判断标准是职责，而不是 Swift 类型的可见性：`Providers` 是具体 Provider
-适配器，`Observers` 只持有外部状态订阅并负责取消，`Persistence` 是 SwiftData/Repository
-实现，`Synchronization` 负责外部文件变化到数据层的协调；跨插件可依赖的协议仍然只放在
-`ProviderAudio*` 包中。
-
-`Errors` 目录按错误主题拆分：每个错误类型一个文件（文件名与类型名一致），共享的
-本地化辅助函数单独成文件，不再堆在同一个 `AudioPluginError.swift` 中。
+- **Test files**:
+  - `Tests/AudioDBPluginTests.swift` — repository/database behavior.
+  - `Tests/AudioFileSystemMonitorTests.swift` — synchronization lifecycle.
+  - `Tests/AudioLibraryProviderTests.swift` — provider contract and lifecycle.
+  - `Tests/AudioModelBehaviorTests.swift` — model derivation.
+  - `Tests/AudioPluginErrorTests.swift` — user-facing error descriptions.
+  - `Tests/AudioTrackNavigationProviderTests.swift` — navigation provider forwarding.
+- **Key scenarios tested**:
+  - Repository/DB: supported player extensions; dangling symlink replacement on disk creation; DB-update notification on the main thread; unique file dedup by resolved identity (keeping distinct dangling symlinks); next/previous ordered navigation with wrap-around at boundaries; skipping symlinked duplicate tracks; delete-by-URL removing files/models and rejecting out-of-library paths, the library root, and mixed batches; stable path-ordered sync; ignoring folders/unsupported files; clamping pagination bounds and random counts; batch download plan stopping at queue end.
+  - Filesystem monitor: plugin is always-on; local file changes trigger a full sync; empty full-sync rules; stale monitor runs/events stop after restart; scan errors do not sync empty results; cancellation of a stale run does not stop the replacement.
+  - Library provider: unavailable storage returns empty results and rejects required operations; synced library supports queries/navigation/sorting/deletion; storage-availability changes invalidate the repository; plugin lifecycle indexes existing audio; navigation provider reports unavailable when storage was not injected.
+  - Model: uses provided metadata and folder flag; derives title/size from file when metadata is missing; falls back to filename for blank titles; fetch descriptors preserve ordering and folder filters.
+  - Errors: each error type surfaces user-facing recovery details.
+  - Navigation provider: forwards arguments and returns resolved URLs, propagating resolver errors unchanged.
+- **Running tests**:
+  ```bash
+  cd /Users/angel/Code/Coffic/Cisum/Packages/PluginAudioDBData
+  swift test
+  ```
