@@ -1,0 +1,135 @@
+{
+  "createdAt" : "2026-09-26T01:00:00Z",
+  "device" : {
+    "height" : 900,
+    "kind" : "desktop",
+    "scale" : 2,
+    "width" : 1440
+  },
+  "id" : "cisum-macos",
+  "schemaVersion" : 1,
+  "screens" : [
+    {
+      "createdAt" : "2026-09-26T01:00:00Z",
+      "hotspots" : [
+        {
+          "label" : "开始使用",
+          "targetScreenID" : "02-player"
+        }
+      ],
+      "htmlFileName" : "index.html",
+      "id" : "01-welcome",
+      "order" : 0,
+      "title" : "Welcome",
+      "updatedAt" : "2026-09-26T04:12:09Z"
+    },
+    {
+      "createdAt" : "2026-09-26T01:05:00Z",
+      "hotspots" : [
+        {
+          "label" : "切换场景",
+          "targetScreenID" : "07-scene-switcher"
+        },
+        {
+          "label" : "打开音乐仓库",
+          "targetScreenID" : "03-music-library"
+        }
+      ],
+      "htmlFileName" : "index.html",
+      "id" : "02-player",
+      "order" : 1,
+      "title" : "Now Playing (Mini)",
+      "updatedAt" : "2026-09-26T04:12:16Z"
+    },
+    {
+      "createdAt" : "2026-09-26T01:10:00Z",
+      "hotspots" : [
+        {
+          "label" : "切换场景",
+          "targetScreenID" : "07-scene-switcher"
+        },
+        {
+          "label" : "设置",
+          "targetScreenID" : "05-settings"
+        }
+      ],
+      "htmlFileName" : "index.html",
+      "id" : "03-music-library",
+      "order" : 2,
+      "title" : "Music Library",
+      "updatedAt" : "2026-09-26T04:12:22Z"
+    },
+    {
+      "createdAt" : "2026-09-26T01:15:00Z",
+      "hotspots" : [
+        {
+          "label" : "切换场景",
+          "targetScreenID" : "07-scene-switcher"
+        },
+        {
+          "label" : "设置",
+          "targetScreenID" : "05-settings"
+        }
+      ],
+      "htmlFileName" : "index.html",
+      "id" : "04-audiobooks",
+      "order" : 3,
+      "title" : "Audiobooks",
+      "updatedAt" : "2026-09-26T04:12:47Z"
+    },
+    {
+      "createdAt" : "2026-09-26T01:20:00Z",
+      "hotspots" : [
+        {
+          "label" : "切换场景",
+          "targetScreenID" : "07-scene-switcher"
+        },
+        {
+          "label" : "音乐仓库",
+          "targetScreenID" : "03-music-library"
+        }
+      ],
+      "htmlFileName" : "index.html",
+      "id" : "05-settings",
+      "order" : 4,
+      "title" : "Settings",
+      "updatedAt" : "2026-09-26T04:13:41Z"
+    },
+    {
+      "createdAt" : "2026-09-26T01:25:00Z",
+      "hotspots" : [
+        {
+          "label" : "关闭",
+          "targetScreenID" : "03-music-library"
+        }
+      ],
+      "htmlFileName" : "index.html",
+      "id" : "06-copy-tasks",
+      "order" : 5,
+      "title" : "Copy Tasks",
+      "updatedAt" : "2026-09-26T04:13:45Z"
+    },
+    {
+      "createdAt" : "2026-09-26T01:30:00Z",
+      "hotspots" : [
+        {
+          "label" : "音乐仓库",
+          "targetScreenID" : "03-music-library"
+        },
+        {
+          "label" : "有声书",
+          "targetScreenID" : "04-audiobooks"
+        }
+      ],
+      "htmlFileName" : "index.html",
+      "id" : "07-scene-switcher",
+      "order" : 6,
+      "title" : "Scene Switcher",
+      "updatedAt" : "2026-09-26T04:13:49Z"
+    }
+  ],
+  "startScreenID" : "01-welcome",
+  "style" : "hiFi",
+  "title" : "Cisum macOS",
+  "updatedAt" : "2026-09-26T04:13:49Z"
+}
