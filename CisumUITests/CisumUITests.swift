@@ -19,10 +19,12 @@ import XCTest
 ///   其他平台显式跳过而非失败。
 class CisumUITestBase: XCTestCase {
     var app: XCUIApplication!
+    var additionalLaunchArguments: [String] { [] }
 
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
+        app.launchArguments += additionalLaunchArguments
         app.launch()
         waitForKernelReady()
     }
@@ -252,11 +254,154 @@ final class CisumPlayerUITests: CisumUITestBase {
         )
     }
 
-    func testPlayerHeroTitleReflectsCurrentTrack() {
-        // 播放器标题区（当前曲目名）存在性验证；无资产时标题为空也属于合法状态，
-        // 因此只验证标题文本元素存在或控制区仍然可用。
-        XCTAssertTrue(element(identifier: "cisum.player.controls").exists)
+}
+
+// MARK: - 音频真实播放链路
+
+/// 使用仓库内置的 60 秒 WAV 样本，覆盖“本地文件 -> 音乐仓库索引 -> 用户选择 -> 播放器状态”链路。
+final class CisumAudioPlaybackUITests: CisumUITestBase {
+    private let fixtureName = "Cisum-Playback-Test-Tone"
+    private var fixtureURL: URL?
+
+    override var additionalLaunchArguments: [String] {
+        #if os(macOS)
+        ["-StorageLocation", "local", "-UI.ShowDB", "YES"]
+        #else
+        []
+        #endif
     }
+
+    override func setUpWithError() throws {
+        #if os(macOS)
+        fixtureURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/\(fixtureName).wav")
+        XCTAssertTrue(FileManager.default.isReadableFile(atPath: try XCTUnwrap(fixtureURL).path), "项目中的测试音频样本不可读")
+        #endif
+        try super.setUpWithError()
+    }
+
+    override func tearDownWithError() throws {
+        #if os(macOS)
+        if app.state == .runningForeground || app.state == .runningBackground {
+            app.terminate()
+        }
+        #endif
+        try super.tearDownWithError()
+    }
+
+    func testSelectingBundledAudioStartsPlaybackAndCanPause() throws {
+        #if os(macOS)
+        try ensureMusicScene()
+
+        // 上一次若在断言中途失败，先清理遗留样本，让测试可重复运行。
+        let stalePlaybackErrorDetails = app.staticTexts["错误详情"]
+        if stalePlaybackErrorDetails.exists {
+            let stalePlaybackErrorCloseButton = app.buttons["关闭"]
+            XCTAssertTrue(stalePlaybackErrorCloseButton.waitForExistence(timeout: 3), "旧播放错误没有关闭入口")
+            stalePlaybackErrorCloseButton.click()
+            XCTAssertTrue(stalePlaybackErrorDetails.waitForNonExistence(timeout: 3), "旧播放错误面板没有关闭")
+        }
+        deleteImportedFixtureIfPresent()
+
+        let importButton = element(anyLabelOf: ["Add", "添加"])
+        XCTAssertTrue(importButton.waitForExistence(timeout: 10), "音乐仓库没有音频导入入口")
+        importButton.click()
+
+        let panelService = XCUIApplication(bundleIdentifier: "com.apple.appkit.xpc.openAndSavePanelService")
+        let servicePanel = panelService.windows.firstMatch
+        let appPanel = app.dialogs.firstMatch
+        let appSheet = app.sheets.firstMatch
+        let servicePanelAppeared = servicePanel.waitForExistence(timeout: 5)
+        let panelAppeared = servicePanelAppeared
+            || appPanel.waitForExistence(timeout: 1)
+            || appSheet.waitForExistence(timeout: 1)
+        XCTAssertTrue(panelAppeared, "点击导入后系统文件选择器没有出现。App UI：\(app.debugDescription)")
+        let pickerApp: XCUIApplication = servicePanelAppeared ? panelService : app
+
+        // 文件选择器允许通过“前往文件夹”跳转到测试 bundle，再选中固定音频样本。
+        pickerApp.typeKey("g", modifierFlags: [.command, .shift])
+        let goToFolderField = pickerApp.textFields["PathTextField"]
+        XCTAssertTrue(goToFolderField.waitForExistence(timeout: 5), "文件选择器没有显示路径输入框")
+        goToFolderField.click()
+        goToFolderField.typeKey("a", modifierFlags: .command)
+        let fixtureFolderPath = try XCTUnwrap(fixtureURL).deletingLastPathComponent().path
+        goToFolderField.typeText(fixtureFolderPath)
+        XCTAssertEqual(goToFolderField.value as? String, fixtureFolderPath, "文件选择器未收到测试资源目录路径")
+        pickerApp.typeKey(.return, modifierFlags: [])
+        // macOS 27 的 Go To Folder 面板第一次 Return 只会选中自动补全路径，
+        // 第二次 Return 才会实际跳转到目录。
+        goToFolderField.typeKey(.return, modifierFlags: [])
+
+        // Finder 按系统偏好可能隐藏文件扩展名，因此按主文件名定位。
+        // 列表窄列还可能截断长文件名，使用足以区分样本的前缀。
+        let fixtureRow = element(containing: String(fixtureName.prefix(18)))
+        XCTAssertTrue(fixtureRow.waitForExistence(timeout: 10), "文件选择器未定位到测试音频")
+        fixtureRow.doubleClick()
+
+        XCTAssertTrue(pickerApp.windows.firstMatch.waitForNonExistence(timeout: 15) || app.dialogs.firstMatch.waitForNonExistence(timeout: 1), "文件选择器关闭前未完成测试音频导入")
+
+        let trackTitle = fixtureName
+        // 音乐仓库将整行暴露为 Button，而不是 StaticText。
+        let track = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", trackTitle)).firstMatch
+        XCTAssertTrue(track.waitForExistence(timeout: 30), "导入的测试音频未出现在音乐仓库：\(trackTitle)")
+        track.click()
+
+        // 播放中的控制按钮变为 Pause，是音频已进入播放态的公开 UI 证据。
+        let pauseButton = app.buttons.matching(NSPredicate(format: "label == %@", "Pause")).firstMatch
+        XCTAssertTrue(pauseButton.waitForExistence(timeout: 15), "选择音频后播放器没有进入播放态")
+
+        let playerTitle = element(identifier: "cisum.player.title")
+        XCTAssertTrue(playerTitle.waitForExistence(timeout: 10), "播放时主播放器曲目标题没有显示")
+        let titleMatchesCurrentTrack = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "label == %@ OR value == %@", fixtureName, fixtureName),
+            object: playerTitle
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [titleMatchesCurrentTrack], timeout: 10), .completed, "主播放器标题没有反映当前播放曲目")
+        XCTAssertEqual(playerTitle.value as? String ?? playerTitle.label, fixtureName, "主播放器标题没有反映当前播放曲目")
+
+        let progress = element(identifier: "cisum.player.progress")
+        XCTAssertTrue(progress.waitForExistence(timeout: 10), "播放时主播放器进度条没有显示")
+        let progressAdvances = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value > 0"),
+            object: progress
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [progressAdvances], timeout: 10), .completed, "播放进度没有随音频推进")
+
+        pauseButton.click()
+
+        let playButton = app.buttons.matching(NSPredicate(format: "label == %@", "Play")).firstMatch
+        XCTAssertTrue(playButton.waitForExistence(timeout: 10), "点击暂停后播放器没有回到暂停态")
+        playButton.click()
+        XCTAssertTrue(pauseButton.waitForExistence(timeout: 10), "恢复播放后播放器没有回到播放态")
+        pauseButton.click()
+        XCTAssertTrue(playButton.waitForExistence(timeout: 10), "第二次暂停后播放器状态不正确")
+
+        // 删除此次导入的曲目，避免重复运行 UI 测试污染本地音乐仓库。
+        deleteImportedFixtureIfPresent()
+        XCTAssertTrue(track.waitForNonExistence(timeout: 15), "测试音频未从音乐仓库清理")
+        #else
+        throw XCTSkip("音频仓库文件夹播放回归当前仅在 macOS UI 测试中覆盖")
+        #endif
+    }
+
+    #if os(macOS)
+    private func deleteImportedFixtureIfPresent() {
+        let track = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", fixtureName)).firstMatch
+        guard track.exists else { return }
+
+        track.rightClick()
+        // SwiftUI 的 context-menu 项以 trash SF Symbol 暴露为 identifier。
+        let deleteMenuItem = app.menuItems.matching(identifier: "trash").firstMatch
+        XCTAssertTrue(deleteMenuItem.waitForExistence(timeout: 5), "曲目上下文菜单中没有删除命令")
+        deleteMenuItem.click()
+
+        let confirmDelete = app.buttons.matching(NSPredicate(format: "label IN %@", ["Delete", "删除"])).firstMatch
+        XCTAssertTrue(confirmDelete.waitForExistence(timeout: 5), "删除确认没有出现")
+        confirmDelete.click()
+        XCTAssertTrue(track.waitForNonExistence(timeout: 15), "测试音频未从音乐仓库清理")
+    }
+    #endif
 }
 
 // MARK: - 音乐仓库内容区（原型 03）
@@ -414,6 +559,35 @@ final class CisumSettingsUITests: CisumUITestBase {
         throw XCTSkip("设置窗口仅 macOS 支持")
         #endif
     }
+
+    func testAppearanceSettingsShowsAvailableThemes() throws {
+        #if os(macOS)
+        openSettingsWindowViaMenu()
+        XCTAssertTrue(element(identifier: "cisum.settings.ready").waitForExistence(timeout: 15))
+
+        let appearanceEntry = element(anyLabelOf: ["Appearance", "外观"])
+        XCTAssertTrue(appearanceEntry.waitForExistence(timeout: 5), "设置窗口缺少外观设置入口")
+        appearanceEntry.click()
+
+        let themeCount = element(containing: "themes")
+        XCTAssertTrue(themeCount.waitForExistence(timeout: 10), "外观页没有显示主题数量")
+        XCTAssertFalse(
+            element(anyLabelOf: ["0 themes", "0 个主题"]).exists,
+            "外观页主题数为 0，主题插件贡献没有进入 ThemeProviding"
+        )
+        let themeSearch = app.textFields.matching(
+            NSPredicate(format: "placeholderValue IN %@", ["Search Themes", "搜索主题"])
+        ).firstMatch
+        XCTAssertTrue(themeSearch.waitForExistence(timeout: 5), "外观页没有主题搜索入口")
+        XCTAssertTrue(
+            element(anyLabelOf: ["Use This Theme", "使用此主题", "Currently In Use", "当前使用", "目前使用"])
+                .waitForExistence(timeout: 5),
+            "外观页没有显示选中主题的应用状态"
+        )
+        #else
+        throw XCTSkip("外观设置窗口仅 macOS 支持")
+        #endif
+    }
 }
 
 // MARK: - 复制任务状态（原型 06）
@@ -422,17 +596,9 @@ final class CisumSettingsUITests: CisumUITestBase {
 /// 说明：XCUITest 无法在 macOS 上注入真实的文件拖拽事件，因此本组用例
 /// 验证“有任务时面板正确呈现”与“无任务时面板不出现”，不模拟拖拽复制。
 final class CisumCopyTaskUITests: CisumUITestBase {
-    func testCopyStatusPanelReflectsPendingTasks() {
+    func testCopyStatusPanelIsHiddenWhenIdle() {
         let copyState = element(identifier: "cisum.copy.state")
-        if copyState.waitForExistence(timeout: 3) {
-            // 有复制任务：必须提供详情按钮，且状态消息符合 “Copying N file(s)” 格式。
-            let detailsButton = element(anyLabelOf: ["Show copy details", "Hide copy details"])
-            XCTAssertTrue(detailsButton.exists, "复制状态面板缺少详情按钮")
-
-            let message = element(labelBeginsWith: ["Copying", "正在复制", "Copy", "复制"])
-            XCTAssertTrue(message.exists, "复制状态面板缺少任务消息")
-        }
-        // 无任务时状态面板不出现，属于正常情况。
+        XCTAssertFalse(copyState.waitForExistence(timeout: 3), "无复制任务时不应显示复制状态面板")
     }
 }
 

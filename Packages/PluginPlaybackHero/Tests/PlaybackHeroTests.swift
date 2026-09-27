@@ -149,4 +149,23 @@ struct PlaybackHeroTests {
         #expect(plugin.addHeroView() == nil)
         #expect(plugin.addRightAlbumView() == nil)
     }
+
+    @Test
+    func pluginContributesHeroViewsAfterPlaybackProvidersAreReady() async throws {
+        let kernel = KernelCoreContainer()
+        let docs = DefaultDocsViewProvider()
+        let contributions = PluginContributionService(kernel: kernel)
+        try kernel.registerProvider((any DocsViewProviding).self, docs)
+        try kernel.registerProvider((any PluginContributionProviding).self, contributions)
+        try kernel.registerProvider((any PluginProviding).self, contributions)
+        try kernel.registerProvider((any PlaybackProviding).self, PlaybackStub())
+        try kernel.registerProvider((any PlaybackMediaProviding).self, MediaStub())
+
+        let plugin = PlaybackHeroPlugin()
+        try await kernel.startAsync(plugins: [plugin])
+
+        #expect(contributions.getHeroView() != nil)
+        #expect(contributions.getRightAlbumView() != nil)
+        try await kernel.stopAsync()
+    }
 }

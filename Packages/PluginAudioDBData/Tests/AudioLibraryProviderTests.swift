@@ -359,16 +359,56 @@ struct AudioLibraryProviderTests {
     }
 
     @Test
-    func navigationProviderReportsUnavailableLibraryWhenStorageWasNotInjected() async throws {
+    func navigationProviderIsInstalledAfterStorageArrivesBetweenBootAndReady() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AudioDBDataLateStorage-\(UUID().uuidString)", isDirectory: true)
+        let storageRoot = root.appendingPathComponent("Documents", isDirectory: true)
+        let audioDisk = storageRoot.appendingPathComponent(AudioPluginInfo.effectiveDBDirName, isDirectory: true)
+        let audioURL = audioDisk.appendingPathComponent("late-storage-track.mp3")
+        try FileManager.default.createDirectory(at: audioDisk, withIntermediateDirectories: true)
+        try Data([0x01, 0x02]).write(to: audioURL)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let kernel = KernelCoreContainer()
+        let plugin = AudioDBDataPlugin()
+        try await plugin.onBootAsync(kernel: kernel)
+
+        let storage = TestStorageProvider(
+            storageRoot: storageRoot,
+            databaseRoot: root.appendingPathComponent("Database")
+        )
+        try kernel.registerProvider((any StorageProviding).self, storage)
+        try await plugin.onReadyAsync(kernel: kernel)
+
+        let library = try #require(kernel.resolveProvider((any AudioLibraryProviding).self))
+        let navigation = try #require(kernel.resolveProvider((any AudioTrackNavigationProviding).self))
+        for _ in 0..<100 where await library.totalCount() == 0 {
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+
+        #expect(await library.contains(audioURL))
+        let firstURL: URL?
+        do {
+            firstURL = try await navigation.firstURL()
+        } catch {
+            Issue.record("Navigation did not resolve through the ready library provider: \(error)")
+            firstURL = nil
+        }
+        #expect(firstURL?.resolvingSymlinksInPath().standardizedFileURL.path == audioURL.resolvingSymlinksInPath().standardizedFileURL.path)
+
+        try await plugin.onShutdownAsync(kernel: kernel)
+        #expect(kernel.resolveProvider((any AudioLibraryProviding).self) == nil)
+        #expect(kernel.resolveProvider((any AudioTrackNavigationProviding).self) == nil)
+    }
+
+    @Test
+    func navigationProviderIsNotInstalledWhenStorageWasNeverInjected() async throws {
         let kernel = KernelCoreContainer()
         let plugin = AudioDBDataPlugin()
 
         try await plugin.onReadyAsync(kernel: kernel)
 
-        let navigation = try #require(kernel.resolveProvider((any AudioTrackNavigationProviding).self))
-        await #expect(throws: AudioPluginError.self) {
-            try await navigation.nextURL(after: nil, verbose: false)
-        }
+        #expect(kernel.resolveProvider((any AudioTrackNavigationProviding).self) == nil)
 
         try await plugin.onShutdownAsync(kernel: kernel)
         #expect(kernel.resolveProvider((any AudioTrackNavigationProviding).self) == nil)

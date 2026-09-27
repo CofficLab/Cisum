@@ -3,6 +3,7 @@ import ProviderContentView
 import ProviderRootView
 import FactoryCisum
 import KernelCore
+import ProviderTheme
 import Testing
 
 @MainActor
@@ -49,5 +50,15 @@ struct FactoryCisumTests {
         #expect(!control.isDemoMode)
         #expect(!content.isDemoMode)
         #expect(content.tabs.isEmpty)
+    }
+
+    @Test
+    func kernelLoadsThemeContributionsAfterPluginStartup() async throws {
+        let kernel = try await CisumBuilder.createKernel()
+        let theme = try #require(kernel.resolveProvider((any ThemeProviding).self))
+        #expect(!theme.allThemeContributions.isEmpty)
+        #expect(!theme.selectedThemeID.isEmpty)
+        try await kernel.stopAsync()
+        CisumBuilder.destroyKernel(kernel)
     }
 }
