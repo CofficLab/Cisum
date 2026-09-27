@@ -42,7 +42,7 @@ final class PlaybackHeroObserver: SuperLog {
                 if totalCount > 0 {
                     self.viewModel?.applyRepositoryEmpty(false)
                 }
-            case .syncing, .sorting, .sortCompleted:
+            case .syncing, .repositoryAvailabilityChanged, .sorting, .sortCompleted:
                 break
             }
         }

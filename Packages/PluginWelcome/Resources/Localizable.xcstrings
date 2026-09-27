@@ -1,6 +1,22 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Choose Your Media Storage": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Choose Your Media Storage" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "选择媒体存储位置" } },
+        "zh-Hant-HK": { "stringUnit": { "state": "translated", "value": "選擇媒體儲存位置" } },
+        "zh-Hant-TW": { "stringUnit": { "state": "translated", "value": "選擇媒體儲存位置" } }
+      }
+    },
+    "Choose where Cisum stores your music and audiobooks. You can change this later in Settings.": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Choose where Cisum stores your music and audiobooks. You can change this later in Settings." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "选择 Cisum 存储音乐和有声书的位置。之后可在设置中更改。" } },
+        "zh-Hant-HK": { "stringUnit": { "state": "translated", "value": "選擇 Cisum 儲存音樂與有聲書的位置。之後可在設定中更改。" } },
+        "zh-Hant-TW": { "stringUnit": { "state": "translated", "value": "選擇 Cisum 儲存音樂與有聲書的位置。之後可在設定中更改。" } }
+      }
+    },
     "App Local Storage": {
       "localizations": {
         "en": {

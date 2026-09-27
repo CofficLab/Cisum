@@ -22,6 +22,7 @@ let package = Package(
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
         .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
+        .package(name: "ProviderRootView", path: "../ProviderRootView"),
         .package(path: "../ProviderStorage"),
     ],
     targets: [
@@ -35,6 +36,7 @@ let package = Package(
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderDocsView", package: "ProviderDocsView"),
+                .product(name: "ProviderRootView", package: "ProviderRootView"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
             ],
             path: ".",

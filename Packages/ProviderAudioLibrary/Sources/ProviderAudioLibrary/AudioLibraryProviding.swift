@@ -16,6 +16,8 @@ public enum AudioLibraryProvidingEvent: Sendable {
     case deleted(urls: [URL], totalCount: Int)
     /// The repository has been successfully scanned or changed and contains no indexed audio.
     case repositoryEmpty
+    /// The backing storage location changed and callers should re-check availability.
+    case repositoryAvailabilityChanged
     case sorting
     case sortCompleted
 }

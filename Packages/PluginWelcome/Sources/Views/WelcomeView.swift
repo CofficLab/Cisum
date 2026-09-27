@@ -29,15 +29,16 @@ public struct WelcomeView: View {
                     .foregroundStyle(appTheme.primary)
                     .shadow(color: .black.opacity(0.2), radius: 10, y: 8)
 
-                Text("Good Things Are Coming", bundle: .module)
+                Text("Choose Your Media Storage", bundle: .module)
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundStyle(appTheme.textPrimary)
                     .accessibilityAddTraits(.isHeader)
 
-                Text("Ready to explore your music world", bundle: .module)
+                Text("Choose where Cisum stores your music and audiobooks. You can change this later in Settings.", bundle: .module)
                     .font(.title3)
                     .foregroundStyle(appTheme.textSecondary)
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.top, 8)
 

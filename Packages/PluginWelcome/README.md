@@ -15,7 +15,7 @@ The first-launch onboarding plugin. It shows a welcome/guide screen when the use
   - `StorageView` — public storage-selection card (iCloud recommended, local fallback; disables iCloud when unavailable).
   - `WelcomePluginGuideView` — wraps `WelcomeView` using `WelcomePluginHost` handlers.
   - Views: `WelcomePluginAboutView`, `WelcomePluginManualView`.
-- **Plugin registration:** Registers as `WelcomePlugin`. `onRegister` contributes About/Manual docs. `onBootAsync` contributes the guide view only when `WelcomePluginHost.hasStorageLocation == false`. `onReadyAsync` (after storage is available) wires `WelcomePluginHost` to the kernel's `StorageProviding`. `completeGuidePage()` applies the default selection when the user finishes the guide.
+- **Plugin registration:** Registers as an always-on `WelcomePlugin`. `onRegister` contributes About/Manual docs. `onReadyAsync` wires `WelcomePluginHost` to the kernel's `StorageProviding` and installs a root overlay. The overlay blocks first-run interaction until the user chooses a usable media storage location, then dismisses itself in response to the storage event.
 - **Workflow/data flow:**
   1. On first launch (no storage location), the guide view is shown.
   2. `StorageView` lets the user pick iCloud (recommended) or local; iCloud is disabled when unavailable.

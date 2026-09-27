@@ -1,4 +1,5 @@
 import MagicKit
+import Foundation
 import ProviderDocsView
 import ProviderStorage
 import KernelCore
@@ -46,7 +47,7 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
         }
-        let provider = StorageProvider()
+        let provider = StorageProvider(userDefaults: Self.storageDefaults())
         try kernel.registerProvider((any StorageProviding).self, provider)
 
         // 插件启用状态持久化存储由 PluginPluginManager.onBoot 注入
@@ -58,6 +59,27 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onEnable(kernel: KernelCoreContainer) async throws {
         installSettingsState(kernel: kernel)
+    }
+
+    /// UI tests use a private preferences suite so onboarding tests never reset
+    /// or overwrite the developer's real Debug-app storage selection.
+    private static func storageDefaults() -> UserDefaults {
+        #if DEBUG
+            let arguments = ProcessInfo.processInfo.arguments
+            guard arguments.contains("--cisum-ui-testing") else { return .standard }
+
+            let suiteName = "\(Bundle.main.bundleIdentifier ?? "com.yueyi.cisum").ui-testing"
+            let defaults = UserDefaults(suiteName: suiteName) ?? .standard
+            if arguments.contains("--cisum-ui-testing-reset-storage") {
+                defaults.removeObject(forKey: "StorageLocation")
+            }
+            if arguments.contains("--cisum-ui-testing-storage-local") {
+                defaults.set(StorageLocation.local.rawValue, forKey: "StorageLocation")
+            }
+            return defaults
+        #else
+            return .standard
+        #endif
     }
 
     @MainActor

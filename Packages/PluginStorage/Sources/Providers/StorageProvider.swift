@@ -19,6 +19,7 @@ import MagicKit
 @MainActor
 public final class StorageProvider: ObservableObject, StorageProviding {
     private static let storageLocationKey = "StorageLocation"
+    private let userDefaults: UserDefaults
 
     /// 数据根目录名：`db_<debug|production>_v<majorVersion>`（对齐 Lumi/GitOK 命名规则）。
     private let dataRootDirectoryName: String
@@ -27,7 +28,8 @@ public final class StorageProvider: ObservableObject, StorageProviding {
     public let databaseRoot: URL
     private let eventObservers = EventObserverStore<StorageProvidingEvent>()
 
-    public init() {
+    public init(userDefaults: UserDefaults = .standard) {
+        self.userDefaults = userDefaults
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1"
         let majorVersion = Self.majorVersion(from: version)
 
@@ -44,7 +46,7 @@ public final class StorageProvider: ObservableObject, StorageProviding {
     }
 
     public var currentStorageLocation: StorageLocation? {
-        guard let raw = UserDefaults.standard.string(forKey: Self.storageLocationKey),
+        guard let raw = userDefaults.string(forKey: Self.storageLocationKey),
               let location = StorageLocation(rawValue: raw) else { return nil }
         guard storageRoot(for: location) != nil else { return nil }
         return location
@@ -80,13 +82,13 @@ public final class StorageProvider: ObservableObject, StorageProviding {
     }
 
     public func setStorageLocation(_ location: StorageLocation?) {
-        UserDefaults.standard.set(location?.rawValue, forKey: Self.storageLocationKey)
+        userDefaults.set(location?.rawValue, forKey: Self.storageLocationKey)
         eventObservers.send(.locationChanged(location))
         eventObservers.send(.storageAvailabilityChanged)
     }
 
     public func resetStorageLocation() {
-        UserDefaults.standard.removeObject(forKey: Self.storageLocationKey)
+        userDefaults.removeObject(forKey: Self.storageLocationKey)
         eventObservers.send(.locationChanged(nil))
         eventObservers.send(.storageAvailabilityChanged)
     }

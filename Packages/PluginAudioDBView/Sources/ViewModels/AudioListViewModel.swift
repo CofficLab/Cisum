@@ -30,6 +30,11 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     @Published private(set) var pageSize = 50
     @Published private(set) var isSyncing = false
     @Published private(set) var totalCount = 0
+    @Published private(set) var hasSuccessfullyLoadedRepository = false
+
+    var isConfirmedRepositoryEmpty: Bool {
+        hasSuccessfullyLoadedRepository && !isLoading && totalCount == 0 && urls.isEmpty
+    }
 
     private var loadGeneration = 0
     private var selectionGeneration = 0
@@ -269,6 +274,12 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         refresh(reason: "handleDBSortDone")
     }
 
+    /// Storage configuration changed; re-open the repository instead of leaving
+    /// the first-run unavailable state cached in the list.
+    func handleRepositoryAvailabilityChanged() {
+        refresh(reason: "Repository availability changed")
+    }
+
     // MARK: - Loading
 
     /// 加载首页。
@@ -278,11 +289,21 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         loadGeneration += 1
         let generation = loadGeneration
         isLoading = true
+        hasSuccessfullyLoadedRepository = false
 
         Task { @MainActor in
             guard let library = audioLibraryProvider() else {
                 isLoading = false
+                hasSuccessfullyLoadedRepository = false
                 toastProvider?.error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
+                return
+            }
+            guard library.isAvailable else {
+                // During first-run onboarding there is intentionally no storage
+                // root yet. The welcome gate explains the required action; a
+                // generic repository error toast would obscure that guidance.
+                isLoading = false
+                hasSuccessfullyLoadedRepository = false
                 return
             }
 
@@ -304,6 +325,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                     }
                     self.urls = urls
                     self.totalCount = count
+                    self.hasSuccessfullyLoadedRepository = true
                     self.currentPage = 1
                     self.hasMore = urls.count == pageSize
                     self.isLoading = false
@@ -399,10 +421,22 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         let loadingState = AudioListLoadPolicy.loadingStateWhenStartingCurrentPageRefresh(displayedCount: urls.count)
         isLoading = loadingState.isLoading
         isLoadingMore = loadingState.isLoadingMore
+        if urls.isEmpty {
+            hasSuccessfullyLoadedRepository = false
+        }
 
         Task { @MainActor in
             guard let library = audioLibraryProvider() else {
+                isLoading = false
+                isLoadingMore = false
+                hasSuccessfullyLoadedRepository = false
                 toastProvider?.error(String(localized: "Refresh failed: audio repository is unavailable", bundle: .module))
+                return
+            }
+            guard library.isAvailable else {
+                isLoading = false
+                isLoadingMore = false
+                hasSuccessfullyLoadedRepository = false
                 return
             }
 
@@ -444,12 +478,14 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                                 ) else { return }
                                 self.urls = refreshedUrls
                                 self.totalCount = newTotalCount
+                                self.hasSuccessfullyLoadedRepository = true
                                 self.isLoading = false
                                 self.isLoadingMore = false
                             }
                         }
                     } else {
                         self.totalCount = newTotalCount
+                        self.hasSuccessfullyLoadedRepository = true
                         self.isLoading = false
                         self.isLoadingMore = false
                     }

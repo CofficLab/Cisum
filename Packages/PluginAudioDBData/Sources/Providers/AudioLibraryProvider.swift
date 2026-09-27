@@ -135,6 +135,7 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
     func invalidateRepository() {
         cachedRepo = nil
         repositoryIsKnownEmpty = nil
+        notify(.repositoryAvailabilityChanged)
     }
 
     func nextURL(after current: URL?, verbose: Bool) async throws -> URL? {
@@ -162,7 +163,7 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
         switch event {
         case .synced(let totalCount), .updated(let totalCount), .deleted(_, let totalCount):
             isEmpty = totalCount == 0
-        case .syncing, .repositoryEmpty, .sorting, .sortCompleted:
+        case .syncing, .repositoryEmpty, .repositoryAvailabilityChanged, .sorting, .sortCompleted:
             isEmpty = nil
         }
 
