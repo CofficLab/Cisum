@@ -1,6 +1,8 @@
 import ProviderAppState
 import ProviderDocsView
 import ProviderPlayback
+import ProviderAudioLibrary
+import ProviderScene
 import CisumUIComponents
 import LumiUI
 import KernelCore
@@ -95,8 +97,14 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
         guard viewModel == nil else { return }
         guard let playback = kernel?.resolveProvider((any PlaybackProviding).self) else { return }
         let media = kernel?.resolveProvider((any PlaybackMediaProviding).self)
-        let viewModel = PlaybackHeroViewModel(playbackProvider: playback, mediaProvider: media)
+        let library = kernel?.resolveProvider((any AudioLibraryProviding).self)
+        let scene = kernel?.resolveProvider((any SceneProviding).self)
+        let viewModel = PlaybackHeroViewModel(
+            playbackProvider: playback,
+            mediaProvider: media,
+            isMusicSceneActive: scene.map { $0.currentScene == .music } ?? true
+        )
         self.viewModel = viewModel
-        observer = PlaybackHeroObserver(playback: playback, viewModel: viewModel)
+        observer = PlaybackHeroObserver(playback: playback, library: library, scene: scene, viewModel: viewModel)
     }
 }

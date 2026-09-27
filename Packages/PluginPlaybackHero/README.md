@@ -8,16 +8,17 @@ A feature plugin that injects the now-playing cover/title view into the player c
 - **Key types:**
   - `PlaybackHeroPlugin` — `@MainActor final class` conforming to `AsyncSuperPlugin, SuperLog`. `id = "PlaybackHeroPlugin"`, `order = 19`, icon `"photo"`, category `.feature`, policy `.alwaysOn`.
   - Reads playback state from `PlaybackProviding` and artwork/state presentation from optional `PlaybackMediaProviding` directly; absent media uses an empty view and plain state description.
-  - `PlaybackHeroViewModel` — `ObservableObject` publishing `currentURL` and `state`; forwards asset/state changes and reads media view/state text from optional `PlaybackMediaProviding`.
-  - `PlaybackHeroObserver` — subscribes to `assetChanged` and `stateChanged` events.
+  - `PlaybackHeroViewModel` — `ObservableObject` publishing playback state plus music-repository emptiness and active-scene state; hides the player Hero only when the Music scene is active and its repository is confirmed empty.
+  - `PlaybackHeroObserver` — subscribes to playback, `AudioLibraryProviding`, and `SceneProviding` events; an empty music repository does not hide the title while the Audiobooks scene is active.
   - `PlaybackHeroView` — main control-area cover/title view; shows artwork only when the right album pane is hidden and height permits, renders a download-progress ring when state is `.loading(.downloading)`, and shows a demo art image in demo mode.
   - `PlaybackHeroRightAlbumView` — square media art view for the wide-window right album area.
   - Views: `PluginPlaybackHeroAboutView`, `PluginPlaybackHeroManualView`.
-- **Plugin registration:** Registers as `PlaybackHeroPlugin`. `onBootAsync` contributes both the hero view and the right album view via `PluginContributionProviding` (`addHeroView` / `addRightAlbumView`). State is assembled in `onReadyAsync`, resolving `PlaybackProviding` and `PlaybackMediaProviding` from the kernel. `onShutdownAsync` removes contributions and cancels the observer.
+- **Plugin registration:** Registers as `PlaybackHeroPlugin`. `onReadyAsync` contributes both the hero view and the right album view via `PluginContributionProviding` (`addHeroView` / `addRightAlbumView`), resolving `PlaybackProviding`, `PlaybackMediaProviding`, `AudioLibraryProviding`, and `SceneProviding` from the kernel. `onShutdownAsync` removes contributions and cancels all observers.
 - **Workflow/data flow:**
-  1. Playback `assetChanged`/`stateChanged` events update `PlaybackHeroViewModel`.
-  2. The view renders the title (derived from the file name) and either the engine-provided media view, a download progress ring, or the demo image.
-- **Dependencies:** `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderPlayback`, `ProviderDocsView`. Platforms: macOS 14+, iOS 17+. Resources: `Resources`.
+  1. Playback `assetChanged`/`stateChanged` events update `PlaybackHeroViewModel`; confirmed empty-library events hide the Hero, while a non-empty sync/update restores it.
+  2. `PlaybackHeroView` publishes Hero visibility through a SwiftUI preference; `ProviderControlView` collapses its Hero allocation and `ProviderRootView` reclaims the vertical space for the active repository scene.
+  3. The view renders the title (derived from the file name) and either the engine-provided media view, a download progress ring, or the demo image.
+- **Dependencies:** `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderPlayback`, `ProviderAudioLibrary`, `ProviderScene`, `ProviderDocsView`. Platforms: macOS 14+, iOS 17+. Resources: `Resources`.
 
 ## Testing Logic
 
@@ -26,6 +27,7 @@ A feature plugin that injects the now-playing cover/title view into the player c
 - **Key scenarios tested:**
   - ViewModel initializes from Provider state, tracks asset/state changes, and falls back to `.idle`/`EmptyView` when Providers are absent.
   - Observer forwards asset and state events but ignores time changes, and stops after cancellation.
+  - Confirmed empty-library events hide the Hero only in the Music scene; positive-count library events restore it, and cancellation stops updates.
   - Plugin boot registers About/Manual docs, produces both hero and right-album views, and tears them down on shutdown.
 - **Running tests:**
   ```bash

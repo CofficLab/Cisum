@@ -17,6 +17,7 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
     private var cachedRepo: AudioRepo?
     private var storageObserver: AudioStorageObserver?
     private var observers: [WeakAudioLibraryObserver] = []
+    private var repositoryIsKnownEmpty: Bool?
 
     init(storage: any StorageProviding) {
         self.storage = storage
@@ -30,6 +31,7 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
         storageObserver = nil
         observers.removeAll()
         cachedRepo = nil
+        repositoryIsKnownEmpty = nil
     }
 
     // MARK: - AudioLibraryProviding
@@ -124,11 +126,15 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
     ) -> any AudioLibraryProvidingObserverHandle {
         let observer = AudioLibraryObserver(owner: self, callback: callback)
         observers.append(WeakAudioLibraryObserver(observer))
+        if repositoryIsKnownEmpty == true {
+            observer.invoke(.repositoryEmpty)
+        }
         return observer
     }
 
     func invalidateRepository() {
         cachedRepo = nil
+        repositoryIsKnownEmpty = nil
     }
 
     func nextURL(after current: URL?, verbose: Bool) async throws -> URL? {
@@ -152,9 +158,29 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
     }
 
     private func notify(_ event: AudioLibraryProvidingEvent) {
+        let isEmpty: Bool?
+        switch event {
+        case .synced(let totalCount), .updated(let totalCount), .deleted(_, let totalCount):
+            isEmpty = totalCount == 0
+        case .syncing, .repositoryEmpty, .sorting, .sortCompleted:
+            isEmpty = nil
+        }
+
+        let shouldPublishEmpty = isEmpty == true && repositoryIsKnownEmpty != true
+        if let isEmpty {
+            repositoryIsKnownEmpty = isEmpty
+        }
+
         observers.removeAll { $0.observer == nil }
         for observer in observers {
             observer.observer?.invoke(event)
+        }
+
+        if shouldPublishEmpty {
+            observers.removeAll { $0.observer == nil }
+            for observer in observers {
+                observer.observer?.invoke(.repositoryEmpty)
+            }
         }
     }
 }

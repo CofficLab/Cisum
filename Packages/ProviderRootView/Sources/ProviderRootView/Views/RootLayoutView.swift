@@ -18,6 +18,7 @@ struct RootLayoutView: View {
     @State private var isDetailVisible = false
     @State private var rememberedHeight: CGFloat = 0
     @State private var autoResizing = false
+    @State private var isPlaybackHeroVisible = true
 
     init(provider: DefaultRootViewProvider, kernel: KernelCoreContainer) {
         _viewModel = ObservedObject(wrappedValue: RootLayoutViewModel(
@@ -39,7 +40,9 @@ struct RootLayoutView: View {
                 VStack(spacing: 0) {
                     if isDetailVisible {
                         controlArea
-                            .frame(height: CisumPlayerLayout.controlMinimumHeight)
+                            .frame(height: isPlaybackHeroVisible
+                                ? CisumPlayerLayout.controlMinimumHeight
+                                : CisumPlayerLayout.emptyPlayerControlHeight)
                     } else {
                         controlArea
                             // The collapsed player owns the whole available
@@ -61,6 +64,7 @@ struct RootLayoutView: View {
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .offset(x: -horizontalOverflow(for: geometry))
             }
+            .environment(\.playbackHeroVisibility, $isPlaybackHeroVisible)
             .onAppear { handleOnAppear() }
             .onChange(of: viewModel.isContentViewVisible) { _, newValue in
                 handleContentViewVisibilityChange(newValue, geometry: geometry)

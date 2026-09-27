@@ -24,6 +24,8 @@ let package = Package(
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
         .package(name: "ProviderAppState", path: "../ProviderAppState"),
+        .package(name: "ProviderAudioLibrary", path: "../ProviderAudioLibrary"),
+        .package(name: "ProviderScene", path: "../ProviderScene"),
     ],
     targets: [
         .target(
@@ -38,6 +40,8 @@ let package = Package(
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
                 .product(name: "ProviderDocsView", package: "ProviderDocsView"),
                 .product(name: "ProviderAppState", package: "ProviderAppState"),
+                .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+                .product(name: "ProviderScene", package: "ProviderScene"),
             ],
             path: ".",
             sources: ["Sources"],
@@ -52,6 +56,8 @@ let package = Package(
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
                 .product(name: "ProviderDocsView", package: "ProviderDocsView"),
+                .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+                .product(name: "ProviderScene", package: "ProviderScene"),
             ],
             path: "Tests"
         ),

@@ -15,9 +15,12 @@ struct ControlButtonsView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let buttonSize = buttonSize(for: geometry.size)
+            let buttonSize = CisumPlayerLayout.controlButtonSize(
+                width: geometry.size.width,
+                areaHeight: geometry.size.height
+            )
 
-            HStack(spacing: buttonSpacing) {
+            HStack(spacing: CisumPlayerLayout.controlButtonSpacing) {
                 AppCircularIconButton(
                     systemImage: "ellipsis",
                     accessibilityLabel: "More",
@@ -57,16 +60,7 @@ struct ControlButtonsView: View {
         .buttonStyle(.plain)
     }
 
-    private let buttonCount: CGFloat = 5
-    private let buttonMaximumSize: CGFloat = 72
-    private let buttonSpacing: CGFloat = 12
-    private let bottomPadding: CGFloat = 20
-
-    private func buttonSize(for size: CGSize) -> CGFloat {
-        let availableWidth = size.width - buttonSpacing * (buttonCount - 1)
-        let availableHeight = size.height - bottomPadding
-        return max(0, min(buttonMaximumSize, availableWidth / buttonCount, availableHeight))
-    }
+    private let bottomPadding = CisumPlayerLayout.controlButtonBottomPadding
 
     private var playModeIconName: String {
         switch viewModel.playMode {

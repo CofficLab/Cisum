@@ -37,6 +37,8 @@ final class AudioDatabaseObserver: SuperLog {
                 Task { @MainActor in await self?.rootViewModel?.checkAudioRepo() }
             case .deleted(let urls, _):
                 self?.listViewModel?.handleDBDeleted(urlsToDelete: urls)
+            case .repositoryEmpty:
+                Task { @MainActor in await self?.rootViewModel?.checkAudioRepo() }
             case .sorting:
                 self?.dbViewModel?.handleSorting(mode: nil)
             case .sortCompleted:

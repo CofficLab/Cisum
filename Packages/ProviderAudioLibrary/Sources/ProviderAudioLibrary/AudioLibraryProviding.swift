@@ -14,6 +14,8 @@ public enum AudioLibraryProvidingEvent: Sendable {
     case synced(totalCount: Int)
     case updated(totalCount: Int)
     case deleted(urls: [URL], totalCount: Int)
+    /// The repository has been successfully scanned or changed and contains no indexed audio.
+    case repositoryEmpty
     case sorting
     case sortCompleted
 }
@@ -62,6 +64,8 @@ public protocol AudioLibraryProviding: AnyObject, Sendable {
     /// 随机调整播放顺序。
     func sortRandom(url: URL?, reason: String, verbose: Bool) async throws
 
+    /// Observers receive future library events. If the provider has already
+    /// confirmed an empty repository, the empty event is replayed immediately.
     @discardableResult
     func addObserver(_ callback: @escaping (AudioLibraryProvidingEvent) -> Void) -> any AudioLibraryProvidingObserverHandle
 }

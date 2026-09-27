@@ -9,16 +9,24 @@ final class PlaybackHeroViewModel: ObservableObject, SuperLog {
 
     @Published private(set) var currentURL: URL?
     @Published private(set) var state: PlaybackStatus
+    @Published private(set) var isRepositoryEmpty = false
+    @Published private(set) var isMusicSceneActive: Bool
+
+    var isHeroVisible: Bool {
+        currentURL != nil && !(isMusicSceneActive && isRepositoryEmpty)
+    }
 
     private let mediaProvider: (any PlaybackMediaProviding)?
 
     init(
         playbackProvider: (any PlaybackProviding)?,
-        mediaProvider: (any PlaybackMediaProviding)? = nil
+        mediaProvider: (any PlaybackMediaProviding)? = nil,
+        isMusicSceneActive: Bool = true
     ) {
         self.mediaProvider = mediaProvider
         self.currentURL = playbackProvider?.currentURL
         self.state = playbackProvider?.state ?? .idle
+        self.isMusicSceneActive = isMusicSceneActive
     }
 
     func applyAssetChanged(_ url: URL?) {
@@ -27,6 +35,14 @@ final class PlaybackHeroViewModel: ObservableObject, SuperLog {
 
     func applyStateChanged(_ state: PlaybackStatus) {
         self.state = state
+    }
+
+    func applyRepositoryEmpty(_ isEmpty: Bool) {
+        isRepositoryEmpty = isEmpty
+    }
+
+    func applyMusicSceneActive(_ isActive: Bool) {
+        isMusicSceneActive = isActive
     }
 
     func makeMediaView() -> AnyView {
