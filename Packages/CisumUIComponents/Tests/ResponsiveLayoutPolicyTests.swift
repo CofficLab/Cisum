@@ -17,6 +17,10 @@ struct ResponsiveLayoutPolicyTests {
         #expect(CisumPlayerLayout.shouldShowRightAlbum(width: 768.1))
         #expect(CisumPlayerLayout.needsExpandedWindow(for: 450))
         #expect(!CisumPlayerLayout.needsExpandedWindow(for: 451))
+        #expect(CisumPlayerLayout.horizontalCenteringOffset(proposedWidth: 600, visibleWidth: 400) == 100)
+        #expect(CisumPlayerLayout.horizontalCenteringOffset(proposedWidth: 400, visibleWidth: 400) == 0)
+        #expect(CisumPlayerLayout.horizontalCenteringOffset(proposedWidth: 900, visibleWidth: 900) == 0)
+        #expect(CisumPlayerLayout.horizontalCenteringOffset(proposedWidth: 900, visibleWidth: 700) == 100)
     }
 
 }

@@ -59,6 +59,7 @@ struct RootLayoutView: View {
                     statusArea
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
+                .offset(x: -horizontalOverflow(for: geometry))
             }
             .onAppear { handleOnAppear() }
             .onChange(of: viewModel.isContentViewVisible) { _, newValue in
@@ -178,6 +179,26 @@ struct RootLayoutView: View {
                 ?? NSApplication.shared.windows.first(where: { $0.isVisible && $0.canBecomeKey })
                 ?? NSApplication.shared.windows.first
             return window?.frame.height ?? 0
+        #else
+            0
+        #endif
+    }
+
+    /// Some macOS hosting configurations can propose a view width larger than
+    /// the visible window content area. Keep centered player/repository content
+    /// centered in the actual window instead of centering it in the oversized
+    /// proposal and clipping its trailing edge.
+    private func horizontalOverflow(for geometry: GeometryProxy) -> CGFloat {
+        #if os(macOS)
+            let window = NSApplication.shared.keyWindow
+                ?? NSApplication.shared.mainWindow
+                ?? NSApplication.shared.windows.first(where: { $0.isVisible && $0.canBecomeKey })
+                ?? NSApplication.shared.windows.first
+            guard let window else { return 0 }
+            return CisumPlayerLayout.horizontalCenteringOffset(
+                proposedWidth: geometry.size.width,
+                visibleWidth: window.contentLayoutRect.width
+            )
         #else
             0
         #endif

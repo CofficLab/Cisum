@@ -32,6 +32,13 @@ public enum CisumPlayerLayout {
         width > rightAlbumMinimumWidth
     }
 
+    /// Centers content in the visible window when a platform container offers
+    /// a wider layout proposal than the window's actual content area.
+    public static func horizontalCenteringOffset(proposedWidth: CGFloat, visibleWidth: CGFloat) -> CGFloat {
+        guard proposedWidth.isFinite, visibleWidth.isFinite else { return 0 }
+        return max(0, (proposedWidth - max(0, visibleWidth)) / 2)
+    }
+
     public static func needsExpandedWindow(for height: CGFloat) -> Bool {
         height - controlMinimumHeight <= contentMinimumHeight
     }

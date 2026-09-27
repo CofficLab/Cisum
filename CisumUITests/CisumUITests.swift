@@ -77,20 +77,27 @@ class CisumUITestBase: XCTestCase {
     /// 仅 macOS 支持（工具栏 / popover 场景选择器为 macOS 专属）。
     func switchScene(to labels: [String]) {
         #if os(macOS)
+        let sceneID = labels.contains(where: { ["Music Library", "音乐仓库"].contains($0) })
+            ? "music"
+            : "audiobooks"
+        let targetScene = element(identifier: "cisum.scene.\(sceneID)")
+        if targetScene.waitForExistence(timeout: 1) { return }
+
         let switcher = element(identifier: "cisum.scene.switcher")
         XCTAssertTrue(switcher.waitForExistence(timeout: 10), "工具栏找不到场景切换器")
         switcher.click()
 
-        let sceneID = labels.contains(where: { ["Music Library", "音乐仓库"].contains($0) })
-            ? "music"
-            : "audiobooks"
         let segment = element(identifier: "cisum.scene.option.\(sceneID)")
         XCTAssertTrue(segment.waitForExistence(timeout: 5), "场景选择器中找不到目标场景：\(labels)")
         segment.click()
 
         let enterButton = element(identifier: "cisum.scene.enter.\(sceneID)")
-        XCTAssertTrue(enterButton.waitForExistence(timeout: 5), "找不到「进入场景」按钮")
-        enterButton.click()
+        if enterButton.waitForExistence(timeout: 5) {
+            enterButton.click()
+            XCTAssertTrue(targetScene.waitForExistence(timeout: 10), "点击「进入场景」后目标场景未出现：\(sceneID)")
+        } else {
+            XCTAssertTrue(targetScene.waitForExistence(timeout: 5), "找不到「进入场景」按钮，且目标场景未直接切换")
+        }
         #endif
     }
 
@@ -115,6 +122,27 @@ class CisumUITestBase: XCTestCase {
         }
         #endif
     }
+
+    #if os(macOS)
+    func assertElementFitsWindow(_ element: XCUIElement, window: XCUIElement, description: String, file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertTrue(element.exists, "\(description)未渲染", file: file, line: line)
+        XCTAssertGreaterThan(element.frame.width, 0, "\(description)没有有效宽度", file: file, line: line)
+        XCTAssertGreaterThan(element.frame.height, 0, "\(description)没有有效高度", file: file, line: line)
+        XCTAssertTrue(
+            window.frame.insetBy(dx: -2, dy: -2).contains(element.frame),
+            "\(description)超出主窗口：id=\(element.identifier), label=\(element.label), value=\(element.value ?? "nil"), element=\(element.frame), window=\(window.frame)",
+            file: file,
+            line: line
+        )
+    }
+
+    func text(containing fragments: [String]) -> XCUIElement {
+        let predicates = fragments.map {
+            NSPredicate(format: "label CONTAINS %@ OR value CONTAINS %@", $0, $0)
+        }
+        return app.staticTexts.matching(NSCompoundPredicate(orPredicateWithSubpredicates: predicates)).firstMatch
+    }
+    #endif
 
     /// 通过菜单栏「Cisum → Settings…」打开设置窗口（macOS）。
     func openSettingsWindowViaMenu() {
@@ -262,6 +290,32 @@ final class CisumMusicLibraryUITests: CisumUITestBase {
             "音乐仓库列表既无表头统计，也未显示读取中或空状态"
         )
     }
+
+    func testMusicLibraryContentFitsCompactWindow() throws {
+        #if os(macOS)
+        app.activate()
+        try ensureMusicScene()
+        let window = app.windows["Cisum"]
+        let scene = element(identifier: "cisum.scene.music")
+        XCTAssertTrue(scene.waitForExistence(timeout: 10), "音乐仓库场景未出现")
+
+        XCTAssertLessThanOrEqual(window.frame.width, 460, "测试启动窗口不处于紧凑宽度")
+        assertMusicPlayerControlsFit(window: window)
+        #else
+        throw XCTSkip("窗口尺寸响应式布局测试仅 macOS 支持")
+        #endif
+    }
+
+    #if os(macOS)
+    private func assertMusicPlayerControlsFit(window: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
+        let labels = ["More", "Previous", "Play", "Next", "Playback mode"]
+        for label in labels {
+            let button = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
+            XCTAssertTrue(button.waitForExistence(timeout: 10), "播放器按钮「\(label)」未稳定出现")
+            assertElementFitsWindow(button, window: window, description: "播放器按钮「\(label)」", file: file, line: line)
+        }
+    }
+    #endif
 }
 
 // MARK: - 有声书内容区（原型 04）
@@ -296,6 +350,27 @@ final class CisumAudiobooksUITests: CisumUITestBase {
             header.exists || bookTile.exists || reading.exists || emptyState || unavailableState.exists,
             "有声书网格既无表头统计、书卡，也未显示读取中或空状态"
         )
+    }
+
+    func testAudiobooksContentFitsCompactWindow() throws {
+        #if os(macOS)
+        app.activate()
+        try ensureAudiobooksScene()
+        let window = app.windows["Cisum"]
+        let scene = element(identifier: "cisum.scene.audiobooks")
+        XCTAssertTrue(scene.waitForExistence(timeout: 10), "有声书仓库场景未出现")
+
+        XCTAssertLessThanOrEqual(window.frame.width, 460, "测试启动窗口不处于紧凑宽度")
+        let emptyStateTitle = text(containing: [
+            "Drop audiobook folders here to add them",
+            "将有声书文件夹拖到这里可添加",
+        ])
+        let supportedFormats = text(containing: ["Supported formats:", "支持的格式"])
+        assertElementFitsWindow(emptyStateTitle, window: window, description: "有声书空状态标题")
+        assertElementFitsWindow(supportedFormats, window: window, description: "有声书支持格式说明")
+        #else
+        throw XCTSkip("窗口尺寸响应式布局测试仅 macOS 支持")
+        #endif
     }
 }
 

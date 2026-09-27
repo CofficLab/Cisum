@@ -86,6 +86,7 @@ struct AudioDBTips: View {
         .background(appTheme.background.opacity(0.5))
         .cisumRoundedMedium()
         .cisumShadowXl()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
