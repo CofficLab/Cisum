@@ -7,7 +7,7 @@ import MagicKit
 
 /// 音频进度的数据库删除与存储重置观察者（迁移 Phase 5）。
 ///
-/// 订阅 `.dbDeleted` 与指定的存储重置通知，转发到
+/// 订阅音频库删除事件与存储位置变化事件，转发到
 /// `AudioProgressViewModel`；取代原 `AudioProgressRootView` 的
 /// `.onReceive` 与 `AudioProgressStorageResetModifier`。
 @MainActor

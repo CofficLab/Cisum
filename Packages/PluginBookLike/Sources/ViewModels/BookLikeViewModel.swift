@@ -3,6 +3,7 @@ import Foundation
 import OSLog
 import ProviderScene
 import SwiftUI
+import ProviderPlayback
 import MagicKit
 
 /// 喜欢列表加载闭包（由插件入口组装本地仓库）。
@@ -18,8 +19,8 @@ typealias BookLikeSaveProvider = @MainActor (_ liked: Bool, _ url: URL) -> Void
 /// - 喜欢列表的加载与刷新（原 `BookLikeSettingsView` 逻辑）。
 ///
 /// 由插件入口持有并注入 `BookLikeObserver`；View 只展示与转发意图。
-/// ViewModel 不直接持有 Kernel 或具体 Provider：播放服务可用性通过
-/// `BookLikePlaybackCapability` 表达，本地喜欢仓库由插件入口组装为闭包注入。
+/// ViewModel 不直接持有 Kernel 或具体播放器：播放服务通过共享 Provider 契约注入，
+/// 本地喜欢仓库由插件入口组装为闭包注入。
 @MainActor
 final class BookLikeViewModel: ObservableObject, SuperLog {
     nonisolated static let verbose = false
@@ -27,7 +28,7 @@ final class BookLikeViewModel: ObservableObject, SuperLog {
     @Published private(set) var likedBooks: [BookLikeItem] = []
     @Published private(set) var isLoading = true
 
-    private let playbackCapability: (any BookLikePlaybackCapability)?
+    private let playbackProvider: (any PlaybackProviding)?
     private let loadLikedBooks: BookLikeLoadProvider
     private let saveLikeStatus: BookLikeSaveProvider
     private let targetScene: AppScene
@@ -35,12 +36,12 @@ final class BookLikeViewModel: ObservableObject, SuperLog {
 
     init(
         targetScene: AppScene = .audiobooks,
-        playbackCapability: (any BookLikePlaybackCapability)?,
+        playbackProvider: (any PlaybackProviding)?,
         loadLikedBooks: @escaping BookLikeLoadProvider,
         saveLikeStatus: @escaping BookLikeSaveProvider
     ) {
         self.targetScene = targetScene
-        self.playbackCapability = playbackCapability
+        self.playbackProvider = playbackProvider
         self.loadLikedBooks = loadLikedBooks
         self.saveLikeStatus = saveLikeStatus
     }
@@ -68,7 +69,6 @@ final class BookLikeViewModel: ObservableObject, SuperLog {
 
         saveLikeStatus(liked, asset)
         handleLikeStatusChanged()
-        NotificationCenter.postBookLikeStatusChanged(url: asset, liked: liked)
     }
 
     /// 重新加载喜欢列表（首次加载与状态变化后刷新）。
@@ -82,7 +82,7 @@ final class BookLikeViewModel: ObservableObject, SuperLog {
 
     private func activateLike() {
         guard !isActive else { return }
-        guard playbackCapability?.isAvailable == true else { return }
+        guard playbackProvider != nil else { return }
 
         isActive = true
         if Self.verbose { os_log("\(Self.t)🟢 喜欢保存已激活") }

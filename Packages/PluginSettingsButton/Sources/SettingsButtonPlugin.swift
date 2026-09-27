@@ -1,6 +1,9 @@
 import ProviderDocsView
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import MagicKit
 import SwiftUI
 
@@ -46,7 +49,7 @@ public final class SettingsButtonPlugin: AsyncSuperPlugin, SuperLog {
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         #if os(macOS)
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            contrib.addToolBarButtons(self.addToolBarButtons())
+            contrib.addToolBarButtons(ownerPluginID: id, self.addToolBarButtons())
         }
         #endif
     }

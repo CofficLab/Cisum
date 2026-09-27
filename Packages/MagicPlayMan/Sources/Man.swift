@@ -1,7 +1,10 @@
 import AVFoundation
 import Combine
 import Foundation
+import ProviderPlayback
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import MediaPlayer
 import OSLog
 import SwiftUI
@@ -61,7 +64,7 @@ public class MagicPlayMan: ObservableObject, SuperLog {
     public var defaultArtworkBuilder: (() -> any View)?
 
     /// 当前播放模式（顺序、随机、单曲循环等）
-    @Published public private(set) var playMode: MagicPlayMode = .sequence
+    @Published public private(set) var playMode: PlaybackMode = .sequence
 
     /// 当前播放的资源 URL
     @Published public private(set) var currentURL: URL?
@@ -219,7 +222,7 @@ extension MagicPlayMan {
     /// 设置播放模式
     /// - Parameter mode: 播放模式
     @MainActor
-    func setPlayMode(_ mode: MagicPlayMode) {
+    func setPlayMode(_ mode: PlaybackMode) {
         playMode = mode
 
         if verbose {
@@ -231,7 +234,7 @@ extension MagicPlayMan {
     /// 恢复已持久化的播放模式，不触发播放模式变更事件。
     /// 用于启动或切换场景时同步 UI 状态，避免误触发提示和队列重排。
     @MainActor
-    public func restorePlayMode(_ mode: MagicPlayMode) {
+    public func restorePlayMode(_ mode: PlaybackMode) {
         playMode = mode
     }
 

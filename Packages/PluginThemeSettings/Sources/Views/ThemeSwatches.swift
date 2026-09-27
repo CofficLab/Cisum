@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 /// 主题色板小圆点（预览 chrome 主题的 accent / atmosphere 色）。

@@ -1,6 +1,7 @@
 import Combine
 import Foundation
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
 import Testing
 @testable import ProviderScene
 

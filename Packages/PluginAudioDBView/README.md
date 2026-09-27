@@ -11,14 +11,14 @@ The audio database viewer plugin. It provides the browsable "Music Repository" c
   - View models: `AudioListViewModel` (paginated list + playback), `AudioDBRootViewModel`, `AudioDBViewModel`, `AudioTreeViewModel`.
   - Models/state: `AudioTreeNode`, `AudioTreeBuilder`, `AudioDBDependencies`, `AudioDBSceneState`, `AudioStorageDiagnosticsFactory`.
   - Observers: `AudioDatabaseObserver` (library events → list/root/db), `AudioDBPlaybackObserver` (playback events → list), `AudioDBSceneObserver` (scene gate).
-  - Policies: `AudioListLoadPolicy` (pagination/generation/dedup), `AudioListDeletionPolicy`, `AudioDeletePlaybackPolicy`, `AudioPlaybackCapability`/`Adapter`, `AudioItemFileSize*` policies.
+  - Policies: `AudioListLoadPolicy` (pagination/generation/dedup), `AudioListDeletionPolicy`, `AudioDeletePlaybackPolicy`, `AudioItemFileSize*` policies.
 - **Plugin registration**: Registers with ID `AudioDBViewPlugin`. `onBootAsync` contributes a tab view (`addTabView`, labeled "Music Repository", only when the current scene is `.music` and not in demo mode) and a settings navigation item (`addSettingNavigationItem`, id `"audiodb"`). `onReadyAsync` assembles view models and observers — deliberately resolving `SceneProviding` at ready (not boot) because the scene provider instance is replaced by `ScenePlugin` during its own `onReady`.
 - **Workflow / data flow**:
   1. The root/tab views pull a narrow set of closures (`audioLibrary`, `audioDisk`, `audioDiagnostics`) from the kernel rather than holding the kernel; view models never retain the kernel.
   2. `AudioListViewModel` loads tracks in pages, dedupes symlinked rows, rebases pagination after deletions, and discards stale load results via generation counters.
-  3. Playback actions on a row go through `AudioPlaybackCapabilityAdapter`; deleting the currently-playing track follows `AudioDeletePlaybackPolicy`.
+  3. Playback actions on a row call `PlaybackProviding` directly; deleting the currently-playing track follows `AudioDeletePlaybackPolicy`.
   4. The settings page uses its own independent `AudioListViewModel`/`AudioTreeViewModel` so its on-appear reload does not flash the main content view. A weak `SceneBox` guards all scene-gated contributions.
-- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, `ProviderDocsView`, `ProviderPlayback`, `ProviderAudioLibrary`, `ProviderScene`, `ProviderStorage`. Resources: `Localizable.xcstrings`.
+- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderPlayback`, `ProviderAudioLibrary`, `ProviderScene`, `ProviderStorage`. Resources: `Localizable.xcstrings`.
 
 ## Testing Logic
 

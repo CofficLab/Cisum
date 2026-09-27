@@ -1,5 +1,6 @@
 import Foundation
 import MagicKit
+import ProviderToast
 
 enum AudioRootError: Error, Equatable {
     case storageMissing
@@ -21,9 +22,11 @@ final class AudioRootViewModel: ObservableObject, SuperLog {
 
     private var initGeneration = 0
     private let hasStorageLocation: @MainActor () -> Bool
+    private let toastProvider: (any ToastProviding)?
 
-    init(hasStorageLocation: @escaping @MainActor () -> Bool) {
+    init(hasStorageLocation: @escaping @MainActor () -> Bool, toastProvider: (any ToastProviding)? = nil) {
         self.hasStorageLocation = hasStorageLocation
+        self.toastProvider = toastProvider
     }
 
     /// 重建容器。代际（generation）保护保证旧任务结果不会覆盖新状态。
@@ -45,5 +48,6 @@ final class AudioRootViewModel: ObservableObject, SuperLog {
     /// 存储位置变化：产生新信号供 View 弹 toast。
     func handleStorageLocationChanged() {
         storageLocationDidChangeNotice = UUID()
+        toastProvider?.info(String(localized: "Storage location has changed", bundle: .module))
     }
 }

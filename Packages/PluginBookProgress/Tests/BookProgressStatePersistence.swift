@@ -30,6 +30,5 @@ enum BookProgressStatePersistence {
         }
 
         try context.save()
-        NotificationCenter.postBookStateUpdated(bookURL: bookURL)
     }
 }

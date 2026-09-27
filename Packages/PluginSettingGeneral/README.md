@@ -16,7 +16,7 @@ The "General" settings plugin. It contributes the first settings entry (order 1)
   1. On boot, the plugin reads all manual entries from the `DocsViewProviding` provider.
   2. The settings page shows app info and a "Browse the manuals" row that opens `ManualsBrowserView`.
   3. Selecting a manual in the sidebar renders that plugin's manual view in the detail pane.
-- **Dependencies:** `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, `ProviderDocsView`. Platforms: macOS 14+, iOS 17+. Resources: `Resources`.
+- **Dependencies:** `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`. Platforms: macOS 14+, iOS 17+. Resources: `Resources`.
 
 ## Testing Logic
 

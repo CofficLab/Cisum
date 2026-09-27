@@ -1,5 +1,4 @@
 import FactoryCisum
-import PluginStore
 import SwiftUI
 
 /// 宿主在编译期确定的内核组装配置。
@@ -25,7 +24,6 @@ struct CisumApp: App {
         #if os(macOS)
         UserDefaults.standard.set(true, forKey: "ApplePersistenceIgnoreState")
         #endif
-        StoreService.bootstrap()
     }
 
     var body: some Scene {

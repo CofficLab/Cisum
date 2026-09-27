@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 /// 有声书场景的播放控制按钮组。

@@ -1,7 +1,10 @@
 import ProviderDocsView
 import ProviderTheme
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import SwiftUI
 import MagicKit
 
@@ -52,7 +55,7 @@ public final class ThemeSettingsPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(view) }
+            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
         }
         installSettingsState(kernel: kernel)
     }
@@ -78,7 +81,7 @@ public final class ThemeSettingsPlugin: AsyncSuperPlugin, SuperLog {
         // View 贡献可能在插件启动前被请求：保证返回一个稳定、长期存在的
         // ViewModel，而不是每次请求都重新创建。
         let viewModel = settingsViewModel ?? {
-            let viewModel = ThemeSettingsViewModel(capability: nil)
+            let viewModel = ThemeSettingsViewModel(themeProvider: nil)
             settingsViewModel = viewModel
             return viewModel
         }()
@@ -96,13 +99,12 @@ public final class ThemeSettingsPlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     private func installSettingsState(kernel: KernelCoreContainer) {
-        guard settingsViewModel == nil else { return }
         guard let theme = kernel.resolveProvider((any ThemeProviding).self) else { return }
-        let viewModel = ThemeSettingsViewModel(
-            capability: ThemeSettingsCapabilityAdapter(theme: theme)
-        )
-        let observer = ThemeProvidingObserver(provider: theme, viewModel: viewModel)
+        let viewModel = settingsViewModel ?? ThemeSettingsViewModel(themeProvider: theme)
+        viewModel.updateThemeProvider(theme)
         settingsViewModel = viewModel
+        guard settingsObserver == nil else { return }
+        let observer = ThemeProvidingObserver(provider: theme, viewModel: viewModel)
         settingsObserver = observer
     }
 

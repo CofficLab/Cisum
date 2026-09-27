@@ -16,7 +16,7 @@ Paper is a warm, light "book" theme styled after paper and ink. It uses a warm o
   - Atmosphere — deep `#F4F0E8`/`#141210`, medium `#FFFCF6`/`#211E1A`, light `#E9E1D4`/`#312B25` (warm paper-tinted).
   - Workspace text is warm-tinted rather than neutral: `#231F1A`/`#F7F0E6`, secondary `#5E554B`/`#C7B9A7`, tertiary `#8B8175`/`#9E9184`.
   - Background: vertical linear gradient over the atmosphere colors plus a top-**leading** radial glow in the primary sepia accent (~8% opacity).
-- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
+- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
 
 ## Testing Logic
 

@@ -12,8 +12,10 @@ let package = Package(
         .library(name: "PluginToast", targets: ["PluginToast"]),
     ],
     dependencies: [
-        .package(path: "../MagicKit"),
-        .package(path: "../CisumKernelSupport"),
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", revision: "7031fda7ff72492d574ef9a4b5d9ffdc801a6660"),
+        .package(path: "../KitAppEvents"),
+        .package(path: "../ProviderPlugin"),
         .package(path: "../ProviderRootView"),
         .package(path: "../ProviderToast"),
     ],
@@ -21,8 +23,10 @@ let package = Package(
         .target(
             name: "PluginToast",
             dependencies: [
-                .product(name: "MagicKit", package: "MagicKit"),
-                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderRootView", package: "ProviderRootView"),
                 .product(name: "ProviderToast", package: "ProviderToast"),
             ],
@@ -35,7 +39,9 @@ let package = Package(
             name: "PluginToastTests",
             dependencies: [
                 "PluginToast",
-                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderRootView", package: "ProviderRootView"),
                 .product(name: "ProviderToast", package: "ProviderToast"),
             ],

@@ -1,6 +1,9 @@
 import Combine
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import SwiftUI
 import Testing
 @testable import ProviderSettings

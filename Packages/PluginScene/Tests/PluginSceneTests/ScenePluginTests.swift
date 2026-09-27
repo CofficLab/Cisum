@@ -1,6 +1,8 @@
 import ProviderScene
 import Foundation
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 @testable import PluginScene
 import Testing
 
@@ -16,7 +18,7 @@ private final class SceneDependentProbePlugin: SuperPlugin {
 
     func onBootAsync(kernel: KernelCoreContainer) async throws {
         guard kernel.resolveProvider((any SceneProviding).self) != nil else {
-            throw CisumKernelError.serviceNotAvailable(service: "SceneProviding")
+            throw KernelCoreError.providerNotFound(type: (any SceneProviding).self)
         }
     }
 }
@@ -33,6 +35,21 @@ struct ScenePluginTests {
 
         try await plugin.onShutdownAsync(kernel: kernel)
         #expect(kernel.resolveProvider((any SceneProviding).self) == nil)
+    }
+
+    @Test
+    func contributesSceneSwitcherAfterBootDependenciesAreReady() async throws {
+        let kernel = KernelCoreContainer()
+        let pluginProvider = PluginContributionService(kernel: kernel)
+        let plugin = ScenePlugin()
+        try kernel.registerProvider((any PluginProviding).self, pluginProvider)
+        try kernel.registerProvider((any PluginContributionProviding).self, pluginProvider)
+
+        try await kernel.startAsync(plugins: [plugin])
+
+        #expect(kernel.resolveProvider((any SceneProviding).self)?.scenes == [.music, .audiobooks])
+        #expect(pluginProvider.getToolBarButtons().map(\.id) == ["scene-switcher"])
+        #expect(plugin.settingsViewModel?.currentScene == .music)
     }
 
     @Test
@@ -152,7 +169,7 @@ struct ScenePluginTests {
         service.setCurrentScene(.audiobooks)
 
         let viewModel = SceneSettingsViewModel(
-            capability: SceneSettingsCapabilityAdapter(scene: service)
+            sceneProvider: service
         )
         let observer = SceneProvidingObserver(provider: service, viewModel: viewModel)
         defer { observer.cancel() }
@@ -174,7 +191,7 @@ struct ScenePluginTests {
         service.restoreCurrentScene()
 
         let viewModel = SceneSettingsViewModel(
-            capability: SceneSettingsCapabilityAdapter(scene: service)
+            sceneProvider: service
         )
         let observer = SceneProvidingObserver(provider: service, viewModel: viewModel)
         defer { observer.cancel() }
@@ -195,7 +212,7 @@ struct ScenePluginTests {
         service.restoreCurrentScene()
 
         let viewModel = SceneSettingsViewModel(
-            capability: SceneSettingsCapabilityAdapter(scene: service)
+            sceneProvider: service
         )
         let observer = SceneProvidingObserver(provider: service, viewModel: viewModel)
 

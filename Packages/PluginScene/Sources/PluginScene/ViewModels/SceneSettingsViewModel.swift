@@ -7,22 +7,26 @@ import MagicKit
 final class SceneSettingsViewModel: ObservableObject, SuperLog {
     nonisolated static let verbose = false
 
-    @Published private(set) var scenes: [AppScene] = []
-    @Published private(set) var currentScene: AppScene?
+    @Published private(set) var revision = 0
 
-    private let capability: (any SceneSettingsCapability)?
+    private weak var sceneProvider: (any SceneProviding)?
+    private var currentScenes: [AppScene] = []
+    private var selectedScene: AppScene?
 
-    init(capability: (any SceneSettingsCapability)?) {
-        self.capability = capability
+    init(sceneProvider: (any SceneProviding)?) {
+        self.sceneProvider = sceneProvider
         refresh()
     }
+
+    var scenes: [AppScene] { sceneProvider == nil ? [] : currentScenes }
+    var currentScene: AppScene? { sceneProvider == nil ? nil : selectedScene }
 
     var currentSceneIconName: String {
         currentScene?.iconName ?? "rectangle.3.group"
     }
 
     func select(_ target: AppScene) {
-        capability?.setCurrentScene(target)
+        sceneProvider?.setCurrentScene(target)
         refresh()
     }
 
@@ -31,7 +35,8 @@ final class SceneSettingsViewModel: ObservableObject, SuperLog {
     }
 
     private func refresh() {
-        scenes = capability?.scenes ?? []
-        currentScene = capability?.currentScene
+        currentScenes = sceneProvider?.scenes ?? []
+        selectedScene = sceneProvider?.currentScene
+        revision &+= 1
     }
 }

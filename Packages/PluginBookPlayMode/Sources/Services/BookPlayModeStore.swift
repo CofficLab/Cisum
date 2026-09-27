@@ -1,5 +1,8 @@
+import MagicKit
 import Foundation
+import ProviderPlayback
 import CisumUIComponents
+import LumiUI
 import MagicPlayMan
 import OSLog
 
@@ -14,7 +17,7 @@ public actor BookPlayModeStore: SuperLog {
 
     private init() {}
 
-    public func getPlayMode() -> MagicPlayMode {
+    public func getPlayMode() -> PlaybackMode {
         let mode = Self.resolvedPlayMode(
             localRawValue: UserDefaults.standard.string(forKey: Self.playModeKey),
             cloudRawValue: NSUbiquitousKeyValueStore.default.string(forKey: Self.playModeKey)
@@ -23,19 +26,19 @@ public actor BookPlayModeStore: SuperLog {
         return mode
     }
 
-    static func resolvedPlayMode(localRawValue: String?, cloudRawValue: String?) -> MagicPlayMode {
-        if let localRawValue, let playMode = MagicPlayMode(rawValue: localRawValue) {
+    static func resolvedPlayMode(localRawValue: String?, cloudRawValue: String?) -> PlaybackMode {
+        if let localRawValue, let playMode = PlaybackMode(rawValue: localRawValue) {
             return playMode
         }
 
-        if let cloudRawValue, let playMode = MagicPlayMode(rawValue: cloudRawValue) {
+        if let cloudRawValue, let playMode = PlaybackMode(rawValue: cloudRawValue) {
             return playMode
         }
 
         return .sequence
     }
 
-    public func storePlayMode(_ mode: MagicPlayMode) {
+    public func storePlayMode(_ mode: PlaybackMode) {
         UserDefaults.standard.set(mode.rawValue, forKey: Self.playModeKey)
         NSUbiquitousKeyValueStore.default.set(mode.rawValue, forKey: Self.playModeKey)
         NSUbiquitousKeyValueStore.default.synchronize()

@@ -1,10 +1,13 @@
+import MagicKit
 import CisumUIComponents
+import LumiUI
 import Foundation
 import OSLog
 import SwiftData
 import SwiftUI
 import UniformTypeIdentifiers
 import ProviderAudioLibrary
+import ProviderToast
 
 // NSItemProvider is thread-safe by design but not yet marked Sendable by Apple.
 extension NSItemProvider: @retroactive @unchecked Sendable {}
@@ -15,6 +18,7 @@ public struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
     public nonisolated static let verbose = false
 
     @ObservedObject private var dbViewModel: AudioDBViewModel
+    @Environment(\.toastProviding) private var toastProvider
     private let listViewModel: AudioListViewModel
     private let dependencies: AudioDBDependencies
     @LumiTheme private var appTheme
@@ -333,7 +337,7 @@ extension AudioDBView {
         }
 
         guard Self.shouldStartImport(isImporting: isImportingFiles) else {
-            alert_warning(String(localized: "Import is already in progress", bundle: .module))
+            toastProvider?.warning(String(localized: "Import is already in progress", bundle: .module))
             return
         }
 
@@ -348,16 +352,16 @@ extension AudioDBView {
         )
 
         guard !importableURLs.isEmpty else {
-            alert_error(String(localized: "No files were added", bundle: .module))
+            toastProvider?.error(String(localized: "No files were added", bundle: .module))
             return
         }
 
         if importableURLs.count < urls.count {
-            alert_warning(String(localized: "Some files were skipped because they are not supported audio files", bundle: .module))
+            toastProvider?.warning(String(localized: "Some files were skipped because they are not supported audio files", bundle: .module))
         }
 
         guard let storageRoot = await fetchStorageRoot() else {
-            alert_error(String(localized: "Storage location is unavailable", bundle: .module))
+            toastProvider?.error(String(localized: "Storage location is unavailable", bundle: .module))
             return
         }
 
@@ -365,14 +369,14 @@ extension AudioDBView {
             let copiedURLs = try await copyFiles(importableURLs, to: storageRoot)
             guard let library = dependencies.audioLibrary() else {
                 Self.cleanUpCopiedFiles(copiedURLs)
-                alert_error(String(localized: "Import failed: audio repository is unavailable", bundle: .module))
+                toastProvider?.error(String(localized: "Import failed: audio repository is unavailable", bundle: .module))
                 return
             }
 
             await library.sync(urls: copiedURLs, verbose: false, isFirst: false)
         } catch {
             os_log(.error, "\(self.t)❌ Failed to copy files: \(error.localizedDescription)")
-            alert_error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))
+            toastProvider?.error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))
         }
     }
 }
@@ -394,7 +398,7 @@ extension AudioDBView {
 
             case let .failure(error):
                 os_log(.error, "\(self.t)❌ File import failed: \(error.localizedDescription)")
-                alert_error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))
+                toastProvider?.error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))
             }
         }
     }
@@ -413,10 +417,10 @@ extension AudioDBView {
                 if Self.shouldReportDroppedURLLoadFailure(droppedFiles.urls, errors: droppedFiles.errors),
                    let error = droppedFiles.errors.first {
                     os_log(.error, "\(self.t)⚠️ Failed to load dropped file: \(error.localizedDescription)")
-                    alert_error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))
+                    toastProvider?.error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))
                 } else if Self.shouldReportPartialDroppedURLLoadFailure(droppedFiles.urls, errors: droppedFiles.errors) {
                     os_log(.error, "\(self.t)⚠️ Some dropped files failed to load")
-                    alert_warning(String(localized: "Some dropped files could not be loaded", bundle: .module))
+                    toastProvider?.warning(String(localized: "Some dropped files could not be loaded", bundle: .module))
                 }
 
                 guard Self.shouldImportDroppedURLs(droppedFiles.urls, after: droppedFiles.errors) else {

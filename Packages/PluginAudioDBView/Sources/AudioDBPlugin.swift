@@ -4,7 +4,10 @@ import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
 import ProviderStorage
-import CisumKernelSupport
+import ProviderToast
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import SwiftUI
 import MagicKit
 import OSLog
@@ -51,8 +54,8 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            contrib.addTabView { reason, demoMode in self.addTabView(reason: reason, demoMode: demoMode) }
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(view) }
+            contrib.addTabView(ownerPluginID: id) { reason, demoMode in self.addTabView(reason: reason, demoMode: demoMode) }
+            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
         }
         self.kernel = kernel
         // 跨插件 Provider（Scene / Playback）一律在 onReady 中解析，不假设其他插件
@@ -150,7 +153,8 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
         let playback = kernel?.resolveProvider((any PlaybackProviding).self)
         let settingList = AudioListViewModel(
             audioLibrary: audioLibraryProvider,
-            playbackCapability: makePlaybackCapability(from: playback)
+            playbackProvider: playback,
+            toastProvider: kernel?.resolveProvider((any ToastProviding).self)
         )
         let settingTree = AudioTreeViewModel(disk: audioDiskProvider)
         settingPlaybackObserver = AudioDBPlaybackObserver(playback: playback, viewModel: settingList)
@@ -223,15 +227,6 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
 
     // MARK: - State assembly
 
-    /// 将内核能力收窄后注入 ViewModel；ViewModel 不持有 Kernel。
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any AudioPlaybackCapability)? {
-        guard let playback else { return nil }
-        return AudioPlaybackCapabilityAdapter(playback: playback)
-    }
-
     /// 创建并持有音频数据库的 ViewModel 与数据库观察者（幂等）。
     @MainActor
     private func installState(kernel: KernelCoreContainer) {
@@ -246,7 +241,8 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
         guard let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
         let list = AudioListViewModel(
             audioLibrary: audioLibraryProvider,
-            playbackCapability: makePlaybackCapability(from: playback)
+            playbackProvider: playback,
+            toastProvider: kernel.resolveProvider((any ToastProviding).self)
         )
         let root = AudioDBRootViewModel(
             audioLibrary: audioLibraryProvider,
@@ -295,7 +291,8 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
         }
         let list = AudioListViewModel(
             audioLibrary: audioLibraryProvider,
-            playbackCapability: makePlaybackCapability(from: kernel?.resolveProvider((any PlaybackProviding).self))
+            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
+            toastProvider: kernel?.resolveProvider((any ToastProviding).self)
         )
         let root = AudioDBRootViewModel(audioLibrary: audioLibraryProvider, showDBView: {})
         let db = AudioDBViewModel()

@@ -1,5 +1,7 @@
+import MagicKit
 import Foundation
 import CisumUIComponents
+import LumiUI
 import OSLog
 import SwiftData
 import SwiftUI
@@ -9,7 +11,7 @@ import ProviderAudioLibrary
 /// 实现了 ModelActor 协议以支持 SwiftData 操作
 /// 实现了 ObservableObject 协议以支持 SwiftUI 绑定
 /// 实现了 SuperLog, SuperEvent, SuperThread 协议以支持日志记录、事件发送和线程管理
-actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
+actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperThread {
     /// 用于日志输出的表情符号
     static let emoji = "📦"
     static let verbose = false
@@ -28,6 +30,7 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     let modelExecutor: any ModelExecutor
     /// 模型上下文，用于管理持久化存储
     let context: ModelContext
+    private let eventHandler: @Sendable (AudioLibraryProvidingEvent) async -> Void
     /// 用于数据库操作的串行队列
     let queue = DispatchQueue(label: "DB")
 
@@ -36,13 +39,18 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     ///   - container: SwiftData 模型容器
     ///   - reason: 初始化原因，用于日志记录
     ///   - verbose: 是否输出详细日志
-    init(_ container: ModelContainer, reason: String) {
+    init(
+        _ container: ModelContainer,
+        reason: String,
+        eventHandler: @escaping @Sendable (AudioLibraryProvidingEvent) async -> Void = { _ in }
+    ) {
         self.modelContainer = container
         self.context = ModelContext(container)
         self.context.autosaveEnabled = false
         self.modelExecutor = DefaultSerialModelExecutor(
             modelContext: self.context
         )
+        self.eventHandler = eventHandler
 
         if Self.verbose {
             os_log("\(Self.i) with reason: \(reason)")
@@ -243,13 +251,13 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     ///   - url: 音频 URL
     ///   - verbose: 是否输出详细日志
     /// - Throws: 如果删除操作失败则抛出错误
-    func deleteAudio(url: URL, verbose: Bool = false) throws {
+    func deleteAudio(url: URL, verbose: Bool = false) async throws {
         if verbose {
             os_log("\(self.t)🚛 DeleteAudio \(url) 🐛")
         }
 
         if let audio = findAudio(url) {
-            try deleteAudio(id: audio.id, verbose: verbose)
+            try await deleteAudio(id: audio.id, verbose: verbose)
         }
     }
 
@@ -258,12 +266,12 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     ///   - audio: 要删除的音频模型
     ///   - verbose: 是否输出详细日志
     /// - Throws: 如果删除操作失败则抛出错误
-    func deleteAudio(_ audio: AudioModel, verbose: Bool = false) throws {
+    func deleteAudio(_ audio: AudioModel, verbose: Bool = false) async throws {
         if verbose {
             os_log("\(self.t)🚛 DeleteAudio \(audio.url) 🐛")
         }
 
-        try deleteAudio(id: audio.id, verbose: verbose)
+        try await deleteAudio(id: audio.id, verbose: verbose)
     }
 
     /// 删除多个音频模型
@@ -272,20 +280,20 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     ///   - verbose: 是否输出详细日志
     /// - Returns: 删除后的下一个音频模型
     /// - Throws: 如果删除操作失败则抛出错误
-    func deleteAudios(_ audios: [AudioModel], verbose: Bool = false) throws -> AudioModel? {
+    func deleteAudios(_ audios: [AudioModel], verbose: Bool = false) async throws -> AudioModel? {
         if verbose {
             os_log("\(self.t)🚛 DeleteAudios \(audios.count) 🐛")
         }
 
-        return try deleteAudios(ids: audios.map { $0.id }, verbose: verbose)
+        return try await deleteAudios(ids: audios.map { $0.id }, verbose: verbose)
     }
 
     /// 删除多个音频模型
     /// - Parameter ids: 要删除的音频模型 ID 数组
     /// - Returns: 删除后的下一个音频模型
     /// - Throws: 如果删除操作失败则抛出错误
-    func deleteAudios(_ ids: [AudioModel.ID]) throws -> AudioModel? {
-        try deleteAudios(ids: ids)
+    func deleteAudios(_ ids: [AudioModel.ID]) async throws -> AudioModel? {
+        try await deleteAudios(ids: ids)
     }
 
     /// 删除多个 URL 对应的音频
@@ -293,13 +301,13 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     ///   - urls: 要删除的音频 URL 数组
     ///   - verbose: 是否输出详细日志
     /// - Throws: 如果删除操作失败则抛出错误
-    func deleteAudios(_ urls: [URL], verbose: Bool = false) throws {
+    func deleteAudios(_ urls: [URL], verbose: Bool = false) async throws {
         if verbose {
             os_log("\(self.t)🚛 DeleteAudios \(urls.count)")
         }
 
         for url in urls {
-            try deleteAudio(url: url, verbose: verbose)
+            try await deleteAudio(url: url, verbose: verbose)
         }
     }
 
@@ -393,28 +401,24 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
 
     /// 发送排序完成事件
     /// - Parameter verbose: 是否输出详细日志
-    func emitSortDone(verbose: Bool = false) {
+    func emitSortDone(verbose: Bool = false) async {
         if verbose {
             os_log("\(self.t)🚀🚀🚀 EmitSortDone")
         }
 
-        self.main.async {
-            self.emit(name: .DBSortDone, object: nil)
-        }
+        await eventHandler(.sortCompleted)
     }
 
     /// 发送正在排序事件
     /// - Parameters:
     ///   - mode: 排序模式
     ///   - verbose: 是否输出详细日志
-    func emitSorting(_ mode: String, verbose: Bool = false) {
+    func emitSorting(_ mode: String, verbose: Bool = false) async {
         if verbose {
             os_log("\(self.t)🚀🚀🚀 EmitSorting")
         }
 
-        self.main.async {
-            self.emit(name: .DBSorting, object: nil, userInfo: ["mode": mode])
-        }
+        await eventHandler(.sorting)
     }
 
     /// 根据 ID 查找音频模型
@@ -735,12 +739,12 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     ///   - sticky: 要置顶的音频模型，如果为 nil 则不置顶任何音频
     ///   - reason: 排序原因，用于日志记录
     /// - Note: 排序会将置顶音频的顺序设为 0，其他音频从 100 开始递增
-    func sort(_ sticky: AudioModel?, reason: String) {
+    func sort(_ sticky: AudioModel?, reason: String) async {
         if AudioDB.verbose {
             os_log("\(self.t)Sort with reason: \(reason)")
         }
 
-        emitSorting("order")
+        await emitSorting("order")
 
         // 前100留给特殊用途
         var offset = 100
@@ -758,10 +762,10 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
             })
 
             try context.save()
-            emitSortDone()
+            await emitSortDone()
         } catch let e {
             os_log(.error, "\(e.localizedDescription)")
-            emitSortDone()
+            await emitSortDone()
         }
     }
 
@@ -769,11 +773,11 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     /// - Parameters:
     ///   - url: 要置顶的音频 URL，如果为 nil 则不置顶任何音频
     ///   - reason: 排序原因，用于日志记录
-    func sort(_ url: URL?, reason: String) {
+    func sort(_ url: URL?, reason: String) async {
         if let url = url {
-            sort(findAudio(url), reason: reason)
+            await sort(findAudio(url), reason: reason)
         } else {
-            sort(nil as AudioModel?, reason: reason)
+            await sort(nil as AudioModel?, reason: reason)
         }
     }
 
@@ -783,12 +787,12 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     ///   - reason: 排序原因，用于日志记录
     ///   - verbose: 是否输出详细日志
     /// - Throws: 如果排序操作失败则抛出错误
-    func sortRandom(_ sticky: AudioModel?, reason: String, verbose: Bool) throws {
+    func sortRandom(_ sticky: AudioModel?, reason: String, verbose: Bool) async throws {
         if verbose {
             os_log("\(self.t)🐳🐳🐳 SortRandom with sticky: \(sticky?.title ?? "nil") 🐛 \(reason)")
         }
 
-        emitSorting("random")
+        await emitSorting("random")
 
         try context.enumerate(FetchDescriptor<AudioModel>(), block: {
             if $0 == sticky {
@@ -800,7 +804,7 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
 
         try context.save()
 
-        emitSortDone()
+        await emitSortDone()
     }
 
     /// 随机排序音频，并可选择将特定 URL 的音频置顶
@@ -809,11 +813,11 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     ///   - reason: 排序原因，用于日志记录
     ///   - verbose: 是否输出详细日志
     /// - Throws: 如果排序操作失败则抛出错误
-    func sortRandom(_ url: URL?, reason: String, verbose: Bool) throws {
+    func sortRandom(_ url: URL?, reason: String, verbose: Bool) async throws {
         if let url = url {
-            try sortRandom(findAudio(url), reason: reason, verbose: verbose)
+            try await sortRandom(findAudio(url), reason: reason, verbose: verbose)
         } else {
-            try sortRandom(nil as AudioModel?, reason: reason, verbose: verbose)
+            try await sortRandom(nil as AudioModel?, reason: reason, verbose: verbose)
         }
     }
 
@@ -854,7 +858,8 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     ///   - items: 音频 URL 列表
     ///   - verbose: 是否输出详细日志
     /// - Note: 此方法会更新已存在的音频，删除不在列表中的音频，并添加新的音频
-    func initItems(_ items: [URL], verbose: Bool = false) {
+    func initItems(_ items: [URL], verbose: Bool = false) async {
+        await eventHandler(.syncing)
         let startTime: DispatchTime = .now()
 
         // 将数组转换成哈希表，方便通过键来快速查找元素，这样可以将时间复杂度降低到：O(m+n)
@@ -893,7 +898,7 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
             os_log("\(self.jobEnd(startTime, title: "\(self.t)✅ Sync(\(items.count))", tolerance: 0.01))")
         }
 
-        NotificationCenter.postDBSynced()
+        await eventHandler(.synced(totalCount: getTotalOfAudio()))
     }
 
     /// 同步更新的音频项目
@@ -901,7 +906,8 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     ///   - metas: 更新的音频 URL 列表
     ///   - verbose: 是否输出详细日志
     /// - Note: 此方法会删除不存在的音频，并添加新的音频，但不会更新已存在的音频
-    func syncWithUpdatedItems(_ metas: [URL], verbose: Bool = false) {
+    func syncWithUpdatedItems(_ metas: [URL], verbose: Bool = false) async {
+        await eventHandler(.syncing)
         let startTime: DispatchTime = .now()
 
         // 如果url属性为unique，数据库已存在相同url的记录，再执行context.insert，发现已存在的被替换成新的了
@@ -933,7 +939,7 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
             os_log("\(self.jobEnd(startTime, title: "\(self.t)✅ SyncWithUpdatedItems(\(metas.count))", tolerance: 0.01))")
         }
 
-        NotificationCenter.postDBUpdated()
+        await eventHandler(.updated(totalCount: getTotalOfAudio()))
     }
 
     private func nextAppendOrder() -> Int {
@@ -1101,8 +1107,8 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     /// - Returns: 删除后的下一个音频模型
     /// - Throws: 如果删除操作失败则抛出错误
     @discardableResult
-    func deleteAudio(id: AudioModel.ID, verbose: Bool = false) throws -> AudioModel? {
-        return try deleteAudios(ids: [id], verbose: verbose)
+    func deleteAudio(id: AudioModel.ID, verbose: Bool = false) async throws -> AudioModel? {
+        return try await deleteAudios(ids: [id], verbose: verbose)
     }
 
     /// 删除多个 ID 的音频
@@ -1112,7 +1118,7 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     /// - Returns: 删除后的下一个音频模型
     /// - Throws: 如果删除操作失败则抛出错误
     @discardableResult
-    func deleteAudios(ids: [AudioModel.ID], verbose: Bool = false) throws -> AudioModel? {
+    func deleteAudios(ids: [AudioModel.ID], verbose: Bool = false) async throws -> AudioModel? {
         if verbose {
             os_log("\(self.t)🗑️ 数据库删除")
         }
@@ -1154,7 +1160,7 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
         }
 
         // 发送删除完成通知，让 UI 知道需要刷新
-        emitDeleted(urls: deletedUrls)
+        await emitDeleted(urls: deletedUrls, verbose: verbose)
 
         return next
     }
@@ -1163,14 +1169,12 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     /// - Parameters:
     ///   - urls: 被删除的音频 URL 列表
     ///   - verbose: 是否输出详细日志
-    func emitDeleted(urls: [URL], verbose: Bool = false) {
+    func emitDeleted(urls: [URL], verbose: Bool = false) async {
         if verbose {
             os_log("\(self.t)🚀🚀🚀 EmitDeleted: \(urls.count) URLs")
         }
 
-        self.main.async {
-            self.emit(name: .dbDeleted, object: nil, userInfo: ["urls": urls])
-        }
+        await eventHandler(.deleted(urls: urls, totalCount: getTotalOfAudio()))
     }
 
     /// 通过 URL 删除音频，同时从磁盘和数据库中删除
@@ -1178,7 +1182,7 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
     ///   - disk: 磁盘 URL
     ///   - urls: 要删除的音频 URL 数组
     /// - Throws: 如果删除操作失败则抛出错误
-    func deleteAudiosByURL(disk: URL, urls: [URL], verbose: Bool = false) throws {
+    func deleteAudiosByURL(disk: URL, urls: [URL], verbose: Bool = false) async throws {
         if let invalidURL = urls.first(where: { !Self.contains(disk, audioURL: $0) }) {
             throw AudioRecordDBError.deleteFailed(
                 AudioPluginError.diskAccess(
@@ -1209,14 +1213,14 @@ actor AudioDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
             } catch let e {
                 os_log(.error, "\(self.t)删除出错 \(e)")
                 if !deletedUrls.isEmpty {
-                    emitDeleted(urls: deletedUrls, verbose: verbose)
+                    await emitDeleted(urls: deletedUrls, verbose: verbose)
                 }
                 throw e
             }
         }
 
         if !deletedUrls.isEmpty {
-            emitDeleted(urls: deletedUrls, verbose: verbose)
+            await emitDeleted(urls: deletedUrls, verbose: verbose)
         }
     }
 

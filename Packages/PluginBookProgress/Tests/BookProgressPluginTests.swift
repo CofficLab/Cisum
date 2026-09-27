@@ -662,20 +662,40 @@ import Testing
 // MARK: - ViewModel 集成
 
 @MainActor
-private final class BookProgressPlaybackProbe: BookProgressPlaybackCapability {
-    var currentAsset: URL?
+private final class BookProgressPlaybackProbe: PlaybackProviding {
+    var currentURL: URL?
     var state: PlaybackStatus = .idle
     var currentTime: TimeInterval = 0
-    var played: [(url: URL, startTime: TimeInterval)] = []
+    var duration: TimeInterval = 0
+    var progress: Double = 0
+    var playMode: PlaybackMode = .sequence
+    var likedAssets: Set<URL> = []
+    var isPlaying: Bool { state.isPlaying }
+    var hasAsset: Bool { currentURL != nil }
+    var played: [(url: URL, startTime: TimeInterval?)] = []
     var seeks: [TimeInterval] = []
 
-    func play(_ url: URL, autoPlay: Bool, startTime: TimeInterval, reason: String) async {
+    func play(_ url: URL) async {
+        currentURL = url
+        played.append((url, 0))
+    }
+
+    func play(_ url: URL, startTime: TimeInterval?) async {
+        currentURL = url
         played.append((url, startTime))
     }
 
-    func seek(to time: TimeInterval) {
+    func pause() {}
+    func toggle() {}
+    func seek(toProgress progress: Double) {}
+    func seek(toTime time: TimeInterval) {
         seeks.append(time)
     }
+    func next() {}
+    func previous() {}
+    func setPlayMode(_ mode: PlaybackMode) { playMode = mode }
+    func toggleCurrentLike() {}
+    func togglePlayMode() {}
 }
 
 @MainActor
@@ -693,7 +713,7 @@ struct BookProgressViewModelTests {
         let playback = BookProgressPlaybackProbe()
         let viewModel = BookProgressViewModel(
             targetScene: .audiobooks,
-            playbackCapability: playback,
+            playbackProvider: playback,
             currentBookURL: { book },
             currentBookTime: { 42 },
             storeCurrentBookURL: { _ in },
@@ -722,10 +742,10 @@ struct BookProgressViewModelTests {
         try Data("audio".utf8).write(to: chapter)
 
         let playback = BookProgressPlaybackProbe()
-        playback.currentAsset = book
+        playback.currentURL = book
         let viewModel = BookProgressViewModel(
             targetScene: .audiobooks,
-            playbackCapability: playback,
+            playbackProvider: playback,
             currentBookURL: { book },
             currentBookTime: { 30 },
             storeCurrentBookURL: { _ in },
@@ -755,12 +775,12 @@ struct BookProgressViewModelTests {
         var storedTime: TimeInterval?
         var savedStates: [(URL, URL, TimeInterval?)] = []
         let playback = BookProgressPlaybackProbe()
-        playback.currentAsset = chapter
+        playback.currentURL = chapter
         playback.state = .paused
         playback.currentTime = 15
         let viewModel = BookProgressViewModel(
             targetScene: .audiobooks,
-            playbackCapability: playback,
+            playbackProvider: playback,
             currentBookURL: { book },
             currentBookTime: { storedTime },
             storeCurrentBookURL: { _ in },
@@ -785,7 +805,7 @@ struct BookProgressViewModelTests {
         let playback = BookProgressPlaybackProbe()
         let viewModel = BookProgressViewModel(
             targetScene: .audiobooks,
-            playbackCapability: playback,
+            playbackProvider: playback,
             currentBookURL: { storedURL },
             currentBookTime: { storedTime },
             storeCurrentBookURL: { storedURL = $0 },

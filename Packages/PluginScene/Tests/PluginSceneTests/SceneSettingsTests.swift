@@ -5,7 +5,7 @@ import Testing
 
 // MARK: - 场景探针
 
-/// 最小场景 Provider 探针，用于驱动 ViewModel / Capability 适配器。
+/// 最小场景 Provider 探针，用于驱动 ViewModel。
 @MainActor
 private final class SceneProbe: ProviderScene.SceneProviding {
     var scenes: [ProviderScene.AppScene] = [.music, .audiobooks]
@@ -41,9 +41,9 @@ private final class NoopSceneProvidingObserverHandle: SceneProvidingObserverHand
 @MainActor
 struct SceneSettingsViewModelTests {
     @Test
-    func initLoadsScenesAndCurrentFromCapability() {
+    func initLoadsScenesAndCurrentFromProvider() {
         let probe = SceneProbe(current: .audiobooks)
-        let viewModel = SceneSettingsViewModel(capability: SceneSettingsCapabilityAdapter(scene: probe))
+        let viewModel = SceneSettingsViewModel(sceneProvider: probe)
 
         #expect(viewModel.scenes == [.music, .audiobooks])
         #expect(viewModel.currentScene == .audiobooks)
@@ -51,17 +51,17 @@ struct SceneSettingsViewModelTests {
     }
 
     @Test
-    func initWithoutCapabilityFallsBackToEmpty() {
-        let viewModel = SceneSettingsViewModel(capability: nil)
+    func initWithoutProviderFallsBackToEmpty() {
+        let viewModel = SceneSettingsViewModel(sceneProvider: nil)
         #expect(viewModel.scenes.isEmpty)
         #expect(viewModel.currentScene == nil)
         #expect(viewModel.currentSceneIconName == "rectangle.3.group")
     }
 
     @Test
-    func selectDelegatesToCapabilityAndRefreshes() {
+    func selectDelegatesToProviderAndRefreshes() {
         let probe = SceneProbe(current: .music)
-        let viewModel = SceneSettingsViewModel(capability: SceneSettingsCapabilityAdapter(scene: probe))
+        let viewModel = SceneSettingsViewModel(sceneProvider: probe)
 
         viewModel.select(.audiobooks)
 
@@ -73,7 +73,7 @@ struct SceneSettingsViewModelTests {
     @Test
     func handleProviderChangedRefreshesState() {
         let probe = SceneProbe(current: .music)
-        let viewModel = SceneSettingsViewModel(capability: SceneSettingsCapabilityAdapter(scene: probe))
+        let viewModel = SceneSettingsViewModel(sceneProvider: probe)
 
         // 外部直接改 Provider 状态，再通知 ViewModel 刷新。
         probe.setCurrentScene(.audiobooks)
@@ -83,31 +83,25 @@ struct SceneSettingsViewModelTests {
     }
 
     @Test
-    func selectWithoutCapabilityIsNoOp() {
-        let viewModel = SceneSettingsViewModel(capability: nil)
+    func selectWithoutProviderIsNoOp() {
+        let viewModel = SceneSettingsViewModel(sceneProvider: nil)
         viewModel.select(.music)
         #expect(viewModel.scenes.isEmpty)
         #expect(viewModel.currentScene == nil)
     }
-}
-
-// MARK: - SceneSettingsCapabilityAdapter
-
-@MainActor
-struct SceneSettingsCapabilityAdapterTests {
     @Test
-    func adapterWeaklyHoldsProviderAndFallsBackWhenReleased() {
+    func viewModelWeaklyHoldsProviderAndFallsBackWhenReleased() {
         var probe: SceneProbe? = SceneProbe(current: .music)
-        let adapter = SceneSettingsCapabilityAdapter(scene: probe!)
+        let viewModel = SceneSettingsViewModel(sceneProvider: probe!)
 
-        #expect(adapter.scenes == [.music, .audiobooks])
-        #expect(adapter.currentScene == .music)
+        #expect(viewModel.scenes == [.music, .audiobooks])
+        #expect(viewModel.currentScene == .music)
 
         probe = nil
-        #expect(adapter.scenes.isEmpty)
-        #expect(adapter.currentScene == nil)
+        #expect(viewModel.scenes.isEmpty)
+        #expect(viewModel.currentScene == nil)
 
         // 释放后 setCurrentScene 不应崩溃。
-        adapter.setCurrentScene(.audiobooks)
+        viewModel.select(.audiobooks)
     }
 }

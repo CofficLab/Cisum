@@ -14,7 +14,7 @@ Defines `DocsViewProviding` (the "About / Manual" contribution contract) and `Do
     - `removeEntries(id:)` — strips the id from both about and manual lists.
   - `DefaultDocsViewProvider`: `@Published` arrays; thread-safe-ish main-actor storage; implements the replace methods directly.
 - **Provider pattern**: plugins resolve `DocsViewProviding` from the kernel at registration time and call `addAbout`/`addManual`. The kernel's `KernelCoreContainer` enforces single registration (duplicate registration throws `KernelCoreError`).
-- **Dependencies**: `CisumKernelSupport` (kernel container), `CisumUIComponents`.
+- **Dependencies**: `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents` (kernel container), `CisumUIComponents`.
 
 ## Testing Logic
 

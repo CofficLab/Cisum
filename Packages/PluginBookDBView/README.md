@@ -37,8 +37,7 @@ container itself.
   - `BookPlaybackOrdering` — recursive playable-file scan, relative-path ordering,
     same-file/containment checks.
   - `BookTreeNode` / `BookTreeBuilder` — outline-group-friendly directory tree.
-  - `BookDBPlaybackCapability` protocol + `BookDBPlaybackCapabilityAdapter` —
-    `play(_:startTime:)` wrapped around `PlaybackProviding`.
+  - `BookGridViewModel` consumes `PlaybackProviding` directly for chapter playback.
   - `DBObserver` / `PlaybackObserver` — forward book-provider and playback events to
     the grid view model.
   - Policy helpers: `BookGridUpdatePolicy`, `BookGridPlaybackRequestPolicy`,
@@ -61,7 +60,7 @@ container itself.
   deduped by resolved identity, nested duplicates pruned, copied into the book disk
   with security-scoped access and unique destination names, then
   `syncImportedItems` refreshes the library.
-- **Dependencies:** `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`,
+- **Dependencies:** `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`,
   `ProviderDocsView`, `ProviderBook`, `ProviderPlayback`, `ProviderScene`.
 
 ## Testing Logic

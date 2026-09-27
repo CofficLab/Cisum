@@ -1,5 +1,6 @@
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
 import SwiftUI
 
 /// Factory 的主窗口启动视图。

@@ -16,20 +16,26 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../CisumUIComponents"),
-        .package(path: "../CisumKernelSupport"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", revision: "7031fda7ff72492d574ef9a4b5d9ffdc801a6660"),
+        .package(path: "../ProviderPlugin"),
+        .package(path: "../KitEventObservation"),
         .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
-        .package(path: "../MagicKit"),
+        .package(name: "KitMagic", path: "../MagicKit"),
         .package(path: "../ProviderStorage"),
     ],
     targets: [
         .target(
             name: "PluginStorage",
             dependencies: [
-                "CisumUIComponents",
-                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitEventObservation", package: "KitEventObservation"),
                 .product(name: "ProviderDocsView", package: "ProviderDocsView"),
-                .product(name: "MagicKit", package: "MagicKit"),
+                .product(name: "MagicKit", package: "KitMagic"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
             ],
             path: ".",
@@ -43,7 +49,8 @@ let package = Package(
             name: "StoragePluginTests",
             dependencies: [
                 "PluginStorage",
-                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
             ],
             path: "Tests"

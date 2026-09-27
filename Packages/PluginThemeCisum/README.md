@@ -16,7 +16,7 @@ Cisum is the app's signature original sunset-gradient theme. It leads with a war
   - Atmosphere colors are opacity-tinted versions of the accent hues (deep/medium ~18%, light ~34%) rather than neutral grays.
   - Workspace text `#1C1C1E`/`#FFFFFF`, warm secondary `#3A2A22`/`#F5E6DC`, tertiary `#6F5147`/`#D7B7A5`.
   - Background: a top-to-bottom orange→amber linear gradient (at 70% opacity) over `.ultraThinMaterial`.
-- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
+- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
 
 ## Testing Logic
 

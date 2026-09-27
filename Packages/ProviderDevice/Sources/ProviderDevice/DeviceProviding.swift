@@ -1,4 +1,5 @@
 import Foundation
+import KitEventObservation
 import SwiftUI
 
 @MainActor
@@ -60,3 +61,5 @@ public final class NoopDeviceProvidingObserverHandle: DeviceProvidingObserverHan
     public init() {}
     public func cancel() {}
 }
+
+extension EventObserverHandle: DeviceProvidingObserverHandle {}

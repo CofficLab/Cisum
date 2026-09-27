@@ -1,4 +1,6 @@
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import SwiftUI
 
 extension MagicPlayManPreviewView {
@@ -8,7 +10,7 @@ extension MagicPlayManPreviewView {
             mainContent
             controlsSection
         }
-        .background(LinearGradient.aurora.opacity(0.1))
+        .background(PlaybackPreviewGradient.aurora.opacity(0.1))
     }
 
     /// 主内容视图
@@ -31,8 +33,8 @@ extension MagicPlayManPreviewView {
                 }
             }
         }
-        .infinite()
-        .background(LinearGradient.winter)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(PlaybackPreviewGradient.winter)
     }
 }
 

@@ -2,7 +2,10 @@ import ProviderAppState
 import ProviderDocsView
 import ProviderPlayback
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import SwiftUI
 import MagicKit
 
@@ -42,8 +45,8 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addHeroView() { contrib.addHeroView(view) }
-            if let view = self.addRightAlbumView() { contrib.addRightAlbumView(view) }
+            if let view = self.addHeroView() { contrib.addHeroView(ownerPluginID: id, view) }
+            if let view = self.addRightAlbumView() { contrib.addRightAlbumView(ownerPluginID: id, view) }
         }
         self.kernel = kernel
     }
@@ -88,8 +91,7 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
         guard viewModel == nil else { return }
         guard let playback = kernel?.resolveProvider((any PlaybackProviding).self) else { return }
         let media = kernel?.resolveProvider((any PlaybackMediaProviding).self)
-        let capability = PlaybackHeroPlaybackCapabilityAdapter(playback: playback, media: media)
-        let viewModel = PlaybackHeroViewModel(playbackCapability: capability)
+        let viewModel = PlaybackHeroViewModel(playbackProvider: playback, mediaProvider: media)
         self.viewModel = viewModel
         observer = PlaybackHeroObserver(playback: playback, viewModel: viewModel)
     }

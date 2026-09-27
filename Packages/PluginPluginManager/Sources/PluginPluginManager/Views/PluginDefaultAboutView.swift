@@ -1,5 +1,6 @@
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
 import SwiftUI
 
 /// 所有插件的默认关于页（对齐 Lumi `PluginPluginManager.PluginDefaultAboutView`）。
@@ -15,10 +16,10 @@ struct PluginDefaultAboutView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             LandingHero(
-                icon: metadata.category.systemImage,
+                icon: PluginCategoryPresentation.icon(for: metadata.category),
                 accent: theme.primary,
                 tagline: metadata.description.isEmpty ? "No Description Available" : metadata.description,
-                chips: [metadata.category.displayName, metadata.stage.displayName],
+                chips: [PluginCategoryPresentation.title(for: metadata.category), PluginStagePresentation.title(for: metadata.stage)],
                 metrics: [
                     .init(value: metadata.version, label: String(localized: "Version", bundle: .module)),
                     .init(value: policyValue, label: String(localized: "Strategy", bundle: .module))
@@ -28,16 +29,16 @@ struct PluginDefaultAboutView: View {
             LandingSection(title: String(localized: "Core Capabilities", bundle: .module), icon: "info.circle") {
                 LandingFeatureGrid(items: [
                     .init(
-                        icon: metadata.category.systemImage,
+                        icon: PluginCategoryPresentation.icon(for: metadata.category),
                         tint: theme.primary,
                         title: String(localized: "Category", bundle: .module),
-                        description: metadata.category.displayName
+                        description: PluginCategoryPresentation.title(for: metadata.category)
                     ),
                     .init(
                         icon: "checkmark.seal",
                         tint: theme.success,
                         title: String(localized: "Stage", bundle: .module),
-                        description: metadata.stage.displayName
+                        description: PluginStagePresentation.title(for: metadata.stage)
                     ),
                     .init(
                         icon: "lock.shield",

@@ -3,7 +3,10 @@ import ProviderDocsView
 import ProviderPlayback
 import ProviderStorage
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import MagicPlayMan
 import SwiftUI
 
@@ -24,7 +27,7 @@ import SwiftUI
 /// - 播放引擎的 `.assetChanged` 事件把当前播放文件写入当前场景的槽位。
 /// 该功能仅有此插件维护。
 @MainActor
-public final class PluginPlayBack: SuperPlugin {
+public final class PluginPlayBack: AsyncSuperPlugin {
     public let id = String(describing: PluginPlayBack.self)
 
     public static let shared = PluginPlayBack()
@@ -72,7 +75,7 @@ public final class PluginPlayBack: SuperPlugin {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(view) }
+            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
         }
         let player = MagicPlayMan()
         magicPlayMan = player
@@ -143,18 +146,10 @@ public final class PluginPlayBack: SuperPlugin {
         guard let store = stateStore else { return nil }
         let viewModel = PluginPlayBackSettingsViewModel(
             store: store,
-            playbackCapability: makePlaybackSettingsCapability(from: playbackProvider)
+            playbackProvider: playbackProvider
         )
         settingsViewModel = viewModel
         return viewModel
-    }
-
-    @MainActor
-    private func makePlaybackSettingsCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any PlaybackSettingsCapability)? {
-        guard let playback else { return nil }
-        return PlaybackSettingsCapabilityAdapter(playback: playback)
     }
 
     /// 设置窗口入口：按场景展示各场景最近播放文件与当前播放详情。

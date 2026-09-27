@@ -16,7 +16,7 @@ Graphite Black is a neutral dark theme built from layered black-gray surfaces (`
   - Atmosphere — deep `#F5F5F7`/`#050506`, medium `#FFFFFF`/`#121214`, light `#E9EAED`/`#232326`.
   - Workspace text `#1D1D1F`/`#F5F5F7` with secondary/tertiary grays.
   - Background: vertical linear gradient over the atmosphere colors plus a top-trailing radial glow driven by the secondary blue accent (~8% opacity).
-- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
+- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
 
 ## Testing Logic
 

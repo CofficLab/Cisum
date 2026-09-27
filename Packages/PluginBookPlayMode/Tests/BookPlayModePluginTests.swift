@@ -1,3 +1,4 @@
+import ProviderPlayback
 import MagicPlayMan
 import Testing
 @testable import PluginBookPlayMode
@@ -10,7 +11,7 @@ import Testing
 @Test func bookPlayModeFallsBackToCloudWhenLocalValueIsInvalid() {
     #expect(BookPlayModeStore.resolvedPlayMode(
         localRawValue: "invalid",
-        cloudRawValue: MagicPlayMode.loop.rawValue
+        cloudRawValue: PlaybackMode.loop.rawValue
     ) == .loop)
 }
 

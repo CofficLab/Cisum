@@ -1,5 +1,5 @@
 import Foundation
-import CisumKernelSupport
+import KernelCore
 import ProviderPluginManaging
 import SwiftUI
 import Testing
@@ -33,29 +33,6 @@ final class ProbeAlwaysOnPlugin: SuperPlugin {
         description: "",
         policy: .alwaysOn
     )
-}
-
-/// 管理能力探针。
-@MainActor
-private final class CapabilityProbe: PluginManagementCapability {
-    var configurablePlugins: [any SuperPlugin] = []
-    var enabledIDs: Set<String> = []
-    var enableResults: [String: Bool] = [:]
-    var disableResults: [String: Bool] = [:]
-    var enableCalls: [String] = []
-    var disableCalls: [String] = []
-
-    func isEnabled(id: String) -> Bool { enabledIDs.contains(id) }
-
-    func enablePlugin(id: String) async -> Bool {
-        enableCalls.append(id)
-        return enableResults[id] ?? true
-    }
-
-    func disablePlugin(id: String) async -> Bool {
-        disableCalls.append(id)
-        return disableResults[id] ?? true
-    }
 }
 
 /// PluginManaging 探针。
@@ -129,12 +106,12 @@ private final class ProbeManageHandle: PluginManagingObserverHandle {
 @MainActor
 struct PluginManagementViewModelTests {
     @Test
-    func pluginsComeFromCapability() {
-        let probe = CapabilityProbe()
+    func pluginsComeFromProvider() {
+        let probe = ManagerProbe()
         let plugin = ProbeConfigurablePlugin()
         probe.configurablePlugins = [plugin]
 
-        let viewModel = PluginManagementViewModel(capability: probe)
+        let viewModel = PluginManagementViewModel(manager: probe)
         #expect(viewModel.plugins.count == 1)
         #expect(viewModel.plugins.first?.id == "probe-configurable")
     }
@@ -149,16 +126,16 @@ struct PluginManagementViewModelTests {
 
     @Test
     func setEnabledRoutesToEnableAndDisable() async {
-        let probe = CapabilityProbe()
-        let viewModel = PluginManagementViewModel(capability: probe)
+        let probe = ManagerProbe()
+        let viewModel = PluginManagementViewModel(manager: probe)
 
         let enabled = await viewModel.setEnabled(true, for: "a")
         #expect(enabled)
-        #expect(probe.enableCalls == ["a"])
+        #expect(probe.isEnabled(id: "a"))
 
         let disabled = await viewModel.setEnabled(false, for: "b")
         #expect(disabled)
-        #expect(probe.disableCalls == ["b"])
+        #expect(!probe.isEnabled(id: "b"))
     }
 
     @Test
@@ -168,42 +145,22 @@ struct PluginManagementViewModelTests {
         viewModel.incrementRevision()
         #expect(viewModel.revision == 2)
     }
-}
-
-// MARK: - PluginManagementCapabilityAdapter
-
-@MainActor
-struct PluginManagementCapabilityAdapterTests {
     @Test
-    func adapterForwardsToManager() async {
-        let manager = ManagerProbe()
-        manager.allPlugins = [ProbeConfigurablePlugin()]
-        manager.configurablePlugins = manager.allPlugins
-        manager.enabledIDs = ["a"]
+    func viewModelFallsBackWhenProviderReleased() {
+        var manager: ManagerProbe? = ManagerProbe()
+        let viewModel = PluginManagementViewModel(manager: manager!)
+        manager = nil
 
-        let adapter = PluginManagementCapabilityAdapter(manager: manager)
-        #expect(adapter.configurablePlugins.count == 1)
-        #expect(adapter.isEnabled(id: "a"))
-        #expect(!adapter.isEnabled(id: "b"))
-
-        let result = await adapter.enablePlugin(id: "b")
-        #expect(result)
-        #expect(manager.isEnabled(id: "b"))
-
-        let disabled = await adapter.disablePlugin(id: "b")
-        #expect(disabled)
-        #expect(!manager.isEnabled(id: "b"))
+        #expect(viewModel.plugins.isEmpty)
+        #expect(!viewModel.isEnabled(id: "a"))
     }
 
     @Test
-    func adapterFallsBackWhenManagerReleased() async {
+    func viewModelFailsToEnableAfterProviderReleased() async {
         var manager: ManagerProbe? = ManagerProbe()
-        let adapter = PluginManagementCapabilityAdapter(manager: manager!)
+        let viewModel = PluginManagementViewModel(manager: manager!)
         manager = nil
-
-        #expect(adapter.configurablePlugins.isEmpty)
-        #expect(!adapter.isEnabled(id: "a"))
-        let result = await adapter.enablePlugin(id: "a")
+        let result = await viewModel.setEnabled(true, for: "a")
         #expect(!result)
     }
 }
@@ -301,6 +258,53 @@ struct PluginManagerProviderTests {
     }
 
     @Test
+    func successfulPluginChangesEmitTypedProviderEvents() async {
+        let (kernel, provider) = await makeProvider()
+        var eventCount = 0
+        let handle = provider.addObserver { event in
+            if case .enabledPluginsChanged = event { eventCount += 1 }
+        }
+        defer { handle.cancel() }
+
+        #expect(await provider.enablePlugin(id: "probe-configurable"))
+        #expect(await provider.disablePlugin(id: "probe-configurable"))
+        #expect(eventCount == 2)
+        _ = kernel
+    }
+
+    @Test
+    func pluginRegistersAndUnregistersPluginManagingProvider() async throws {
+        let kernel = KernelCoreContainer()
+        let plugin = PluginPluginManager()
+
+        #expect(kernel.resolveProvider((any PluginManaging).self) == nil)
+        try await plugin.onBootAsync(kernel: kernel)
+        #expect(kernel.resolveProvider((any PluginManaging).self) != nil)
+
+        try await plugin.onShutdownAsync(kernel: kernel)
+        #expect(kernel.resolveProvider((any PluginManaging).self) == nil)
+    }
+
+    @Test
+    func shutdownDoesNotUnregisterAProviderOwnedByAnotherPlugin() async throws {
+        let kernel = KernelCoreContainer()
+        let existingProvider = ManagerProbe()
+        try kernel.registerProvider((any PluginManaging).self, existingProvider)
+        let plugin = PluginPluginManager()
+
+        var bootFailed = false
+        do {
+            try await plugin.onBootAsync(kernel: kernel)
+        } catch {
+            bootFailed = true
+        }
+        #expect(bootFailed)
+
+        try await plugin.onShutdownAsync(kernel: kernel)
+        #expect(kernel.resolveProvider((any PluginManaging).self) === existingProvider)
+    }
+
+    @Test
     func enableUnknownPluginFailsWithError() async {
         let (kernel, provider) = await makeProvider()
         _ = kernel
@@ -338,10 +342,10 @@ struct PluginManagerProviderTests {
 @MainActor
 struct PluginPluginManagerLifecycleTests {
     @Test
-    func onRegisterWithNoDocsIsSafe() async throws {
+    func onRegisterWithNoDocsIsSafe() throws {
         let kernel = KernelCoreContainer()
         let plugin = PluginPluginManager()
-        try await plugin.onRegister(kernel: kernel)
+        try plugin.onRegister(kernel: kernel)
     }
 
     @Test

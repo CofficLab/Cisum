@@ -12,14 +12,18 @@ let package = Package(
         .library(name: "ProviderToolbar", targets: ["ProviderToolbar"]),
     ],
     dependencies: [
-        .package(name: "CisumKernelSupport", path: "../CisumKernelSupport"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", revision: "7031fda7ff72492d574ef9a4b5d9ffdc801a6660"),
+        .package(path: "../KitAppEvents"),
+        .package(path: "../ProviderPlugin"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
     ],
     targets: [
         .target(
             name: "ProviderToolbar",
             dependencies: [
-                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
             ],
             path: ".",

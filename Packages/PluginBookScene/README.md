@@ -32,7 +32,7 @@ switch the app into the built-in `.audiobooks` scene.
   Library" → `setSceneAction(.audiobooks)` → `SceneProviding` switches the app scene,
   which activates the other book plugins (controls, progress, like, play mode,
   repository view).
-- **Dependencies:** `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`,
+- **Dependencies:** `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`,
   `ProviderDocsView`, `ProviderScene`.
 
 ## Testing Logic

@@ -3,7 +3,9 @@ import ProviderAudioLibrary
 import ProviderStorage
 import Combine
 import Foundation
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import Testing
 @testable import PluginAudioDBData
 
@@ -195,6 +197,7 @@ struct AudioLibraryProviderTests {
 
         #expect(provider.audioDisk == disk)
         #expect(await provider.totalCount() == 2)
+        #expect(receivedEvents.first == "syncing")
         #expect(await provider.allURLs(reason: "test") == [first, second])
         #expect(await provider.urls(offset: -1, limit: 1, reason: "test") == [first])
         #expect(await provider.urls(offset: 1, limit: 1, reason: "test") == [second])
@@ -213,6 +216,10 @@ struct AudioLibraryProviderTests {
         #expect(receivedEvents.contains("synced:2"))
         #expect(receivedEvents.contains("sorting"))
         #expect(receivedEvents.contains("sortCompleted"))
+
+        await provider.sync(urls: [first, second], verbose: false, isFirst: false)
+        await waitForLibraryNotifications()
+        #expect(receivedEvents.contains("updated:2"))
 
         try await provider.sortRandom(url: second, reason: "test", verbose: false)
         #expect(await provider.allURLs(reason: "random") == [second, first])
@@ -273,8 +280,8 @@ struct AudioLibraryProviderTests {
         )
         try Data([0x01, 0x02]).write(to: audioURL)
 
-        try await plugin.onBoot(kernel: kernel)
-        try await plugin.onReady(kernel: kernel)
+        try await plugin.onBootAsync(kernel: kernel)
+        try await plugin.onReadyAsync(kernel: kernel)
 
         let library = try #require(kernel.resolveProvider((any AudioLibraryProviding).self))
         let navigation = try #require(kernel.resolveProvider((any AudioTrackNavigationProviding).self))
@@ -345,7 +352,7 @@ struct AudioLibraryProviderTests {
             try await reenabledNavigation.lastURL()
         }
 
-        try await plugin.onShutdown(kernel: kernel)
+        try await plugin.onShutdownAsync(kernel: kernel)
         #expect(kernel.resolveProvider((any AudioLibraryProviding).self) == nil)
         #expect(kernel.resolveProvider((any AudioTrackNavigationProviding).self) == nil)
         #expect(storage.activeObserverCount == 0)
@@ -356,14 +363,14 @@ struct AudioLibraryProviderTests {
         let kernel = KernelCoreContainer()
         let plugin = AudioDBDataPlugin()
 
-        try await plugin.onReady(kernel: kernel)
+        try await plugin.onReadyAsync(kernel: kernel)
 
         let navigation = try #require(kernel.resolveProvider((any AudioTrackNavigationProviding).self))
         await #expect(throws: AudioPluginError.self) {
             try await navigation.nextURL(after: nil, verbose: false)
         }
 
-        try await plugin.onShutdown(kernel: kernel)
+        try await plugin.onShutdownAsync(kernel: kernel)
         #expect(kernel.resolveProvider((any AudioTrackNavigationProviding).self) == nil)
         #expect(kernel.resolveProvider((any AudioLibraryProviding).self) == nil)
     }

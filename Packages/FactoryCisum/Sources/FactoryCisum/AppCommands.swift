@@ -1,6 +1,6 @@
 import ProviderTheme
 import ProviderStorage
-import CisumKernelSupport
+import KernelCore
 import Foundation
 import SwiftUI
 

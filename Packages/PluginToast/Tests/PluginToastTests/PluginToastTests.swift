@@ -1,7 +1,9 @@
 import ProviderRootView
 import ProviderToast
 import XCTest
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 @testable import PluginToast
 
 @MainActor

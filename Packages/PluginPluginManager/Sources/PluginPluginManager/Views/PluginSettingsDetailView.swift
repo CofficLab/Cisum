@@ -1,6 +1,7 @@
 import ProviderDocsView
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
 import SwiftUI
 
 /// 插件管理页右侧的详情面板（对齐 Lumi `PluginPluginManager.PluginSettingsDetailView`）。
@@ -56,7 +57,7 @@ struct PluginSettingsDetailView: View {
 
                     if plugin.metadata.stage != .stable {
                         AppTag(
-                            plugin.metadata.stage.displayName,
+                            PluginStagePresentation.title(for: plugin.metadata.stage),
                             style: .subtle
                         )
                     }
@@ -80,7 +81,7 @@ struct PluginSettingsDetailView: View {
 
     /// 头部左侧的大号分类图标。
     private var categoryIcon: some View {
-        Image(systemName: plugin.metadata.category.systemImage)
+        Image(systemName: PluginCategoryPresentation.icon(for: plugin.metadata.category))
             .font(.system(size: 38, weight: .semibold))
             .foregroundStyle(theme.primary)
             .frame(width: 64, height: 64)

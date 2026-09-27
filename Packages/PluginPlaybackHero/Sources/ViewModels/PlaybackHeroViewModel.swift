@@ -2,7 +2,7 @@ import ProviderPlayback
 import SwiftUI
 import MagicKit
 
-/// 播放封面区域的状态；播放变化由 Observer 转发，媒体视图由 Capability 提供。
+/// 播放封面区域的状态；播放变化由 Observer 转发，媒体视图由 Provider 提供。
 @MainActor
 final class PlaybackHeroViewModel: ObservableObject, SuperLog {
     nonisolated static let verbose = false
@@ -10,12 +10,15 @@ final class PlaybackHeroViewModel: ObservableObject, SuperLog {
     @Published private(set) var currentURL: URL?
     @Published private(set) var state: PlaybackStatus
 
-    private let playbackCapability: (any PlaybackHeroPlaybackCapability)?
+    private let mediaProvider: (any PlaybackMediaProviding)?
 
-    init(playbackCapability: (any PlaybackHeroPlaybackCapability)?) {
-        self.playbackCapability = playbackCapability
-        self.currentURL = playbackCapability?.currentURL
-        self.state = playbackCapability?.state ?? .idle
+    init(
+        playbackProvider: (any PlaybackProviding)?,
+        mediaProvider: (any PlaybackMediaProviding)? = nil
+    ) {
+        self.mediaProvider = mediaProvider
+        self.currentURL = playbackProvider?.currentURL
+        self.state = playbackProvider?.state ?? .idle
     }
 
     func applyAssetChanged(_ url: URL?) {
@@ -27,10 +30,10 @@ final class PlaybackHeroViewModel: ObservableObject, SuperLog {
     }
 
     func makeMediaView() -> AnyView {
-        playbackCapability?.makeHeroView() ?? AnyView(EmptyView())
+        mediaProvider?.makeMediaView() ?? AnyView(EmptyView())
     }
 
     func localizedStateText() -> String {
-        playbackCapability?.localizedStateText(for: state) ?? String(describing: state)
+        mediaProvider?.localizedStateText(for: state) ?? String(describing: state)
     }
 }

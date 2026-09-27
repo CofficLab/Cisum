@@ -1,5 +1,6 @@
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
 import PluginAudio
 import PluginAudioCopy
 import PluginAudioDBData

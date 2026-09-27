@@ -3,11 +3,12 @@ import Testing
 @testable import PluginStorage
 import Foundation
 import Combine
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
 
 @Test func storagePluginInfoIsExposed() {
     #expect(StoragePluginInfo.titleKey == "Storage Settings")
-    #expect(StoragePluginLocation.local.rawValue == "local")
+    #expect(StorageLocation.local.rawValue == "local")
 }
 
 @Test func fileItemReportsDirectoryReadFailures() {
@@ -991,13 +992,13 @@ import CisumKernelSupport
 @Test func storageObserverPerformsInitialSync() {
     let service = StorageProvider()
     let viewModel = StorageSettingsViewModel(
-        capability: StorageSettingsCapabilityAdapter(storage: service)
+        storageProvider: service
     )
     let observer = StorageProvidingObserver(provider: service, viewModel: viewModel)
     defer { observer.cancel() }
 
     // 监听安装前已经存在的状态不能丢失。
-    #expect(viewModel.location == service.currentStorageLocation.map { StoragePluginLocation($0) })
+    #expect(viewModel.location == service.currentStorageLocation)
     #expect(viewModel.isICloudAvailable == (service.storageRoot(for: .icloud) != nil))
     #expect(viewModel.isLocalStorageAvailable == (service.storageRoot(for: .local) != nil))
 }
@@ -1006,7 +1007,7 @@ import CisumKernelSupport
 @Test func storageObserverForwardsLocationChangeToViewModel() {
     let service = StorageProvider()
     let viewModel = StorageSettingsViewModel(
-        capability: StorageSettingsCapabilityAdapter(storage: service)
+        storageProvider: service
     )
     let observer = StorageProvidingObserver(provider: service, viewModel: viewModel)
     defer { observer.cancel() }
@@ -1020,9 +1021,9 @@ import CisumKernelSupport
 
 @MainActor
 @Test func storageObserverCancelStopsViewModelUpdates() {
-    let service = StorageProvider()
+    let service = TestStorageProviding(currentStorageLocation: nil)
     let viewModel = StorageSettingsViewModel(
-        capability: StorageSettingsCapabilityAdapter(storage: service)
+        storageProvider: service
     )
     let observer = StorageProvidingObserver(provider: service, viewModel: viewModel)
 
@@ -1087,10 +1088,14 @@ import CisumKernelSupport
 
 @MainActor
 private final class TestStorageProviding: ObservableObject, StorageProviding {
-    @Published var currentStorageLocation: StorageLocation? = .local
+    @Published var currentStorageLocation: StorageLocation?
     let databaseRoot = URL(fileURLWithPath: "/tmp/cisum-storage-provider-test", isDirectory: true)
 
     private var observers: [UUID: (StorageProvidingEvent) -> Void] = [:]
+
+    init(currentStorageLocation: StorageLocation? = .local) {
+        self.currentStorageLocation = currentStorageLocation
+    }
 
     var storageRoot: URL? {
         currentStorageLocation.flatMap(storageRoot(for:))

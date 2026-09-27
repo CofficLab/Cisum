@@ -1,7 +1,10 @@
 import ProviderDocsView
 import ProviderStorage
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import SwiftUI
 import MagicKit
 
@@ -45,7 +48,7 @@ public final class SystemPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(view) }
+            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
         }
     }
 

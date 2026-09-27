@@ -1,8 +1,11 @@
 #if os(macOS)
 import Foundation
 import CisumUIComponents
+import MagicKit
+import LumiUI
 import ProviderAudioLibrary
 import ProviderStore
+import ProviderToast
 import SwiftData
 import SwiftUI
 
@@ -13,21 +16,24 @@ public enum AudioCopyService {
     static var container: ModelContainer?
     static var audioDiskProvider: (() -> URL?)?
     static var audioCountProvider: (() async -> Int)?
+    static var toastProvider: (any ToastProviding)?
     static var copyViewModel: CopyViewModel?
     static var copyObserver: CopyTaskObserver?
 
     public static func configure(
         audioDiskProvider: @escaping () -> URL?,
-        audioCountProvider: @escaping () async -> Int
+        audioCountProvider: @escaping () async -> Int,
+        toastProvider: (any ToastProviding)?
     ) {
         Self.audioDiskProvider = audioDiskProvider
         Self.audioCountProvider = audioCountProvider
+        Self.toastProvider = toastProvider
         installCopyState()
     }
 
     static func installCopyState() {
         guard copyViewModel == nil else { return }
-        let viewModel = CopyViewModel()
+        let viewModel = CopyViewModel(toastProvider: toastProvider)
         let observer = CopyTaskObserver(viewModel: viewModel)
         copyViewModel = viewModel
         copyObserver = observer

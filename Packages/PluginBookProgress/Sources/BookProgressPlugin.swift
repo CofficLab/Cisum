@@ -1,10 +1,14 @@
 import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import OSLog
 import CisumUIComponents
+import LumiUI
 import ProviderBook
+import ProviderToast
 import SwiftUI
 import MagicKit
 
@@ -97,7 +101,7 @@ public final class BookProgressPlugin: AsyncSuperPlugin, SuperLog {
 
         let viewModel = BookProgressViewModel(
             targetScene: .audiobooks,
-            playbackCapability: makePlaybackCapability(from: playback),
+            playbackProvider: playback,
             currentBookURL: { bookProvider?.currentBookURL() },
             currentBookTime: { bookProvider?.currentBookTime() },
             storeCurrentBookURL: { bookProvider?.storeCurrentBookURL($0) },
@@ -113,7 +117,8 @@ public final class BookProgressPlugin: AsyncSuperPlugin, SuperLog {
                 } catch {
                     os_log(.error, "BookProgressPlugin failed to save book state: \(error.localizedDescription)")
                 }
-            }
+            },
+            toastProvider: kernel.resolveProvider((any ToastProviding).self)
         )
         let observer = BookProgressObserver(
             scene: scene,
@@ -141,25 +146,17 @@ public final class BookProgressPlugin: AsyncSuperPlugin, SuperLog {
         }
         let viewModel = BookProgressViewModel(
             targetScene: .audiobooks,
-            playbackCapability: makePlaybackCapability(from: kernel?.resolveProvider((any PlaybackProviding).self)),
+            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
             currentBookURL: { nil },
             currentBookTime: { nil },
             storeCurrentBookURL: { _ in },
             storeCurrentBookTime: { _ in },
             bookDisk: { nil },
-            saveBookState: { _, _, _ in }
+            saveBookState: { _, _, _ in },
+            toastProvider: kernel?.resolveProvider((any ToastProviding).self)
         )
         progressViewModel = viewModel
         return viewModel
-    }
-
-    /// 将内核能力收窄后注入 ViewModel；ViewModel 不持有 Kernel。
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any BookProgressPlaybackCapability)? {
-        guard let playback else { return nil }
-        return BookProgressPlaybackCapabilityAdapter(playback: playback)
     }
 
     private final class SceneBox {

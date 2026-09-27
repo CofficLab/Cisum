@@ -1,7 +1,10 @@
 import ProviderDocsView
 import ProviderPlayback
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import SwiftUI
 import MagicKit
 
@@ -41,7 +44,7 @@ public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            contrib.addToolBarButtons(self.addToolBarButtons())
+            contrib.addToolBarButtons(ownerPluginID: id, self.addToolBarButtons())
         }
         self.kernel = kernel
         // 跨插件 Provider（Playback）在 onReady 中解析，
@@ -86,7 +89,7 @@ public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
         guard let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
 
         let viewModel = LikeButtonViewModel(
-            playbackCapability: makePlaybackCapability(from: playback)
+            playbackProvider: playback
         )
         self.viewModel = viewModel
         observer = LikeButtonObserver(playback: playback, viewModel: viewModel)
@@ -99,12 +102,4 @@ public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
         viewModel = nil
     }
 
-    /// 将内核能力收窄后注入 ViewModel；ViewModel 不持有 Kernel。
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any LikeButtonPlaybackCapability)? {
-        guard let playback else { return nil }
-        return LikeButtonPlaybackCapabilityAdapter(playback: playback)
-    }
 }

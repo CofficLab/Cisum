@@ -1,6 +1,7 @@
 import Combine
 import SwiftUI
 import MagicKit
+import ProviderPlugin
 
     /// `RootLayoutView` 的状态容器：订阅 `DefaultRootViewProvider` 的
 /// `RootViewProvidingEvent` 监听机制，把各区域注入视图同步为可观察状态。
@@ -16,10 +17,12 @@ final class RootLayoutViewModel: ObservableObject, SuperLog {
     @Published private(set) var statusView: AnyView?
     @Published private(set) var toolbarContent: AnyView?
     @Published private(set) var isContentViewVisible: Bool
+    @Published private(set) var pluginContributionRevision = 0
 
     private var handle: (any RootViewProvidingObserverHandle)?
+    private var pluginHandle: (any PluginProvidingObserverHandle)?
 
-    init(provider: DefaultRootViewProvider) {
+    init(provider: DefaultRootViewProvider, pluginProvider: (any PluginProviding)? = nil) {
         controlView = provider.controlView
         contentView = provider.contentView
         statusView = provider.statusView
@@ -35,6 +38,11 @@ final class RootLayoutViewModel: ObservableObject, SuperLog {
             case .contentViewVisibilityChanged: self?.isContentViewVisible = provider.isContentViewVisible
             case .overlaysChanged: break
             }
+        }
+
+        pluginHandle = pluginProvider?.addObserver { [weak self] event in
+            guard case .contributionsChanged = event else { return }
+            self?.pluginContributionRevision &+= 1
         }
     }
 }

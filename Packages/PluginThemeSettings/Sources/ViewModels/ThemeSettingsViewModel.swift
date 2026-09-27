@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import LumiUI
 import MagicKit
+import ProviderTheme
 
 @MainActor
 final class ThemeSettingsViewModel: ObservableObject, SuperLog {
@@ -10,15 +11,20 @@ final class ThemeSettingsViewModel: ObservableObject, SuperLog {
     @Published private(set) var themes: [LumiUIThemeContribution] = []
     @Published private(set) var currentThemeID = ""
 
-    private let capability: (any ThemeSettingsCapability)?
+    private weak var themeProvider: (any ThemeProviding)?
 
-    init(capability: (any ThemeSettingsCapability)?) {
-        self.capability = capability
+    init(themeProvider: (any ThemeProviding)?) {
+        self.themeProvider = themeProvider
+        refresh()
+    }
+
+    func updateThemeProvider(_ provider: (any ThemeProviding)?) {
+        themeProvider = provider
         refresh()
     }
 
     func selectTheme(_ themeID: String) {
-        capability?.selectTheme(themeID)
+        themeProvider?.selectTheme(themeID)
     }
 
     func handleProviderChanged() {
@@ -26,7 +32,7 @@ final class ThemeSettingsViewModel: ObservableObject, SuperLog {
     }
 
     private func refresh() {
-        themes = capability?.allThemeContributions ?? []
-        currentThemeID = capability?.selectedThemeID ?? ""
+        themes = themeProvider?.allThemeContributions ?? []
+        currentThemeID = themeProvider?.selectedThemeID ?? ""
     }
 }

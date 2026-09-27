@@ -109,17 +109,6 @@ private final class ProbeSceneHandle: SceneProvidingObserverHandle {
     }
 }
 
-@MainActor
-private final class CapabilityProbe: BookPlayModePlaybackCapability {
-    var playMode: MagicPlayMode = .sequence
-    var setModes: [MagicPlayMode] = []
-
-    func setPlayMode(_ mode: MagicPlayMode) {
-        setModes.append(mode)
-        playMode = mode
-    }
-}
-
 // MARK: - BookPlayModeStore
 
 @Suite(.serialized)
@@ -127,8 +116,8 @@ struct BookPlayModeStoreTests {
     @Test
     func resolvedPlayModePrefersLocalValue() {
         #expect(BookPlayModeStore.resolvedPlayMode(
-            localRawValue: MagicPlayMode.loop.rawValue,
-            cloudRawValue: MagicPlayMode.shuffle.rawValue
+            localRawValue: PlaybackMode.loop.rawValue,
+            cloudRawValue: PlaybackMode.shuffle.rawValue
         ) == .loop)
     }
 
@@ -136,7 +125,7 @@ struct BookPlayModeStoreTests {
     func resolvedPlayModeFallsBackToCloud() {
         #expect(BookPlayModeStore.resolvedPlayMode(
             localRawValue: nil,
-            cloudRawValue: MagicPlayMode.shuffle.rawValue
+            cloudRawValue: PlaybackMode.shuffle.rawValue
         ) == .shuffle)
     }
 
@@ -163,13 +152,13 @@ struct BookPlayModeStoreTests {
 struct BookPlayModeViewModelTests {
     private func makeViewModel(
         targetScene: AppScene = .audiobooks,
-        capability: CapabilityProbe? = CapabilityProbe(),
+        capability: PlaybackProbe? = PlaybackProbe(),
         load: @escaping BookPlayModeLoadAction = { .sequence },
         store: @escaping BookPlayModeStoreAction = { _ in }
     ) -> BookPlayModeViewModel {
         BookPlayModeViewModel(
             targetScene: targetScene,
-            playbackCapability: capability,
+            playbackProvider: capability,
             loadPlayMode: load,
             storePlayMode: store
         )
@@ -177,7 +166,7 @@ struct BookPlayModeViewModelTests {
 
     @Test
     func sceneChangeToTargetActivatesAndRestoresMode() async throws {
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
         capability.playMode = .sequence
         let viewModel = makeViewModel(capability: capability, load: { .loop })
 
@@ -189,7 +178,7 @@ struct BookPlayModeViewModelTests {
 
     @Test
     func sceneChangeToOtherSceneDeactivates() async throws {
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
         let viewModel = makeViewModel(capability: capability, load: { .loop })
 
         viewModel.handleSceneChange(.music)
@@ -203,7 +192,7 @@ struct BookPlayModeViewModelTests {
 
     @Test
     func activateSkipsWhenStoredModeMatchesCurrent() async throws {
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
         capability.playMode = .loop
         let viewModel = makeViewModel(capability: capability, load: { .loop })
 
@@ -215,8 +204,8 @@ struct BookPlayModeViewModelTests {
 
     @Test
     func playModeChangedStoresMode() async throws {
-        let capability = CapabilityProbe()
-        var stored: [MagicPlayMode] = []
+        let capability = PlaybackProbe()
+        var stored: [PlaybackMode] = []
         let viewModel = makeViewModel(
             capability: capability,
             store: { stored.append($0) }
@@ -232,30 +221,12 @@ struct BookPlayModeViewModelTests {
 
     @Test
     func playModeChangedWhenInactiveIsIgnored() async throws {
-        var stored: [MagicPlayMode] = []
+        var stored: [PlaybackMode] = []
         let viewModel = makeViewModel(store: { stored.append($0) })
 
         viewModel.handlePlayModeChanged(.loop)
         try await Task.sleep(for: .milliseconds(200))
         #expect(stored.isEmpty)
-    }
-}
-
-// MARK: - BookPlayModePlaybackCapabilityAdapter
-
-@MainActor
-struct BookPlayModePlaybackCapabilityAdapterTests {
-    @Test
-    func adapterMapsPlayModeAndForwardsSet() {
-        let probe = PlaybackProbe()
-        probe.playMode = .loop
-
-        let adapter = BookPlayModePlaybackCapabilityAdapter(playback: probe)
-        #expect(adapter.playMode == .loop)
-
-        adapter.setPlayMode(.shuffle)
-        #expect(probe.setModes == [.shuffle])
-        #expect(adapter.playMode == .shuffle)
     }
 }
 
@@ -268,12 +239,12 @@ struct BookPlayModeObserverTests {
         let scene = SceneProbe()
         scene.currentScene = .audiobooks
         let playback = PlaybackProbe()
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
         capability.playMode = .sequence
 
         let viewModel = BookPlayModeViewModel(
             targetScene: .audiobooks,
-            playbackCapability: capability,
+            playbackProvider: capability,
             loadPlayMode: { .repeatAll },
             storePlayMode: { _ in }
         )
@@ -293,11 +264,11 @@ struct BookPlayModeObserverTests {
     func playbackModeEventsApplyToViewModel() async throws {
         let scene = SceneProbe()
         let playback = PlaybackProbe()
-        let capability = CapabilityProbe()
-        var stored: [MagicPlayMode] = []
+        let capability = PlaybackProbe()
+        var stored: [PlaybackMode] = []
         let viewModel = BookPlayModeViewModel(
             targetScene: .audiobooks,
-            playbackCapability: capability,
+            playbackProvider: capability,
             loadPlayMode: { .sequence },
             storePlayMode: { stored.append($0) }
         )
@@ -316,10 +287,10 @@ struct BookPlayModeObserverTests {
     func cancellingObserverStopsUpdates() async throws {
         let scene = SceneProbe()
         let playback = PlaybackProbe()
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
         let viewModel = BookPlayModeViewModel(
             targetScene: .audiobooks,
-            playbackCapability: capability,
+            playbackProvider: capability,
             loadPlayMode: { .repeatAll },
             storePlayMode: { _ in }
         )

@@ -1,4 +1,7 @@
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
+import KitEventObservation
 import SwiftUI
 
 /// 默认 `RootViewProviding` 实现：持有各区域注入视图 + 内核引用，
@@ -14,7 +17,7 @@ public final class DefaultRootViewProvider: RootViewProviding {
     public private(set) var toolbarContent: AnyView?
     public private(set) var overlays: [RootOverlayItem] = []
     public private(set) var isContentViewVisible = false
-    private let eventObservers = KernelEventObserverStore<RootViewProvidingEvent>()
+    private let eventObservers = EventObserverStore<RootViewProvidingEvent>()
 
     private let kernel: KernelCoreContainer
 
@@ -82,4 +85,4 @@ public final class DefaultRootViewProvider: RootViewProviding {
     }
 }
 
-extension KernelEventObserverHandle: RootViewProvidingObserverHandle {}
+extension EventObserverHandle: RootViewProvidingObserverHandle {}

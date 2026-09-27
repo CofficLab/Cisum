@@ -1,7 +1,10 @@
 import ProviderDocsView
 import ProviderPlayback
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import MagicKit
 import SwiftUI
 
@@ -41,7 +44,7 @@ public final class OpenButtonPlugin: AsyncSuperPlugin, SuperLog {
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         #if os(macOS)
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            contrib.addToolBarButtons(self.addToolBarButtons())
+            contrib.addToolBarButtons(ownerPluginID: id, self.addToolBarButtons())
         }
         #endif
         self.kernel = kernel
@@ -90,7 +93,7 @@ public final class OpenButtonPlugin: AsyncSuperPlugin, SuperLog {
         guard let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
 
         let viewModel = OpenButtonViewModel(
-            playbackCapability: makePlaybackCapability(from: playback)
+            playbackProvider: playback
         )
         self.viewModel = viewModel
         observer = OpenButtonObserver(playback: playback, viewModel: viewModel)
@@ -103,12 +106,4 @@ public final class OpenButtonPlugin: AsyncSuperPlugin, SuperLog {
         viewModel = nil
     }
 
-    /// 将内核能力收窄后注入 ViewModel；ViewModel 不持有 Kernel。
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any OpenButtonPlaybackCapability)? {
-        guard let playback else { return nil }
-        return OpenButtonPlaybackCapabilityAdapter(playback: playback)
-    }
 }

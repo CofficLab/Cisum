@@ -9,7 +9,7 @@ Provides the app-level Settings window (`SettingsWindow`), its view model (`Sett
   - `SettingsWindow`: SwiftUI `View`. On macOS uses a custom `AppSettingsSidebarShell` + `AppSettingsSidebarContainer` + `AppSettingsDetailPane` (not `NavigationSplitView`, to avoid the system detail inset); on iOS uses a `NavigationSplitView`. Shows `ContentUnavailableView` when no entries exist.
   - `SettingsWindowViewModel` (`@MainActor`, `ObservableObject`): holds `@Published navigationItems: [PluginSettingNavigationItem]`, observes `PluginProvidingEvent` (`.pluginsChanged`, `.contributionsChanged`) and refreshes; `attach(to:)` detaches the old provider and subscribes to the new one.
   - `SettingsHeaderView`: sidebar top header showing the app icon (`.app` icon on macOS, `app.fill` fallback), name, version, and build via `AppSettingsSidebarHeader` / `AppBundleInfo`.
-- **Dependencies**: `CisumKernelSupport` (`PluginProviding`, `PluginSettingNavigationItem`, `PluginProvidingEvent`), `CisumUIComponents` (settings shell components, `@LumiTheme`), plus provider contracts `ProviderAppState`, `ProviderStorage`, `ProviderScene`, `ProviderTheme`.
+- **Dependencies**: `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents` (`PluginProviding`, `PluginSettingNavigationItem`, `PluginProvidingEvent`), `CisumUIComponents` (settings shell components, `@LumiTheme`), plus provider contracts `ProviderAppState`, `ProviderStorage`, `ProviderScene`, `ProviderTheme`.
 
 ## Testing Logic
 

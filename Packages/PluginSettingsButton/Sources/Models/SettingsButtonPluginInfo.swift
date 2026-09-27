@@ -1,5 +1,6 @@
 import Foundation
 import CisumUIComponents
+import LumiUI
 
 public enum SettingsButtonPluginInfo {
     public static let description = String(localized: "Settings Button", bundle: .module)

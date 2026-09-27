@@ -1,11 +1,15 @@
+import MagicKit
 import ProviderAudioLike
 import ProviderAudioLibrary
 import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
 import ProviderStorage
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 @MainActor
@@ -90,7 +94,7 @@ public final class AudioProgressPlugin: AsyncSuperPlugin, SuperLog {
 
         let viewModel = AudioProgressViewModel(
             audioScene: .music,
-            playbackCapability: makePlaybackCapability(from: playback),
+            playbackProvider: playback,
             audioLibrary: { kernel.resolveProvider((any AudioLibraryProviding).self) },
             audioLike: { kernel.resolveProvider((any AudioLikeProviding).self) },
             saveWidgetData: { title, artist, isPlaying, coverArt in
@@ -124,7 +128,7 @@ public final class AudioProgressPlugin: AsyncSuperPlugin, SuperLog {
         }
         let viewModel = AudioProgressViewModel(
             audioScene: .music,
-            playbackCapability: makePlaybackCapability(from: kernel?.resolveProvider((any PlaybackProviding).self)),
+            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
             audioLibrary: { self.kernel?.resolveProvider((any AudioLibraryProviding).self) },
             audioLike: { self.kernel?.resolveProvider((any AudioLikeProviding).self) },
             saveWidgetData: { title, artist, isPlaying, coverArt in
@@ -133,15 +137,6 @@ public final class AudioProgressPlugin: AsyncSuperPlugin, SuperLog {
         )
         progressViewModel = viewModel
         return viewModel
-    }
-
-    /// 将内核能力收窄后注入 ViewModel；ViewModel 不持有 Kernel。
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any AudioProgressPlaybackCapability)? {
-        guard let playback else { return nil }
-        return AudioProgressPlaybackCapabilityAdapter(playback: playback)
     }
 
     private final class SceneBox {

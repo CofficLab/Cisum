@@ -12,21 +12,31 @@ let package = Package(
         .library(name: "ProviderPlugin", targets: ["ProviderPlugin"]),
     ],
     dependencies: [
-        .package(name: "CisumKernelSupport", path: "../CisumKernelSupport"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", revision: "7031fda7ff72492d574ef9a4b5d9ffdc801a6660"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
+        .package(path: "../KitEventObservation"),
     ],
     targets: [
         .target(
             name: "ProviderPlugin",
             dependencies: [
-                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
+                .product(name: "KitEventObservation", package: "KitEventObservation"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources/ProviderPlugin"],
             resources: [.process("Resources")]
         ),
         .testTarget(
             name: "ProviderPluginTests",
-            dependencies: ["ProviderPlugin"],
+            dependencies: [
+                "ProviderPlugin",
+                .product(name: "KernelCore", package: "LumiKernel"),
+            ],
             path: "Tests"
         ),
     ],

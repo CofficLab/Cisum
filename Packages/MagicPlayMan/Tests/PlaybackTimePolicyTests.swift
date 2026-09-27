@@ -1,4 +1,5 @@
 import Foundation
+import ProviderPlayback
 @testable import MagicPlayMan
 import XCTest
 
@@ -136,8 +137,8 @@ final class PlayModeSurfaceTests: XCTestCase {
     func testPlayModeDisplayNameReflectsCurrentMode() {
         let man = MagicPlayMan()
         man.setPlayMode(.shuffle)
-        XCTAssertEqual(man.playModeDisplayName, MagicPlayMode.shuffle.displayName)
-        XCTAssertEqual(man.playModeIcon, MagicPlayMode.shuffle.icon)
+        XCTAssertEqual(man.playModeDisplayName, PlaybackMode.shuffle.displayName)
+        XCTAssertEqual(man.playModeIcon, PlaybackMode.shuffle.icon)
     }
 }
 

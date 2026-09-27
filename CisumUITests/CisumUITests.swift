@@ -37,15 +37,25 @@ class CisumUITestBase: XCTestCase {
     /// 按多个候选 label（中英文）查找任意一个匹配元素。
     func element(anyLabelOf labels: [String]) -> XCUIElement {
         app.descendants(matching: .any)
-            .matching(NSPredicate(format: "label IN %@", labels))
+            .matching(NSPredicate(format: "label IN %@ OR value IN %@", labels, labels))
             .firstMatch
     }
 
     /// 按 label 前缀查找（例如列表表头 “Total 86” / “共 86 首”）。
     func element(labelBeginsWith prefixes: [String]) -> XCUIElement {
-        let predicates = prefixes.map { NSPredicate(format: "label BEGINSWITH %@", $0) }
+        let predicates = prefixes.map {
+            NSPredicate(format: "label BEGINSWITH %@ OR value BEGINSWITH %@", $0, $0)
+        }
         return app.descendants(matching: .any)
             .matching(NSCompoundPredicate(orPredicateWithSubpredicates: predicates))
+            .firstMatch
+    }
+
+    /// 按 accessibility label 或 value 包含的文本片段查找，适用于 macOS
+    /// 把同一状态视图的标题和说明合并为一个 value 的情况。
+    func element(containing text: String) -> XCUIElement {
+        app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS %@ OR value CONTAINS %@", text, text))
             .firstMatch
     }
 
@@ -71,11 +81,14 @@ class CisumUITestBase: XCTestCase {
         XCTAssertTrue(switcher.waitForExistence(timeout: 10), "工具栏找不到场景切换器")
         switcher.click()
 
-        let segment = element(anyLabelOf: labels)
+        let sceneID = labels.contains(where: { ["Music Library", "音乐仓库"].contains($0) })
+            ? "music"
+            : "audiobooks"
+        let segment = element(identifier: "cisum.scene.option.\(sceneID)")
         XCTAssertTrue(segment.waitForExistence(timeout: 5), "场景选择器中找不到目标场景：\(labels)")
         segment.click()
 
-        let enterButton = element(anyLabelOf: ["Enter Scene", "进入场景"])
+        let enterButton = element(identifier: "cisum.scene.enter.\(sceneID)")
         XCTAssertTrue(enterButton.waitForExistence(timeout: 5), "找不到「进入场景」按钮")
         enterButton.click()
         #endif
@@ -272,16 +285,15 @@ final class CisumAudiobooksUITests: CisumUITestBase {
         let header = element(labelBeginsWith: ["Total", "共"])
         let bookTile = element(labelBeginsWith: ["Select ", "选择"])
         let reading = element(anyLabelOf: ["Reading repository", "正在读取仓库"])
-        let emptyState = element(anyLabelOf: [
-            "Drop audiobook folders here to add them",
-            "将有声书文件夹拖到这里可添加",
-            "Audiobook repository is empty",
-            "有声书仓库为空",
-            "Repository is empty",
-            "仓库为空",
-        ])
+        let emptyState = element(containing: "Drop audiobook folders here to add them")
+            .exists || element(containing: "将有声书文件夹拖到这里可添加").exists
+            || element(containing: "Audiobook repository is empty").exists
+            || element(containing: "有声书仓库为空").exists
+            || element(containing: "Repository is empty").exists
+            || element(containing: "仓库为空").exists
+        let unavailableState = element(identifier: "cisum.scene.audiobooks.unavailable")
         XCTAssertTrue(
-            header.exists || bookTile.exists || reading.exists || emptyState.exists,
+            header.exists || bookTile.exists || reading.exists || emptyState || unavailableState.exists,
             "有声书网格既无表头统计、书卡，也未显示读取中或空状态"
         )
     }
@@ -318,11 +330,11 @@ final class CisumSettingsUITests: CisumUITestBase {
         storageEntry.click()
 
         XCTAssertTrue(
-            element(anyLabelOf: ["Media Storage Location", "媒体存储位置"]).waitForExistence(timeout: 5),
+            element(identifier: "cisum.settings.storage.location").waitForExistence(timeout: 5),
             "存储设置页缺少「媒体存储位置」区块"
         )
-        XCTAssertTrue(element(anyLabelOf: ["iCloud Drive", "iCloud 云盘"]).exists, "缺少 iCloud 存储选项")
-        XCTAssertTrue(element(anyLabelOf: ["App Local Storage", "应用本地存储"]).exists, "缺少本地存储选项")
+        XCTAssertTrue(element(identifier: "cisum.settings.storage.icloud").exists, "缺少 iCloud 存储选项")
+        XCTAssertTrue(element(identifier: "cisum.settings.storage.local").exists, "缺少本地存储选项")
         #else
         throw XCTSkip("设置窗口仅 macOS 支持")
         #endif

@@ -15,15 +15,19 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../../Packages/DeviceData"),
-        .package(path: "../../Packages/CisumUIComponents")
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(name: "KitDeviceData", path: "../../Packages/DeviceData"),
+        .package(name: "KitUIComponents", path: "../../Packages/CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
     ],
     targets: [
         .target(
             name: "PluginDevice",
             dependencies: [
-                .product(name: "CisumDeviceData", package: "DeviceData"),
-                .product(name: "CisumUIComponents", package: "CisumUIComponents")
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "CisumDeviceData", package: "KitDeviceData"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
             ],
             path: ".",
             sources: ["Sources"],

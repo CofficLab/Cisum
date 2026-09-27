@@ -1,29 +1,52 @@
-# Plugin 边界
+# Package architecture
 
-Cisum 的包只按三类组织：
+Cisum follows the same package model as Lumi and Kuzee and uses the pinned shared
+`LumiKernel`. Application packages have four roles:
 
-1. `Provider*`：稳定的跨插件协议、事件、Observer 句柄和纯 DTO/模型；不包含业务实现、持久化或文件系统访问。
-2. `Plugin*`：单一业务功能的生命周期、UI、Observers 和 Capabilities。它通过 Provider 接收外部变化，通过 Capability 操作外部能力。
-3. `*Kit`：与业务无关的通用基础能力，例如 UI、播放、文件和系统工具。
+1. `Kit*` packages contain reusable foundations that are not owned by one feature:
+   playback primitives, UI components, event observation, and app utilities.
+2. `Provider*` packages define app-facing contracts, domain models, events, and
+   observer handles. A Provider contract is the boundary used by the kernel's
+   registry; it is not duplicated as a narrower capability protocol in each plugin.
+3. `Plugin*` packages implement one feature and consume other features through
+   their Provider contracts. A plugin can provide the concrete implementation for
+   a service it owns, then register that implementation with the shared kernel.
+4. `FactoryCisum` is the sole composition root. It selects and assembles the
+   app's providers and plugins with the shared kernel; feature plugins must not
+   depend on one another's implementation packages.
 
-书籍和音频的跨插件代码必须位于独立的中立 SwiftPM package，不能仅在某个 `Plugin*` package 内拆 target：
-
-- `ProviderBook`：书籍模型、数据库、仓库、配置和领域事件。
-- `ProviderAudioLibrary`：音频库、排序能力协议、事件和诊断 DTO。
-- `ProviderAudioLike`：喜欢能力协议与 `AudioLikeItem` DTO。
-- `ProviderAudioNavigation`：曲目首尾/前后导航协议。
-- `ProviderStore`：订阅状态与商店服务，供音频复制能力使用。
-
-功能插件只能依赖这些中立产品和公共 Provider，不能导入其他 `Plugin*` 模块，也不能通过另一个 `Plugin*` package 获取 Core 产品。唯一允许集中依赖具体插件的地方是 `FactoryCisum`。架构检查：
+The package graph should therefore stay within these roles:
 
 ```text
-Scripts/check-plugin-boundaries.sh
+FactoryCisum
+  ├── Plugin*  ── consumes ──> Provider*
+  ├── Provider* ── uses ─────> Kit*
+  └── Kit*
 ```
 
-音频实现归属如下：`PluginAudioDBData` 唯一持有 `AudioModel`、`AudioDB`、`AudioRepo`、SwiftData 容器、文件系统同步和事件桥接；`PluginAudioLike` 唯一持有喜欢的 SwiftData 模型、仓库和配置。音频目录的文件系统同步属于数据一致性机制，由 `PluginAudioDBData` 在自身生命周期内启动、停止和重建，不再由独立的 `PluginAudioJob` 驱动。`PluginAudio` 只负责根视图和存储可用性门禁，功能插件通过 Kernel 解析协议。新增功能插件时，应先定义 Provider，再在插件内部实现 Provider；外部文件变化放在拥有数据一致性职责的插件内部，外部写入、播放、复制等动作放在 Capability。
+Avoid per-plugin `Capability` protocols and adapters that only forward calls to a
+Provider, app-wide compatibility/export aggregators, duplicate domain models, and
+`NotificationCenter` shims where the owning Provider already exposes typed events.
+Put a shared contract in the appropriate `Provider*` package, shared presentation
+or utility in `Kit*`, feature behavior in `Plugin*`, and app-only assembly in
+`FactoryCisum`.
 
-## 播放链路
+Some platform integration is legitimate when the system API has no SwiftUI-native
+equivalent—for example, AppKit window sizing. Keep that code narrow and at the
+platform boundary; do not use it to bridge duplicate Kernel/UI APIs.
 
-`ProviderPlayback` 只定义中立的播放状态、模式、快照、命令和事件，以及可取消的 Observer 句柄。它不导入 `MagicPlayMan`，也不依赖某个插件的实现。`PluginPlayBack` 创建并持有 `MagicPlayMan`，将底层事件翻译成 `PlaybackProvidingEvent`，通过 Provider 自己的 `PlaybackObserverStore` 发送。
+## Cross-feature contracts
 
-播放功能插件在自己的 `Observers/` 中订阅 `PlaybackProviding`，把事件写入自己的 ViewModel；视图只接收 ViewModel 或显式能力对象。`FactoryCisum` 和 `ProviderControlView` 只负责区域装配，不读取播放器具体类型，也不注入 `MagicPlayMan` 环境对象。播放封面和右侧专辑区都是 `PluginPlaybackHero` 的贡献槽位，因此布局 Provider 不需要播放回退实现。
+- `ProviderPlayback` owns the shared `PlaybackMode`, playback state, snapshots,
+  commands, events, and observer contract. `KitPlayback` adds playback-engine and
+  presentation behavior without defining another mode enum.
+- `ProviderStorage` owns `StorageLocation` and `StorageProvidingEvent`; the storage
+  implementation belongs to its owning plugin and consumers subscribe through the
+  Provider rather than app-wide storage notifications.
+- Other cross-feature data and events live in their corresponding `Provider*`
+  packages. The feature that owns persistence or file synchronization remains
+  responsible for that lifecycle.
+
+Architecture checks and package graph verification should accompany changes to
+these boundaries. Do not treat historical design notes as current contracts when
+the source graph has since migrated.

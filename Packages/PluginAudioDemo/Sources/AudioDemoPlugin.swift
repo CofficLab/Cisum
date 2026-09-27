@@ -1,8 +1,11 @@
 import ProviderAppState
 import ProviderScene
 import ProviderDocsView
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 import MagicKit
 
@@ -41,7 +44,7 @@ public final class AudioDemoPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            contrib.addTabView { reason, demoMode in self.addTabView(reason: reason, demoMode: demoMode) }
+            contrib.addTabView(ownerPluginID: id) { reason, demoMode in self.addTabView(reason: reason, demoMode: demoMode) }
         }
         self.kernel = kernel
         // 跨插件 Provider（Scene）在 onReady 中解析，

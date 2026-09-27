@@ -8,8 +8,11 @@ import ProviderDocsView
 import ProviderToast
 import ProviderDevice
 import ProviderCloud
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import ProviderPluginManaging
 import CisumUIComponents
+import LumiUI
 import Foundation
 import MagicKit
 import OSLog
@@ -101,7 +104,6 @@ public enum CisumBuilder: SuperLog {
         // 提示 Provider 必须在插件 onBoot 前存在；ToastPlugin 随后替换为真实实现。
         let defaultToast = DefaultToastProvider()
         try kernel.registerProvider((any ToastProviding).self, defaultToast)
-        CisumToastBridge.install(defaultToast)
 
         // 视图 Provider 也要在插件 onBoot 前注册，供 ToastPlugin 挂载根覆盖层。
         try registerViewProviders(into: kernel)
@@ -139,11 +141,13 @@ public enum CisumBuilder: SuperLog {
 
     /// 销毁指定内核。
     public static func destroyKernel(_ kernel: KernelCoreContainer) {
+        cancelObservers(for: kernel)
         kernels.removeAll { $0 === kernel }
     }
 
     /// 销毁所有内核。
     public static func destroyAllKernels() {
+        for kernel in kernels { cancelObservers(for: kernel) }
         kernels.removeAll()
     }
 
@@ -248,17 +252,14 @@ public enum CisumBuilder: SuperLog {
 
     // MARK: - Private
 
-    /// 订阅插件启用/禁用变更通知，触发贡献重建。
+    /// 订阅插件启用/禁用语义事件，触发贡献缓存失效。
     private static func subscribeToPluginChanges(kernel: KernelCoreContainer) {
-        NotificationCenter.default.addObserver(
-            forName: .cisumEnabledPluginsDidChange,
-            object: nil,
-            queue: .main
-        ) { _ in
-            Task { @MainActor in
-                kernel.resolveProvider((any PluginProviding).self)?.invalidateCaches()
-            }
+        guard let provider = kernel.resolveProvider((any PluginManaging).self) else { return }
+        let handle = provider.addObserver { [weak kernel] event in
+            guard case .enabledPluginsChanged = event, let kernel else { return }
+            kernel.resolveProvider((any PluginProviding).self)?.invalidateCaches()
         }
+        pluginManagerObserverHandles[ObjectIdentifier(kernel)] = handle
     }
 
     /// 场景切换后重建内容 Tab。
@@ -270,19 +271,24 @@ public enum CisumBuilder: SuperLog {
     private static func subscribeToSceneChanges(kernel: KernelCoreContainer) {
         let handle = kernel.resolveProvider((any SceneProviding).self)?.addObserver { [weak kernel] event in
             guard case .selectionChanged = event else { return }
-            Task { @MainActor in
-                guard let kernel else { return }
-                if let content = kernel.resolveProvider((any ContentViewProviding).self) {
-                    refreshContentTabs(content, kernel: kernel)
-                }
-                NotificationCenter.default.post(name: .cisumSceneDidChange, object: nil)
+            guard let kernel else { return }
+            if let content = kernel.resolveProvider((any ContentViewProviding).self) {
+                refreshContentTabs(content, kernel: kernel)
             }
         }
-        sceneObserverHandle = handle
+        if let handle {
+            sceneObserverHandles[ObjectIdentifier(kernel)] = handle
+        }
     }
 
-    /// 场景监听句柄（跨方法存活，避免 `SceneProvider` 弱引用提前释放监听器）。
-    private nonisolated(unsafe) static var sceneObserverHandle: (any SceneProvidingObserverHandle)?
+    private static var pluginManagerObserverHandles: [ObjectIdentifier: any PluginManagingObserverHandle] = [:]
+    private static var sceneObserverHandles: [ObjectIdentifier: any SceneProvidingObserverHandle] = [:]
+
+    private static func cancelObservers(for kernel: KernelCoreContainer) {
+        let id = ObjectIdentifier(kernel)
+        pluginManagerObserverHandles.removeValue(forKey: id)?.cancel()
+        sceneObserverHandles.removeValue(forKey: id)?.cancel()
+    }
 }
 
 /// 兼容别名。

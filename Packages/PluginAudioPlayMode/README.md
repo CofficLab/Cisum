@@ -7,18 +7,17 @@ Audio play-mode plugin for Cisum. It manages playback modes (sequence, repeat-al
 - **Core responsibility**: Track and persist the current play mode, restore it when the music scene becomes active, and reorder the queue (sorted order or shuffled order) whenever the user switches mode.
 - **Key types / protocols**:
   - `AudioPlayModePlugin` — plugin entry (`AsyncSuperPlugin`, `SuperLog`), `id = "AudioPlayModePlugin"`, `order = 0`, `iconName = "repeat"`, `emoji = "🔄"`, `policy = .disabled`.
-  - `AudioPlayModeViewModel` — holds the active mode, applies it to the playback capability, and triggers sort/shuffle.
+  - `AudioPlayModeViewModel` — holds the active `ProviderPlayback.PlaybackMode`, applies it directly to `PlaybackProviding`, and triggers sort/shuffle.
   - `AudioPlayModeObserver` — forwards scene/playback events to the view model.
   - `AudioPlayModeStore` — persistent store for the play mode (local value with cloud fallback; available modes are sequence, repeatAll, loop, shuffle).
   - `AudioPlayModeRootView` / `AudioPlayModePluginRootView` — UI.
-  - `AudioPlayModePlaybackCapability` / `Adapter` — narrows `PlaybackProviding`.
   - `AudioPlayModePluginInfo` — metadata.
 - **Plugin registration**: Registers with ID `AudioPlayModePlugin`. `onReadyAsync` resolves `SceneProviding` and `PlaybackProviding`, then builds the view model with closures: a `sort` action and `shuffle` action backed by `AudioLibraryOrderingProviding`, and load/store actions backed by `AudioPlayModeStore`. `addRootView(content:)` contributes the root view.
 - **Workflow / data flow**:
-  1. When the music scene becomes active, the stored mode is resolved (local value preferred, cloud fallback, defaulting to sequence) and pushed to the playback capability — skipped if it already matches.
+  1. When the music scene becomes active, the stored mode is resolved (local value preferred, cloud fallback, defaulting to sequence) and pushed directly to `PlaybackProviding` — skipped if it already matches.
   2. Switching to sequence re-sorts the queue around the current URL; switching to shuffle shuffles it; loop only stores the mode without reordering.
   3. Mode changes are ignored while the plugin is inactive (non-music scene); sort errors are logged and surfaced without crashing.
-- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `ProviderAudioLibrary`, `MagicPlayMan`, `CisumKernelSupport`, `ProviderDocsView`, `ProviderScene`, `ProviderPlayback`. Resources: `Localizable.xcstrings`.
+- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `ProviderAudioLibrary`, `MagicPlayMan`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderScene`, `ProviderPlayback`. Resources: `Localizable.xcstrings`.
 
 ## Testing Logic
 

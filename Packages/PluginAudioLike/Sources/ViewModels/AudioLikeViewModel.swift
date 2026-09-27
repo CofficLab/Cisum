@@ -4,6 +4,7 @@ import OSLog
 import ProviderScene
 import MagicKit
 import ProviderAudioLike
+import ProviderToast
 
 /// 喜欢列表加载闭包（由插件入口组装本地仓库）。
 typealias AudioLikeLoadProvider = @MainActor () async -> [AudioLikeItem]
@@ -18,8 +19,8 @@ typealias AudioLikeSaveProvider = @MainActor (_ audioId: String, _ liked: Bool, 
 /// - 喜欢列表的加载与刷新（原 `AudioLikeSettingsView` 逻辑）。
 ///
 /// 由插件入口持有并注入 `AudioLikeObserver`；View 只展示与转发意图。
-/// ViewModel 不直接持有 Kernel 或具体 Provider：播放服务可用性通过
-/// `AudioLikePlaybackCapability` 表达，本地喜欢仓库由插件入口组装为闭包注入。
+/// ViewModel 不直接持有 Kernel；播放服务可用性由插件入口根据 Provider 是否存在注入，
+/// 本地喜欢仓库由插件入口组装为闭包注入。
 @MainActor
 final class AudioLikeViewModel: ObservableObject, SuperLog {
     nonisolated static let verbose = false
@@ -27,20 +28,23 @@ final class AudioLikeViewModel: ObservableObject, SuperLog {
     @Published private(set) var likedAudios: [AudioLikeItem] = []
     @Published private(set) var isLoading = true
 
-    private let playbackCapability: (any AudioLikePlaybackCapability)?
+    private let isPlaybackAvailable: Bool
     private let loadLikedAudios: AudioLikeLoadProvider
     private let saveLikeStatus: AudioLikeSaveProvider
+    private let toastProvider: (any ToastProviding)?
     private var loadGeneration = 0
     private var isActive = false
 
     init(
-        playbackCapability: (any AudioLikePlaybackCapability)?,
+        isPlaybackAvailable: Bool,
         loadLikedAudios: @escaping AudioLikeLoadProvider,
-        saveLikeStatus: @escaping AudioLikeSaveProvider
+        saveLikeStatus: @escaping AudioLikeSaveProvider,
+        toastProvider: (any ToastProviding)? = nil
     ) {
-        self.playbackCapability = playbackCapability
+        self.isPlaybackAvailable = isPlaybackAvailable
         self.loadLikedAudios = loadLikedAudios
         self.saveLikeStatus = saveLikeStatus
+        self.toastProvider = toastProvider
     }
 
     /// 场景变化：目标场景激活喜欢保存，离开目标场景停用。
@@ -69,7 +73,7 @@ final class AudioLikeViewModel: ObservableObject, SuperLog {
 
     private func activateLike() {
         guard !isActive else { return }
-        guard playbackCapability?.isAvailable == true else { return }
+        guard isPlaybackAvailable else { return }
 
         isActive = true
         // Playback events are adapted by AudioLikeObserver.
@@ -97,7 +101,7 @@ final class AudioLikeViewModel: ObservableObject, SuperLog {
             } catch {
                 guard self.isActive else { return }
                 os_log(.error, "保存喜欢状态失败: \(error.localizedDescription)")
-                alert_error(String(localized: "Failed to save like status: \(error.localizedDescription)", bundle: .module))
+                toastProvider?.error(String(localized: "Failed to save like status: \(error.localizedDescription)", bundle: .module))
             }
         }
     }

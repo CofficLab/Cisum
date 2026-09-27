@@ -11,7 +11,7 @@ Defines the `ToolbarProviding` protocol: an optional whole-window-toolbar inject
   - Uses `AnyView` instead of an `associatedtype` so the protocol can be registered as an existential (`any ToolbarProviding`) in the `KernelCoreContainer` provider registry.
 - **Events** (`ToolbarProvidingEvent`): `.contentChanged`.
 - **Provider pattern**: consumers resolve via `kernel.resolveProvider((any ToolbarProviding).self)`. Default `addObserver` returns `NoopToolbarProvidingObserverHandle`; `cancel()` is idempotent.
-- **Dependencies**: `CisumKernelSupport`, `ProviderScene`.
+- **Dependencies**: `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderScene`.
 
 ## Testing Logic
 

@@ -1,7 +1,10 @@
 import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
-import CisumKernelSupport
+import ProviderToast
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import OSLog
 import ProviderBook
 import SwiftUI
@@ -45,8 +48,8 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            contrib.addTabView { reason, demoMode in self.addTabView(reason: reason, demoMode: demoMode) }
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(view) }
+            contrib.addTabView(ownerPluginID: id) { reason, demoMode in self.addTabView(reason: reason, demoMode: demoMode) }
+            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
         }
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
@@ -95,8 +98,8 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
             dbRoot: databaseRootProvider(),
             bookDisk: bookDiskProvider(),
             bookProvider: provider,
-            isDesktop: ConfigShim.isDesktop,
-            isNotDesktop: ConfigShim.isNotDesktop
+            isDesktop: MagicApp.isDesktop,
+            isNotDesktop: MagicApp.isNotDesktop
         )
         let viewModel = resolveViewModel()
         let view = BookDBView(dependencies: dependencies, viewModel: viewModel)
@@ -166,7 +169,8 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
         if Self.verbose { os_log("\(Self.t)🔧 installState") }
 
         let viewModel = BookGridViewModel(
-            playbackCapability: makePlaybackCapability(from: kernel.resolveProvider((any PlaybackProviding).self))
+            playbackProvider: kernel.resolveProvider((any PlaybackProviding).self),
+            toastProvider: kernel.resolveProvider((any ToastProviding).self)
         )
         guard let provider = kernel.resolveProvider(BookDatabaseProviding.self) else { return }
         let observer = DBObserver(viewModel: viewModel, provider: provider)
@@ -192,34 +196,14 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
             return gridViewModel
         }
         let viewModel = BookGridViewModel(
-            playbackCapability: makePlaybackCapability(from: kernel?.resolveProvider((any PlaybackProviding).self))
+            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
+            toastProvider: kernel?.resolveProvider((any ToastProviding).self)
         )
         gridViewModel = viewModel
         return viewModel
     }
 
-    /// 将内核播放 Provider 收窄后注入 ViewModel。
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any BookDBPlaybackCapability)? {
-        guard let playback else { return nil }
-        return BookDBPlaybackCapabilityAdapter(playback: playback)
-    }
-
     private final class SceneBox {
         weak var scene: (any SceneProviding)?
     }
-}
-
-private enum ConfigShim {
-    static var isDesktop: Bool {
-        #if os(macOS)
-            true
-        #else
-            false
-        #endif
-    }
-
-    static var isNotDesktop: Bool { !isDesktop }
 }

@@ -22,10 +22,8 @@ into the player control area, but only while the app is in the audiobooks scene.
     `playMode`; `shouldActivateControl`; `toggle()`, `previous()`, `next()`,
     `togglePlayMode()`; chapter navigation with `controlGeneration` invalidation;
     handles book-DB deletes, library refreshes and storage resets.
-  - `BookControlPlaybackCapability` protocol + `BookControlPlaybackCapabilityAdapter`
-    — minimal surface (`currentURL`, `isPlaying`, `playMode`, `toggle()`,
-    `togglePlayMode()`, `play(_:reason:)`, `reset(reason:)`) wrapping
-    `PlaybackProviding`.
+  - `BookControlViewModel` consumes `PlaybackProviding` directly for playback state,
+    mode, play/pause, chapter playback, and reset.
   - `BookControlPlaybackObserver` / `BookControlSceneObserver` — forward
     playback `.stateChanged` / `.playModeChanged` / `.previousRequested` /
     `.nextRequested` and scene `.selectionChanged` events to the view model.
@@ -42,13 +40,13 @@ into the player control area, but only while the app is in the audiobooks scene.
   `onDisable` / `onShutdownAsync` tear them down and remove contributions.
 - **Workflow/data flow:** a button tap → view model computes the enclosing book root
   → lazily scans/caches playable chapters → picks the adjacent chapter per the
-  current `MagicPlayMode` (sequence / loop / repeatAll wrap-around / shuffle) →
+  current `ProviderPlayback.PlaybackMode` (sequence / loop / repeatAll wrap-around / shuffle) →
   applies the result only if the request generation, scene and current asset still
-  match → calls `playbackCapability.play`. Deletes of the current book reset
+  match → calls `PlaybackProviding.play`. Deletes of the current book reset
   playback and clear the chapter cache; storage-location changes reset playback in
   the active scene.
 - **Dependencies:** `MagicKit`, `CisumUIComponents`, `ProviderBook`,
-  `MagicPlayMan`, `CisumKernelSupport`, `ProviderDocsView`, `ProviderScene`,
+  `MagicPlayMan`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderScene`,
   `ProviderPlayback`, `ProviderRootView`, `ProviderToast`.
 
 ## Testing Logic

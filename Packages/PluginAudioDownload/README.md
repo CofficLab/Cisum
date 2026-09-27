@@ -11,15 +11,14 @@ Audio download plugin for Cisum. It automatically starts a download when the cur
   - `AudioDownloadViewModel` — tracks the current asset and decides when to start/apply a download.
   - `AudioDownloadObserver` — subscribes to scene and playback events and forwards them to the view model.
   - `AudioDownloadRequestPolicy` — pure policy: whether to check the current asset, whether to start a download, and whether to apply a (possibly stale) download result.
-  - `AudioDownloadPlaybackCapability` / `AudioDownloadPlaybackCapabilityAdapter` — narrows `PlaybackProviding`.
   - `AudioDownloadPluginInfo` — metadata (title, description, icon, order).
-- **Plugin registration**: Registers with ID `AudioDownloadPlugin`. `onRegister` adds About/Manual docs. `onReadyAsync` resolves `SceneProviding` and `PlaybackProviding`, builds the playback capability adapter, the view model, and the observer. `addRootView(content:)` contributes the root view.
+- **Plugin registration**: Registers with ID `AudioDownloadPlugin`. `onRegister` adds About/Manual docs. `onReadyAsync` resolves `SceneProviding` and `PlaybackProviding`, then injects the playback provider into the view model and observer. `addRootView(content:)` contributes the root view.
 - **Workflow / data flow**:
   1. The observer receives scene and playback/asset-change events.
   2. `AudioDownloadRequestPolicy.shouldCheckCurrentAsset` only fires for an active music scene; a nil or already-present asset is ignored.
   3. `shouldStartDownload` prevents starting a duplicate active download for the same asset.
   4. `shouldApplyDownloadResult` only applies the result if the current asset has not changed (with symlinked-current-asset matching), and invalidates pending work after a scene deactivation (generation bump). Distinct dangling symlinks are not treated as the same asset.
-- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `MagicPlayMan`, `CisumKernelSupport`, `ProviderDocsView`, `ProviderScene`, `ProviderPlayback`. Resources: `Localizable.xcstrings`.
+- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `MagicPlayMan`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderScene`, `ProviderPlayback`. Resources: `Localizable.xcstrings`.
 
 ## Testing Logic
 

@@ -16,7 +16,7 @@ Mono High Contrast is a strictly monochrome, grayscale theme. It uses near-black
   - Atmosphere — deep `#F5F5F7`/`#0B0B0F`, medium `#FFFFFF`/`#151519`, light `#EEEEF0`/`#202027`.
   - Workspace text `#1D1D1F`/`#F5F5F7` with secondary/tertiary grays.
   - Glow opacities are intentionally minimal (3% / 5% / 8%); background is a vertical linear gradient over the atmosphere colors plus a faint top-trailing primary radial glow (~6% opacity).
-- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
+- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
 
 ## Testing Logic
 

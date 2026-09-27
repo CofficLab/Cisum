@@ -6,7 +6,7 @@ import MagicKit
 ///
 /// 订阅 `PluginManaging` Provider 的 `enabledPluginsChanged` 语义事件，驱动
 /// `PluginManagementViewModel.incrementRevision()`；取代原 `PluginManagementView`
-/// 的直接 `.onReceive` 订阅与对 `.cisumEnabledPluginsDidChange` 通知的直接监听。
+/// 对 `PluginManaging` 语义事件的直接订阅。
 @MainActor
 final class PluginManagerObserver: SuperLog {
     nonisolated static let emoji = "🧩"

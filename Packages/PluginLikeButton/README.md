@@ -8,8 +8,7 @@ A feature plugin that contributes a heart-shaped like/unlike toggle button to th
 - **Key types:**
   - `LikeButtonPlugin` — `@MainActor final class` conforming to `AsyncSuperPlugin, SuperLog`. `id = "LikeButtonPlugin"`, `order = 9999`, category `.feature`, policy `.disabled`.
   - `LikeButtonPluginInfo` — enum with `description`, `iconName = "heart"`, `toolbarItemId = "like-toggle"`.
-  - `LikeButtonPlaybackCapability` — internal protocol narrowing `PlaybackProviding` to `hasAsset`, `currentURL`, `likedAssets`, `toggleCurrentLike()`; `LikeButtonPlaybackCapabilityAdapter` adapts the kernel provider.
-  - `LikeButtonViewModel` — `ObservableObject` publishing `hasAsset` and `isLiked`; forwards asset/like events and `toggleLike()`.
+  - `LikeButtonViewModel` — `ObservableObject` publishing `hasAsset` and `isLiked`; uses the shared `PlaybackProviding` contract and handles asset/like events and `toggleLike()`.
   - `LikeButtonObserver` — subscribes to `PlaybackProviding` events (`assetChanged`, `likeStatusChanged`, `likedAssetsChanged`) and forwards them to the view model.
   - `LikeToggleButtonView` — public SwiftUI button showing `heart`/`heart.fill`, red when liked; hides itself when no asset.
   - Views: `LikeButtonPluginAboutView`, `LikeButtonPluginManualView`.
@@ -17,21 +16,21 @@ A feature plugin that contributes a heart-shaped like/unlike toggle button to th
 - **Workflow/data flow:**
   1. Kernel playback events flow into `LikeButtonObserver`, which updates `LikeButtonViewModel`.
   2. `LikeToggleButtonView` observes the view model and renders the filled/outline heart.
-  3. A tap calls `viewModel.toggleLike()` → capability adapter → `PlaybackProviding.toggleCurrentLike()`.
-- **Dependencies:** `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, `ProviderDocsView`, `MagicPlayMan`, `ProviderPlayback`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
+  3. A tap calls `viewModel.toggleLike()` → `PlaybackProviding.toggleCurrentLike()`.
+- **Dependencies:** `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `MagicPlayMan`, `ProviderPlayback`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
 
 ## Testing Logic
 
 - **Test files:**
-  - `Tests/LikeButtonPluginTests.swift` — uses a `PlaybackProbe` conforming to `PlaybackProviding` and a `CapabilityProbe` to drive the view model, adapter, and observer without a real player.
+  - `Tests/LikeButtonPluginTests.swift` — uses a `PlaybackProbe` conforming to `PlaybackProviding` to drive the view model and observer without a real player.
 - **Key scenarios tested:**
   - Metadata stability (`toolbarItemId`, icon, description).
-  - ViewModel initialization from capability, fallback when capability is `nil`, and reactions to `assetChanged`, `likeStatusChanged`, and `likedAssetsChanged` events.
-  - `toggleLike` forwards to the capability; the adapter maps playback state and forwards `toggleCurrentLike`.
+  - ViewModel initialization from the provider, fallback when playback is unavailable, and reactions to `assetChanged`, `likeStatusChanged`, and `likedAssetsChanged` events.
+  - `toggleLike` forwards to `PlaybackProviding.toggleCurrentLike()`.
   - Observer forwards playback events to the view model and stops after `cancel()`.
 - **Running tests:**
   ```bash
   cd /Users/angel/Code/Coffic/Cisum/Packages/PluginLikeButton
   swift test
   ```
-- Tests cover the view model/adapter/observer in isolation with fakes; they do not boot the full plugin lifecycle.
+- Tests cover the view model/observer in isolation with provider fakes; they do not boot the full plugin lifecycle.

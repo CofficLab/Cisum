@@ -1,5 +1,7 @@
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
 import CisumUIComponents
+import LumiUI
 import Foundation
 
 /// 插件管理 Provider 的语义变更事件。

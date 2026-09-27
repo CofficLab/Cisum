@@ -1,8 +1,10 @@
 import ProviderDocsView
 import ProviderStorage
-import CisumKernelSupport
+import KernelCore
 import CisumUIComponents
+import LumiUI
 import ProviderPluginManaging
+import ProviderPlugin
 import SwiftUI
 
 /// 插件管理插件（对齐 Lumi `PluginPluginManager`）。
@@ -13,7 +15,7 @@ import SwiftUI
 /// 供 `addSettingNavigationItem()` 构造 `PluginManaging` 数据源；自身也在
 /// `onRegister` 中贡献关于页与说明书。
 @MainActor
-public final class PluginPluginManager: SuperPlugin {
+public final class PluginPluginManager: AsyncSuperPlugin {
     public let id = String(describing: PluginPluginManager.self)
 
     public static let shared = PluginPluginManager()
@@ -59,12 +61,13 @@ public final class PluginPluginManager: SuperPlugin {
 
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
-        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addSettingView() { contrib.addSettingView(view) }
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(view) }
-        }
         self.kernel = kernel
+        try installState(kernel: kernel)
 
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            if let view = self.addSettingView() { contrib.addSettingView(ownerPluginID: id, view) }
+            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
+        }
         // 注入插件启用状态持久化存储：onBoot 阶段从内核的 StorageProviding
         // 解析插件专属数据目录（目录名 = 插件 ID，对齐 GitOK 规律）。
         // 本插件为 alwaysOn，先于所有可配置插件的启用判断完成注入。
@@ -73,12 +76,15 @@ public final class PluginPluginManager: SuperPlugin {
             kernel.stateStore = PluginManagerStateStore(pluginDataDirectory: pluginDir)
         }
 
-        installState(kernel: kernel)
     }
 
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        if let managementManager,
+           kernel.resolveProvider((any PluginManaging).self) === managementManager {
+            kernel.unregisterProvider((any PluginManaging).self)
+        }
         teardownState()
     }
 
@@ -90,7 +96,7 @@ public final class PluginPluginManager: SuperPlugin {
     @MainActor
     public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
         guard let kernel else { return nil }
-        installState(kernel: kernel)
+        try? installState(kernel: kernel)
         let viewModel = resolveViewModel()
         return PluginSettingNavigationItem(
             id: Self.settingsEntryID,
@@ -105,11 +111,11 @@ public final class PluginPluginManager: SuperPlugin {
     // MARK: - State assembly
 
     @MainActor
-    private func installState(kernel: KernelCoreContainer) {
+    private func installState(kernel: KernelCoreContainer) throws {
         guard managementViewModel == nil else { return }
         let manager = PluginManagerProvider(kernel: kernel)
-        let capability = PluginManagementCapabilityAdapter(manager: manager)
-        let viewModel = PluginManagementViewModel(capability: capability)
+        try kernel.registerProvider((any PluginManaging).self, manager)
+        let viewModel = PluginManagementViewModel(manager: manager)
         let observer = PluginManagerObserver(manager: manager, viewModel: viewModel)
         managementManager = manager
         managementViewModel = viewModel

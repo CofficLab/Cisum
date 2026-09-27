@@ -15,13 +15,15 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../../Packages/CisumUIComponents")
+        .package(name: "KitUIComponents", path: "../../Packages/CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
     ],
     targets: [
         .target(
             name: "PluginVideo",
             dependencies: [
-                .product(name: "CisumUIComponents", package: "CisumUIComponents")
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
             ],
             path: ".",
             sources: ["Sources"],

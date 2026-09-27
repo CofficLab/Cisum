@@ -1,8 +1,10 @@
-# MagicPlayMan
+# KitPlayback (product/module `MagicPlayMan`)
 
 A universal AVFoundation-backed media playback engine for Cisum, supporting local and network audio/video (MP3, WAV, MP4, HLS) with play modes, like/favorite tracking, download-and-cache, system remote control, Now Playing info, and a full set of self-observing SwiftUI control views.
 
 ## Functional Logic
+
+The Swift package identity is `KitPlayback`; the existing `MagicPlayMan` product/module name remains stable for source imports.
 
 - **Core responsibility**: Own a single `AVPlayer`, drive it from SwiftUI `@Published` state, and expose both a Combine/notification event surface and ready-made SwiftUI views. It validates URLs, handles iCloud dataless downloads, caches remote assets to disk, normalizes time/progress math, and forwards next/previous requests to an external queue (the engine itself does not own a playlist).
 
@@ -10,7 +12,7 @@ A universal AVFoundation-backed media playback engine for Cisum, supporting loca
   - `MagicPlayMan` (`Man.swift`) — the `@MainActor ObservableObject` core. Holds the internal `AVPlayer` (`_player`), a periodic time observer, `MPNowPlayingInfoCenter` state, an `AssetCache`, `PlaybackEvents`, and `@Published` `playMode`, `currentURL`, `state`, `currentTime`, `duration`, `progress`, `likedAssets`. Also defines `MagicPlayManPlaybackTimePolicy` (finite/clamp normalization) and internal setters (`setState`, `setCurrentTime`, `setDuration`, `setProgress`, `setCurrentURL`, `setPlayMode`) plus a play-request generation counter (`beginPlayRequest` / `isCurrentPlayRequest`) to invalidate stale async loads.
   - `PlaybackEvents` (`Man+Subscription.swift`) — `ObservableObject` holding `PassthroughSubject`s: `onStateChanged`, `onPlaybackFailed`, `onTrackFinished`, `onPreviousRequested`, `onNextRequested`, `onNavigationFailed`, `onLikeStatusChanged`, `onPlayModeChanged`, `onCurrentURLChanged`, `onBufferingStateChanged`. External callers `subscribe(name:...)` with optional callbacks and receive a `UUID` to `unsubscribe`. `addNavigationSubscriber` marks a subscriber as a queue owner (required before `next()`/`previous()` will emit).
   - `PlaybackState` (`Models/PlaybackState.swift`) — an `Equatable` enum: `.idle`, `.loading(LoadingState)`, `.willPlay`, `.playing`, `.paused`, `.stopped`, `.failed(PlaybackError)`. `LoadingState` is `.connecting`/`.preparing`/`.buffering`/`.downloading(Double)`. `PlaybackError` covers `.noAsset`, `.invalidAsset`, `.networkError`, `.playbackError`, `.unsupportedFormat`, `.invalidURL`, with localized descriptions and recovery suggestions. Includes `StateView`.
-  - `MagicPlayMode` (`Models/MagicPlayMode.swift`) — `.sequence`, `.loop`, `.shuffle`, `.repeatAll`, with `displayName`, `shortName`, `iconName`, `next` cycling, `toastMessage`, and SwiftUI helpers (`button`, `indicator`, `label`). Also ships `PlayModeIndicator` and `PlayModeButton`.
+  - Adds presentation helpers to the shared `ProviderPlayback.PlaybackMode` (`Models/MagicPlayMode.swift`) — `displayName`, `shortName`, `iconName`, `next` cycling, `toastMessage`, and SwiftUI helpers (`button`, `indicator`, `label`). Also ships `PlayModeIndicator` and `PlayModeButton`.
   - `MagicAsset` (`Models/MagicAsset.swift`) — `Identifiable, Equatable` value type wrapping a `URL` and `Metadata` (title, artist, album, artwork, duration). Equality is by identity (`id`).
   - `AssetCache` (`Models/AssetCache.swift`) — SHA-256-keyed on-disk cache: `isCached`, `cachedURL`, `cache(_:for:)`, `clear`, `size()`, `validateCache(for:)`, `removeCached`. `AssetCacheFileSizePolicy` normalizes file-size attributes.
   - `SupportedFormat` (`Models/SupportedFormat.swift`) — declares MP3, WAV, MP4, and HLS formats with bundled sample URLs (NASA audio, Chinese traditional music, Blender open movies, Apple HLS streams).
@@ -27,7 +29,7 @@ A universal AVFoundation-backed media playback engine for Cisum, supporting loca
   4. On track end, `.loop` mode restarts immediately; otherwise the engine posts `onNextRequested` for the external queue to handle. `next()`/`previous()` only fire if a navigation subscriber is registered.
   5. SwiftUI views observe the `@Published` state directly (self-observing buttons/progress/hero) or subscribe via `man.subscribe(...)`.
 
-- **Dependencies** (from `Package.swift`): only `CisumUIComponents` (which re-exports MagicKit and LumiUI). Platforms: macOS 14 / iOS 17.
+- **Dependencies** (from `Package.swift`): `KitUIComponents` (product/module `CisumUIComponents`). Platforms: macOS 14 / iOS 17.
 
 ## Testing Logic
 
@@ -46,7 +48,7 @@ A universal AVFoundation-backed media playback engine for Cisum, supporting loca
   - **Playback failures**: unplayable local media leaves `currentURL` set and surfaces `.invalidAsset`; failed playback notifies `onPlaybackFailed`; `AVPlayerItemFailedToPlayToEndTime` resets the item but keeps the selection; stale (non-current-item) failure notifications are ignored.
   - **Navigation & controls**: `next`/`previous`/`seek`/`pause`/`setLike` are safe with no asset; volume clamps to 0…1; mute toggles; toggle behaves correctly in each state; stop synchronizes published state.
   - **Policies**: playback-request validation rejects missing/unsupported files and accepts HLS/audiobooks; seek normalizes out-of-range times; control input normalizes volume/skip; time-update payload normalization.
-  - **Models**: `MagicPlayMode` display names/icon/cycling; `PlaybackState` flags (`isPlaying`, `isLoading`, `isDownloading`, `canSeek`), icon/text, download-percent clamping, localized error descriptions/reasons/suggestions, and equality; `MagicAsset` metadata defaults and identity equality.
+  - **Models**: shared `PlaybackMode` display names/icon/cycling presentation; `PlaybackState` flags (`isPlaying`, `isLoading`, `isDownloading`, `canSeek`), icon/text, download-percent clamping, localized error descriptions/reasons/suggestions, and equality; `MagicAsset` metadata defaults and identity equality.
 - **Running tests**:
   ```bash
   cd /Users/angel/Code/Coffic/Cisum/Packages/MagicPlayMan

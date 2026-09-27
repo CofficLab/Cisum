@@ -23,10 +23,9 @@ and no settings contributions.
     `databaseRoot`; forwards `totalCount()`, `books(reason:)`,
     `syncImportedItems(_:)`, `coverData(for:)`, `playbackState(for:)`,
     `savePlaybackState(for:currentURL:time:)`; persists current book URL/time via
-    `BookSettingRepo`; maps `NotificationCenter` book notifications to
-    `BookProvidingEvent`; invalidates the cached repository on storage changes.
-  - `BookProvidingNotificationObserverHandle` — cancels both the notification-center
-    tokens and the storage observer handle.
+    `BookSettingRepo`; publishes `BookDB`'s typed events directly through
+    `BookProvidingEvent` and invalidates the cached repository on storage changes.
+  - `BookProvidingObserver` — owns a cancellable typed observer and storage handle.
 - **Plugin registration:** registered as `BookDBDataPlugin`. In `onBootAsync` /
   `onReadyAsync` / `onEnable` it calls `installProvider(kernel:)`, which resolves
   `StorageProviding` and `kernel.registerProvider(BookDatabaseProviding.self, provider)`.
@@ -35,12 +34,10 @@ and no settings contributions.
   freshly built provider is shut down so the existing one is never stolen.
 - **Workflow/data flow:** storage location changes → provider invalidates the cached
   repo (shutting it down) → next read rebuilds the container against the new disk.
-  Book notifications (`.bookDBSyncing`, `.bookDBSynced`, `.bookDBUpdated`,
-  `.bookDBDeleted`, `.bookDBSortDone`, `.bookStateUpdated`) are translated into
-  `.librarySyncing` / `.librarySynced` / `.libraryChanged` / `.libraryDeleted(urls:)`
-  / `.librarySorted` / `.playbackStateChanged(url:)` observer callbacks; sync events
-  also clear `BookCoverRepo`'s cover cache.
-- **Dependencies:** `CisumKernelSupport`, `MagicKit`, `ProviderBook`
+  `BookDB` emits typed `BookProvidingEvent` values directly; the provider forwards
+  them to cancellable observers and clears `BookCoverRepo`'s cache after library
+  mutations. No NotificationCenter translation layer is involved.
+- **Dependencies:** `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `MagicKit`, `ProviderBook`
   (products `ProviderBook` and `ProviderBookData`), `ProviderStorage`.
 
 ## Testing Logic
@@ -55,8 +52,8 @@ and no settings contributions.
   - Happy path: initial sync, `syncImportedItems`, cover/state reads, saving and
     reading playback state, and a storage-root switch that invalidates the repo and
     serves the new disk's books.
-  - Notification mapping: each `Notification.Name` is translated to the expected
-    `BookProvidingEvent`, and observer cancellation stops further delivery.
+  - Typed event delivery: database and storage changes reach observers, and cancelling
+    an observer stops further delivery.
   - Plugin lifecycle: no provider is registered until storage is available; when
     storage is available the provider is registered on boot, removed on disable,
     re-registered on enable, and removed on shutdown.

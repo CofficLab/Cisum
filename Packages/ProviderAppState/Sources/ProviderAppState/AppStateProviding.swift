@@ -1,4 +1,5 @@
 import Foundation
+import KitEventObservation
 
 @MainActor
 public enum AppStateProvidingEvent {
@@ -93,3 +94,5 @@ public final class NoopAppStateProvidingObserverHandle: AppStateProvidingObserve
     public init() {}
     public func cancel() {}
 }
+
+extension EventObserverHandle: AppStateProvidingObserverHandle {}

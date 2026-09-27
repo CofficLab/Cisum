@@ -1,6 +1,9 @@
 import ProviderDocsView
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import Foundation
 import MagicKit
 

@@ -1,5 +1,8 @@
+import MagicKit
 import Foundation
+import ProviderPlayback
 import CisumUIComponents
+import LumiUI
 import MagicPlayMan
 import OSLog
 import SwiftUI
@@ -97,19 +100,19 @@ public class AudioStateRepo: SuperLog {
 
     /// 获取播放模式
     /// - Returns: 播放模式，如果没有存储则返回nil
-    public static func getPlayMode() -> MagicPlayMode? {
+    public static func getPlayMode() -> PlaybackMode? {
         resolvedPlayMode(
             localRawValue: UserDefaults.standard.string(forKey: keyOfCurrentPlayMode),
             cloudRawValue: NSUbiquitousKeyValueStore.default.string(forKey: keyOfCurrentPlayMode)
         )
     }
 
-    static func resolvedPlayMode(localRawValue: String?, cloudRawValue: String?) -> MagicPlayMode? {
-        if let localRawValue, let mode = MagicPlayMode(rawValue: localRawValue) {
+    static func resolvedPlayMode(localRawValue: String?, cloudRawValue: String?) -> PlaybackMode? {
+        if let localRawValue, let mode = PlaybackMode(rawValue: localRawValue) {
             return mode
         }
 
-        if let cloudRawValue, let mode = MagicPlayMode(rawValue: cloudRawValue) {
+        if let cloudRawValue, let mode = PlaybackMode(rawValue: cloudRawValue) {
             return mode
         }
 

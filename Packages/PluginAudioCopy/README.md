@@ -20,7 +20,7 @@ Audio file copy / import plugin for Cisum (macOS only). It lets users drop audio
   2. Sources are resolved from drag data (`FileURLDataProvider` first, falling back to the URL object representation).
   3. The worker copies files one by one into the library, planning unique destination names and copying the resolved symlink target as a regular file. Tasks deleted before start or after completion are skipped/discarded.
   4. Task count and DB-update notifications are posted on the main thread; `CopyStateView` summarizes pending/failed counts and exposes a details popover. A library-size limit caps the number of allowed incoming tasks.
-- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, `ProviderDocsView`, `ProviderAudioLibrary`, `ProviderStore`. Resources: `Localizable.xcstrings`.
+- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderAudioLibrary`, `ProviderStore`. Resources: `Localizable.xcstrings`.
 
 ## Testing Logic
 

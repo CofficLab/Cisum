@@ -1,4 +1,6 @@
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import SwiftUI
 
 /// 播放模式按钮视图

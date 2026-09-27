@@ -1,5 +1,6 @@
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
 import SwiftUI
 
 /// 插件管理页左侧列表中的单行渲染（对齐 Lumi `PluginPluginManager.PluginListRow`）。
@@ -37,7 +38,7 @@ struct PluginListRow: View {
     /// 左侧图标 + 启用状态指示点。
     private var leadingAccessory: some View {
         VStack(spacing: 6) {
-            Image(systemName: plugin.iconName)
+            Image(systemName: "puzzlepiece.extension")
                 .font(.appBody)
                 .foregroundStyle(isSelected ? theme.primary : theme.textSecondary)
                 .frame(width: 22, height: 22)

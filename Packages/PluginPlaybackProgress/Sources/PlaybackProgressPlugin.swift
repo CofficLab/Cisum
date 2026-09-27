@@ -1,7 +1,10 @@
 import ProviderDocsView
 import ProviderPlayback
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import SwiftUI
 import MagicKit
 
@@ -40,22 +43,22 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
-        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addProgressView() { contrib.addProgressView(view) }
-        }
         self.kernel = kernel
         // 跨插件 Provider 在 onReady 阶段解析。
     }
 
     @MainActor
     public func onReadyAsync(kernel: KernelCoreContainer) async throws {
+        self.kernel = kernel
         installState(kernel: kernel)
+        registerContribution(kernel: kernel)
     }
 
     @MainActor
     public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         installState(kernel: kernel)
+        registerContribution(kernel: kernel)
     }
 
     @MainActor
@@ -79,12 +82,19 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
     }
 
     @MainActor
+    private func registerContribution(kernel: KernelCoreContainer) {
+        guard let view = addProgressView(),
+              let contribution = kernel.resolveProvider((any PluginContributionProviding).self) else { return }
+        contribution.addProgressView(ownerPluginID: id, view)
+    }
+
+    @MainActor
     private func installState(kernel: KernelCoreContainer?) {
         guard viewModel == nil else { return }
-        let capability = makePlaybackCapability(from: kernel?.resolveProvider((any PlaybackProviding).self))
-        let viewModel = PlaybackProgressViewModel(playbackCapability: capability)
+        let playback = kernel?.resolveProvider((any PlaybackProviding).self)
+        let viewModel = PlaybackProgressViewModel(playbackProvider: playback)
         self.viewModel = viewModel
-        observer = PlaybackProgressObserver(playback: kernel?.resolveProvider((any PlaybackProviding).self), viewModel: viewModel)
+        observer = PlaybackProgressObserver(playback: playback, viewModel: viewModel)
     }
 
     @MainActor
@@ -94,11 +104,4 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
         viewModel = nil
     }
 
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any PlaybackProgressCapability)? {
-        guard let playback else { return nil }
-        return PlaybackProgressCapabilityAdapter(playback: playback)
-    }
 }

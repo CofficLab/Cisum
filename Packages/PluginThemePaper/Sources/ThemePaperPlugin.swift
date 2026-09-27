@@ -1,6 +1,9 @@
 import ProviderDocsView
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import SwiftUI
 import MagicKit
 
@@ -41,7 +44,7 @@ public final class ThemePaperPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            contrib.addThemeContributions(self.addThemeContributions())
+            contrib.addThemeContributions(ownerPluginID: id, self.addThemeContributions())
         }
     }
 

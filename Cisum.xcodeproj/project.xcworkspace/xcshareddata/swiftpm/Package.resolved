@@ -15,8 +15,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CofficLab/LumiKernel.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "4a30c5f4d6e3b24be61e87a036b14720ef0f1654"
+        "revision" : "7031fda7ff72492d574ef9a4b5d9ffdc801a6660"
       }
     },
     {
@@ -24,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CofficLab/LumiUI",
       "state" : {
-        "revision" : "419c64ec01257f923b4139ede61377566b97b626",
-        "version" : "1.2.3"
+        "revision" : "43c26a8dc24b6da57838f10f617b67c0def50376",
+        "version" : "1.4.0"
       }
     },
     {

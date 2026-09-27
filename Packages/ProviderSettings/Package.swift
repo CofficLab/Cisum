@@ -12,8 +12,11 @@ let package = Package(
         .library(name: "ProviderSettings", targets: ["ProviderSettings"]),
     ],
     dependencies: [
-        .package(name: "CisumKernelSupport", path: "../CisumKernelSupport"),
-        .package(name: "CisumUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", revision: "7031fda7ff72492d574ef9a4b5d9ffdc801a6660"),
+        .package(path: "../KitAppEvents"),
+        .package(path: "../ProviderPlugin"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
         // MARK: - Provider Contracts（设置窗口只依赖能力契约，不依赖内核/工厂）
         .package(name: "ProviderAppState", path: "../ProviderAppState"),
         .package(name: "ProviderStorage", path: "../ProviderStorage"),
@@ -24,8 +27,12 @@ let package = Package(
         .target(
             name: "ProviderSettings",
             dependencies: [
-                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
+                .product(name: "LumiUI", package: "LumiUI"),
                 .product(name: "ProviderAppState", package: "ProviderAppState"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
@@ -40,8 +47,10 @@ let package = Package(
             name: "ProviderSettingsTests",
             dependencies: [
                 "ProviderSettings",
-                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
             ],
             path: "Tests"
         ),

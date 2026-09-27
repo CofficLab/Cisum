@@ -1,9 +1,13 @@
 import CisumUIComponents
+import MagicKit
+import LumiUI
 import StoreKit
 import SwiftUI
 import ProviderStore
+import ProviderToast
 
 struct DebugView: View, SuperLog {
+    @Environment(\.toastProviding) private var toastProvider
     @State private var isLoading: Bool = false
     @State private var productGroups: ProductGroupsDTO?
     @State private var purchasedCars: [ProductDTO] = []
@@ -87,7 +91,7 @@ extension DebugView {
                 let groups = try await StoreService.fetchAllProducts()
                 setGroups(groups)
             } catch {
-                alert_error(error)
+                toastProvider?.error(error)
             }
 
             self.isLoading = false
@@ -102,11 +106,11 @@ extension DebugView {
                 let result = try await StoreService.inspectSubscriptionStatus(self.className)
                 setSubscriptionInspectResult(result)
             } catch {
-                alert_error(error)
+                toastProvider?.error(error)
             }
 
             self.isLoading = false
-            alert_info(String(localized: "Check Complete", bundle: .module))
+            toastProvider?.info(String(localized: "Check Complete", bundle: .module))
         }
     }
 
@@ -142,9 +146,9 @@ extension DebugView {
                 )
 
                 setPurchased(result)
-                alert_info(String(localized: "Purchase list updated", bundle: .module))
+                toastProvider?.info(String(localized: "Purchase list updated", bundle: .module))
             } catch {
-                alert_error(error)
+                toastProvider?.error(error)
             }
 
             self.isLoading = false

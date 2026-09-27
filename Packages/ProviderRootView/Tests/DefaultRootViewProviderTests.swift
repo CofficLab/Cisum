@@ -1,4 +1,6 @@
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import SwiftUI
 import Testing
 @testable import ProviderRootView
@@ -63,6 +65,20 @@ struct DefaultRootViewProviderTests {
         #expect(viewModel.statusView != nil)
         #expect(viewModel.toolbarContent != nil)
         #expect(viewModel.isContentViewVisible)
+    }
+
+    @Test
+    func layoutViewModelObservesPluginContributionChanges() {
+        let kernel = KernelCoreContainer()
+        let provider = DefaultRootViewProvider(kernel: kernel)
+        let pluginProvider = PluginContributionService(kernel: kernel)
+        let viewModel = RootLayoutViewModel(provider: provider, pluginProvider: pluginProvider)
+
+        #expect(viewModel.pluginContributionRevision == 0)
+        pluginProvider.invalidateCaches()
+        #expect(viewModel.pluginContributionRevision == 1)
+        pluginProvider.invalidateCaches()
+        #expect(viewModel.pluginContributionRevision == 2)
     }
 
     @Test

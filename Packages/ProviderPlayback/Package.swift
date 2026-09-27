@@ -11,11 +11,15 @@ let package = Package(
     products: [
         .library(name: "ProviderPlayback", targets: ["ProviderPlayback"]),
     ],
-    dependencies: [],
+    dependencies: [
+        .package(path: "../KitEventObservation"),
+    ],
     targets: [
         .target(
             name: "ProviderPlayback",
-            dependencies: [],
+            dependencies: [
+                .product(name: "KitEventObservation", package: "KitEventObservation"),
+            ],
             path: ".",
             exclude: ["README.md", "Tests"],
             sources: ["Sources/ProviderPlayback"],

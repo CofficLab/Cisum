@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import Foundation
 
 /// 主题外观筛选（对齐 Lumi `ThemeSettingsDetailView.ThemeAppearanceFilter`）。

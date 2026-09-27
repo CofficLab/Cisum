@@ -1,6 +1,8 @@
 import ProviderScene
 import Foundation
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import Testing
 @testable import PluginAudioScene
 

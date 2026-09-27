@@ -12,15 +12,14 @@ Audio favorites/likes plugin for Cisum. It persists like/unlike state for tracks
   - `AudioLikeViewModel` — loads liked audios, gates saving on scene activation, and toggles like status.
   - `AudioLikeObserver` — forwards scene/playback events to the view model.
   - `AudioLikeRootView` / `AudioLikePluginRootView` / `AudioLikeSettingsView` — UI.
-  - `AudioLikePlaybackCapability` / `Adapter` — narrows `PlaybackProviding`.
   - `AudioLikeEvents` — notifications; `AudioLikePluginInfo` — metadata.
-- **Plugin registration**: Registers with ID `AudioLikePlugin`. `onBootAsync` contributes a settings navigation item (`addSettingNavigationItem`, id `"liked-audio"`; `addSettingView()` returns nil). `onReadyAsync` first installs `AudioLikeProviding` (using `StorageProviding`), then assembles the view model and observer. The view model receives narrow closures (`loadLikedAudios`, `saveLikeStatus`) rather than the kernel or provider directly.
+- **Plugin registration**: Registers with ID `AudioLikePlugin`. `onBootAsync` contributes a settings navigation item (`addSettingNavigationItem`, id `"liked-audio"`; `addSettingView()` returns nil). `onReadyAsync` first installs `AudioLikeProviding` (using `StorageProviding`), then assembles the view model and observer. The view model receives persistence closures and a playback-availability value rather than the kernel.
 - **Workflow / data flow**:
   1. Likes are stored by audio id with url/title metadata; unliking a track removes the record (no record is created for unliked audio).
   2. Symlinked tracks resolve to the same like record; distinct dangling symlinks are treated separately. Duplicate likes from a symlinked source are replaced.
   3. Toggling like only persists when the music scene is active; leaving the scene gates further saves. Liked list reloads apply only the latest generation (stale loads discarded).
   4. Like-status changes post a notification delivered on the main thread.
-- **Dependencies** (from `Package.swift`): `ProviderAudioLike`, `ProviderStorage`, `MagicKit`, `CisumUIComponents`, `MagicPlayMan`, `CisumKernelSupport`, `ProviderDocsView`, `ProviderScene`, `ProviderPlayback`. Resources: `Localizable.xcstrings`.
+- **Dependencies** (from `Package.swift`): `ProviderAudioLike`, `ProviderStorage`, `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderScene`, `ProviderPlayback`. Resources: `Localizable.xcstrings`.
 
 ## Testing Logic
 

@@ -7,22 +7,20 @@ The storage provider and storage-settings plugin. It registers the kernel's `Sto
 - **Core responsibility:** Own the on-disk data layout and the media-storage location choice, migrate media files between iCloud and local storage with progress, and provide file-browsing views for the current repository.
 - **Key types:**
   - `StoragePlugin` — `@MainActor final class` conforming to `AsyncSuperPlugin, SuperLog`. `id = "StoragePlugin"`, `order = 10`, icon `"internaldrive"`, category `.feature`, policy `.alwaysOn`.
-  - `StorageProvider` — `@MainActor final class` conforming to `ObservableObject, StorageProviding`. Builds the data root at `~/Library/Application Support/<bundleID>/db_<debug|production>_v<majorVersion>/`, provides `databaseRoot`, `databaseFile(name:)`, `pluginDataDirectory(for:)`, resolves iCloud/local/custom roots, persists the selected location in `UserDefaults` key `"StorageLocation"`, and broadcasts `.cisumStorageLocationDidChange` / `.cisumStorageLocationDidReset`. Exposes a static `current` bridge and `makePluginDependencies()` for legacy views.
-  - `StoragePluginLocation` — public enum `icloud`/`local`/`custom` with emoji/titles/descriptions; bidirectional conversion to/from `ProviderStorage.StorageLocation`.
-  - `StorageDependencies` — legacy closure-based dependency struct (location getter/setter, root resolver, isDesktop) with a `preview` instance.
-  - `StorageSettingsCapability` — internal protocol narrowing storage to current location, root, availability, root-for-location, and set-location; `StorageSettingsCapabilityAdapter` adapts the provider.
+  - `StorageProvider` — `@MainActor final class` conforming to `ObservableObject, StorageProviding`. Builds the data root at `~/Library/Application Support/<bundleID>/db_<debug|production>_v<majorVersion>/`, provides `databaseRoot`, `databaseFile(name:)`, `pluginDataDirectory(for:)`, resolves iCloud/local/custom roots, persists the selected location in `UserDefaults` key `"StorageLocation"`, and broadcasts `StorageProvidingEvent` directly.
+  - `ProviderStorage.StorageLocation` — shared public enum `icloud`/`local`/`custom` with emoji/titles/descriptions; it is the sole storage-location model.
   - `StorageProvidingObserver` — forwards provider changes to the settings view model (initial sync then observe).
   - `StorageSettingsViewModel` — `ObservableObject` publishing `location`, `isICloudAvailable`, `isLocalStorageAvailable`, and `storageRoot`/`storageRoot(for:)`.
   - `StorageSettingView` — settings UI listing iCloud/Local rows (with availability states), an "Open Current Repository" action, and a migration progress sheet.
   - **FileInfo/** — file-browsing components: `FileItem` (identifiable, expandable directory node), `FileListView` (generational visible-items list with expansion), `FileInfoView`, `FileIconView`, `FileTitleView`, `FileExpandButton`, `FileSizeView` (streams directory sizes), `FileStatus`/`FileStatusColumnView` (idle/processing/completed/failed and download progress states).
   - **Migrate/** — `MigrationManager` (copies files between roots, cancels safely, avoids nested target dirs, handles symlinks), `MigrationProgressView` (generational progress UI, alerts, completion), `MigrationError`, `RepositoryInfoView`.
   - Views: `StoragePluginAboutView`, `StoragePluginManualView`.
-- **Plugin registration:** Registers as `StoragePlugin`. `onBootAsync` creates `StorageProvider`, sets `StorageProvider.current`, registers it as `StorageProviding`, contributes the "storage" settings navigation item, and installs the settings state. `onShutdownAsync` clears the static reference and tears down observers.
+- **Plugin registration:** Registers as `StoragePlugin`. `onBootAsync` creates and registers `StorageProvider`, contributes the "storage" settings navigation item, and installs the settings state. `onShutdownAsync` tears down observers.
 - **Workflow/data flow:**
   1. The provider computes the data root and resolves the selected media root (iCloud or local).
   2. The settings page shows availability per location; choosing a different location opens `MigrationProgressView`, which uses `MigrationManager` to copy files and update the persisted location on success.
   3. File-browsing views (`FileListView`, etc.) render the current repository with sizes and download status.
-- **Dependencies:** `CisumUIComponents`, `CisumKernelSupport`, `ProviderDocsView`, `MagicKit`, `ProviderStorage`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
+- **Dependencies:** `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `MagicKit`, `ProviderStorage`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
 
 ## Testing Logic
 

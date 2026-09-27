@@ -1,6 +1,11 @@
 @testable import PluginThemeSettings
-import CisumKernelSupport
+import Combine
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import CisumUIComponents
+import LumiUI
+import ProviderTheme
 import SwiftUI
 import Testing
 
@@ -55,7 +60,7 @@ private func makeThemeService() -> ThemeService {
     let service = makeThemeService()
 
     let viewModel = ThemeSettingsViewModel(
-        capability: ThemeSettingsCapabilityAdapter(theme: service)
+        themeProvider: service
     )
     let observer = ThemeProvidingObserver(provider: service, viewModel: viewModel)
     defer { observer.cancel() }
@@ -76,7 +81,7 @@ private func makeThemeService() -> ThemeService {
     let service = ThemeService(contributionsProvider: { [contribution] })
 
     let viewModel = ThemeSettingsViewModel(
-        capability: ThemeSettingsCapabilityAdapter(theme: service)
+        themeProvider: service
     )
     let observer = ThemeProvidingObserver(provider: service, viewModel: viewModel)
     defer { observer.cancel() }
@@ -89,7 +94,7 @@ private func makeThemeService() -> ThemeService {
 @Test func themeObserverCancelStopsViewModelUpdates() {
     let service = makeThemeService()
     let viewModel = ThemeSettingsViewModel(
-        capability: ThemeSettingsCapabilityAdapter(theme: service)
+        themeProvider: service
     )
     let observer = ThemeProvidingObserver(provider: service, viewModel: viewModel)
 
@@ -104,10 +109,20 @@ private func makeThemeService() -> ThemeService {
 // MARK: - ViewModel 与外观筛选
 
 @MainActor
-private final class ThemeSettingsCapabilityProbe: ThemeSettingsCapability {
+private final class ThemeSettingsProviderProbe: @preconcurrency ThemeProviding {
+    let objectWillChange = ObservableObjectPublisher()
     var allThemeContributions: [LumiUIThemeContribution] = []
     var selectedThemeID = ""
     var selected: [String] = []
+    var activeChromeTheme: any LumiAppChromeTheme = TestChromeTheme()
+    var preferredColorScheme: ColorScheme? = nil
+
+    func reloadThemes() {}
+    func syncToCisumUI() {}
+
+    func addObserver(_ callback: @escaping (ThemeProvidingEvent) -> Void) -> any ThemeProvidingObserverHandle {
+        NoopThemeProvidingObserverHandle()
+    }
 
     func selectTheme(_ themeID: String) {
         selected.append(themeID)
@@ -117,33 +132,33 @@ private final class ThemeSettingsCapabilityProbe: ThemeSettingsCapability {
 @MainActor
 struct ThemeSettingsViewModelTests {
     @Test
-    func initReflectsCapabilityState() {
-        let capability = ThemeSettingsCapabilityProbe()
-        capability.selectedThemeID = "aurora"
-        let viewModel = ThemeSettingsViewModel(capability: capability)
+    func initReflectsProviderState() {
+        let provider = ThemeSettingsProviderProbe()
+        provider.selectedThemeID = "aurora"
+        let viewModel = ThemeSettingsViewModel(themeProvider: provider)
         #expect(viewModel.currentThemeID == "aurora")
     }
 
     @Test
-    func selectThemeForwardsToCapability() {
-        let capability = ThemeSettingsCapabilityProbe()
-        let viewModel = ThemeSettingsViewModel(capability: capability)
+    func selectThemeForwardsToProvider() {
+        let provider = ThemeSettingsProviderProbe()
+        let viewModel = ThemeSettingsViewModel(themeProvider: provider)
         viewModel.selectTheme("midnight")
-        #expect(capability.selected == ["midnight"])
+        #expect(provider.selected == ["midnight"])
     }
 
     @Test
     func providerChangeRefreshesSelection() {
-        let capability = ThemeSettingsCapabilityProbe()
-        let viewModel = ThemeSettingsViewModel(capability: capability)
-        capability.selectedThemeID = "forest"
+        let provider = ThemeSettingsProviderProbe()
+        let viewModel = ThemeSettingsViewModel(themeProvider: provider)
+        provider.selectedThemeID = "forest"
         viewModel.handleProviderChanged()
         #expect(viewModel.currentThemeID == "forest")
     }
 
     @Test
-    func missingCapabilityKeepsEmptyState() {
-        let viewModel = ThemeSettingsViewModel(capability: nil)
+    func missingProviderKeepsEmptyState() {
+        let viewModel = ThemeSettingsViewModel(themeProvider: nil)
         viewModel.selectTheme("x")
         viewModel.handleProviderChanged()
         #expect(viewModel.themes.isEmpty)

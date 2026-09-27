@@ -1,9 +1,13 @@
 import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import CisumUIComponents
+import LumiUI
 import ProviderAudioLibrary
+import ProviderToast
 import SwiftUI
 import MagicKit
 
@@ -87,11 +91,12 @@ public final class AudioPlayModePlugin: AsyncSuperPlugin, SuperLog {
         sceneBox.scene = scene
 
         let viewModel = AudioPlayModeViewModel(
-            playbackCapability: makePlaybackCapability(from: playback),
+            playbackProvider: playback,
             sort: makeSortAction(),
             shuffle: makeShuffleAction(),
             loadPlayMode: makeLoadPlayMode(),
-            storePlayMode: makeStorePlayMode()
+            storePlayMode: makeStorePlayMode(),
+            toastProvider: kernel.resolveProvider((any ToastProviding).self)
         )
         self.viewModel = viewModel
         observer = AudioPlayModeObserver(scene: scene, playback: playback, viewModel: viewModel)
@@ -102,15 +107,6 @@ public final class AudioPlayModePlugin: AsyncSuperPlugin, SuperLog {
         observer?.cancel()
         observer = nil
         viewModel = nil
-    }
-
-    /// 将内核能力收窄后注入 ViewModel；ViewModel 不持有 Kernel。
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any AudioPlayModePlaybackCapability)? {
-        guard let playback else { return nil }
-        return AudioPlayModePlaybackCapabilityAdapter(playback: playback)
     }
 
     @MainActor

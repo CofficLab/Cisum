@@ -12,7 +12,7 @@ A small macOS toolbar plugin that adds a gear "Settings" button to the trailing 
   - Views: `SettingsButtonPluginAboutView`, `SettingsButtonPluginManualView`.
 - **Plugin registration:** Registers as `SettingsButtonPlugin`. `onRegister` contributes About/Manual docs. `onBootAsync` contributes the toolbar button (macOS-only) via `PluginContributionProviding.addToolBarButtons`. `onShutdownAsync` removes the contribution.
 - **Workflow/data flow:** The button contributes a native `Button` (the system toolbar styles it); tapping opens (and focuses) the settings window identified by `cisum.settings`.
-- **Dependencies:** `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, `ProviderDocsView`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
+- **Dependencies:** `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
 
 ## Testing Logic
 

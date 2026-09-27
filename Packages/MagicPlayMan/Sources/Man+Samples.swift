@@ -1,5 +1,7 @@
 import Foundation
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import SwiftUI
 
 public extension MagicPlayMan {

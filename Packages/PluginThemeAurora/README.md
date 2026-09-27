@@ -16,7 +16,7 @@ Aurora is a dark-leaning color theme for Cisum built around low-saturation purpl
   - Atmosphere — deep `#F7F5FA`/`#100E14`, medium `#FFFFFF`/`#19171F`, light `#F1EEF6`/`#24212D`.
   - Workspace text `#1D1D1F`/`#F5F5F7` with secondary/tertiary grays.
   - Background: vertical linear gradient over the atmosphere colors plus a top-trailing radial glow in the primary accent.
-- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
+- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
 
 ## Testing Logic
 

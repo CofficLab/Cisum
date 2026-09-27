@@ -17,7 +17,7 @@ Music scene / poster plugin for Cisum. It contributes the poster (cover-art) vie
   2. At ready/enable, the scene action is installed: tapping the poster calls `setCurrentScene(.music)` on the resolved `SceneProviding`.
   3. If no scene provider is available, the poster falls back to a no-op closure so it still renders without crashing.
   4. `onDisable` clears the action back to the fallback; `onShutdownAsync` removes its contribution and clears the action.
-- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, `ProviderDocsView`, `ProviderScene`. Resources: `Localizable.xcstrings`.
+- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderScene`. Resources: `Localizable.xcstrings`.
 
 ## Testing Logic
 

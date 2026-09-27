@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import ProviderScene
 import SwiftUI
 
@@ -8,6 +9,7 @@ import SwiftUI
 /// Provider 的 `setCurrentScene` 并关闭海报弹窗。不再依赖其他插件
 /// 的 `addPosterView()` 贡献。
 struct ScenePosterView: View {
+    let sceneID: String
     let iconName: String
     let title: String
     let description: String
@@ -57,6 +59,7 @@ struct ScenePosterView: View {
                 }
                 .frame(minWidth: 210, maxWidth: 280, minHeight: 44)
             }
+            .accessibilityIdentifier("cisum.scene.enter.\(sceneID)")
         }
         .padding()
     }

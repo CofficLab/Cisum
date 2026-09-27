@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 public struct MonoTheme: LumiAppChromeTheme {

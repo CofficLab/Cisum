@@ -16,7 +16,7 @@ A system settings plugin that contributes the "System" settings entry, showing a
   1. User opens System settings and taps "Reset Storage Location".
   2. `ResetConfirm` presents a sheet with explanatory rows and a "Continue Reset" button.
   3. On confirm, the sheet shows a loading banner, awaits the reset closure (with a short delay), then dismisses.
-- **Dependencies:** `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, `ProviderDocsView`, `ProviderStorage`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
+- **Dependencies:** `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderStorage`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
 
 ## Testing Logic
 

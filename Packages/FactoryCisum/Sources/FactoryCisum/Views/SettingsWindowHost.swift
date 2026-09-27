@@ -1,5 +1,6 @@
 import ProviderToast
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
 import MagicKit
 import ProviderSettings
 import PluginToast
@@ -30,7 +31,7 @@ public struct SettingsWindowHost: View {
             } else if let kernel {
                 let settings = ProviderSettings.SettingsWindow(
                     settings: kernel.resolveProvider((any PluginProviding).self)
-                )
+                ).environment(\.toastProviding, kernel.resolveProvider((any ToastProviding).self))
                 if let provider = kernel.resolveProvider((any ToastProviding).self) as? ToastProvider {
                     ToastOverlay(content: settings, center: provider)
                         .accessibilityElement(children: .contain)

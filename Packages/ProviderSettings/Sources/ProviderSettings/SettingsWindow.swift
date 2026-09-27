@@ -1,5 +1,8 @@
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 /// 设置窗口：各插件贡献的一级导航入口，双栏布局（对齐 Lumi `ProviderSettingView`）。

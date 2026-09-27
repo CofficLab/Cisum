@@ -1,7 +1,11 @@
 import ProviderDocsView
 import ProviderStorage
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import CisumUIComponents
+import MagicKit
+import LumiUI
 import SwiftUI
 
 @MainActor
@@ -41,7 +45,7 @@ public final class WelcomePlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addGuideView() { contrib.addGuideView(view) }
+            if let view = self.addGuideView() { contrib.addGuideView(ownerPluginID: id, view) }
         }
     }
 

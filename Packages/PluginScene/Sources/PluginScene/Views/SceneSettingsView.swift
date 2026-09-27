@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 /// 场景设置页：展示当前场景，并通过 `SceneSettingsViewModel` 切换场景。

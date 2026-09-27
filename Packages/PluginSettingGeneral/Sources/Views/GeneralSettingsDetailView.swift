@@ -2,6 +2,8 @@
 import AppKit
 #endif
 import CisumUIComponents
+import MagicKit
+import LumiUI
 import ProviderDocsView
 import SwiftUI
 

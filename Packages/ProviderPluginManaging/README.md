@@ -12,7 +12,7 @@ Defines the `PluginManaging` protocol: read access to all registered plugins and
   - Observation: `addObserver(_:)` returns `PluginManagingObserverHandle`.
 - **Events** (`PluginManagingEvent`): `.enabledPluginsChanged` — fired on the main thread after state has already updated.
 - **Provider pattern**: consumers resolve via `kernel.resolveProvider((any PluginManaging).self)`. The default `addObserver` returns `NoopPluginManagingObserverHandle`; `cancel()` is idempotent.
-- **Dependencies**: `CisumKernelSupport` (`SuperPlugin`, `PluginProviding` types), `CisumUIComponents`.
+- **Dependencies**: `KernelCore (LumiKernel), ProviderPlugin` (`SuperPlugin`, `PluginProviding` types), `CisumUIComponents`.
 
 ## Testing Logic
 

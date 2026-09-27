@@ -1,5 +1,7 @@
 import Combine
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 
 @MainActor
 final class SettingsWindowViewModel: ObservableObject {

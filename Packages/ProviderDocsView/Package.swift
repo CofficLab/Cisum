@@ -12,15 +12,21 @@ let package = Package(
         .library(name: "ProviderDocsView", targets: ["ProviderDocsView"]),
     ],
     dependencies: [
-        .package(name: "CisumKernelSupport", path: "../CisumKernelSupport"),
-        .package(name: "CisumUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", revision: "7031fda7ff72492d574ef9a4b5d9ffdc801a6660"),
+        .package(path: "../KitAppEvents"),
+        .package(path: "../ProviderPlugin"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
     ],
     targets: [
         .target(
             name: "ProviderDocsView",
             dependencies: [
-                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
             ],
             path: ".",
             sources: ["Sources/ProviderDocsView"],
@@ -30,7 +36,9 @@ let package = Package(
             name: "ProviderDocsViewTests",
             dependencies: [
                 "ProviderDocsView",
-                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
             ],
             path: "Tests"
         ),

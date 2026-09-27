@@ -1,8 +1,12 @@
 import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
-import CisumKernelSupport
+import ProviderToast
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import CisumUIComponents
+import LumiUI
 import OSLog
 import SwiftUI
 import MagicKit
@@ -94,9 +98,10 @@ public final class BookPlayModePlugin: AsyncSuperPlugin, SuperLog {
         if Self.verbose { os_log("\(Self.t)🔧 installState") }
 
         let viewModel = BookPlayModeViewModel(
-            playbackCapability: makePlaybackCapability(from: playback),
+            playbackProvider: playback,
             loadPlayMode: makeLoadPlayMode(),
-            storePlayMode: makeStorePlayMode()
+            storePlayMode: makeStorePlayMode(),
+            toastProvider: kernel.resolveProvider((any ToastProviding).self)
         )
         self.viewModel = viewModel
         observer = BookPlayModeObserver(scene: scene, playback: playback, viewModel: viewModel)
@@ -108,15 +113,6 @@ public final class BookPlayModePlugin: AsyncSuperPlugin, SuperLog {
         observer?.cancel()
         observer = nil
         viewModel = nil
-    }
-
-    /// 将内核能力收窄后注入 ViewModel；ViewModel 不持有 Kernel。
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any BookPlayModePlaybackCapability)? {
-        guard let playback else { return nil }
-        return BookPlayModePlaybackCapabilityAdapter(playback: playback)
     }
 
     /// 播放模式持久化的读取入口（由插件入口组装，不暴露单例给 ViewModel）。

@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 /// 小组件控制 说明书 —— 章节式文档。

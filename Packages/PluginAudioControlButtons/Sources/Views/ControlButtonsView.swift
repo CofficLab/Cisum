@@ -1,4 +1,6 @@
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import SwiftUI
 
 /// 播放器底部控制按钮组：更多 / 上一曲 / 播放暂停 / 下一曲 / 播放模式。
@@ -42,7 +44,7 @@ struct ControlButtonsView: View {
                     action: viewModel.next
                 )
                 AppCircularIconButton(
-                    systemImage: viewModel.playMode.iconName,
+                    systemImage: playModeIconName,
                     accessibilityLabel: "Playback mode",
                     size: buttonSize,
                     isActive: viewModel.playMode != .sequence,
@@ -64,5 +66,14 @@ struct ControlButtonsView: View {
         let availableWidth = size.width - buttonSpacing * (buttonCount - 1)
         let availableHeight = size.height - bottomPadding
         return max(0, min(buttonMaximumSize, availableWidth / buttonCount, availableHeight))
+    }
+
+    private var playModeIconName: String {
+        switch viewModel.playMode {
+        case .sequence: "music.note.list"
+        case .loop: "repeat.1"
+        case .shuffle: "shuffle"
+        case .repeatAll: "repeat"
+        }
     }
 }

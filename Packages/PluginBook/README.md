@@ -3,9 +3,9 @@
 The base audiobook plugin for Cisum. It bootstraps the audiobook feature inside the
 kernel: resolves the storage and book-database providers, assembles the root
 container state, and renders the top-level book view (loading / error / content).
-It also re-exports `ProviderBook` so the rest of the app and the sibling
-`PluginBook*` packages see the shared book model, database, repository and
-notification types without importing `ProviderBook` directly.
+Shared book models, database, repositories, and notifications are owned by
+`ProviderBook`; the app and sibling `PluginBook*` packages depend on that
+provider directly.
 
 ## Functional Logic
 
@@ -28,24 +28,20 @@ notification types without importing `ProviderBook` directly.
     embedded content based on the view model; re-runs `reloadContainer()` on appear.
   - `BookPluginAboutView` / `BookPluginManualView` — docs landing and manual pages
     registered into `DocsViewProviding`.
-  - `ProviderExports.swift` — `@_exported import ProviderBook`, re-exporting
-    `BookDB`, `BookModel`, `BookState`, `BookDTO`, `BookRepo`, `BookCoverRepo`,
-    `BookCoverCache`, `BookSettingRepo`, `BookPathContainment`, `BookPluginHost`,
-    `BookPluginInfo`, `BookPluginError`, `BookPlaybackStateDTO` etc.
 - **Plugin registration:** registered with the kernel as `BookPlugin`. In
   `onRegister` it adds its About/Manual docs entries. In `onReadyAsync` /
   `onEnable` it resolves `StorageProviding` and `BookDatabaseProviding` and calls
   `installRootState(storage:bookProvider:)`. `onDisable` / `onShutdownAsync` call
   `teardownRootState()`. `addRootView(content:)` wraps content in `BookRootView`.
-  Re-exported constants: `keyOfCurrentBookURL`, `keyOfCurrentBookTime`,
-  `dirName` (`"audios_book"`), `supportedExtensions`.
+  Shared constants are declared by `ProviderBook` and imported directly by
+  consumers that use them.
 - **Workflow/data flow:** storage becomes available → `BookStorageObserver` fires
   → `BookRootViewModel.reloadContainer()` checks `bookProvider.isAvailable` →
   either reports a "Disk not found" error or clears loading and renders content.
   Storage-location changes bump `storageLocationDidChangeNotice` and reload the
   container again. All heavy database work is delegated to the data layer provider.
 - **Dependencies:** `MagicKit`, `CisumUIComponents`, `ProviderBook`,
-  `CisumKernelSupport`, `ProviderDocsView`, `ProviderStorage` (local SPM packages).
+  `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderStorage` (local SPM packages).
 
 ## Testing Logic
 
@@ -57,10 +53,7 @@ notification types without importing `ProviderBook` directly.
     player-recognized audio extensions.
   - `BookDB.downloadProgressPercentText(forFraction:)` clamps NaN/negative/over-1 to
     `"0"`/`"100"`.
-  - `BookPluginHost` disk preparation replaces a dangling symlink with a real
-    directory.
-  - `.bookDBDeleted` notification posts its URL payload synchronously on the main
-    thread.
+  - `BookDB` emits typed deletion events with the deleted URLs.
   - Library item support: symlinked book folders count as collections, folders with
     only images/notes are rejected, playable-child counting ignores non-audio files.
   - Symlink-aware dedup: `BookDB.uniqueSupportedBookLibraryItems` collapses

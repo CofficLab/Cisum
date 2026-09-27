@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 /// 播放控制区域：封面、标题、状态、进度条和底部操作按钮。
@@ -63,6 +64,7 @@ struct ControlView: View {
             .ignoresSafeArea()
         #endif
         .frame(minHeight: CisumPlayerLayout.controlMinimumHeight)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cisum.player.controls")
     }
 

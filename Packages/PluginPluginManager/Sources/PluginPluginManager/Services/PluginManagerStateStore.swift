@@ -1,6 +1,7 @@
 import ProviderStorage
+import ProviderPluginManaging
+import KernelCore
 import Foundation
-import CisumKernelSupport
 
 /// PluginPluginManager 的状态存储服务（Services 层，对齐 Lumi `ProviderStorage.PluginEnabledStateStore`）。
 ///

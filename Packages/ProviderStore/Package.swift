@@ -12,15 +12,17 @@ let package = Package(
         .library(name: "ProviderStore", targets: ["ProviderStore"]),
     ],
     dependencies: [
-        .package(path: "../MagicKit"),
-        .package(path: "../CisumUIComponents"),
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
     ],
     targets: [
         .target(
             name: "ProviderStore",
             dependencies: [
-                .product(name: "MagicKit", package: "MagicKit"),
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
             ],
             path: ".",
             exclude: ["README.md", "Tests"],

@@ -1,4 +1,5 @@
 import Foundation
+import ProviderPlayback
 import MagicPlayMan
 import Testing
 @testable import PluginAudioProgress
@@ -129,12 +130,12 @@ import Testing
 
 @Test func invalidLocalAudioPlayModeFallsBackToCloudMode() {
     #expect(AudioStateRepo.resolvedPlayMode(
-        localRawValue: MagicPlayMode.loop.rawValue,
-        cloudRawValue: MagicPlayMode.shuffle.rawValue
+        localRawValue: PlaybackMode.loop.rawValue,
+        cloudRawValue: PlaybackMode.shuffle.rawValue
     ) == .loop)
     #expect(AudioStateRepo.resolvedPlayMode(
         localRawValue: "legacy-corrupt-mode",
-        cloudRawValue: MagicPlayMode.shuffle.rawValue
+        cloudRawValue: PlaybackMode.shuffle.rawValue
     ) == .shuffle)
     #expect(AudioStateRepo.resolvedPlayMode(
         localRawValue: "legacy-corrupt-mode",
@@ -484,9 +485,9 @@ import Testing
 struct AudioStateRepoTests {
     @Test
     func playModeRoundTrip() {
-        defer { AudioStateRepo.storePlayMode(MagicPlayMode.sequence.rawValue) }
+        defer { AudioStateRepo.storePlayMode(PlaybackMode.sequence.rawValue) }
 
-        AudioStateRepo.storePlayMode(MagicPlayMode.shuffle.rawValue)
+        AudioStateRepo.storePlayMode(PlaybackMode.shuffle.rawValue)
         #expect(AudioStateRepo.getPlayMode() == .shuffle)
     }
 

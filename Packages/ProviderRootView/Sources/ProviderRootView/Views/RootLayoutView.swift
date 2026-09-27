@@ -1,5 +1,8 @@
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import SwiftUI
 
 /// 根布局视图（迁移自 FactoryCisum `AppLayoutView`）。
@@ -17,7 +20,10 @@ struct RootLayoutView: View {
     @State private var autoResizing = false
 
     init(provider: DefaultRootViewProvider, kernel: KernelCoreContainer) {
-        _viewModel = ObservedObject(wrappedValue: RootLayoutViewModel(provider: provider))
+        _viewModel = ObservedObject(wrappedValue: RootLayoutViewModel(
+            provider: provider,
+            pluginProvider: kernel.resolveProvider((any PluginProviding).self)
+        ))
         _isDetailVisible = State(initialValue: provider.isContentViewVisible)
         self.provider = provider
         self.kernel = kernel
@@ -67,15 +73,23 @@ struct RootLayoutView: View {
             ToolbarItem(placement: .navigation) {
                 toolbarArea
             }
-            if !(kernel.resolveProvider((any PluginProviding).self)?.getToolBarButtons() ?? []).isEmpty {
+            if !pluginToolbarButtons.isEmpty {
                 ToolbarItemGroup(placement: .cancellationAction) {
                     Spacer()
-                    ForEach(Array((kernel.resolveProvider((any PluginProviding).self)?.getToolBarButtons() ?? []).enumerated()), id: \.offset) { _, item in
+                    ForEach(Array(pluginToolbarButtons.enumerated()), id: \.offset) { _, item in
                         item.view
                     }
                 }
             }
         }
+    }
+
+    /// Toolbar contributions arrive asynchronously during plugin startup. Read
+    /// the observed revision here so SwiftUI reevaluates the toolbar after the
+    /// provider publishes a contribution change.
+    private var pluginToolbarButtons: [(id: String, view: AnyView)] {
+        _ = viewModel.pluginContributionRevision
+        return kernel.resolveProvider((any PluginProviding).self)?.getToolBarButtons() ?? []
     }
 
     @ViewBuilder

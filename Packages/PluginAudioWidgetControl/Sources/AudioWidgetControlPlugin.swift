@@ -2,7 +2,10 @@ import ProviderAudioNavigation
 import ProviderDocsView
 import ProviderPlayback
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import ProviderAudioLibrary
 import SwiftUI
 import MagicKit
@@ -85,7 +88,7 @@ public final class AudioWidgetControlPlugin: AsyncSuperPlugin, SuperLog {
     private func installState(kernel: KernelCoreContainer?) {
         guard widgetViewModel == nil else { return }
         let viewModel = AudioWidgetControlViewModel(
-            playbackCapability: makePlaybackCapability(from: kernel?.resolveProvider((any PlaybackProviding).self)),
+            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
             nextAsset: { current, verbose in
                 guard let navigation = kernel?.resolveProvider((any AudioTrackNavigationProviding).self) else {
                     return nil
@@ -132,12 +135,4 @@ public final class AudioWidgetControlPlugin: AsyncSuperPlugin, SuperLog {
         return widgetViewModel!
     }
 
-    /// 将内核播放 Provider 收窄后注入 ViewModel。
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any AudioWidgetPlaybackCapability)? {
-        guard let playback else { return nil }
-        return AudioWidgetPlaybackCapabilityAdapter(playback: playback)
-    }
 }

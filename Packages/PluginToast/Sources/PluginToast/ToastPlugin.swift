@@ -1,10 +1,11 @@
 import ProviderRootView
 import ProviderToast
-import CisumKernelSupport
-import MagicKit
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 
 @MainActor
-public final class ToastPlugin: SuperPlugin {
+public final class ToastPlugin: AsyncSuperPlugin {
     public let id = String(describing: ToastPlugin.self)
 
     public static let shared = ToastPlugin()
@@ -29,7 +30,6 @@ public final class ToastPlugin: SuperPlugin {
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         kernel.unregisterProvider((any ToastProviding).self)
         try kernel.registerProvider((any ToastProviding).self, center)
-        CisumToastBridge.install(center)
 
         kernel.resolveProvider((any RootViewProviding).self)?.addOverlays([
             RootOverlayItem(id: Self.overlayID, order: 10_000) { content in
@@ -42,6 +42,5 @@ public final class ToastPlugin: SuperPlugin {
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         center.dismissAll()
         kernel.resolveProvider((any RootViewProviding).self)?.removeOverlays(ids: [Self.overlayID])
-        CisumToastBridge.install(DefaultToastProvider())
     }
 }

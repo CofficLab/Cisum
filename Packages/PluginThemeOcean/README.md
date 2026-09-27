@@ -16,7 +16,7 @@ Ocean Blue is a fresh blue-cyan theme that adapts to the system light/dark appea
   - Atmosphere — deep `#F2F8FA`/`#091015`, medium `#FFFFFF`/`#141B20`, light `#EAF3F7`/`#202930` (cool blue-tinted).
   - Workspace text `#1D1D1F`/`#F5F5F7` with secondary/tertiary grays.
   - Background: vertical linear gradient over the atmosphere colors plus a top-trailing blue radial glow (~10% opacity).
-- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
+- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
 
 ## Testing Logic
 

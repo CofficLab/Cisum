@@ -1,4 +1,5 @@
 import ProviderToast
+import ProviderPlayback
 import MagicPlayMan
 import Testing
 import SwiftUI
@@ -555,18 +556,34 @@ import SwiftUI
 // MARK: - ViewModel 集成
 
 @MainActor
-private final class BookControlPlaybackProbe: BookControlPlaybackCapability {
+private final class BookControlPlaybackProbe: PlaybackProviding {
     var currentURL: URL?
-    var isPlaying = false
-    var playMode: MagicPlayMode = .sequence
+    var state: PlaybackStatus = .paused
+    var currentTime: TimeInterval = 0
+    var duration: TimeInterval = 0
+    var progress: Double = 0
+    var likedAssets: Set<URL> = []
+    var isPlaying: Bool { state.isPlaying }
+    var hasAsset: Bool { currentURL != nil }
+    var playMode: PlaybackMode = .sequence
     var toggleCount = 0
     var togglePlayModeCount = 0
     var resetCount = 0
 
     func toggle() { toggleCount += 1 }
     func togglePlayMode() { togglePlayModeCount += 1 }
-    func play(_ url: URL, reason: String) async {}
-    func reset(reason: String) async { resetCount += 1 }
+    func play(_ url: URL) async { currentURL = url }
+    func pause() {}
+    func seek(toProgress progress: Double) {}
+    func seek(toTime time: TimeInterval) {}
+    func next() {}
+    func previous() {}
+    func setPlayMode(_ mode: PlaybackMode) { playMode = mode }
+    func toggleCurrentLike() {}
+    func reset() async { resetCount += 1 }
+    func addObserver(_ callback: @escaping (PlaybackProvidingEvent) -> Void) -> any PlaybackProvidingObserverHandle {
+        NoopPlaybackProvidingObserverHandle()
+    }
 }
 
 @MainActor
@@ -586,11 +603,11 @@ struct BookControlViewModelTests {
     @Test
     func initReflectsPlaybackState() {
         let playback = BookControlPlaybackProbe()
-        playback.isPlaying = true
+        playback.state = .playing
         playback.playMode = .shuffle
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackCapability: playback
+            playbackProvider: playback
         )
         viewModel.handleSceneChange(.audiobooks)
         #expect(viewModel.isPlaying)
@@ -603,7 +620,7 @@ struct BookControlViewModelTests {
         let toast = BookToastProbe()
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackCapability: nil,
+            playbackProvider: nil,
             toastProvider: toast
         )
         viewModel.toggle()
@@ -615,7 +632,7 @@ struct BookControlViewModelTests {
         let toast = BookToastProbe()
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackCapability: BookControlPlaybackProbe(),
+            playbackProvider: BookControlPlaybackProbe(),
             toastProvider: toast
         )
         viewModel.previous()
@@ -627,7 +644,7 @@ struct BookControlViewModelTests {
         let playback = BookControlPlaybackProbe()
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackCapability: playback
+            playbackProvider: playback
         )
         viewModel.handleSceneChange(.audiobooks)
         viewModel.handleStorageLocationDidReset()
@@ -643,7 +660,7 @@ struct BookControlViewModelTests {
         let playback = BookControlPlaybackProbe()
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackCapability: playback
+            playbackProvider: playback
         )
         viewModel.handleSceneChange(.music)
         viewModel.handleStorageLocationDidReset()
@@ -657,7 +674,7 @@ struct BookControlViewModelTests {
         playback.currentURL = URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackCapability: playback
+            playbackProvider: playback
         )
         viewModel.handleSceneChange(.audiobooks)
         viewModel.handleBookDBDeleted(deletedURLs: [URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")])
@@ -674,7 +691,7 @@ struct BookControlViewModelTests {
         playback.currentURL = URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackCapability: playback
+            playbackProvider: playback
         )
         viewModel.handleSceneChange(.audiobooks)
         viewModel.handleBookDBDeleted(deletedURLs: [URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")])

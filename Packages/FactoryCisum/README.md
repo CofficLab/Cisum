@@ -18,7 +18,7 @@ The Cisum composition root: the single place that knows how to assemble the app 
   - `WindowMain` (`Views/WindowMain.swift`) — the main window root view: shows `KernelLoadingView` while booting, `KernelErrorView` on failure, then `KernelRootView(kernel:)`.
   - `SettingsWindowHost` (`Views/SettingsWindowHost.swift`) — boots (or reuses) the main kernel and injects `ProviderSettings.SettingsWindow` with a toast overlay.
   - `KernelRootView` (`Views/KernelRootView.swift`) — wraps assembled content in a `NavigationStack`, applies the theme background, and rebuilds when `contributionRevision` bumps on plugin/scene changes.
-  - `KernelLoadingView` / `KernelErrorView` (`Views/`) — boot-state placeholders; the error view surfaces the failing plugin id when the error is `.pluginFailed`.
+  - `KernelLoadingView` / `KernelErrorView` (`Views/`) — boot-state placeholders; the error view surfaces the kernel's localized startup error.
   - `MainWindowMinimumSizeBridge` / `WindowMinimumSizeView` (`Views/MainWindowMinimumSizeBridge.swift`, macOS) — `NSViewRepresentable` that syncs SwiftUI's minimum frame to `NSWindow.contentMinSize`.
   - `SettingsWindowHost`, `WindowMain` — both call `FactoryCisum.createMainKernel(configuration:)`.
 
@@ -29,7 +29,7 @@ The Cisum composition root: the single place that knows how to assemble the app 
   4. The factory subscribes to enabled-plugin and scene-change notifications.
   5. `KernelRootView` observes those notifications, bumps `contributionRevision`, and re-runs `assembleMainView(kernel:)` to rebuild the root view with fresh tab/control contributions.
 
-- **Dependencies** (from `Package.swift`): CisumKernelSupport, CisumUIComponents, MagicKit, ~10 Provider contracts (Cloud, ContentView, ControlView, Device, DocsView, RootView, Scene, Settings, Toolbar, Toast), and ~50 Plugin packages (audio/book stacks, themes, playback, settings, utility).
+- **Dependencies** (from `Package.swift`): KernelCore (LumiKernel), ProviderPlugin, CisumUIComponents, MagicKit, ~10 Provider contracts (Cloud, ContentView, ControlView, Device, DocsView, RootView, Scene, Settings, Toolbar, Toast), and ~50 Plugin packages (audio/book stacks, themes, playback, settings, utility).
 
 ## Testing Logic
 

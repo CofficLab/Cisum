@@ -1,34 +1,21 @@
 import Foundation
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
 import ProviderPluginManaging
 
 /// PluginPluginManager 自带的 `PluginManaging` 实现（不使用 Provider 包默认实现）。
 ///
 /// 直接封装共享内核 `KernelCoreContainer`：读取全部插件与启用状态，驱动运行期
 /// 启停（对齐 LumiKernel `enablePlugin/disablePlugin` 生命周期 + 贡献回收 +
-/// 持久化），并在启停成功后发布 `.cisumEnabledPluginsDidChange` 通知，
-/// 供宿主重建 UI 贡献聚合。
+/// 持久化），并通过 `PluginManaging` 语义事件通知观察者。
 @MainActor
 public final class PluginManagerProvider: PluginManaging {
     public private(set) var lastErrorDescription: String?
     private weak var kernel: KernelCoreContainer?
 
     private var observerCallbacks: [UUID: (PluginManagingEvent) -> Void] = [:]
-    private var notificationToken: NSObjectProtocol?
-
     public init(kernel: KernelCoreContainer) {
         self.kernel = kernel
-
-        // 订阅内核的已启用插件变更通知，转发为 Provider 语义事件。
-        notificationToken = NotificationCenter.default.addObserver(
-            forName: .cisumEnabledPluginsDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in
-                self?.send(.enabledPluginsChanged)
-            }
-        }
     }
 
     // MARK: - PluginManaging
@@ -113,7 +100,6 @@ public final class PluginManagerProvider: PluginManaging {
     }
 
     private func notifyPluginsDidChange() {
-        NotificationCenter.default.post(name: .cisumEnabledPluginsDidChange, object: nil)
         send(.enabledPluginsChanged)
     }
 

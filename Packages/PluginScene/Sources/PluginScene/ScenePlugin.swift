@@ -1,8 +1,10 @@
 import ProviderStorage
 import ProviderScene
 import ProviderDocsView
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
 import CisumUIComponents
+import LumiUI
 import Foundation
 import SwiftUI
 import MagicKit
@@ -39,7 +41,7 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
 
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var sceneProvider: SceneProvider?
-    nonisolated(unsafe) private var settingsViewModel: SceneSettingsViewModel?
+    nonisolated(unsafe) private(set) var settingsViewModel: SceneSettingsViewModel?
     nonisolated(unsafe) private var settingsObserver: SceneProvidingObserver?
 
     public init() {}
@@ -55,10 +57,6 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
-        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(view) }
-            contrib.addToolBarButtons(self.addToolBarButtons())
-        }
         self.kernel = kernel
         // onBoot 阶段 StoragePlugin 可能尚未启动（ScenePlugin order=-1000 优先），
         // 先注册无持久化的 SceneProvider 保证下游插件可访问 SceneProviding。
@@ -66,6 +64,13 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
         let provider = SceneProvider()
         self.sceneProvider = provider
         try kernel.registerProvider((any SceneProviding).self, provider)
+
+        // 先设置 kernel 并注册 SceneProviding，再构建依赖它的设置/工具栏
+        // ViewModel；否则 SceneSwitcher 会永久持有空场景列表。
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
+            contrib.addToolBarButtons(ownerPluginID: id, self.addToolBarButtons())
+        }
     }
 
     @MainActor
@@ -96,7 +101,7 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
         // View 贡献可能在插件启动前被请求：保证返回一个稳定、长期存在的
         // ViewModel，而不是每次请求都重新创建。
         let viewModel = settingsViewModel ?? {
-            let viewModel = SceneSettingsViewModel(capability: makeSceneCapability(from: kernel?.resolveProvider((any SceneProviding).self)))
+            let viewModel = SceneSettingsViewModel(sceneProvider: kernel?.resolveProvider((any SceneProviding).self))
             settingsViewModel = viewModel
             return viewModel
         }()
@@ -116,7 +121,7 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
     public func addToolBarButtons() -> [(id: String, view: AnyView)] {
         guard let kernel else { return [] }
         let viewModel = settingsViewModel ?? {
-            let viewModel = SceneSettingsViewModel(capability: makeSceneCapability(from: kernel.resolveProvider((any SceneProviding).self)))
+            let viewModel = SceneSettingsViewModel(sceneProvider: kernel.resolveProvider((any SceneProviding).self))
             settingsViewModel = viewModel
             return viewModel
         }()
@@ -135,14 +140,16 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     private func installSettingsState(kernel: KernelCoreContainer) {
-        guard settingsViewModel == nil else { return }
         guard let scene = kernel.resolveProvider((any SceneProviding).self) else { return }
-        let viewModel = SceneSettingsViewModel(
-            capability: makeSceneCapability(from: scene)
+        let viewModel = settingsViewModel ?? SceneSettingsViewModel(
+            sceneProvider: scene
         )
-        let observer = SceneProvidingObserver(provider: scene, viewModel: viewModel)
         settingsViewModel = viewModel
-        settingsObserver = observer
+
+        // The view model may have been created during onBoot to build a toolbar
+        // contribution. Attach it to the restored scene state during onReady.
+        guard settingsObserver == nil else { return }
+        settingsObserver = SceneProvidingObserver(provider: scene, viewModel: viewModel)
     }
 
     @MainActor
@@ -152,11 +159,4 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
         settingsViewModel = nil
     }
 
-    @MainActor
-    private func makeSceneCapability(
-        from scene: (any SceneProviding)?
-    ) -> (any SceneSettingsCapability)? {
-        guard let scene else { return nil }
-        return SceneSettingsCapabilityAdapter(scene: scene)
-    }
 }

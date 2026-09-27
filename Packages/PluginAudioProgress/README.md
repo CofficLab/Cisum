@@ -13,14 +13,14 @@ Audio playback progress plugin for Cisum. It displays the progress bar, persists
   - `AudioProgressPersistencePolicy` — pure policy for when to persist/restore/clear progress.
   - `AudioProgressHost` — saves now-playing widget data (title, artist, playing state, cover art).
   - `AudioProgressRootView` / `AudioProgressPluginRootView` — UI.
-  - `AudioProgressPlaybackCapability` / `Adapter` — narrows `PlaybackProviding`.
+  - Uses `PlaybackProviding` directly for playback state, seeking, restoring, and like synchronization.
 - **Plugin registration**: Registers with ID `AudioProgressPlugin`. `onReadyAsync` resolves `SceneProviding` and `PlaybackProviding`, wires the view model with `audioLibrary` (`AudioLibraryProviding`), `audioLike` (`AudioLikeProviding`), and a `saveWidgetData` closure to `AudioProgressHost`, then starts the observer. `addRootView(content:)` contributes the root view.
 - **Workflow / data flow**:
   1. Progress is persisted when leaving the audio scene (not while staying in it, to avoid duplicate saves).
   2. The current audio URL stored is the current supported track; unsupported URLs keep the previous stored track; empty cloud URLs are ignored. URL parsing trims whitespace and accepts both `file://` and legacy path strings.
   3. Time resolution prefers a valid local time over stale cloud time; invalid local times fall back to cloud; NaN/infinity/negative times normalize to 0.
   4. Switching to a genuinely different track resets the global restore time (but a symlinked equivalent does not); a deleted or unplayable stored track clears restore state; restore results only apply if the current audio did not change and the scene did not change in the meantime, and an already-loaded asset is not replayed.
-- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `ProviderAudioLibrary`, `ProviderAudioLike`, `MagicPlayMan`, `CisumKernelSupport`, `ProviderDocsView`, `ProviderScene`, `ProviderPlayback`, `ProviderStorage`. Resources: `Localizable.xcstrings`.
+- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `ProviderAudioLibrary`, `ProviderAudioLike`, `MagicPlayMan`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderScene`, `ProviderPlayback`, `ProviderStorage`. Resources: `Localizable.xcstrings`.
 
 ## Testing Logic
 

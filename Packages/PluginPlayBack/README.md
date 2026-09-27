@@ -11,7 +11,7 @@ The core playback plugin. It creates and owns the `MagicPlayMan` playback engine
   - `PlaybackStateStore` — persists `<databaseRoot>/PluginPlayBack/current-playback.plist` as a `[sceneName: URLString]` dictionary, with one-time migration of the legacy global `"url"` key.
   - `PlaybackSceneObserver` — on scene change, loads that scene's last file (autoPlay off) or stops playback when the target scene has no history; uses a generation counter to ignore stale restores during rapid scene switches.
   - `PlaybackSettingsPlaybackObserver` / `PlaybackSettingsSceneObserver` — forward playback and scene events to the settings view model.
-  - `PlaybackSettingsCapability` — internal protocol narrowing playback state (`currentURL`, `isPlaying`, `state`, `currentTime`, `duration`); `PlaybackSettingsCapabilityAdapter` adapts the provider (weakly held, with safe fallbacks).
+  - Reads the initial snapshot from the optional `PlaybackProviding` Provider directly; later state changes are delivered through `PlaybackSettingsPlaybackObserver`.
   - `PluginPlayBackSettingsViewModel` — publishes current scene/URL/state/time/duration and reads per-scene last files from the store.
   - `PluginPlayBackSettingView` — settings UI listing recent playback per scene and a live playback details card.
   - Views: `PluginPlayBackAboutView`, `PluginPlayBackManualView`.
@@ -20,16 +20,15 @@ The core playback plugin. It creates and owns the `MagicPlayMan` playback engine
   1. Engine events flow through `PlaybackProvider` to observers (other plugins' observers + the scene/settings observers).
   2. When the asset changes, the URL is saved into the current scene's slot in the plist.
   3. On launch or scene switch, `PlaybackSceneObserver` restores that scene's last file (without auto-playing) or stops the engine if there is no history.
-- **Dependencies:** `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, `MagicPlayMan`, `ProviderDocsView`, `ProviderPlayback`, `ProviderScene`, `ProviderStorage`. Platforms: macOS 14+, iOS 17+. Resources: `Resources`.
+- **Dependencies:** `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `MagicPlayMan`, `ProviderDocsView`, `ProviderPlayback`, `ProviderScene`, `ProviderStorage`. Platforms: macOS 14+, iOS 17+. Resources: `Resources`.
 
 ## Testing Logic
 
 - **Test files:**
-  - `Tests/PlaybackSettingsTests.swift` — uses a `PlaybackStub` and `SceneProviderStub` to test the capability adapter, settings view model, observers, and provider registration/unregistration.
+  - `Tests/PlaybackSettingsTests.swift` — uses a `PlaybackStub` and `SceneProviderStub` to test direct Provider injection, settings view model, observers, and provider registration/unregistration.
   - `Tests/PlaybackStateStoreTests.swift` — exercises the plist persistence against a temporary directory.
 - **Key scenarios tested:**
-  - Capability adapter maps playback state and degrades safely after the playback stub is released.
-  - Settings view model initializes from a capability, tracks scene/asset/state/time/duration events, and reads per-scene last files.
+  - Settings view model initializes from `PlaybackProviding`, tracks scene/asset/state/time/duration events, and reads per-scene last files.
   - Playback and scene observers forward events and stop after cancellation; repeated cancel is idempotent.
   - Plugin boot registers both `PlaybackProviding` and `PlaybackMediaProviding`, and shutdown unregisters both.
   - `PlaybackStateStore` persists scene files independently, deletes the plist when all slots are cleared, migrates the legacy global `"url"` key exactly once, discards the legacy value on a scene-specific write, and returns `nil` for missing/malformed files (write failures do not escape).

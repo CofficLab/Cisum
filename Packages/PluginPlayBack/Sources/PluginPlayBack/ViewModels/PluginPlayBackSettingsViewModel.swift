@@ -24,14 +24,16 @@ final class PluginPlayBackSettingsViewModel: ObservableObject, SuperLog {
     @Published private(set) var duration: TimeInterval = 0
 
     private let store: PlaybackStateStore
+    private weak var playbackProvider: (any PlaybackProviding)?
 
-    init(store: PlaybackStateStore, playbackCapability: (any PlaybackSettingsCapability)? = nil) {
+    init(store: PlaybackStateStore, playbackProvider: (any PlaybackProviding)? = nil) {
         self.store = store
-        currentURL = playbackCapability?.currentURL
-        isPlaying = playbackCapability?.isPlaying ?? false
-        state = playbackCapability?.state ?? .idle
-        currentTime = playbackCapability?.currentTime ?? 0
-        duration = playbackCapability?.duration ?? 0
+        self.playbackProvider = playbackProvider
+        currentURL = playbackProvider?.currentURL
+        isPlaying = playbackProvider?.isPlaying ?? false
+        state = playbackProvider?.state ?? .idle
+        currentTime = playbackProvider?.currentTime ?? 0
+        duration = playbackProvider?.duration ?? 0
     }
 
     func handleSceneChanged(_ scene: AppScene?) {

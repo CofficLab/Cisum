@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "MagicKit",  // 包名称
+    name: "KitMagic",  // package identity
     defaultLocalization: "en",
     platforms: [
         .macOS(.v14),  // 最低支持 macOS 14
@@ -17,14 +17,12 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/chicio/ID3TagEditor", from: "4.5.0"),  // ID3 标签编辑器
         .package(url: "https://github.com/weichsel/ZIPFoundation.git", from: "0.9.19"),  // ZIP 文件处理库
-        .package(path: "../ProviderToast"),
     ],
     // 编译目标（模块）
     targets: [
        .target(
            name: "MagicKit",
            dependencies: [
-               .product(name: "ProviderToast", package: "ProviderToast"),
                "ID3TagEditor",
                "ZIPFoundation",
            ],

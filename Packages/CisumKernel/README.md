@@ -1,17 +1,5 @@
-# CisumKernel
+# Kernel ownership
 
-> **Status:** Reserved directory — no `Package.swift` or source code yet (contains only build artifacts).
+Cisum does not define a private kernel package. All plugin lifecycle, provider registration, and service resolution use the pinned `KernelCore` product from the shared `LumiKernel` package, matching the sibling applications.
 
-This directory is reserved for the Cisum kernel package, intended to serve as the central dependency-injection and service-locating core that resolves providers and coordinates plugin lifecycle.
-
-## Functional Logic
-
-- **Intended responsibility:** Host the kernel runtime that resolves `Providing` protocols, manages plugin registration, and wires service dependencies across the app.
-- **Current state:** Contains `.build/`, `.swiftpm/`, and `Package.resolved` from prior experimentation, but no `Package.swift`, `Sources/`, or `Tests/`.
-- **Related package:** `CisumKernelSupport` provides kernel support utilities and is an active Swift Package.
-
-## Testing Logic
-
-- This package has no source code and therefore no unit tests.
-- The `Package.resolved` and `.build` artifacts are stale and can be ignored or cleaned up.
-- Once source is added, tests can be run with `swift test` from this directory.
+`FactoryCisum` is the app's only composition root: it registers Cisum providers and plugins with the shared kernel. `Provider*` packages own app-facing services and UI integration, `Plugin*` packages own feature behavior, and `Kit*` packages hold reusable foundations. This directory is documentation only; it is not a Swift package.

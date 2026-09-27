@@ -15,7 +15,7 @@ Defines `SceneProviding` (the app-scene switching contract) and the fixed `AppSc
     - `addObserver(_:)` returns `SceneProvidingObserverHandle`.
 - **Events** (`SceneProvidingEvent`): `.selectionChanged(scene: AppScene?)`.
 - **Provider pattern**: consumers resolve via `kernel.resolveProvider((any SceneProviding).self)`. The default `addObserver` returns `NoopSceneProvidingObserverHandle`.
-- **Dependencies**: `CisumKernelSupport` (`KernelCoreContainer` registration), `CisumUIComponents`.
+- **Dependencies**: `KernelCore (LumiKernel), ProviderPlugin` (`KernelCoreContainer` registration), `CisumUIComponents`.
 
 ## Testing Logic
 

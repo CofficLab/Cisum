@@ -1,6 +1,8 @@
 import CisumUIComponents
+import LumiUI
 
 import SwiftUI
+import ProviderStorage
 
 enum RepositoryInfoActionPolicy {
     static func canOpenInFinder(
@@ -18,7 +20,7 @@ struct RepositoryInfoView: View {
     let isDesktop: Bool
 
     let title: String
-    let location: StoragePluginLocation?
+    let location: StorageLocation?
     let url: URL?
 
     var body: some View {

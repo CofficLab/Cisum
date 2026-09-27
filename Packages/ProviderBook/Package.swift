@@ -13,20 +13,21 @@ let package = Package(
         .library(name: "ProviderBookData", targets: ["ProviderBookData"]),
     ],
     dependencies: [
-        .package(path: "../MagicKit"),
-        .package(path: "../CisumUIComponents"),
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
     ],
     targets: [
         .target(
             name: "ProviderBook",
             dependencies: [
-                .product(name: "MagicKit", package: "MagicKit"),
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
             ],
             path: ".",
             exclude: ["README.md", "Tests"],
             sources: [
-                "Sources/ProviderBook/BookEvent.swift",
                 "Sources/ProviderBook/BookPluginError.swift",
                 "Sources/ProviderBook/BookPluginInfo.swift",
                 "Sources/ProviderBook/BookProviding.swift",
@@ -40,14 +41,14 @@ let package = Package(
             name: "ProviderBookData",
             dependencies: [
                 "ProviderBook",
-                .product(name: "MagicKit", package: "MagicKit"),
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
             ],
             path: ".",
             exclude: ["README.md", "Tests", "Resources"],
             sources: [
                 "Sources/ProviderBook/BookConfig.swift",
-                "Sources/ProviderBook/BookPluginHost.swift",
                 "Sources/ProviderBook/DB/BookRead.swift",
                 "Sources/ProviderBook/DB/BookUpdate.swift",
                 "Sources/ProviderBook/DB/BookWorker.swift",

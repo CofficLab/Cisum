@@ -15,14 +15,13 @@ The in-app purchase / subscription settings plugin. It contributes a "Store" set
   - `ProductsSubscription` (in `Subscriptions.swift`) — loads subscription groups via `StoreService.fetchAllProducts()`, shows loading/error/empty/content states with a generation guard, and renders `ProductCell`s.
   - `VersionComparisonView` — free vs Pro feature cards.
   - Supporting views: `ProductCell`, `SheetContainer` (with a localized close button), `DebugView`.
-  - `ProviderStoreExports` — re-exports `ProviderStore` and `ProviderAudioLibrary` for consumers.
   - Views: `StorePluginAboutView`, `StorePluginManualView`.
 - **Plugin registration:** Registers as `StorePlugin`. `onRegister` contributes About/Manual docs. `onBootAsync` contributes the "store" settings navigation item and assembles the view model + observer. `onShutdownAsync` removes the contribution and cancels observer tokens.
 - **Workflow/data flow:**
   1. On appear/transaction/restore events, `StoreViewModel.updatePurchaseInfo()` calls `StoreService.getPurchaseInfo()` and updates tier/status text (Pro active/expired/free).
   2. Tapping buy opens `PurchaseView`, which loads products via `StoreService` and triggers purchases; transactions post `.storeTransactionUpdated`.
   3. Tapping restore runs `AppStore.sync()` and posts `.Restored` on success.
-- **Dependencies:** `MagicKit`, `CisumUIComponents`, `ProviderStore`, `ProviderAudioLibrary`, `CisumKernelSupport`, `ProviderDocsView`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`, `Resources/Products.storekit`.
+- **Dependencies:** `MagicKit`, `CisumUIComponents`, `ProviderStore`, `ProviderAudioLibrary`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`. Provider APIs are imported directly from their owning packages, not re-exported through this plugin. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`, `Resources/Products.storekit`.
 
 ## Testing Logic
 

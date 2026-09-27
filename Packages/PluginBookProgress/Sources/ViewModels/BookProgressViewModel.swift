@@ -3,7 +3,9 @@ import MagicKit
 import MagicPlayMan
 import OSLog
 import ProviderBook
+import ProviderToast
 import ProviderScene
+import ProviderPlayback
 import SwiftUI
 
 /// 书籍播放进度的集中状态容器（迁移 Phase 5）。
@@ -12,16 +14,15 @@ import SwiftUI
 /// 暂停保存与删除清理；取代原 `BookProgressRootView` 内的全部
 /// `@State` 与事件 handler。由 `BookProgressPlugin` 入口持有。
 ///
-/// ViewModel 不直接持有 Kernel 或具体 Provider：外部播放状态由
-/// `BookProgressObserver` 通过事件回写，外部播放操作通过
-/// `BookProgressPlaybackCapability` 执行。
+/// ViewModel 不直接持有 Kernel：外部播放状态由 `BookProgressObserver` 通过事件回写，
+/// 播放操作调用共享 `PlaybackProviding` 契约。
 @MainActor
 final class BookProgressViewModel: ObservableObject, SuperLog {
     private static let verbose = false
     private static let log = Logger(subsystem: "com.yueyi.cisum", category: "BookProgress")
     private static let tag = "📖"
 
-    private let playbackCapability: (any BookProgressPlaybackCapability)?
+    private let playbackProvider: (any PlaybackProviding)?
     private var restoreGeneration = 0
     private var currentScene: AppScene?
     private let targetScene: AppScene
@@ -32,25 +33,28 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
     private let storeCurrentBookTime: BookProgressStoreCurrentTime
     private let bookDisk: BookProgressDiskProvider
     private let saveBookState: BookProgressSaveBookState
+    private let toastProvider: (any ToastProviding)?
 
     init(
         targetScene: AppScene,
-        playbackCapability: (any BookProgressPlaybackCapability)?,
+        playbackProvider: (any PlaybackProviding)?,
         currentBookURL: @escaping BookProgressURLProvider,
         currentBookTime: @escaping BookProgressTimeProvider,
         storeCurrentBookURL: @escaping BookProgressStoreCurrentURL,
         storeCurrentBookTime: @escaping BookProgressStoreCurrentTime,
         bookDisk: @escaping BookProgressDiskProvider,
-        saveBookState: @escaping BookProgressSaveBookState
+        saveBookState: @escaping BookProgressSaveBookState,
+        toastProvider: (any ToastProviding)? = nil
     ) {
         self.targetScene = targetScene
-        self.playbackCapability = playbackCapability
+        self.playbackProvider = playbackProvider
         self.currentBookURL = currentBookURL
         self.currentBookTime = currentBookTime
         self.storeCurrentBookURL = storeCurrentBookURL
         self.storeCurrentBookTime = storeCurrentBookTime
         self.bookDisk = bookDisk
         self.saveBookState = saveBookState
+        self.toastProvider = toastProvider
     }
 
     var shouldActivateProgress: Bool {
@@ -77,7 +81,7 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
 
         restoreBookProgress()
 
-        guard playbackCapability != nil else { return }
+        guard playbackProvider != nil else { return }
     }
 
     private func deactivateProgress() {
@@ -89,8 +93,8 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
     // MARK: - Restore
 
     private func restoreBookProgress() {
-        guard let playback = playbackCapability else { return }
-        let startingAsset = playback.currentAsset
+        guard let playback = playbackProvider else { return }
+        let startingAsset = playback.currentURL
         restoreGeneration += 1
         let generation = restoreGeneration
 
@@ -114,7 +118,7 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
                     return
                 }
 
-                let currentAsset = playback.currentAsset
+                let currentAsset = playback.currentURL
 
                 // 恢复文件已被并发加载（如 PlaybackSceneObserver 的场景恢复，
                 // 或用户已手动加载同一文件）：只补进度位置，不重复加载，
@@ -123,7 +127,7 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
                     guard isCurrentRestoreRequest(generation) else { return }
                     let time = currentBookTime() ?? 0
                     if time > 0 {
-                        playback.seek(to: time)
+                        playback.seek(toTime: time)
                     }
                     if Self.verbose {
                         Self.log.debug("\(Self.tag)✅ Restored audiobook progress (seek only): \(url.lastPathComponent) @ \(time)s")
@@ -141,7 +145,7 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
                     currentAsset: currentAsset
                 ) {
                     guard isCurrentRestoreRequest(generation) else { return }
-                    await playback.play(url, autoPlay: false, startTime: currentBookTime() ?? 0, reason: "restoreBookProgress")
+                    await playback.play(url, startTime: currentBookTime() ?? 0)
                 }
 
                 if Self.verbose {
@@ -167,7 +171,7 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
 
     func handleCurrentURLChanged(_ url: URL?) {
         guard shouldActivateProgress else { return }
-        guard let playback = playbackCapability else { return }
+        guard let playback = playbackProvider else { return }
 
         let storedURL = currentBookURL()
 
@@ -194,7 +198,7 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
         Task {
             guard BookProgressPersistencePolicy.shouldApplyCurrentURLChange(
                 requestedURL: snapshot.currentURL,
-                currentAsset: playback.currentAsset,
+                currentAsset: playback.currentURL,
                 currentGeneration: restoreGeneration,
                 requestGeneration: generation,
                 isSceneActive: shouldActivateProgress
@@ -221,7 +225,7 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
                     try await url.download(reason: "BookProgressViewModel")
                     guard BookProgressPersistencePolicy.shouldApplyCurrentURLChange(
                         requestedURL: snapshot.currentURL,
-                        currentAsset: playback.currentAsset,
+                        currentAsset: playback.currentURL,
                         currentGeneration: restoreGeneration,
                         requestGeneration: generation,
                         isSceneActive: shouldActivateProgress
@@ -232,20 +236,20 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
                 } catch {
                     guard BookProgressPersistencePolicy.shouldApplyCurrentURLChange(
                         requestedURL: snapshot.currentURL,
-                        currentAsset: playback.currentAsset,
+                        currentAsset: playback.currentURL,
                         currentGeneration: restoreGeneration,
                         requestGeneration: generation,
                         isSceneActive: shouldActivateProgress
                     ) else { return }
                     Self.log.error("\(Self.tag)❌ Audiobook file download failed: \(error.localizedDescription)")
-                    alert_error(String(localized: "Download failed: \(error.localizedDescription)", bundle: .module))
+                    toastProvider?.error(String(localized: "Download failed: \(error.localizedDescription)", bundle: .module))
                 }
             }
         }
     }
 
     func handlePlayManStateChanged(_ isPlaying: Bool) {
-        guard shouldActivateProgress, let playback = playbackCapability, playback.state == .paused else { return }
+        guard shouldActivateProgress, let playback = playbackProvider, playback.state == .paused else { return }
 
         persistCurrentProgress(reason: "handlePlayManStateChanged")
     }
@@ -261,14 +265,14 @@ final class BookProgressViewModel: ObservableObject, SuperLog {
     }
 
     private func persistCurrentProgress(reason: String) {
-        guard let playback = playbackCapability else { return }
+        guard let playback = playbackProvider else { return }
         guard BookProgressPersistencePolicy.shouldPersistPlaybackProgress(
-            currentURL: playback.currentAsset,
+            currentURL: playback.currentURL,
             bookDisk: bookDisk()
         ) else { return }
 
         guard let snapshot = BookProgressPersistencePolicy.snapshot(
-            currentURL: playback.currentAsset,
+            currentURL: playback.currentURL,
             currentTime: playback.currentTime,
             trigger: .playbackPositionChanged
         ) else { return }

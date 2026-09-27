@@ -19,7 +19,7 @@ final class LikeButtonObserver: SuperLog {
             case .likeStatusChanged(_, let liked):
                 self?.viewModel?.handleLikeStatusChanged(liked)
             case .likedAssetsChanged(let assets):
-                self?.viewModel?.handleLikedAssetsChanged(Array(assets))
+                self?.viewModel?.handleLikedAssetsChanged(assets)
             default:
                 break
             }

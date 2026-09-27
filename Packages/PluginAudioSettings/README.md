@@ -18,7 +18,7 @@ Audio settings plugin for Cisum. It contributes the "Audio Settings" entry to th
   2. `refresh` with a usable local directory collects metrics (file count, size, localized "Local" description); when the disk becomes unavailable it clears all metrics.
   3. `AudioSettingsMetricsPolicy` only applies metrics for the current disk; stale refresh results (from a previous disk) are discarded via generation.
   4. The "open library" action is hidden when the disk is missing; file count uses singular wording only for exactly one file.
-- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, `ProviderDocsView`, `ProviderAudioLibrary`. Resources: `Localizable.xcstrings`.
+- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderAudioLibrary`. Resources: `Localizable.xcstrings`.
 
 ## Testing Logic
 

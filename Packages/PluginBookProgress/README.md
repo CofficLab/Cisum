@@ -21,9 +21,8 @@ and clears saved state when a book is deleted.
     `handlePlayManStateChanged(_:)`, `handleBookDBDeleted(deletedURLs:)`,
     `restoreBookProgress()`, `persistCurrentProgress(reason:)`. Uses
     `restoreGeneration` to cancel stale restores.
-  - `BookProgressPlaybackCapability` protocol (`currentAsset`, `state`, `currentTime`,
-    `play(_:autoPlay:startTime:reason:)`, `seek(to:)`) +
-    `BookProgressPlaybackCapabilityAdapter`.
+  - `BookProgressViewModel` uses the shared `PlaybackProviding` contract directly for
+    current playback state, seeking, and resume requests.
   - `BookProgressObserver` — forwards scene changes, playback `.stateChanged` /
     `.assetChanged`, and book-provider `.libraryDeleted` events.
   - Policy/lookup helpers (in `BookProgressRootView.swift`):
@@ -49,7 +48,7 @@ and clears saved state when a book is deleted.
   current time. Book deletes that contain the stored chapter clear the saved state.
   All async continuations are guarded by generation and scene-activation checks.
 - **Dependencies:** `MagicKit`, `CisumUIComponents`, `ProviderBook`, `MagicPlayMan`,
-  `CisumKernelSupport`, `ProviderDocsView`, `ProviderScene`, `ProviderPlayback`.
+  `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderScene`, `ProviderPlayback`.
 
 ## Testing Logic
 
@@ -57,8 +56,7 @@ and clears saved state when a book is deleted.
   - `Tests/BookProgressPluginTests.swift` — extensive policy unit tests plus
     view-model integration with a playback probe.
   - `Tests/BookProgressStatePersistence.swift` — helper that upserts a `BookState`
-    (current chapter + time) into an in-memory SwiftData container and posts
-    `.bookStateUpdated`.
+    (current chapter + time) into an in-memory SwiftData container.
 - **Key scenarios tested:**
   - Snapshot semantics: URL-only changes don't overwrite saved time; position changes
     normalize NaN/inf/-1 to 0; a different book URL resets global time; unchanged URL

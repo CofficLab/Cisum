@@ -4,8 +4,11 @@ import ProviderDocsView
 import ProviderToast
 import ProviderPlayback
 import CisumUIComponents
+import LumiUI
 import Foundation
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import MagicKit
 import OSLog
 import ProviderBook
@@ -57,7 +60,7 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addControlButtonsView() { contrib.addControlButtonsView(view) }
+            if let view = self.addControlButtonsView() { contrib.addControlButtonsView(ownerPluginID: id, view) }
         }
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
@@ -117,7 +120,7 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
         if Self.verbose { os_log("\(Self.t)🔧 installState") }
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackCapability: makePlaybackCapability(from: playback),
+            playbackProvider: playback,
             toastProvider: kernel.resolveProvider((any ToastProviding).self),
             bookDisk: { kernel.resolveProvider(BookDatabaseProviding.self)?.bookDisk }
         )
@@ -142,7 +145,7 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
                 switch event {
                 case .libraryChanged:
                     viewModel?.handleBookDBRefreshed()
-                case .librarySyncing, .librarySynced, .librarySorted, .playbackStateChanged:
+                case .librarySyncing, .librarySynced, .playbackStateChanged:
                     break
                 case let .libraryDeleted(urls):
                     viewModel?.handleBookDBDeleted(deletedURLs: urls)
@@ -174,7 +177,7 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
         }
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackCapability: makePlaybackCapability(from: kernel?.resolveProvider((any PlaybackProviding).self)),
+            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
             toastProvider: kernel?.resolveProvider((any ToastProviding).self),
             bookDisk: { [weak self] in
                 self?.kernel?.resolveProvider(BookDatabaseProviding.self)?.bookDisk
@@ -184,12 +187,4 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
         return viewModel
     }
 
-    /// 将内核能力收窄后注入 ViewModel；ViewModel 不持有 Kernel。
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any BookControlPlaybackCapability)? {
-        guard let playback else { return nil }
-        return BookControlPlaybackCapabilityAdapter(playback: playback)
-    }
 }

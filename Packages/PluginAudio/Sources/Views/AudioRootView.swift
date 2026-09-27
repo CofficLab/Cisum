@@ -1,5 +1,6 @@
 import Foundation
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 struct AudioRootErrorPresentation: Equatable {
@@ -62,11 +63,6 @@ public struct AudioRootView<Content>: View where Content: View {
         }
         .task {
             viewModel.reloadContainer()
-        }
-        // 存储位置变化（由 AudioStorageObserver 驱动）时弹全局 toast；
-        // View 只做 UI 表现，不再直接订阅存储通知。
-        .onChange(of: viewModel.storageLocationDidChangeNotice) { _, _ in
-            alert_info(String(localized: "Storage location has changed", bundle: .module))
         }
     }
 

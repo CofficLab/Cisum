@@ -1,4 +1,4 @@
-# DeviceData
+# KitDeviceData
 
 A tiny SwiftData model package that persists per-device usage metadata (device UUID, open timestamps, open counts, and hardware identification) for the Cisum app.
 

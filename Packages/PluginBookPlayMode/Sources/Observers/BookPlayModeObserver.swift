@@ -23,9 +23,7 @@ final class BookPlayModeObserver: SuperLog {
         }
         playbackHandle = playback.addObserver { [weak self] event in
             guard case .playModeChanged(let mode) = event else { return }
-            self?.viewModel?.handlePlayModeChanged(
-                MagicPlayMode(rawValue: mode.rawValue) ?? .sequence
-            )
+            self?.viewModel?.handlePlayModeChanged(mode)
         }
     }
 

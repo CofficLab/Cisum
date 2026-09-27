@@ -15,15 +15,18 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../MagicKit"),
-        .package(path: "../CisumUIComponents"),
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
         .package(path: "../ProviderAudioLike"),
         .package(path: "../ProviderStorage"),
-        .package(path: "../MagicPlayMan"),
-        .package(path: "../CisumKernelSupport"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", revision: "7031fda7ff72492d574ef9a4b5d9ffdc801a6660"),
+        .package(path: "../KitAppEvents"),
+        .package(path: "../ProviderPlugin"),
         .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
         .package(path: "../ProviderScene"),
-        .package(path: "../ProviderPlayback")
+        .package(path: "../ProviderPlayback"),
+        .package(path: "../ProviderToast")
     ],
     targets: [
         .target(
@@ -31,13 +34,16 @@ let package = Package(
             dependencies: [
                 .product(name: "ProviderAudioLike", package: "ProviderAudioLike"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
-                .product(name: "MagicKit", package: "MagicKit"),
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
-                .product(name: "MagicPlayMan", package: "MagicPlayMan"),
-                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderDocsView", package: "ProviderDocsView"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
-                .product(name: "ProviderPlayback", package: "ProviderPlayback")
+                .product(name: "ProviderPlayback", package: "ProviderPlayback"),
+                .product(name: "ProviderToast", package: "ProviderToast")
             ],
             path: ".",
             sources: [
@@ -59,7 +65,8 @@ let package = Package(
             name: "AudioLikePluginTests",
             dependencies: [
                 "PluginAudioLike",
-                .product(name: "ProviderAudioLike", package: "ProviderAudioLike")
+                .product(name: "ProviderAudioLike", package: "ProviderAudioLike"),
+                .product(name: "ProviderPlayback", package: "ProviderPlayback")
             ],
             path: "Tests"
         )

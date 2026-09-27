@@ -1,5 +1,7 @@
 import CisumUIComponents
+import LumiUI
 import Foundation
+import KitEventObservation
 import SwiftUI
 
 @MainActor
@@ -65,3 +67,5 @@ public final class NoopThemeProvidingObserverHandle: ThemeProvidingObserverHandl
     public init() {}
     public func cancel() {}
 }
+
+extension EventObserverHandle: ThemeProvidingObserverHandle {}

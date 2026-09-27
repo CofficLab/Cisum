@@ -1,6 +1,8 @@
 import ProviderDocsView
 import ProviderPlayback
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import SwiftUI
 import Testing
 @testable import PluginPlaybackHero
@@ -55,49 +57,36 @@ private final class MediaStub: PlaybackMediaProviding {
 }
 
 @MainActor
-private final class HeroCapabilityStub: PlaybackHeroPlaybackCapability {
-    var currentURL: URL? = URL(fileURLWithPath: "/library/current.flac")
-    var state: PlaybackStatus = .loading(.downloading(0.4))
-    private(set) var makeHeroViewCallCount = 0
-
-    func makeHeroView() -> AnyView {
-        makeHeroViewCallCount += 1
-        return AnyView(Text("Hero Artwork"))
-    }
-
-    func localizedStateText(for state: PlaybackStatus) -> String {
-        "localized:\(String(describing: state))"
-    }
-}
-
-@MainActor
 struct PlaybackHeroTests {
     @Test
-    func capabilityAdapterMapsPlaybackAndProvidesSafeMediaFallbacks() {
+    func viewModelUsesPlaybackAndMediaProvidersDirectly() {
         let playback = PlaybackStub()
         let media = MediaStub()
-        let adapter = PlaybackHeroPlaybackCapabilityAdapter(playback: playback, media: media)
-
-        #expect(adapter.currentURL == playback.currentURL)
-        #expect(adapter.state == .paused)
-        #expect(adapter.localizedStateText(for: .playing) == "state:playing")
-        _ = adapter.makeHeroView()
+        let viewModel = PlaybackHeroViewModel(playbackProvider: playback, mediaProvider: media)
+        #expect(viewModel.currentURL == playback.currentURL)
+        #expect(viewModel.state == .paused)
+        #expect(viewModel.localizedStateText() == "state:paused")
+        _ = viewModel.makeMediaView()
         #expect(media.makeMediaViewCallCount == 1)
 
-        let fallback = PlaybackHeroPlaybackCapabilityAdapter(playback: playback, media: nil)
+        let fallback = PlaybackHeroViewModel(playbackProvider: playback)
         let failedState = PlaybackStatus.failed(.noAsset)
-        #expect(fallback.localizedStateText(for: failedState) == String(describing: failedState))
-        _ = fallback.makeHeroView()
+        fallback.applyStateChanged(failedState)
+        #expect(fallback.localizedStateText() == String(describing: failedState))
+        _ = fallback.makeMediaView()
     }
 
     @Test
-    func viewModelInitializesFromCapabilityAndTracksPlaybackChanges() {
-        let capability = HeroCapabilityStub()
-        let viewModel = PlaybackHeroViewModel(playbackCapability: capability)
+    func viewModelInitializesFromProvidersAndTracksPlaybackChanges() {
+        let playback = PlaybackStub()
+        playback.currentURL = URL(fileURLWithPath: "/library/current.flac")
+        playback.state = .loading(.downloading(0.4))
+        let media = MediaStub()
+        let viewModel = PlaybackHeroViewModel(playbackProvider: playback, mediaProvider: media)
 
-        #expect(viewModel.currentURL == capability.currentURL)
-        #expect(viewModel.state == capability.state)
-        #expect(viewModel.localizedStateText() == "localized:\(String(describing: capability.state))")
+        #expect(viewModel.currentURL == playback.currentURL)
+        #expect(viewModel.state == playback.state)
+        #expect(viewModel.localizedStateText() == "state:\(String(describing: playback.state))")
 
         let nextURL = URL(fileURLWithPath: "/library/next.mp3")
         viewModel.applyAssetChanged(nextURL)
@@ -106,9 +95,9 @@ struct PlaybackHeroTests {
 
         #expect(viewModel.currentURL == nextURL)
         #expect(viewModel.state == .playing)
-        #expect(capability.makeHeroViewCallCount == 1)
+        #expect(media.makeMediaViewCallCount == 1)
 
-        let emptyViewModel = PlaybackHeroViewModel(playbackCapability: nil)
+        let emptyViewModel = PlaybackHeroViewModel(playbackProvider: nil)
         #expect(emptyViewModel.currentURL == nil)
         #expect(emptyViewModel.state == .idle)
         #expect(emptyViewModel.localizedStateText() == String(describing: PlaybackStatus.idle))
@@ -118,7 +107,7 @@ struct PlaybackHeroTests {
     @Test
     func observerForwardsAssetAndStateButStopsAfterCancellation() {
         let playback = PlaybackStub()
-        let viewModel = PlaybackHeroViewModel(playbackCapability: nil)
+        let viewModel = PlaybackHeroViewModel(playbackProvider: nil)
         let observer = PlaybackHeroObserver(playback: playback, viewModel: viewModel)
         let nextURL = URL(fileURLWithPath: "/library/observer.mp3")
 

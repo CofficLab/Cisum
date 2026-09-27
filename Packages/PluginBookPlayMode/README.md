@@ -7,7 +7,7 @@ visible UI of its own — it is a background behavior plugin.
 
 ## Functional Logic
 
-- **Core responsibility:** synchronize the global `MagicPlayMode` with a persisted
+- **Core responsibility:** synchronize the shared `ProviderPlayback.PlaybackMode` with a persisted
   preference, but only while the app is in the audiobooks scene. Leaving the scene
   deactivates the plugin so it does not interfere with music playback.
 - **Key types/protocols:**
@@ -24,9 +24,7 @@ visible UI of its own — it is a background behavior plugin.
     both `UserDefaults.standard` and `NSUbiquitousKeyValueStore`;
     `resolvedPlayMode(localRawValue:cloudRawValue:)` prefers local, then cloud, then
     defaults to `.sequence`.
-  - `BookPlayModePlaybackCapability` protocol (`playMode`, `setPlayMode(_:)`) +
-    `BookPlayModePlaybackCapabilityAdapter` mapping `MagicPlayMode` to/from
-    `PlaybackMode`.
+  - The view model and observer consume `PlaybackProviding` directly; playback mode uses the shared `ProviderPlayback.PlaybackMode` type.
   - `BookPlayModeObserver` — forwards scene `.selectionChanged` and playback
     `.playModeChanged` events to the view model.
   - `BookPlayModeRootView<Content>` / `BookPlayModePluginRootView` — passthrough root
@@ -42,7 +40,7 @@ visible UI of its own — it is a background behavior plugin.
   UserDefaults/iCloud and alerts the user. Leave the scene → generation bumps,
   deactivation prevents further saves/restores.
 - **Dependencies:** `MagicKit`, `CisumUIComponents`, `MagicPlayMan`,
-  `CisumKernelSupport`, `ProviderDocsView`, `ProviderScene`, `ProviderPlayback`.
+  `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderScene`, `ProviderPlayback`.
 
 ## Testing Logic
 
@@ -57,7 +55,7 @@ visible UI of its own — it is a background behavior plugin.
   - ViewModel: entering the target scene activates and restores a stored mode;
     leaving deactivates (no `setPlayMode`); skips applying when stored mode already
     matches; active mode changes are persisted; inactive changes are ignored.
-  - Adapter: maps `playMode` raw values and forwards `setPlayMode`.
+  - Playback mode events are forwarded directly through the provider observer.
   - Observer: scene events drive activation/deactivation; playback mode events reach
     the view model; cancellation stops further updates.
   - Metadata: `iconName == "repeat"`, `order == 7`; invalid local value falls back

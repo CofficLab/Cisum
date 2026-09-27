@@ -1,6 +1,6 @@
 # PluginAudioDBData
 
-The audio database data layer plugin. It is the single assembly and registration point for `AudioLibraryProviding` and `AudioTrackNavigationProviding`, owning the SwiftData model, the database container, the repository, filesystem synchronization, and event bridging. UI plugins consume it only through kernel-resolved provider protocols and never construct `AudioRepo` directly.
+The audio database data layer plugin. It is the single assembly and registration point for `AudioLibraryProviding` and `AudioTrackNavigationProviding`, owning the SwiftData model, the database container, the repository, and filesystem synchronization. Database operations publish the typed `AudioLibraryProvidingEvent` contract directly; UI plugins consume it through kernel-resolved providers and never construct `AudioRepo` directly.
 
 ## Functional Logic
 
@@ -14,14 +14,14 @@ The audio database data layer plugin. It is the single assembly and registration
   - `AudioFileSystemMonitor` — observes the audio directory and reconciles filesystem changes with the data layer.
   - `AudioStorageObserver` — watches `StorageProviding` and triggers a monitor rebuild on location changes.
   - Errors split by topic: `AudioPluginError` (config/host), `AudioRecordDBError` (record read/write), `AudioModelError` (validation/file state), `AudioRepoError` (filesystem/sync), plus `AudioErrorLocalization`.
-  - `URL+Directory` extension and `AudioEvent` typed events.
+  - `URL+Directory` extension.
 - **Plugin registration**: Registers with ID `AudioDBDataPlugin`. On boot/ready/enable it registers `AudioLibraryProviding` and `AudioTrackNavigationProviding` with the kernel, starts `AudioStorageObserver`, and launches `AudioFileSystemMonitor`. On disable/shutdown it tears down synchronization and unregisters the providers.
 - **Workflow / data flow**:
   1. `onBootAsync` installs the providers; `onReadyAsync` additionally sets up the storage observer and starts the filesystem monitor.
   2. The monitor performs a first full scan, then reconciles incremental changes. Empty full syncs are only allowed for a readable, empty directory; otherwise an empty result set is ignored so a transient scan error cannot wipe the library.
   3. When the storage location changes, the storage observer cancels the old monitor and restarts a fresh one against the new repository.
   4. Navigation, sort, random sort, and delete operations go through `AudioRepo`; symlinked duplicates are resolved/deduplicated, and files outside the library root are rejected for deletion.
-- **Dependencies** (from `Package.swift`): `CisumKernelSupport`, `MagicKit`, `CisumUIComponents`, `ProviderAudioLibrary`, `ProviderAudioNavigation`, `ProviderStorage`.
+- **Dependencies** (from `Package.swift`): `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `MagicKit`, `CisumUIComponents`, `ProviderAudioLibrary`, `ProviderAudioNavigation`, `ProviderStorage`.
 
 ## Testing Logic
 

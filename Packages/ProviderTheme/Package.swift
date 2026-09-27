@@ -12,13 +12,19 @@ let package = Package(
         .library(name: "ProviderTheme", targets: ["ProviderTheme"]),
     ],
     dependencies: [
-        .package(name: "CisumUIComponents", path: "../CisumUIComponents"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
+        .package(path: "../KitEventObservation"),
+        .package(path: "../KitAppEvents"),
     ],
     targets: [
         .target(
             name: "ProviderTheme",
             dependencies: [
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
+                .product(name: "KitEventObservation", package: "KitEventObservation"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
             ],
             path: ".",
             exclude: ["README.md", "Tests"],
@@ -29,7 +35,8 @@ let package = Package(
             name: "ProviderThemeTests",
             dependencies: [
                 "ProviderTheme",
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
             ],
             path: "Tests"
         ),

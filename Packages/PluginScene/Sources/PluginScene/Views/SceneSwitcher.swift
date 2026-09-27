@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import ProviderScene
 import SwiftUI
 
@@ -34,6 +35,7 @@ struct SceneSwitcher: View {
 private struct PostersView: View {
     struct Item: Identifiable {
         let id: String
+        let accessibilityID: String
         let title: String
         let description: String
         let view: AnyView
@@ -46,13 +48,28 @@ private struct PostersView: View {
 
     var body: some View {
         VStack {
-            Picker("", selection: $selectedID) {
+            HStack(spacing: 4) {
                 ForEach(items) { item in
-                    Text(item.title.isEmpty ? item.id : item.title)
-                        .tag(item.id)
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            selectedID = item.id
+                        }
+                    } label: {
+                        Text(item.title.isEmpty ? item.id : item.title)
+                            .font(.subheadline.weight(.medium))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(
+                                selectedID == item.id ? Color.accentColor.opacity(0.14) : .clear,
+                                in: Capsule()
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("cisum.scene.option.\(item.accessibilityID)")
                 }
             }
-            .pickerStyle(.segmented)
+            .padding(4)
+            .background(.quaternary, in: Capsule())
             .padding()
 
             if let item = items.first(where: { $0.id == selectedID }) {
@@ -74,10 +91,12 @@ private struct PostersView: View {
             let description = Self.sceneDescription(scene)
             return Item(
                 id: scene.id,
+                accessibilityID: scene.accessibilityID,
                 title: title,
                 description: description,
                 view: AnyView(
                     ScenePosterView(
+                        sceneID: scene.accessibilityID,
                         iconName: scene.iconName,
                         title: title,
                         description: description,

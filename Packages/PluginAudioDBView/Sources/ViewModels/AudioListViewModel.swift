@@ -4,6 +4,8 @@ import Foundation
 import OSLog
 import SwiftUI
 import MagicKit
+import ProviderToast
+import ProviderPlayback
 
 /// 音频库列表的加载状态容器（迁移 Phase 2）。
 ///
@@ -33,22 +35,24 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     private var selectionGeneration = 0
 
     private let audioLibraryProvider: @MainActor () -> (any AudioLibraryProviding)?
-    /// AudioDB 所需的最小播放能力；不让 ViewModel 反向访问 Kernel。
-    private let playbackCapability: (any AudioPlaybackCapability)?
+    private let playbackProvider: (any PlaybackProviding)?
     private var currentAsset: URL?
     private let reasonTag: String
     private let isDesktop: Bool
+    private let toastProvider: (any ToastProviding)?
 
     init(
         audioLibrary: @escaping @MainActor () -> (any AudioLibraryProviding)?,
-        playbackCapability: (any AudioPlaybackCapability)? = nil,
+        playbackProvider: (any PlaybackProviding)? = nil,
         reasonTag: String = "AudioListViewModel",
-        isDesktop: Bool? = nil
+        isDesktop: Bool? = nil,
+        toastProvider: (any ToastProviding)? = nil
     ) {
         self.audioLibraryProvider = audioLibrary
-        self.playbackCapability = playbackCapability
+        self.playbackProvider = playbackProvider
         self.reasonTag = reasonTag
         self.isDesktop = isDesktop ?? Self.defaultIsDesktop
+        self.toastProvider = toastProvider
     }
 
     /// 非桌面平台（用于显示「添加」按钮等布局差异）。
@@ -142,17 +146,17 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                 return
             }
 
-            guard let playbackCapability = self.playbackCapability else {
-                os_log(.error, "\(Self.t)4/5 Playback capability is missing; cannot play: \(url.path)")
+            guard let playbackProvider = self.playbackProvider else {
+                os_log(.error, "\(Self.t)4/5 Playback provider is missing; cannot play: \(url.path)")
                 return
             }
 
             if Self.verbose {
-                os_log("\(Self.t)4/5 Calling AudioPlaybackCapability.play: \(url.path)")
+                os_log("\(Self.t)4/5 Calling PlaybackProviding.play: \(url.path)")
             }
-            await playbackCapability.play(url)
+            await playbackProvider.play(url)
             if Self.verbose {
-                os_log("\(Self.t)5/5 AudioPlaybackCapability.play returned: \(url.lastPathComponent)")
+                os_log("\(Self.t)5/5 PlaybackProviding.play returned: \(url.lastPathComponent)")
             }
         }
     }
@@ -186,13 +190,13 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     /// 用户从列表删除条目（滑动删除）。
     func deleteItems(at offsets: IndexSet) {
         guard let urlsToDelete = Self.urlsToDelete(from: offsets, in: urls) else {
-            alert_error(String(localized: "Delete failed: the audio list changed. Please try again.", bundle: .module))
+            toastProvider?.error(String(localized: "Delete failed: the audio list changed. Please try again.", bundle: .module))
             return
         }
 
         Task { @MainActor in
             guard let library = audioLibraryProvider() else {
-                alert_error(String(localized: "Delete failed: audio repository is unavailable", bundle: .module))
+                toastProvider?.error(String(localized: "Delete failed: audio repository is unavailable", bundle: .module))
                 return
             }
             await deleteFiles(urlsToDelete, in: library)
@@ -203,7 +207,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     func deleteFile(_ url: URL) {
         Task { @MainActor in
             guard let library = audioLibraryProvider() else {
-                alert_error(String(localized: "Delete failed: audio repository is unavailable", bundle: .module))
+                toastProvider?.error(String(localized: "Delete failed: audio repository is unavailable", bundle: .module))
                 return
             }
             await deleteFiles([url], in: library)
@@ -278,7 +282,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         Task { @MainActor in
             guard let library = audioLibraryProvider() else {
                 isLoading = false
-                alert_error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
+                toastProvider?.error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
                 return
             }
 
@@ -318,7 +322,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         Task { @MainActor in
             guard let library = audioLibraryProvider() else {
                 isLoadingMore = false
-                alert_error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
+                toastProvider?.error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
                 return
             }
 
@@ -398,7 +402,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
 
         Task { @MainActor in
             guard let library = audioLibraryProvider() else {
-                alert_error(String(localized: "Refresh failed: audio repository is unavailable", bundle: .module))
+                toastProvider?.error(String(localized: "Refresh failed: audio repository is unavailable", bundle: .module))
                 return
             }
 
@@ -471,13 +475,13 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                 deletedURLs: urlsToDelete,
                 isPlaybackControllerHandlingDeletion: true
             ) {
-                await playbackCapability?.reset()
+                await playbackProvider?.reset()
             }
             for url in urlsToDelete {
-                alert_info(String(localized: "Deleted \(url.title)", bundle: .module))
+                toastProvider?.info(String(localized: "Deleted \(url.title)", bundle: .module))
             }
         } catch {
-            alert_error(String(localized: "Delete failed: \(error.localizedDescription)", bundle: .module))
+            toastProvider?.error(String(localized: "Delete failed: \(error.localizedDescription)", bundle: .module))
         }
     }
 

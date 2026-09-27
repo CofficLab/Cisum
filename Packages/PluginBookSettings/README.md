@@ -39,7 +39,7 @@ library size, file count, and (on macOS) an "Open in Finder" action.
   compute readable size and recursive file count; the result is applied only if the
   disk and generation are still current. A `.storageLocationChanged` event bumps
   `refreshToken`, which re-runs `refresh()`.
-- **Dependencies:** `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`,
+- **Dependencies:** `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`,
   `ProviderDocsView`, `ProviderBook`.
 
 ## Testing Logic

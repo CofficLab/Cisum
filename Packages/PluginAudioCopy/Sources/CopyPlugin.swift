@@ -1,7 +1,11 @@
 import ProviderAudioLibrary
 import ProviderDocsView
 import CisumUIComponents
-import CisumKernelSupport
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
+import ProviderToast
 import SwiftUI
 import MagicKit
 
@@ -46,7 +50,7 @@ public final class CopyPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addStateView() { contrib.addStateView(view) }
+            if let view = self.addStateView() { contrib.addStateView(ownerPluginID: id, view) }
         }
     }
 
@@ -73,7 +77,8 @@ public final class CopyPlugin: AsyncSuperPlugin, SuperLog {
                         return 0
                     }
                     return await library.totalCount()
-                }
+                },
+                toastProvider: self.kernel?.resolveProvider((any ToastProviding).self)
             )
         }
     }

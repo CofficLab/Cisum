@@ -19,7 +19,7 @@ A system plugin that captures the app's `OSLog` entries to rotating on-disk log 
   2. `FileLogCoordinator` opens a new dated log file (with a version/environment header) and polls `OSLogStore` from the last poll position.
   3. New entries matching the subsystem predicate are formatted (`[time] [level] [category] message`) and appended; the file is flushed periodically.
   4. When the file exceeds 5 MB, a new file is started; on startup, logs older than 7 days are deleted.
-- **Dependencies:** `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, `ProviderDocsView`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
+- **Dependencies:** `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
 
 ## Testing Logic
 

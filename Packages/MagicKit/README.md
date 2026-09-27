@@ -1,4 +1,4 @@
-# MagicKit
+# KitMagic (product/module `MagicKit`)
 
 MagicKit is a general-purpose Swift utility toolkit shared across the **Cisum** app (an audio/music player). It bundles a macOS shell-command subsystem (process, file, network, system, and rich Git operations), iCloud/local directory and download monitoring, a `CKSyncEngine` wrapper, an async HTTP client, thumbnail/cover-art generation, a SwiftUI `AvatarView`, SwiftData convenience extensions, date/time formatting, and a set of logging/event/threading protocols. The single `MagicKit` library ships for **macOS 14+ and iOS 17+**; the shell subsystem is fully implemented on macOS and compiles to a no-op placeholder on iOS.
 
@@ -6,13 +6,13 @@ MagicKit is a general-purpose Swift utility toolkit shared across the **Cisum** 
 
 ### Core Responsibilities
 
-MagicKit exists to absorb cross-cutting concerns that the Cisum app's feature layers would otherwise duplicate:
+The Swift package identity is `KitMagic`; the existing `MagicKit` product/module name is retained to avoid breaking source imports. This kit absorbs cross-cutting concerns that feature packages would otherwise duplicate:
 
 - Running shell commands safely (quoting, injection safety, working-directory scoping) and wrapping them into domain-specific helpers (files, processes, network, system info, Git).
 - Observing the local file library and its iCloud sync state: directory watching, ubiquitous-item download progress, and one-shot downloads.
 - Persisting and reconciling app data with CloudKit through `CKSyncEngine`.
 - Producing file thumbnails/covers (images, video frames, audio ID3 artwork, folder icons) with an on-disk cache.
-- Providing shared app plumbing: a logging facade (`MagicLogger`), notification posting (`SuperEvent`), queue shortcuts (`SuperThread`), styled log prefixes (`SuperLog`), toast bridging (`ProviderToast`), and common Foundation/SwiftUI extensions.
+- Providing shared utilities: a logging facade (`MagicLogger`), notification posting (`SuperEvent`), queue shortcuts (`SuperThread`), styled log prefixes (`SuperLog`), and common Foundation/SwiftUI extensions. Toast APIs are owned by `ProviderToast` and injected by the app/provider layer; this kit has no toast bridge.
 
 ### Key Modules & Types
 
@@ -117,11 +117,6 @@ All shell helpers run commands through `/bin/bash -c`. User-supplied values are 
 - `Image.PlatformImage` typealias (`NSImage` / `UIImage`) with `resize(to:quality:)`, `systemImage`, `fromFile`, `fromCGImage`, `fromCacheData`, `cacheData`, `folderIcon(size:)`, `fromSystemIcon`, `toSwiftUIImage`, `sampleImage(size:)`; `ExtImage+Icons`, `ExtNSImage`, `ExtError+Clipboard`.
 - `String`: `toData()`, `toBase64()`, `replaceImageSrcWithRelativePath(_:)`, JSON keypath readers (`getIntFromJSON` / `getStringFromJSON` / `getArrayFromJSON` / `getValueFromJSON`), `copy()`; `withContextEmoji` / `generateContextEmoji()`; SF Symbol name constants (`iconCheckmark`, `iconMusicNote`, `iconICloudDownload`, …); Markdown helpers (`saveMarkdown`, `toMarkdown`, `saveHTMLToMarkdown`); sample strings.
 
-#### Toast bridging
-
-- **`Exports.swift`** — `@_exported import ProviderToast`.
-- **`ToastCompatibility.swift`** — `@MainActor enum CisumToastBridge` (install / provider) and the legacy free functions `alert_info`, `alert_success`, `alert_warning`, `alert_error(_:…)`, `alert_loading`, `alert_dismiss_loading`, `alert_dismiss_all`, which route through the shared `ToastProviding`.
-
 ### Data Flow / Workflow
 
 - **Shell pipeline:** callers (e.g. `ShellGit`, `ShellFile`, `ShellProcess`) build a quoted command string, then invoke `Shell.runSync` / `Shell.run`, which spawns `/bin/bash -c <command>` (optionally in a working directory), captures stdout via a `Pipe`, routes stderr to a temp file, and throws `ShellError.commandFailed` on a non-zero exit. `runWithStatus` reads combined stdout+stderr with a readability handler and a semaphore timeout.
@@ -137,7 +132,7 @@ From `Package.swift`:
 
 - **ID3TagEditor** (`chicio/ID3TagEditor`, `from: "4.5.0"`) — used for audio ID3 tag / cover-art reading.
 - **ZIPFoundation** (`weichsel/ZIPFoundation`, `from: "0.9.19"`) — archive handling.
-- **ProviderToast** (local package, `path: "../ProviderToast"`) — toast presentation; re-exported via `Exports.swift`.
+- **ProviderToast** (local package) — toast presentation, consumed directly by UI/provider clients and not re-exported by this kit.
 
 Build settings: swift-tools 6.0, Swift language mode v5, `StrictConcurrency=minimal` enabled on both target and test target; resources from `Resources/` are processed into the bundle.
 

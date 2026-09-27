@@ -341,30 +341,6 @@ struct AudioDBSceneObserverTests {
     }
 }
 
-// MARK: - AudioPlaybackCapabilityAdapter
-
-@MainActor
-struct AudioPlaybackCapabilityAdapterTests {
-    @Test
-    func playForwardsToPlaybackProvider() async {
-        let probe = PlaybackProbe()
-        let adapter = AudioPlaybackCapabilityAdapter(playback: probe)
-        let url = URL(fileURLWithPath: "/tmp/song.mp3")
-
-        await adapter.play(url)
-        #expect(probe.playedURLs == [url])
-    }
-
-    @Test
-    func resetForwardsToPlaybackProvider() async {
-        let probe = PlaybackProbe()
-        let adapter = AudioPlaybackCapabilityAdapter(playback: probe)
-
-        await adapter.reset()
-        #expect(probe.resetCount == 0) // 探针 reset 为默认空实现；验证调用不崩溃。
-    }
-}
-
 // MARK: - AudioDBDependencies
 
 @MainActor

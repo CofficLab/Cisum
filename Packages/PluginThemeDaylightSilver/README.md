@@ -16,7 +16,7 @@ Daylight Silver is a light-oriented, silver-gray theme built for daytime office 
   - Atmosphere — deep `#F2F3F5`/`#101114`, medium `#FFFFFF`/`#1C1D21`, light `#E8ECF2`/`#2B2D33`.
   - Workspace text `#1D1D1F`/`#F5F5F7` with secondary/tertiary grays.
   - Background: vertical linear gradient over the atmosphere colors plus a subtle top-trailing blue radial glow (~8% opacity).
-- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
+- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
 
 ## Testing Logic
 

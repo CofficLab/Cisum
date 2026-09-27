@@ -1,8 +1,11 @@
 import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import CisumUIComponents
+import LumiUI
 import OSLog
 import SwiftUI
 import MagicKit
@@ -44,8 +47,8 @@ public final class BookLikePlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addSettingView() { contrib.addSettingView(view) }
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(view) }
+            if let view = self.addSettingView() { contrib.addSettingView(ownerPluginID: id, view) }
+            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
         }
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
@@ -118,7 +121,7 @@ public final class BookLikePlugin: AsyncSuperPlugin, SuperLog {
         if Self.verbose { os_log("\(Self.t)🔧 installState") }
 
         let viewModel = BookLikeViewModel(
-            playbackCapability: makePlaybackCapability(from: playback),
+            playbackProvider: playback,
             loadLikedBooks: makeLoadLikedBooks(),
             saveLikeStatus: makeSaveLikeStatus()
         )
@@ -143,21 +146,12 @@ public final class BookLikePlugin: AsyncSuperPlugin, SuperLog {
             return likeViewModel
         }
         let viewModel = BookLikeViewModel(
-            playbackCapability: makePlaybackCapability(from: kernel?.resolveProvider((any PlaybackProviding).self)),
+            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
             loadLikedBooks: makeLoadLikedBooks(),
             saveLikeStatus: makeSaveLikeStatus()
         )
         likeViewModel = viewModel
         return viewModel
-    }
-
-    /// 将内核能力收窄后注入 ViewModel；ViewModel 不持有 Kernel。
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any BookLikePlaybackCapability)? {
-        guard let playback else { return nil }
-        return BookLikePlaybackCapabilityAdapter(playback: playback)
     }
 
     /// 喜欢列表的加载入口（由插件入口组装，不暴露单例给 ViewModel）。

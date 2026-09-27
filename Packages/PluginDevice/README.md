@@ -15,7 +15,7 @@ A SwiftData data layer for Cisum that tracks the devices (installations) that sh
   2. `insertDeviceData` records a new device with name/model/OS/version captured from `MagicApp`.
   3. `saveDeviceData` increments `timesOpened`, updates `lastOpenTime`/`audioCount`, and inserts the record on first sight.
   4. Queries (`find`, `allDevices`, `get`, `getCount`) run against the actor-isolated `ModelContext`.
-- **Dependencies:** `DeviceData` (product `CisumDeviceData`) and `CisumUIComponents`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
+- **Dependencies:** `KitDeviceData` (product `CisumDeviceData`) and `CisumUIComponents`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
 
 ## Testing Logic
 

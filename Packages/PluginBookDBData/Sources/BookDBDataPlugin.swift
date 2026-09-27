@@ -1,5 +1,7 @@
 import ProviderStorage
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import OSLog
 import ProviderBook
 
@@ -8,7 +10,7 @@ import ProviderBook
 /// 该插件是书籍 SwiftData 容器、BookRepo 和文件库监听的唯一组装入口；
 /// UI 插件通过 `BookDatabaseProviding` 使用它，不再自行构造数据库。
 @MainActor
-public final class BookDBDataPlugin: SuperPlugin {
+public final class BookDBDataPlugin: AsyncSuperPlugin {
     public let id = String(describing: BookDBDataPlugin.self)
 
     public static let shared = BookDBDataPlugin()

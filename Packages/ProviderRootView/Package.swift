@@ -12,18 +12,26 @@ let package = Package(
         .library(name: "ProviderRootView", targets: ["ProviderRootView"]),
     ],
     dependencies: [
-        .package(path: "../MagicKit"),
-        .package(name: "CisumKernelSupport", path: "../CisumKernelSupport"),
-        .package(name: "CisumUIComponents", path: "../CisumUIComponents"),
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", revision: "7031fda7ff72492d574ef9a4b5d9ffdc801a6660"),
+        .package(path: "../KitAppEvents"),
+        .package(path: "../ProviderPlugin"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
+        .package(path: "../KitEventObservation"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
     ],
     targets: [
         .target(
             name: "ProviderRootView",
             dependencies: [
-                .product(name: "MagicKit", package: "MagicKit"),
-                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
+                .product(name: "KitEventObservation", package: "KitEventObservation"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
             ],
             path: ".",
@@ -34,7 +42,9 @@ let package = Package(
             name: "ProviderRootViewTests",
             dependencies: [
                 "ProviderRootView",
-                .product(name: "CisumKernelSupport", package: "CisumKernelSupport"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
             ],
             path: "Tests"
         ),

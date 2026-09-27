@@ -8,8 +8,7 @@ A feature plugin that contributes a "Show in Finder" toolbar button, opening the
 - **Key types:**
   - `OpenButtonPlugin` — `@MainActor final class` conforming to `AsyncSuperPlugin, SuperLog`. `id = "OpenButtonPlugin"`, `order = 9999`, category `.feature`, policy `.alwaysOn`.
   - `OpenButtonPluginInfo` — enum with `description`, `iconName = .cisumIconFinder`, `toolbarItemId = "open-current"`.
-  - `OpenButtonPlaybackCapability` — internal protocol narrowing `PlaybackProviding` to `currentURL`; `OpenButtonPlaybackCapabilityAdapter` adapts the kernel provider.
-  - `OpenButtonViewModel` — `ObservableObject` publishing `url`; updates on `assetChanged`.
+  - `OpenButtonViewModel` — `ObservableObject` publishing `url`; reads the shared `PlaybackProviding` contract and updates on `assetChanged`.
   - `OpenButtonObserver` — subscribes to `assetChanged` events and forwards them to the view model.
   - `OpenCurrentButtonView` — public SwiftUI button; `shouldShowOpenButton(for:fileExists:)` returns true only for a local file URL that exists on disk; tapping calls `url.openInFinder()`.
   - Views: `OpenButtonPluginAboutView`, `OpenButtonPluginManualView`.
@@ -18,13 +17,13 @@ A feature plugin that contributes a "Show in Finder" toolbar button, opening the
   1. Playback `assetChanged` events update `OpenButtonViewModel.url`.
   2. `OpenCurrentButtonView` shows the button only when `shouldShowOpenButton(for:)` is true (local file that exists).
   3. Tapping opens the file's parent folder in Finder.
-- **Dependencies:** `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, `ProviderDocsView`, `MagicPlayMan`, `ProviderPlayback`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
+- **Dependencies:** `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `MagicPlayMan`, `ProviderPlayback`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
 
 ## Testing Logic
 
 - **Test files:**
   - `Tests/OpenButtonPluginTests.swift` — metadata and the `shouldShowOpenButton` reachability rule.
-  - `Tests/OpenButtonCoverageTests.swift` — a `PlaybackProbe`-driven suite for the view model, adapter, and observer.
+  - `Tests/OpenButtonCoverageTests.swift` — a `PlaybackProbe`-driven suite for the view model and observer.
 - **Key scenarios tested:**
   - Metadata stability (`toolbarItemId = "open-current"`, accessibility title `"Show in Finder"`).
   - `shouldShowOpenButton(for:)` accepts an existing local file, rejects a missing local file, and rejects a remote (https) URL.

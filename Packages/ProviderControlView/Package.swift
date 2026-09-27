@@ -12,13 +12,15 @@ let package = Package(
         .library(name: "ProviderControlView", targets: ["ProviderControlView"]),
     ],
     dependencies: [
-        .package(name: "CisumUIComponents", path: "../CisumUIComponents"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
     ],
     targets: [
         .target(
             name: "ProviderControlView",
             dependencies: [
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
             ],
             path: ".",
             exclude: ["README.md", "Tests"],

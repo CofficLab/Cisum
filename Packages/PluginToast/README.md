@@ -9,12 +9,12 @@ A core plugin that provides global transient toasts, loading indicators, and mod
   - `ToastPlugin` — `@MainActor final class` conforming to `SuperPlugin`. `id = "ToastPlugin"`, `order = 10`, icon `"bell.badge"`, category `.core`, policy `.alwaysOn`. Holds the `center = ToastProvider()`.
   - `ToastProvider` — `@MainActor final class` conforming to `ObservableObject, ToastProviding`. Publishes `currentToast`, `currentError`, `currentLoading`; implements `show(_:)` (auto-dismiss after an optional duration, default 3 s), `presentError(title:message:)`/`dismissError()`, `showLoading(title:detail:)`/`dismissLoading()`, and `dismissAll()`.
   - `ToastOverlay<Content>` — public view that overlays the content with a top toast/loading card and a centered error dialog; also exposes the `View.withToastOverlay(center:)` modifier. Internal `ToastCard`, `LoadingCard`, and `ErrorNoticeOverlay` render the material-styled cards.
-- **Plugin registration:** Registers as `ToastPlugin`. `onBootAsync` unregisters any existing `ToastProviding`, registers `center`, installs `CisumToastBridge`, and adds a root overlay (`id: "cisum.toast"`, order 10000) via `RootViewProviding.addOverlays`. `onShutdownAsync` dismisses everything, removes the overlay, and restores a `DefaultToastProvider` bridge.
+- **Plugin registration:** Registers `center` as the kernel's `ToastProviding` provider and adds a root overlay (`id: "cisum.toast"`, order 10000) via `RootViewProviding.addOverlays`. `onShutdownAsync` dismisses everything and removes the overlay. UI consumers receive the resolved provider through SwiftUI environment injection; there is no global toast bridge.
 - **Workflow/data flow:**
   1. Any code calls `ToastProviding.show(...)` / `presentError` / `showLoading`.
   2. The provider updates its published state; `ToastOverlay` renders the corresponding card with spring animations.
   3. Toasts auto-dismiss after their duration; errors persist until closed; new toasts cancel pending dismissals and clear loading.
-- **Dependencies:** `MagicKit`, `CisumKernelSupport`, `ProviderRootView`, `ProviderToast`. Platforms: macOS 14+, iOS 17+. Resources: `Resources`.
+- **Dependencies:** `MagicKit`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderRootView`, `ProviderToast`. Platforms: macOS 14+, iOS 17+. Resources: `Resources`.
 
 ## Testing Logic
 

@@ -16,7 +16,7 @@ Studio Blue is a professional "studio" theme built on blue-gray surfaces (`#0710
   - Atmosphere — deep `#EEF4F8`/`#071017`, medium `#FFFFFF`/`#111B24`, light `#DDEAF2`/`#20303C` (blue-gray tinted).
   - Workspace text is blue-tinted: `#17202A`/`#F3F8FC`, secondary `#4B5A67`/`#A9B8C5`, tertiary `#7B8791`/`#7F8D99`.
   - Background: vertical linear gradient over the atmosphere colors plus two radial glows — primary at top-trailing (~9%) and secondary at bottom-leading (~5%).
-- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
+- **Dependencies (Package.swift):** local `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, and `ProviderDocsView`; resource `Resources/Localizable.xcstrings`. Targets macOS 14 / iOS 17.
 
 ## Testing Logic
 

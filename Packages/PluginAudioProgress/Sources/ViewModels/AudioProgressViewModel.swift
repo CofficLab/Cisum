@@ -6,6 +6,7 @@ import MagicKit
 import MagicPlayMan
 import OSLog
 import ProviderScene
+import ProviderPlayback
 import SwiftUI
 import UniformTypeIdentifiers
 import WidgetKit
@@ -17,16 +18,15 @@ import WidgetKit
 /// `AudioProgressRootView` 内的全部 `@State` 与事件 handler。
 /// 由 `AudioProgressPlugin` 入口持有。
 ///
-/// ViewModel 不直接持有 Kernel 或具体 Provider：外部播放状态由
-/// `AudioProgressObserver` 通过事件回写，外部播放操作通过
-/// `AudioProgressPlaybackCapability` 执行。
+/// 外部播放状态由 `AudioProgressObserver` 通过事件回写，外部播放操作通过
+/// `PlaybackProviding` 执行。
 @MainActor
 final class AudioProgressViewModel: ObservableObject, SuperLog {
     private static let verbose = false
     private static let log = Logger(subsystem: "com.yueyi.cisum", category: "AudioProgress")
     private static let tag = "💾"
 
-    private let playbackCapability: (any AudioProgressPlaybackCapability)?
+    private let playbackProvider: (any PlaybackProviding)?
     private var restoreGeneration = 0
     private var currentScene: AppScene?
     private let audioScene: AppScene
@@ -36,13 +36,13 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
 
     init(
         audioScene: AppScene,
-        playbackCapability: (any AudioProgressPlaybackCapability)?,
+        playbackProvider: (any PlaybackProviding)?,
         audioLibrary: @escaping @MainActor () -> (any AudioLibraryProviding)?,
         audioLike: @escaping @MainActor () -> (any AudioLikeProviding)?,
         saveWidgetData: @escaping @Sendable (String, String, Bool, Data?) -> Void
     ) {
         self.audioScene = audioScene
-        self.playbackCapability = playbackCapability
+        self.playbackProvider = playbackProvider
         self.audioLibrary = audioLibrary
         self.audioLike = audioLike
         self.saveWidgetData = saveWidgetData
@@ -90,11 +90,11 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
     // MARK: - Restore
 
     private func restorePlaying() {
-        guard let playback = playbackCapability else { return }
+        guard let playback = playbackProvider else { return }
         var assetTarget: URL?
         var timeTarget: TimeInterval = 0
         var liked = false
-        let startingAsset = playback.currentAsset
+        let startingAsset = playback.currentURL
         restoreGeneration += 1
         let generation = restoreGeneration
 
@@ -150,7 +150,7 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
             }
 
             if let asset = assetTarget {
-                let currentAsset = playback.currentAsset
+                let currentAsset = playback.currentURL
 
                 // 恢复文件已被并发加载（如 PlaybackSceneObserver 的场景恢复，
                 // 或用户已手动加载同一文件）：只补进度位置，不重复加载，
@@ -158,10 +158,10 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
                 if AudioProgressPersistencePolicy.representsSameFile(asset, currentAsset) {
                     guard isCurrentRestoreRequest(generation) else { return }
                     if timeTarget > 0 {
-                        playback.seek(to: timeTarget)
+                        playback.seek(toTime: timeTarget)
                     }
                     guard isCurrentRestoreRequest(generation) else { return }
-                    playback.setLike(liked, reason: "AudioProgressViewModel.restorePlaybackData.seekOnly")
+                    setLike(liked, using: playback)
                     return
                 }
 
@@ -170,16 +170,15 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
                     currentAsset: currentAsset
                 ) else { return }
 
-                let reason = "AudioProgressViewModel.restorePlaybackData"
                 if AudioProgressPersistencePolicy.shouldPlayRestoredAsset(
                     restoredAsset: asset,
                     currentAsset: currentAsset
                 ) {
                     guard isCurrentRestoreRequest(generation) else { return }
-                    await playback.play(asset, autoPlay: false, startTime: timeTarget, reason: reason)
+                    await playback.play(asset, startTime: timeTarget)
                 }
                 guard isCurrentRestoreRequest(generation) else { return }
-                playback.setLike(liked, reason: reason)
+                setLike(liked, using: playback)
             } else {
                 if Self.verbose {
                     Self.log.debug("\(Self.tag)⚠️ No playback data to restore")
@@ -196,6 +195,13 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
         )
     }
 
+    private func setLike(_ liked: Bool, using playback: any PlaybackProviding) {
+        let isCurrentlyLiked = playback.currentURL.map { playback.likedAssets.contains($0) } ?? false
+        if isCurrentlyLiked != liked {
+            playback.toggleCurrentLike()
+        }
+    }
+
     private func firstPlayableAudio(in library: any AudioLibraryProviding) async -> URL? {
         let urls = await library.allURLs(reason: "AudioProgressViewModel.firstPlayableAudio")
         return urls.first(where: isPlayableAudioURL)
@@ -210,9 +216,9 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
     // MARK: - Playback events
 
     func handlePlayManStateChanged(_ isPlaying: Bool) {
-        guard shouldActivateProgress, let playback = playbackCapability else { return }
+        guard shouldActivateProgress, let playback = playbackProvider else { return }
 
-        syncToWidget(url: playback.currentAsset, isPlaying: isPlaying)
+        syncToWidget(url: playback.currentURL, isPlaying: isPlaying)
 
         if playback.state == .paused {
             persistCurrentTime(reason: "handlePlayManStateChanged")
@@ -220,7 +226,7 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
     }
 
     func handlePlayManAssetChanged(_ url: URL?) {
-        guard shouldActivateProgress, let playback = playbackCapability else { return }
+        guard shouldActivateProgress, let playback = playbackProvider else { return }
 
         syncToWidget(url: url, isPlaying: playback.state == .playing)
         let generation = restoreGeneration
@@ -228,7 +234,7 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
         Task {
             guard AudioProgressPersistencePolicy.shouldApplyCurrentURLChange(
                 requestedURL: url,
-                currentAsset: playback.currentAsset,
+                currentAsset: playback.currentURL,
                 currentGeneration: restoreGeneration,
                 requestGeneration: generation,
                 isSceneActive: shouldActivateProgress
@@ -270,9 +276,9 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
     // MARK: - Widget & persistence
 
     private func syncToWidget(url: URL?, isPlaying: Bool) {
-        guard let playback = playbackCapability else { return }
+        guard let playback = playbackProvider else { return }
         guard let url = url else {
-            guard AudioProgressPersistencePolicy.shouldApplyWidgetClearResult(currentAsset: playback.currentAsset) else {
+            guard AudioProgressPersistencePolicy.shouldApplyWidgetClearResult(currentAsset: playback.currentURL) else {
                 return
             }
 
@@ -300,7 +306,7 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
 
             guard AudioProgressPersistencePolicy.shouldApplyWidgetMetadataResult(
                 requestedAsset: url,
-                currentAsset: playback.currentAsset
+                currentAsset: playback.currentURL
             ) else { return }
 
             saveWidgetData(title, artist, playback.state == .playing, coverArt)
@@ -308,7 +314,7 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
     }
 
     private func persistCurrentTime(reason: String) {
-        guard let playback = playbackCapability else { return }
+        guard let playback = playbackProvider else { return }
         AudioStateRepo.storeCurrentTime(playback.currentTime)
 
         if Self.verbose {

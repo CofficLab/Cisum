@@ -1,9 +1,12 @@
+import MagicKit
 import Combine
 import Foundation
 import CisumUIComponents
+import LumiUI
 import OSLog
 import SwiftData
 import SwiftUI
+import ProviderAudioLibrary
 
 @preconcurrency import Combine
 
@@ -20,12 +23,17 @@ public class AudioRepo: ObservableObject, SuperLog, @unchecked Sendable {
         try self.init(container: container, disk: disk, reason: reason)
     }
 
-    public init(container: ModelContainer, disk: URL, reason: String) throws {
+    public init(
+        container: ModelContainer,
+        disk: URL,
+        reason: String,
+        eventHandler: @escaping @Sendable (AudioLibraryProvidingEvent) async -> Void = { _ in }
+    ) throws {
         if Self.verbose {
             os_log("\(Self.i) with reason: 🐛 \(reason) 💾 with disk: \(disk.shortPath())")
         }
 
-        self.db = AudioDB(container, reason: reason)
+        self.db = AudioDB(container, reason: reason, eventHandler: eventHandler)
         self.disk = disk
     }
 

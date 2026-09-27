@@ -1,7 +1,10 @@
 import CisumUIComponents
+import LumiUI
 
 import OSLog
 import SwiftUI
+import ProviderStorage
+import MagicKit
 
 enum MigrationProgressUpdatePolicy {
     static func shouldApplyUpdate(currentGeneration: Int, updateGeneration: Int) -> Bool {
@@ -36,12 +39,12 @@ enum MigrationProgressErrorMessagePolicy {
 struct MigrationProgressView: View {
     @LumiTheme private var appTheme
     @StateObject private var migrationManager = MigrationManager()
-    let sourceLocation: StoragePluginLocation?
-    let targetLocation: StoragePluginLocation
+    let sourceLocation: StorageLocation?
+    let targetLocation: StorageLocation
     let sourceURL: URL?
     let targetURL: URL?
     let onDismiss: () -> Void
-    let dependencies: StorageDependencies
+    let storageProvider: any StorageProviding
 
     @State private var processedFiles: [FileStatus] = []
     @State private var sourceFiles: [String] = []
@@ -106,7 +109,7 @@ struct MigrationProgressView: View {
         requestedMigration && sourceURL != nil && targetURL != nil
     }
 
-    nonisolated static func canMigrateExistingData(sourceLocation: StoragePluginLocation?, sourceURL: URL?) -> Bool {
+    nonisolated static func canMigrateExistingData(sourceLocation: StorageLocation?, sourceURL: URL?) -> Bool {
         guard sourceLocation != nil, let sourceURL else { return false }
         return FileManager.default.fileExists(atPath: sourceURL.path)
     }
@@ -167,7 +170,7 @@ struct MigrationProgressView: View {
         VStack(spacing: 5) {
             GroupBox {
                 RepositoryInfoView(
-                    isDesktop: dependencies.isDesktop,
+                    isDesktop: MagicApp.isDesktop,
                     title: String(localized: "Source Library", bundle: .module),
                     location: sourceLocation,
                     url: sourceURL
@@ -185,7 +188,7 @@ struct MigrationProgressView: View {
 
             GroupBox {
                 RepositoryInfoView(
-                    isDesktop: dependencies.isDesktop,
+                    isDesktop: MagicApp.isDesktop,
                     title: String(localized: "Target Library", bundle: .module),
                     location: targetLocation,
                     url: targetURL
@@ -290,7 +293,7 @@ struct MigrationProgressView: View {
                     updateGeneration: generation
                 ) else { return }
                 let completionMessage = Self.completionMessage(shouldMigrate: migrationRoots != nil)
-                dependencies.updateStorageLocation(targetLocation)
+                storageProvider.setStorageLocation(targetLocation)
                 self.migrationCompleted = true
                 self.completionMessage = completionMessage
                 self.currentMigratingFile = completionMessage

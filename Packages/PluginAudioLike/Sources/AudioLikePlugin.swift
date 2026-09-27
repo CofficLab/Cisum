@@ -3,8 +3,12 @@ import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
 import ProviderStorage
-import CisumKernelSupport
+import ProviderToast
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 import MagicKit
 
@@ -45,8 +49,8 @@ public final class AudioLikePlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addSettingView() { contrib.addSettingView(view) }
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(view) }
+            if let view = self.addSettingView() { contrib.addSettingView(ownerPluginID: id, view) }
+            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
         }
         self.kernel = kernel
         // 跨插件 Provider（Scene / Playback）在 onReady 中解析，
@@ -118,9 +122,10 @@ public final class AudioLikePlugin: AsyncSuperPlugin, SuperLog {
         sceneBox.scene = scene
 
         let viewModel = AudioLikeViewModel(
-            playbackCapability: makePlaybackCapability(from: playback),
+            isPlaybackAvailable: true,
             loadLikedAudios: makeLoadLikedAudios(),
-            saveLikeStatus: makeSaveLikeStatus()
+            saveLikeStatus: makeSaveLikeStatus(),
+            toastProvider: kernel.resolveProvider((any ToastProviding).self)
         )
         let observer = AudioLikeObserver(scene: scene, playback: playback, viewModel: viewModel)
         self.viewModel = viewModel
@@ -157,21 +162,13 @@ public final class AudioLikePlugin: AsyncSuperPlugin, SuperLog {
             return viewModel
         }
         let viewModel = AudioLikeViewModel(
-            playbackCapability: makePlaybackCapability(from: kernel?.resolveProvider((any PlaybackProviding).self)),
+            isPlaybackAvailable: kernel?.resolveProvider((any PlaybackProviding).self) != nil,
             loadLikedAudios: makeLoadLikedAudios(),
-            saveLikeStatus: makeSaveLikeStatus()
+            saveLikeStatus: makeSaveLikeStatus(),
+            toastProvider: kernel?.resolveProvider((any ToastProviding).self)
         )
         self.viewModel = viewModel
         return viewModel
-    }
-
-    /// 将内核能力收窄后注入 ViewModel；ViewModel 不持有 Kernel。
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any AudioLikePlaybackCapability)? {
-        guard let playback else { return nil }
-        return AudioLikePlaybackCapabilityAdapter(playback: playback)
     }
 
     /// 本地喜欢仓库的加载入口（由插件入口组装，不暴露单例给 ViewModel）。

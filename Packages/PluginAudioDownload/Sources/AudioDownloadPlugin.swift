@@ -1,8 +1,12 @@
 import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
-import CisumKernelSupport
+import ProviderToast
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 import MagicKit
 
@@ -85,8 +89,10 @@ public final class AudioDownloadPlugin: AsyncSuperPlugin, SuperLog {
               let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
         sceneBox.scene = scene
 
-        let capability = AudioDownloadPlaybackCapabilityAdapter(playback: playback)
-        let viewModel = AudioDownloadViewModel(playbackCapability: capability)
+        let viewModel = AudioDownloadViewModel(
+            playbackProvider: playback,
+            toastProvider: kernel.resolveProvider((any ToastProviding).self)
+        )
         self.viewModel = viewModel
         observer = AudioDownloadObserver(
             scene: scene,

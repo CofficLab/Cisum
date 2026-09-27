@@ -17,7 +17,7 @@ Demo-mode audio plugin for Cisum. It contributes a placeholder "Music Repository
   1. The kernel asks for tab contributions; the plugin guards on music scene and demo mode.
   2. `AudioListDemo` renders the fixed demo set; on non-desktop platforms it also injects an `AudioDemoAddButton` that toggles `isImporting` on `AppStateProviding`.
   3. `AudioItemDemo.stableIndex(for:count:)` maps a hash to a stable icon index, including defensive handling of extreme/out-of-range values.
-- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, `ProviderDocsView`, `ProviderScene`. Resources: `Localizable.xcstrings`.
+- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderScene`. Resources: `Localizable.xcstrings`.
 
 ## Testing Logic
 

@@ -1,6 +1,6 @@
 import ProviderToast
 import Foundation
-import MagicPlayMan
+import ProviderAudioNavigation
 import ProviderPlayback
 import Testing
 @testable import PluginAudioControlButtons
@@ -56,10 +56,16 @@ import Testing
 // MARK: - ViewModel 集成
 
 @MainActor
-private final class PlaybackProbe: PlaybackCapability {
+private final class PlaybackProbe: PlaybackProviding {
     var currentURL: URL?
-    var isPlaying = false
-    var playMode: MagicPlayMode = .sequence
+    var state: PlaybackStatus = .paused
+    var currentTime: TimeInterval = 0
+    var duration: TimeInterval = 0
+    var progress: Double = 0
+    var playMode: PlaybackMode = .sequence
+    var likedAssets: Set<URL> = []
+    var isPlaying: Bool { state.isPlaying }
+    var hasAsset: Bool { currentURL != nil }
     var toggleCount = 0
     var togglePlayModeCount = 0
     var playedURLs: [URL] = []
@@ -67,19 +73,29 @@ private final class PlaybackProbe: PlaybackCapability {
 
     func toggle() { toggleCount += 1 }
     func togglePlayMode() { togglePlayModeCount += 1 }
-    func play(_ url: URL) async { playedURLs.append(url) }
+    func play(_ url: URL) async { playedURLs.append(url); currentURL = url }
     func reset() async { resetCount += 1 }
+    func pause() {}
+    func seek(toProgress progress: Double) {}
+    func seek(toTime time: TimeInterval) {}
+    func next() {}
+    func previous() {}
+    func setPlayMode(_ mode: PlaybackMode) { playMode = mode }
+    func toggleCurrentLike() {}
+    func addObserver(_ callback: @escaping (PlaybackProvidingEvent) -> Void) -> any PlaybackProvidingObserverHandle {
+        NoopPlaybackProvidingObserverHandle()
+    }
 }
 
 @MainActor
-private final class NavigationProbe: NavigationCapability {
+private final class NavigationProbe: AudioTrackNavigationProviding {
     var nextResult: Result<URL?, Error> = .success(nil)
     var previousResult: Result<URL?, Error> = .success(nil)
     var firstURLValue: URL?
     var lastURLValue: URL?
 
-    func nextURL(after current: URL?) async throws -> URL? { try nextResult.get() }
-    func previousURL(before current: URL?) async throws -> URL? { try previousResult.get() }
+    func nextURL(after current: URL?, verbose: Bool) async throws -> URL? { try nextResult.get() }
+    func previousURL(before current: URL?, verbose: Bool) async throws -> URL? { try previousResult.get() }
     func firstURL() async throws -> URL? { firstURLValue }
     func lastURL() async throws -> URL? { lastURLValue }
 }
@@ -102,10 +118,10 @@ struct ControlButtonsViewModelTests {
     @Test
     func initReflectsPlaybackState() {
         let playback = PlaybackProbe()
-        playback.isPlaying = true
+        playback.state = .playing
         playback.playMode = .shuffle
         let viewModel = ControlButtonsViewModel(
-            playbackCapability: playback,
+            playbackProvider: playback,
             targetScene: .music,
             currentScene: .music
         )
@@ -117,7 +133,7 @@ struct ControlButtonsViewModelTests {
     @Test
     func sceneMismatchDeactivatesControl() {
         let viewModel = ControlButtonsViewModel(
-            playbackCapability: nil,
+            playbackProvider: nil,
             targetScene: .music,
             currentScene: .audiobooks
         )
@@ -126,7 +142,7 @@ struct ControlButtonsViewModelTests {
 
     @Test
     func applyStateChangedTracksPlaying() {
-        let viewModel = ControlButtonsViewModel(playbackCapability: nil, targetScene: .music)
+        let viewModel = ControlButtonsViewModel(playbackProvider: nil, targetScene: .music)
         viewModel.applyStateChanged(.playing)
         #expect(viewModel.isPlaying)
         viewModel.applyStateChanged(.paused)
@@ -139,7 +155,7 @@ struct ControlButtonsViewModelTests {
     func failureStatePresentsErrorOnce() {
         let toast = ToastProbe()
         let viewModel = ControlButtonsViewModel(
-            playbackCapability: nil,
+            playbackProvider: nil,
             toastProvider: toast,
             targetScene: .music
         )
@@ -171,8 +187,8 @@ struct ControlButtonsViewModelTests {
         navigation.nextResult = .success(next)
 
         let viewModel = ControlButtonsViewModel(
-            playbackCapability: playback,
-            navigationCapability: navigation,
+            playbackProvider: playback,
+            navigationProvider: navigation,
             targetScene: .music,
             currentScene: .music
         )
@@ -194,8 +210,8 @@ struct ControlButtonsViewModelTests {
         navigation.nextResult = .success(next)
 
         let viewModel = ControlButtonsViewModel(
-            playbackCapability: playback,
-            navigationCapability: navigation,
+            playbackProvider: playback,
+            navigationProvider: navigation,
             targetScene: .music,
             currentScene: .music
         )
@@ -218,8 +234,8 @@ struct ControlButtonsViewModelTests {
         let toast = ToastProbe()
 
         let viewModel = ControlButtonsViewModel(
-            playbackCapability: playback,
-            navigationCapability: navigation,
+            playbackProvider: playback,
+            navigationProvider: navigation,
             toastProvider: toast,
             targetScene: .music,
             currentScene: .music
@@ -243,8 +259,8 @@ struct ControlButtonsViewModelTests {
         let toast = ToastProbe()
 
         let viewModel = ControlButtonsViewModel(
-            playbackCapability: playback,
-            navigationCapability: navigation,
+            playbackProvider: playback,
+            navigationProvider: navigation,
             toastProvider: toast,
             targetScene: .music,
             currentScene: .music
@@ -270,8 +286,8 @@ struct ControlButtonsViewModelTests {
         navigation.firstURLValue = first
 
         let viewModel = ControlButtonsViewModel(
-            playbackCapability: playback,
-            navigationCapability: navigation,
+            playbackProvider: playback,
+            navigationProvider: navigation,
             targetScene: .music,
             currentScene: .music
         )
@@ -287,8 +303,8 @@ struct ControlButtonsViewModelTests {
     func previousWithoutCapabilityReportsUnavailable() {
         let toast = ToastProbe()
         let viewModel = ControlButtonsViewModel(
-            playbackCapability: nil,
-            navigationCapability: nil,
+            playbackProvider: nil,
+            navigationProvider: nil,
             toastProvider: toast,
             targetScene: .music,
             currentScene: .music
@@ -301,7 +317,7 @@ struct ControlButtonsViewModelTests {
     func toggleWithoutCapabilityReportsUnavailable() {
         let toast = ToastProbe()
         let viewModel = ControlButtonsViewModel(
-            playbackCapability: nil,
+            playbackProvider: nil,
             toastProvider: toast,
             targetScene: .music,
             currentScene: .music
@@ -317,8 +333,8 @@ struct ControlButtonsViewModelTests {
         playback.currentURL = current
 
         let viewModel = ControlButtonsViewModel(
-            playbackCapability: playback,
-            navigationCapability: nil,
+            playbackProvider: playback,
+            navigationProvider: nil,
             targetScene: .music,
             currentScene: .music
         )
@@ -336,8 +352,8 @@ struct ControlButtonsViewModelTests {
         playback.currentURL = URL(fileURLWithPath: "/tmp/kept.mp3")
 
         let viewModel = ControlButtonsViewModel(
-            playbackCapability: playback,
-            navigationCapability: nil,
+            playbackProvider: playback,
+            navigationProvider: nil,
             targetScene: .music,
             currentScene: .music
         )

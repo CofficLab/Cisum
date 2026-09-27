@@ -2,6 +2,8 @@ import AVFoundation
 import Combine
 import Foundation
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import MediaPlayer
 import OSLog
 import SwiftUI

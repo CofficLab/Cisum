@@ -1,7 +1,11 @@
 import ProviderDocsView
 import ProviderStorage
-import CisumKernelSupport
+import ProviderToast
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import CisumUIComponents
+import LumiUI
 import Foundation
 import ProviderAudioLibrary
 import SwiftUI
@@ -62,7 +66,8 @@ public final class AudioPlugin: AsyncSuperPlugin, SuperLog {
             let viewModel = AudioRootViewModel(
                 hasStorageLocation: { @MainActor [weak self] in
                     self?.kernel?.resolveProvider((any StorageProviding).self)?.hasUsableStorageLocation ?? false
-                }
+                },
+                toastProvider: self.kernel?.resolveProvider((any ToastProviding).self)
             )
             rootViewModel = viewModel
             return viewModel
@@ -94,7 +99,8 @@ public final class AudioPlugin: AsyncSuperPlugin, SuperLog {
         guard rootViewModel == nil else { return }
         guard let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
         let viewModel = AudioRootViewModel(
-            hasStorageLocation: { storage.hasUsableStorageLocation }
+            hasStorageLocation: { storage.hasUsableStorageLocation },
+            toastProvider: kernel.resolveProvider((any ToastProviding).self)
         )
         let observer = AudioStorageObserver(provider: storage, viewModel: viewModel)
         rootViewModel = viewModel

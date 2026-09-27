@@ -1,15 +1,19 @@
+import SwiftUI
 import Testing
 import ProviderPlugin
 
 @Test
-func reexportsKernelPluginContracts() {
-    let metadata = PluginMetadata(
-        id: "compat-facade",
-        name: "Compatibility facade",
-        description: "Verifies the legacy import path exposes KernelCore contracts.",
-        policy: .alwaysOn
+func pluginSettingNavigationItemCarriesPluginOwnedPresentationData() {
+    let item = PluginSettingNavigationItem(
+        id: "plugin.settings",
+        title: "Settings",
+        description: "Plugin preferences",
+        iconName: "gearshape",
+        order: 10,
+        destination: AnyView(EmptyView())
     )
 
-    #expect(metadata.name == "Compatibility facade")
-    #expect(metadata.policy == .alwaysOn)
+    #expect(item.id == "plugin.settings")
+    #expect(item.title == "Settings")
+    #expect(item.order == 10)
 }

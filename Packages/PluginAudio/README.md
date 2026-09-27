@@ -18,7 +18,7 @@ Root audio UI plugin for Cisum. It owns the audio root view shell and the storag
   2. `addRootView` always returns a stable `AudioRootView` backed by the long-lived view model (creating a temporary one on demand so the contribution is safe before `onReady`).
   3. The observer watches storage events; storage-location changes bump `storageLocationDidChangeNotice` and trigger `reloadContainer`. Errors are mapped by `AudioRootErrorPresentation` into user-facing guidance.
   4. `onDisable` / `onShutdownAsync` cancel the observer and release the view model.
-- **Dependencies** (from `Package.swift`): `ProviderAudioLibrary`, `ProviderAudioLike`, `MagicKit`, `CisumUIComponents`, `CisumKernelSupport`, `ProviderDocsView`, `ProviderStorage`. Resources: `Localizable.xcstrings`.
+- **Dependencies** (from `Package.swift`): `ProviderAudioLibrary`, `ProviderAudioLike`, `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderStorage`. Resources: `Localizable.xcstrings`.
 
 ## Testing Logic
 

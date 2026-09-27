@@ -20,7 +20,7 @@ The first-launch onboarding plugin. It shows a welcome/guide screen when the use
   1. On first launch (no storage location), the guide view is shown.
   2. `StorageView` lets the user pick iCloud (recommended) or local; iCloud is disabled when unavailable.
   3. On complete, `WelcomeStorageSelectionPolicy.defaultSelection` picks iCloud when available, else local, and persists it via `StorageProviding.setStorageLocation`.
-- **Dependencies:** `CisumUIComponents`, `CisumKernelSupport`, `ProviderDocsView`, `ProviderStorage`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
+- **Dependencies:** `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderStorage`. Platforms: macOS 14+, iOS 17+. Resources: `Resources/Localizable.xcstrings`.
 
 ## Testing Logic
 

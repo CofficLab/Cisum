@@ -1,7 +1,10 @@
 import ProviderScene
 import ProviderDocsView
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import CisumUIComponents
+import LumiUI
 import OSLog
 import SwiftUI
 import MagicKit
@@ -42,7 +45,7 @@ public final class BookScenePlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addPosterView() { contrib.addPosterView(view) }
+            if let view = self.addPosterView() { contrib.addPosterView(ownerPluginID: id, view) }
         }
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }

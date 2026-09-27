@@ -18,6 +18,14 @@ public enum AppScene: String, CaseIterable, Sendable, Codable, Identifiable {
 
     public var id: String { rawValue }
 
+    /// Stable machine-readable suffix for accessibility identifiers.
+    public var accessibilityID: String {
+        switch self {
+        case .music: "music"
+        case .audiobooks: "audiobooks"
+        }
+    }
+
     /// 场景展示名（当前直接使用固定场景名，与历史行为一致）。
     public var displayName: String { rawValue }
 

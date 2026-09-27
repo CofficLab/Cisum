@@ -11,8 +11,13 @@ let package = Package(
     products: [
         .library(name: "ProviderAppState", targets: ["ProviderAppState"]),
     ],
+    dependencies: [
+        .package(path: "../KitEventObservation"),
+    ],
     targets: [
-        .target(name: "ProviderAppState", path: ".", exclude: ["README.md", "Tests"],
+        .target(name: "ProviderAppState", dependencies: [
+            .product(name: "KitEventObservation", package: "KitEventObservation"),
+        ], path: ".", exclude: ["README.md", "Tests"],
             sources: ["Sources/ProviderAppState"],
             resources: [.process("Resources")]),
         .testTarget(

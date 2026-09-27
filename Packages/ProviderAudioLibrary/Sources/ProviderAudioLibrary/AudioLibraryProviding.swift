@@ -1,4 +1,5 @@
 import Foundation
+import KitEventObservation
 
 public enum AudioLibraryProvidingError: Error, Sendable {
     case unavailable
@@ -8,8 +9,7 @@ public enum AudioLibraryProvidingError: Error, Sendable {
 ///
 /// 事件只描述跨插件可观察的事实，不暴露 SwiftData、NotificationCenter
 /// 或任何具体仓库类型。
-@MainActor
-public enum AudioLibraryProvidingEvent {
+public enum AudioLibraryProvidingEvent: Sendable {
     case syncing
     case synced(totalCount: Int)
     case updated(totalCount: Int)
@@ -78,3 +78,5 @@ public final class NoopAudioLibraryProvidingObserverHandle: AudioLibraryProvidin
     public init() {}
     public func cancel() {}
 }
+
+extension EventObserverHandle: AudioLibraryProvidingObserverHandle {}

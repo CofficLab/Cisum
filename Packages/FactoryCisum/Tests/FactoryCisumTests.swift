@@ -2,7 +2,7 @@ import ProviderControlView
 import ProviderContentView
 import ProviderRootView
 import FactoryCisum
-import CisumKernelSupport
+import KernelCore
 import Testing
 
 @MainActor

@@ -1,5 +1,4 @@
 import ProviderDevice
-import CisumKernelSupport
 import Foundation
 import MagicKit
 #if canImport(AppKit)

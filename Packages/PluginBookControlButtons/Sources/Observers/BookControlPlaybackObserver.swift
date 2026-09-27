@@ -23,9 +23,7 @@ final class BookControlPlaybackObserver: SuperLog {
             case .stateChanged(let state):
                 self.viewModel?.applyStateChanged(state)
             case .playModeChanged(let mode):
-                self.viewModel?.applyPlayModeChanged(
-                    MagicPlayMode(rawValue: mode.rawValue) ?? .sequence
-                )
+                self.viewModel?.applyPlayModeChanged(mode)
             case .previousRequested(let asset):
                 self.viewModel?.handlePreviousRequested(asset)
             case .nextRequested(let asset):

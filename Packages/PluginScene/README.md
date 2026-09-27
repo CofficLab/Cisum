@@ -8,7 +8,7 @@ The scene provider plugin. It registers the kernel's `SceneProviding` service, p
 - **Key types:**
   - `ScenePlugin` — `@MainActor final class` conforming to `AsyncSuperPlugin, SuperLog`. `id = "ScenePlugin"`, `metadata.id = "scene"`, `order = 9999`, icon `"rectangle.3.group"`, category `.core`, policy `.alwaysOn`.
   - `SceneProvider` — `@MainActor final class` conforming to `ObservableObject, SceneProviding`. Exposes `scenes = AppScene.allCases`, `currentScene`, `setCurrentScene(_:)`, `restoreCurrentScene()`, and observer registration. Persists to `<pluginDataDirectory>/current-scene.json`; supports two-phase init (`init()` then `enablePersistence(pluginDataDirectory:)`) so the instance identity stays stable before storage is ready.
-  - `SceneSettingsCapability` — internal protocol narrowing scene state to `scenes`, `currentScene`, `setCurrentScene(_:)`; `SceneSettingsCapabilityAdapter` adapts the provider (weakly held).
+  - `SceneSettingsViewModel` consumes `SceneProviding` directly, weakly references the provider, and retains the last observed snapshot until the provider is released.
   - `SceneProvidingObserver` — forwards provider changes to the view model, performing an initial sync before installing the listener.
   - `SceneSettingsViewModel` — `ObservableObject` publishing `scenes` and `currentScene`, with `select(_:)` and `currentSceneIconName`.
   - `SceneSwitcher` — toolbar button + popover listing scenes via `ScenePosterView` entries.
@@ -19,20 +19,20 @@ The scene provider plugin. It registers the kernel's `SceneProviding` service, p
   1. On boot, an in-memory `SceneProvider` is registered; on ready, the disk directory is attached and the saved scene is restored (falling back to the first scene).
   2. `setCurrentScene` persists the selection to JSON and notifies observers (including `PluginPlayBack`, which restores per-scene playback).
   3. The toolbar switcher and settings view both drive `setCurrentScene`.
-- **Dependencies:** `MagicKit`, `CisumKernelSupport`, `ProviderDocsView`, `CisumUIComponents`, `ProviderScene`. Platforms: macOS 14+, iOS 17+. Resources: `Resources`.
+- **Dependencies:** `MagicKit`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `CisumUIComponents`, `ProviderScene`. Platforms: macOS 14+, iOS 17+. Resources: `Resources`.
 
 ## Testing Logic
 
 - **Test files:**
   - `Tests/PluginSceneTests/ScenePluginTests.swift` — provider registration, persistence, observer/view-model wiring, and plugin boot ordering.
-  - `Tests/PluginSceneTests/SceneSettingsTests.swift` — view model and capability adapter against a `SceneProbe`.
+  - `Tests/PluginSceneTests/SceneSettingsTests.swift` — view model behavior against a `SceneProbe`.
 - **Key scenarios tested:**
   - Provider registers/unregisters as `SceneProviding`; the settings navigation item has id `"scene"`, title `"Scene"`, icon `"rectangle.3.group"`.
   - A scene-dependent probe plugin boots successfully after `ScenePlugin` (provider available).
   - Scenes are the fixed built-in list (`[.music, .audiobooks]`).
   - Current scene persists to `current-scene.json` and restores across instances; unknown persisted scenes fall back to `.music`; observers are notified on change and stop after cancellation.
   - Observer performs initial sync, forwards events, and stops after cancel.
-  - ViewModel loads scenes/current state, delegates `select`, and refreshes on `handleProviderChanged`; the adapter degrades after the probe is released.
+  - ViewModel loads scenes/current state, delegates `select`, refreshes on `handleProviderChanged`, freezes the last observed snapshot when observation is cancelled, and safely becomes empty after the weak provider is released.
   - Plugin assembly survives enable/disable cycles and reuses the long-lived view model.
 - **Running tests:**
   ```bash

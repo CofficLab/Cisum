@@ -17,7 +17,7 @@ Defines `RootViewProviding` (the root layout injection contract), `RootOverlayIt
   - `RootLayoutView`: `GeometryReader` layout that expands/collapses between the mini-player height and the full content height; queries `PluginProviding` directly for toolbar buttons and status views; resizes the macOS window on content visibility changes.
   - `ContentPlaceholderView`: fallback when no content is injected.
 - **Events** (`RootViewProvidingEvent`): `.controlViewChanged`, `.contentViewChanged`, `.statusViewChanged`, `.toolbarContentChanged`, `.contentViewVisibilityChanged`, `.overlaysChanged`.
-- **Dependencies**: `MagicKit` (`SuperLog`), `CisumKernelSupport` (`KernelCoreContainer`, `KernelEventObserverStore`), `CisumUIComponents` (`LumiUIThemeRegistry`, `CisumPlayerLayout`), `ProviderPlayback`.
+- **Dependencies**: `MagicKit` (`SuperLog`), `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents` (`KernelCoreContainer`, `KernelEventObserverStore`), `CisumUIComponents` (`LumiUIThemeRegistry`, `CisumPlayerLayout`), `ProviderPlayback`.
 
 ## Testing Logic
 

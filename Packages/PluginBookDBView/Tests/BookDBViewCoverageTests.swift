@@ -81,7 +81,7 @@ private final class BookProbe: BookDatabaseProviding {
     var playbackStateValue: BookPlaybackStateDTO?
     var currentBookURLValue: URL?
     var currentBookTimeValue: TimeInterval?
-    private var observers: [UUID: @Sendable (BookProvidingEvent) -> Void] = [:]
+    private var observers: [UUID: @MainActor @Sendable (BookProvidingEvent) -> Void] = [:]
 
     func totalCount() async -> Int { booksValue.count }
     func books(reason: String) async -> [BookDTO] { booksValue }
@@ -100,7 +100,7 @@ private final class BookProbe: BookDatabaseProviding {
 
     @discardableResult
     func addObserver(
-        _ callback: @escaping @Sendable (BookProvidingEvent) -> Void
+        _ callback: @escaping @MainActor @Sendable (BookProvidingEvent) -> Void
     ) -> any BookProvidingObserverHandle {
         let id = UUID()
         observers[id] = callback
@@ -123,43 +123,6 @@ private final class ProbeBookHandle: BookProvidingObserverHandle {
         guard !cancelled else { return }
         cancelled = true
         onCancel()
-    }
-}
-
-/// 书籍播放能力探针：记录 play 请求。
-@MainActor
-private final class CapabilityProbe: BookDBPlaybackCapability {
-    var played: [(url: URL, startTime: TimeInterval?)] = []
-
-    func play(_ url: URL, startTime: TimeInterval?) async {
-        played.append((url, startTime))
-    }
-}
-
-// MARK: - BookDBPlaybackCapabilityAdapter
-
-@MainActor
-struct BookDBPlaybackCapabilityAdapterTests {
-    @Test
-    func playForwardsWithStartTime() async {
-        let probe = PlaybackProbe()
-        let adapter = BookDBPlaybackCapabilityAdapter(playback: probe)
-        let url = URL(fileURLWithPath: "/tmp/chapter.mp3")
-
-        await adapter.play(url, startTime: 12.5)
-        #expect(probe.played.count == 1)
-        #expect(probe.played.first?.url == url)
-        #expect(probe.played.first?.startTime == 12.5)
-    }
-
-    @Test
-    func playForwardsWithoutStartTime() async {
-        let probe = PlaybackProbe()
-        let adapter = BookDBPlaybackCapabilityAdapter(playback: probe)
-        let url = URL(fileURLWithPath: "/tmp/chapter.mp3")
-
-        await adapter.play(url, startTime: nil)
-        #expect(probe.played.first?.startTime == nil)
     }
 }
 
@@ -228,8 +191,6 @@ struct DBObserverTests {
         provider.emit(.libraryDeleted(urls: [URL(fileURLWithPath: "/tmp/gone.mp3")]))
         try await Task.sleep(for: .milliseconds(100))
 
-        provider.emit(.librarySorted)
-        try await Task.sleep(for: .milliseconds(100))
         provider.emit(.playbackStateChanged(url: URL(fileURLWithPath: "/tmp/state.mp3")))
         try await Task.sleep(for: .milliseconds(100))
         #expect(viewModel.lastStateUpdatedURL == URL(fileURLWithPath: "/tmp/state.mp3"))
@@ -329,9 +290,9 @@ struct BookGridViewModelTests {
 
         let provider = BookProbe()
         provider.booksValue = [makeBook(url: bookURL)]
-        let capability = CapabilityProbe()
+        let playback = PlaybackProbe()
 
-        let viewModel = BookGridViewModel(playbackCapability: capability)
+        let viewModel = BookGridViewModel(playbackProvider: playback)
         viewModel.bind(provider: provider)
         viewModel.handleOnAppear()
         try await Task.sleep(for: .milliseconds(400))
@@ -340,8 +301,8 @@ struct BookGridViewModelTests {
         try await Task.sleep(for: .milliseconds(200))
 
         #expect(viewModel.selectedBookURL == bookURL)
-        #expect(capability.played.count == 1)
-        #expect(capability.played.first?.url == bookURL)
+        #expect(playback.played.count == 1)
+        #expect(playback.played.first?.url == bookURL)
     }
 
     @Test
@@ -358,9 +319,9 @@ struct BookGridViewModelTests {
         let provider = BookProbe()
         provider.booksValue = [makeBook(url: bookURL, childCount: 1, isCollection: true)]
         provider.playbackStateValue = BookPlaybackStateDTO(currentURL: chapterURL, time: 30)
-        let capability = CapabilityProbe()
+        let playback = PlaybackProbe()
 
-        let viewModel = BookGridViewModel(playbackCapability: capability)
+        let viewModel = BookGridViewModel(playbackProvider: playback)
         viewModel.bind(provider: provider)
         viewModel.handleOnAppear()
         try await Task.sleep(for: .milliseconds(400))
@@ -368,9 +329,9 @@ struct BookGridViewModelTests {
         viewModel.handleBookTap(book: makeBook(url: bookURL, childCount: 1, isCollection: true))
         try await Task.sleep(for: .milliseconds(200))
 
-        #expect(capability.played.count == 1)
-        #expect(capability.played.first?.url == chapterURL)
-        #expect(capability.played.first?.startTime == 30)
+        #expect(playback.played.count == 1)
+        #expect(playback.played.first?.url == chapterURL)
+        #expect(playback.played.first?.startTime == 30)
     }
 
     @Test

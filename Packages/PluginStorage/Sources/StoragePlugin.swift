@@ -1,7 +1,10 @@
+import MagicKit
 import ProviderDocsView
 import ProviderStorage
-import CisumKernelSupport
+import KernelCore
+import ProviderPlugin
 import CisumUIComponents
+import LumiUI
 import OSLog
 import SwiftUI
 
@@ -41,10 +44,9 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(view) }
+            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
         }
         let provider = StorageProvider()
-        StorageProvider.current = provider
         try kernel.registerProvider((any StorageProviding).self, provider)
 
         // 插件启用状态持久化存储由 PluginPluginManager.onBoot 注入
@@ -68,7 +70,6 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
         teardownSettingsState()
-        StorageProvider.current = nil
     }
 
     @MainActor
@@ -77,7 +78,7 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
         // ViewModel，而不是每次请求都重新创建。
         let viewModel = settingsViewModel ?? {
             let viewModel = StorageSettingsViewModel(
-                capability: makeStorageCapability(from: StorageProvider.current)
+                storageProvider: nil
             )
             settingsViewModel = viewModel
             return viewModel
@@ -91,7 +92,6 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
             destination: AnyView(
                 StorageSettingView(
                     viewModel: viewModel,
-                    dependencies: StorageProvider.makePluginDependencies()
                 )
             )
         )
@@ -110,8 +110,8 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
     /// legitimately exist without a capability.
     @MainActor
     func installSettingsState(storage: any StorageProviding) {
-        let viewModel = settingsViewModel ?? StorageSettingsViewModel(capability: nil)
-        viewModel.updateCapability(makeStorageCapability(from: storage))
+        let viewModel = settingsViewModel ?? StorageSettingsViewModel(storageProvider: storage)
+        viewModel.updateStorageProvider(storage)
 
         settingsObserver?.cancel()
         settingsObserver = StorageProvidingObserver(provider: storage, viewModel: viewModel)
@@ -125,11 +125,4 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
         settingsViewModel = nil
     }
 
-    @MainActor
-    private func makeStorageCapability(
-        from storage: (any StorageProviding)?
-    ) -> (any StorageSettingsCapability)? {
-        guard let storage else { return nil }
-        return StorageSettingsCapabilityAdapter(storage: storage)
-    }
 }
