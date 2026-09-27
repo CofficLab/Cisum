@@ -11,6 +11,23 @@ import ProviderPlugin
     #expect(StorageLocation.local.rawValue == "local")
 }
 
+@MainActor
+@Test func storageProviderPersistsLocationToInjectedPreferencesOnly() {
+    let suiteName = "StorageProviderTests.\(UUID().uuidString)"
+    let defaults = UserDefaults(suiteName: suiteName)!
+    let standardValueBefore = UserDefaults.standard.string(forKey: "StorageLocation")
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+
+    let provider = StorageProvider(userDefaults: defaults)
+    #expect(provider.currentStorageLocation == nil)
+
+    provider.setStorageLocation(.local)
+
+    #expect(provider.currentStorageLocation == .local)
+    #expect(defaults.string(forKey: "StorageLocation") == StorageLocation.local.rawValue)
+    #expect(UserDefaults.standard.string(forKey: "StorageLocation") == standardValueBefore)
+}
+
 @Test func fileItemReportsDirectoryReadFailures() {
     let missingDirectory = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)

@@ -192,6 +192,7 @@ struct AudioLibraryProviderTests {
             case let .updated(totalCount): receivedEvents.append("updated:\(totalCount)")
             case let .deleted(urls, totalCount): receivedEvents.append("deleted:\(urls.count):\(totalCount)")
             case .repositoryEmpty: receivedEvents.append("repositoryEmpty")
+            case .repositoryAvailabilityChanged: receivedEvents.append("repositoryAvailabilityChanged")
             case .sorting: receivedEvents.append("sorting")
             case .sortCompleted: receivedEvents.append("sortCompleted")
             }
@@ -298,14 +299,20 @@ struct AudioLibraryProviderTests {
 
         let firstRepository = try #require(await provider.currentRepository())
         #expect(storage.activeObserverCount == 1)
+        var availabilityEvents = 0
+        let availabilityObserver = provider.addObserver { event in
+            if case .repositoryAvailabilityChanged = event { availabilityEvents += 1 }
+        }
         storage.updateStorageRoot(secondStorageRoot)
         let secondRepository = try #require(await provider.currentRepository())
 
         #expect(firstRepository !== secondRepository)
+        #expect(availabilityEvents > 0, "Storage changes should notify views to retry repository loading")
         #expect(await firstRepository.getStorageRoot() == firstStorageRoot.appendingPathComponent(AudioPluginInfo.effectiveDBDirName, isDirectory: true))
         #expect(await secondRepository.getStorageRoot() == secondStorageRoot.appendingPathComponent(AudioPluginInfo.effectiveDBDirName, isDirectory: true))
 
         provider.shutdown()
+        availabilityObserver.cancel()
         #expect(storage.activeObserverCount == 0)
     }
 

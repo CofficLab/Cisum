@@ -7,6 +7,10 @@ import Testing
     #expect(WelcomePluginInfo.order == -100)
 }
 
+@Test @MainActor func welcomeSetupIsAlwaysEnabledAsRequiredFirstRunInfrastructure() {
+    #expect(WelcomePlugin.shared.metadata.policy == .alwaysOn)
+}
+
 @Test func storageSelectionDefaultsToICloudWhenAvailable() {
     #expect(WelcomeStorageSelectionPolicy.defaultSelection(
         currentStorageSelection: nil,

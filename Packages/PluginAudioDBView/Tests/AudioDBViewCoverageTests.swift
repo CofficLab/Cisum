@@ -426,10 +426,58 @@ struct AudioDBPlaybackObserverTests {
     }
 }
 
+@MainActor
+struct AudioListRepositoryPresentationTests {
+    @Test
+    func hidesEmptyRepositoryStateUntilAnAvailableRepositoryLoadsSuccessfully() async throws {
+        let unavailableLibrary = AudioLibraryProbe()
+        unavailableLibrary.isAvailable = false
+        let unavailableList = AudioListViewModel(audioLibrary: { unavailableLibrary })
+        unavailableList.handleOnAppear()
+        try await waitForInitialListLoad(unavailableList)
+
+        #expect(!unavailableList.isConfirmedRepositoryEmpty)
+
+        let availableLibrary = AudioLibraryProbe()
+        let emptyList = AudioListViewModel(audioLibrary: { availableLibrary })
+        emptyList.handleOnAppear()
+        try await waitForInitialListLoad(emptyList)
+
+        #expect(emptyList.isConfirmedRepositoryEmpty)
+    }
+
+    private func waitForInitialListLoad(_ viewModel: AudioListViewModel) async throws {
+        for _ in 0 ..< 100 {
+            if !viewModel.isLoading { return }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        Issue.record("Audio list did not finish its initial load in time")
+    }
+}
+
 // MARK: - AudioDatabaseObserver
 
 @MainActor
 struct AudioDatabaseObserverTests {
+    @Test
+    func storageAvailabilityChangeRetriesPreviouslyUnavailableRepository() async throws {
+        let library = AudioLibraryProbe()
+        library.isAvailable = false
+        let list = AudioListViewModel(audioLibrary: { library })
+        let observer = AudioDatabaseObserver(list: list, root: nil, db: nil, library: library)
+        defer { observer.cancel() }
+
+        list.handleOnAppear()
+        try await Task.sleep(for: .milliseconds(20))
+        #expect(!list.isConfirmedRepositoryEmpty)
+
+        library.isAvailable = true
+        library.emit(.repositoryAvailabilityChanged)
+        try await waitForListLoad(list)
+
+        #expect(list.isConfirmedRepositoryEmpty)
+    }
+
     @Test
     func dbEventsForwardToSortingAndRootViewModels() async throws {
         let library = AudioLibraryProbe()
@@ -470,6 +518,14 @@ struct AudioDatabaseObserverTests {
 
         library.emit(.sorting)
         #expect(!db.isSorting)
+    }
+
+    private func waitForListLoad(_ viewModel: AudioListViewModel) async throws {
+        for _ in 0 ..< 100 {
+            if !viewModel.isLoading { return }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        Issue.record("Audio list did not finish its repository-availability refresh in time")
     }
 }
 

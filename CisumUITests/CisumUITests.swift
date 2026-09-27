@@ -19,7 +19,9 @@ import XCTest
 ///   其他平台显式跳过而非失败。
 class CisumUITestBase: XCTestCase {
     var app: XCUIApplication!
-    var additionalLaunchArguments: [String] { [] }
+    var additionalLaunchArguments: [String] {
+        ["--cisum-ui-testing", "--cisum-ui-testing-storage-local"]
+    }
 
     override func setUpWithError() throws {
         continueAfterFailure = false
@@ -286,6 +288,10 @@ final class CisumPlayerUITests: CisumUITestBase {
 
         let repository = element(identifier: "cisum.scene.music")
         XCTAssertTrue(repository.exists, "播放器收起后音乐仓库仍应可见")
+        XCTAssertFalse(
+            element(identifier: "cisum.audio-library.count").exists,
+            "确认仓库为空时不应显示列表计数栏"
+        )
         let settingsButton = element(identifier: "cisum.settings.button")
         XCTAssertTrue(settingsButton.exists, "顶部工具栏设置按钮未出现，无法计算播放器控制区顶部留白")
         XCTAssertLessThan(
@@ -704,13 +710,32 @@ final class CisumSceneSwitcherUITests: CisumUITestBase {
 /// 欢迎引导：媒体存储位置选择。
 /// 仅当存储位置尚未配置时出现（首次启动）；已配置环境显式跳过。
 final class CisumWelcomeUITests: CisumUITestBase {
-    func testWelcomeGuideShowsStorageSelectionWhenUnconfigured() throws {
-        let welcomeTitle = element(anyLabelOf: ["Good Things Are Coming", "精彩即将呈现"])
-        guard welcomeTitle.waitForExistence(timeout: 5) else {
-            throw XCTSkip("存储位置已配置，欢迎引导页未显示")
-        }
+    override var additionalLaunchArguments: [String] {
+        ["--cisum-ui-testing", "--cisum-ui-testing-reset-storage"]
+    }
 
-        XCTAssertTrue(element(anyLabelOf: ["iCloud Drive", "iCloud 云盘"]).exists, "缺少 iCloud 云盘存储选项")
-        XCTAssertTrue(element(anyLabelOf: ["App Local Storage", "应用本地存储"]).exists, "缺少应用本地存储选项")
+    func testFirstLaunchRequiresStorageSelectionAndDismissesAfterChoosingLocal() throws {
+        let setup = element(identifier: "cisum.welcome.storage.setup")
+        XCTAssertTrue(setup.waitForExistence(timeout: 10), "首次启动应阻止进入主界面并要求选择存储位置")
+        XCTAssertTrue(element(identifier: "cisum.welcome.storage.option.local").exists, "缺少应用本地存储选项")
+
+        element(identifier: "cisum.welcome.storage.option.local").click()
+
+        let setupGone = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == false"),
+            object: setup
+        )
+        XCTAssertEqual(XCTWaiter.wait(for: [setupGone], timeout: 10), .completed, "保存存储位置后引导应自动关闭")
+        XCTAssertTrue(element(identifier: "cisum.scene.music").waitForExistence(timeout: 10), "完成引导后音乐仓库未就绪")
+        XCTAssertFalse(element(containing: "音频仓库不可用").exists, "配置存储时不应被通用仓库错误弹窗打断")
+    }
+}
+
+final class CisumConfiguredWelcomeUITests: CisumUITestBase {
+    func testExistingStorageSkipsWelcomeGuide() {
+        XCTAssertFalse(
+            element(identifier: "cisum.welcome.storage.setup").waitForExistence(timeout: 2),
+            "已有有效存储位置时不应重复展示首次启动引导"
+        )
     }
 }
