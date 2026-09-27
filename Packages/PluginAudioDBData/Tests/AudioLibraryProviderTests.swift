@@ -138,6 +138,9 @@ struct AudioLibraryProviderTests {
         #expect(await provider.allURLs(reason: "test").isEmpty)
         #expect(await provider.urls(offset: 0, limit: 10, reason: "test").isEmpty)
         #expect(!(await provider.contains(URL(fileURLWithPath: "/missing.mp3"))))
+        var events: [AudioLibraryProvidingEvent] = []
+        let observer = provider.addObserver { events.append($0) }
+        #expect(events.isEmpty, "Unavailable storage must not be reported as an empty repository")
 
         await expectHostNotConfigured {
             try await provider.delete(urls: [], verbose: false)
@@ -157,6 +160,7 @@ struct AudioLibraryProviderTests {
         await expectHostNotConfigured {
             _ = try await provider.lastURL()
         }
+        observer.cancel()
     }
 
     @Test
@@ -187,6 +191,7 @@ struct AudioLibraryProviderTests {
             case let .synced(totalCount): receivedEvents.append("synced:\(totalCount)")
             case let .updated(totalCount): receivedEvents.append("updated:\(totalCount)")
             case let .deleted(urls, totalCount): receivedEvents.append("deleted:\(urls.count):\(totalCount)")
+            case .repositoryEmpty: receivedEvents.append("repositoryEmpty")
             case .sorting: receivedEvents.append("sorting")
             case .sortCompleted: receivedEvents.append("sortCompleted")
             }
@@ -231,6 +236,51 @@ struct AudioLibraryProviderTests {
         #expect(await provider.allURLs(reason: "deleted") == [first])
         #expect(receivedEvents.contains("deleted:1:1"))
         observer.cancel()
+    }
+
+    @Test
+    func emitsRepositoryEmptyAfterConfirmedEmptySyncAndWhenLastTrackIsDeleted() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AudioLibraryEmptyEventTests-\(UUID().uuidString)", isDirectory: true)
+        let storageRoot = root.appendingPathComponent("Documents", isDirectory: true)
+        try FileManager.default.createDirectory(at: storageRoot, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let provider = AudioLibraryProvider(
+            storage: TestStorageProvider(storageRoot: storageRoot, databaseRoot: root.appendingPathComponent("Database"))
+        )
+        defer { provider.shutdown() }
+
+        var emptyEventCount = 0
+        let observer = provider.addObserver { event in
+            if case .repositoryEmpty = event { emptyEventCount += 1 }
+        }
+
+        await provider.sync(urls: [], verbose: false, isFirst: true)
+        await waitForLibraryNotifications()
+        #expect(emptyEventCount == 1)
+
+        var lateObserverEmptyEventCount = 0
+        let lateObserver = provider.addObserver { event in
+            if case .repositoryEmpty = event { lateObserverEmptyEventCount += 1 }
+        }
+        #expect(lateObserverEmptyEventCount == 1, "A late observer should receive the confirmed empty state")
+
+        let track = try #require(provider.audioDisk).appendingPathComponent("last-track.mp3")
+        try Data([0x01, 0x02]).write(to: track)
+        await provider.sync(urls: [track], verbose: false, isFirst: false)
+        await waitForLibraryNotifications()
+        #expect(await provider.totalCount() == 1)
+        #expect(emptyEventCount == 1, "Non-empty updates must reset the empty-state edge")
+
+        try await provider.delete(urls: [track], verbose: false)
+        await waitForLibraryNotifications()
+        #expect(await provider.totalCount() == 0)
+        #expect(emptyEventCount == 2, "Deleting the final track should publish a new empty event")
+        #expect(lateObserverEmptyEventCount == 2)
+
+        observer.cancel()
+        lateObserver.cancel()
     }
 
     @Test

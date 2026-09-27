@@ -1,5 +1,7 @@
 import ProviderDocsView
 import ProviderPlayback
+import ProviderAudioLibrary
+import ProviderScene
 import KernelCore
 import ProviderPlugin
 import KitAppEvents
@@ -53,6 +55,95 @@ private final class MediaStub: PlaybackMediaProviding {
 
     func localizedStateText(for state: PlaybackStatus) -> String {
         "state:\(String(describing: state))"
+    }
+}
+
+@MainActor
+private final class AudioLibraryStub: AudioLibraryProviding {
+    private var observers: [UUID: (AudioLibraryProvidingEvent) -> Void] = [:]
+
+    var audioDisk: URL? { nil }
+    var supportedExtensions: [String] { [] }
+    var isAvailable: Bool { true }
+
+    func totalCount() async -> Int { 0 }
+    func allURLs(reason: String) async -> [URL] { [] }
+    func urls(offset: Int, limit: Int, reason: String) async -> [URL] { [] }
+    func contains(_ url: URL) async -> Bool { false }
+    func delete(urls: [URL], verbose: Bool) async throws {}
+    func sync(urls: [URL], verbose: Bool, isFirst: Bool) async {}
+    func sort(url: URL?, reason: String) async {}
+    func sortRandom(url: URL?, reason: String, verbose: Bool) async throws {}
+
+    func addObserver(
+        _ callback: @escaping (AudioLibraryProvidingEvent) -> Void
+    ) -> any AudioLibraryProvidingObserverHandle {
+        let id = UUID()
+        observers[id] = callback
+        return AudioLibraryObserverHandle { [weak self] in self?.observers[id] = nil }
+    }
+
+    func send(_ event: AudioLibraryProvidingEvent) {
+        for observer in observers.values {
+            observer(event)
+        }
+    }
+}
+
+@MainActor
+private final class AudioLibraryObserverHandle: AudioLibraryProvidingObserverHandle {
+    private var onCancel: (() -> Void)?
+
+    init(onCancel: @escaping () -> Void) {
+        self.onCancel = onCancel
+    }
+
+    func cancel() {
+        onCancel?()
+        onCancel = nil
+    }
+}
+
+@MainActor
+private final class SceneStub: SceneProviding {
+    @Published private(set) var currentScene: AppScene?
+    private var observers: [UUID: (SceneProvidingEvent) -> Void] = [:]
+
+    var scenes: [AppScene] { AppScene.allCases }
+
+    init(currentScene: AppScene?) {
+        self.currentScene = currentScene
+    }
+
+    func setCurrentScene(_ scene: AppScene) {
+        currentScene = scene
+        for observer in observers.values {
+            observer(.selectionChanged(scene: scene))
+        }
+    }
+
+    func restoreCurrentScene() {}
+
+    func addObserver(
+        _ callback: @escaping (SceneProvidingEvent) -> Void
+    ) -> any SceneProvidingObserverHandle {
+        let id = UUID()
+        observers[id] = callback
+        return SceneObserverHandle { [weak self] in self?.observers[id] = nil }
+    }
+}
+
+@MainActor
+private final class SceneObserverHandle: SceneProvidingObserverHandle {
+    private var onCancel: (() -> Void)?
+
+    init(onCancel: @escaping () -> Void) {
+        self.onCancel = onCancel
+    }
+
+    func cancel() {
+        onCancel?()
+        onCancel = nil
     }
 }
 
@@ -126,6 +217,37 @@ struct PlaybackHeroTests {
     }
 
     @Test
+    func emptyRepositoryHidesHeroAndPopulatedLibraryRestoresIt() {
+        let library = AudioLibraryStub()
+        let scene = SceneStub(currentScene: .audiobooks)
+        let viewModel = PlaybackHeroViewModel(playbackProvider: PlaybackStub(), isMusicSceneActive: false)
+        let observer = PlaybackHeroObserver(playback: nil, library: library, scene: scene, viewModel: viewModel)
+
+        #expect(viewModel.isHeroVisible)
+
+        library.send(.repositoryEmpty)
+        #expect(viewModel.isHeroVisible, "An empty music repository must not hide a title in the audiobook scene")
+
+        scene.setCurrentScene(.music)
+        #expect(!viewModel.isHeroVisible)
+
+        library.send(.synced(totalCount: 2))
+        #expect(viewModel.isHeroVisible)
+
+        library.send(.updated(totalCount: 0))
+        #expect(viewModel.isHeroVisible, "Only the confirmed-empty domain event should hide the hero")
+
+        library.send(.deleted(urls: [URL(fileURLWithPath: "/library/track.mp3")], totalCount: 0))
+        #expect(viewModel.isHeroVisible, "A zero-count deletion must wait for the confirmed-empty event")
+        library.send(.repositoryEmpty)
+        #expect(!viewModel.isHeroVisible)
+
+        observer.cancel()
+        library.send(.updated(totalCount: 1))
+        #expect(!viewModel.isHeroVisible, "Cancelled observers must not change hero visibility")
+    }
+
+    @Test
     func pluginAssemblesDocsAndPlaybackViewsThenReleasesObserver() async throws {
         let kernel = KernelCoreContainer()
         let docs = DefaultDocsViewProvider()
@@ -136,7 +258,7 @@ struct PlaybackHeroTests {
         try kernel.registerProvider((any PlaybackMediaProviding).self, media)
         let plugin = PlaybackHeroPlugin()
 
-        try await plugin.onRegister(kernel: kernel)
+        try plugin.onRegister(kernel: kernel)
         try await plugin.onBootAsync(kernel: kernel)
         try await plugin.onReadyAsync(kernel: kernel)
 
