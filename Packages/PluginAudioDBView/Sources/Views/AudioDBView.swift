@@ -30,6 +30,23 @@ public struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
     /// 是否正在复制导入文件
     @State private var isImportingFiles: Bool = false
 
+    /// 文件选择器的呈现状态由当前 SwiftUI subtree 持有；仅写入外部 provider
+    /// Binding 不会使此视图失效，导致点击导入后选择器不呈现。
+    @State private var isPresentingImporter = false
+
+    private var viewDependencies: AudioDBDependencies {
+        AudioDBDependencies(
+            audioLibrary: dependencies.audioLibrary,
+            audioDisk: dependencies.audioDisk,
+            audioDiagnostics: dependencies.audioDiagnostics,
+            supportedExtensions: dependencies.supportedExtensions,
+            isDesktop: dependencies.isDesktop,
+            isNotDesktop: dependencies.isNotDesktop,
+            showDBView: dependencies.showDBView,
+            isImporting: $isPresentingImporter
+        )
+    }
+
     init(
         isDemoMode: Bool,
         listViewModel: AudioListViewModel,
@@ -51,13 +68,13 @@ public struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
             if isDemoMode {
                 EmptyView()
             } else {
-                AudioList(viewModel: listViewModel, dependencies: dependencies)
+                AudioList(viewModel: listViewModel, dependencies: viewDependencies)
             }
         }
         .overlay(alignment: .center) {
             if dbViewModel.isSorting {
                 AudioDBTips(
-                    dependencies: dependencies,
+                    dependencies: viewDependencies,
                     variant: .sorting,
                     sortingMessage: dbViewModel.sortMode.description
                 )
@@ -67,11 +84,14 @@ public struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
         .frame(maxHeight: .infinity)
         .background(appTheme.background.ignoresSafeArea())
         .fileImporter(
-            isPresented: dependencies.isImporting,
+            isPresented: $isPresentingImporter,
             allowedContentTypes: [.audio],
             allowsMultipleSelection: true,
             onCompletion: handleFileImport
         )
+        .onChange(of: isPresentingImporter) { _, isImporting in
+            dependencies.isImporting.wrappedValue = isImporting
+        }
         .onDrop(of: [UTType.fileURL], isTargeted: $isDropping, perform: handleDrop)
     }
 }

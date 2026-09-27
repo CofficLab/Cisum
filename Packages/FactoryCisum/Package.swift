@@ -17,6 +17,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/CofficLab/LumiKernel.git", revision: "7031fda7ff72492d574ef9a4b5d9ffdc801a6660"),
         .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(name: "ProviderTheme", path: "../ProviderTheme"),
         .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
         .package(path: "../KitEventObservation"),
         .package(name: "KitMagic", path: "../MagicKit"),
@@ -91,6 +92,7 @@ let package = Package(
             dependencies: [
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "ProviderTheme", package: "ProviderTheme"),
                 .product(name: "LumiUI", package: "LumiUI"),
                 .product(name: "KitEventObservation", package: "KitEventObservation"),
                 .product(name: "MagicKit", package: "KitMagic"),
@@ -173,6 +175,7 @@ let package = Package(
             dependencies: [
                 "FactoryCisum",
                 .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderTheme", package: "ProviderTheme"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "ProviderRootView", package: "ProviderRootView"),
                 .product(name: "ProviderControlView", package: "ProviderControlView"),

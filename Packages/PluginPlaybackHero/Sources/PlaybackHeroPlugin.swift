@@ -44,16 +44,20 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
-        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addHeroView() { contrib.addHeroView(ownerPluginID: id, view) }
-            if let view = self.addRightAlbumView() { contrib.addRightAlbumView(ownerPluginID: id, view) }
-        }
         self.kernel = kernel
     }
 
     @MainActor
     public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         installState(kernel: kernel)
+
+        guard let contribution = kernel.resolveProvider((any PluginContributionProviding).self) else { return }
+        if let view = addHeroView() {
+            contribution.addHeroView(ownerPluginID: id, view)
+        }
+        if let view = addRightAlbumView() {
+            contribution.addRightAlbumView(ownerPluginID: id, view)
+        }
     }
 
     @MainActor

@@ -61,7 +61,6 @@ struct AudioDBTips: View {
 
                 BtnAdd(dependencies: dependencies)
                     .buttonStyle(.bordered)
-                    .cisumIf(dependencies.isNotDesktop)
 
             case .loading:
                 AppLoadingOverlay(message: LocalizedStringKey(String(localized: "Reading repository", bundle: .module)), size: .large)

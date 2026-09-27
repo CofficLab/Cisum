@@ -194,8 +194,10 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     /// `AudioRepo` 或本插件的具体实现。
     @MainActor
     private func installNavigationProvider(kernel: KernelCoreContainer) throws {
-        guard navigationProvider == nil else { return }
-        let provider = libraryProvider
+        // Navigation closures capture the library provider. During `onBootAsync`
+        // storage may not be registered yet; do not permanently install a
+        // navigation provider that captured `nil` before `onReadyAsync` retries.
+        guard navigationProvider == nil, let provider = libraryProvider else { return }
         let repoProvider: @MainActor @Sendable () async -> AudioLibraryProvider? = {
             provider
         }

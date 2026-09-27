@@ -111,6 +111,11 @@ public enum CisumBuilder: SuperLog {
         // 3. 启动内核（插件 onBoot 注册 Storage 等服务 → 校验 → onReady → 贡献聚合）
         try await kernel.startAsync(plugins: plugins)
 
+        // 主题插件在 onBoot 中向 PluginContributionService 登记主题；只有内核启动
+        // 完成后贡献集合才完整，因此此时同步加载主题 Provider 与 UI 注册表。
+        themeService.reloadThemes()
+        themeService.syncToCisumUI()
+
         // 3.5 视图 Provider 已在启动前注册，确保根覆盖层可以参与 makeRootView。
         kernel.resolveProvider((any RootViewProviding).self)?
             .setContentViewVisible(appState.isDBViewVisible)

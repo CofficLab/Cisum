@@ -45,6 +45,7 @@ struct PlaybackHeroView: View {
 
                 Text(title)
                     .font(.system(size: 24))
+                    .accessibilityIdentifier("cisum.player.title")
                     .lineLimit(2)
                     .minimumScaleFactor(0.3)
                     .multilineTextAlignment(.center)
