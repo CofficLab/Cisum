@@ -1,4 +1,5 @@
 import CisumUIComponents
+import MagicKit
 import LumiUI
 import SwiftUI
 

@@ -85,6 +85,22 @@ final class PlaybackSceneObserver: SuperLog {
             return
         }
 
+        // A previously imported local file may have been deleted or moved. Do
+        // not restore such a stale record and surface a blocking playback
+        // error on every launch; clear the scene slot and leave the player in
+        // its idle state instead. iCloud items are allowed to be unresolved
+        // locally because MagicPlayMan can request their download.
+        if url.isFileURL,
+           !FileManager.default.fileExists(atPath: url.path),
+           !FileManager.default.isUbiquitousItem(at: url) {
+            store.saveCurrentFile(nil, for: scene)
+            Task { @MainActor in
+                guard generation == self.restoreGeneration else { return }
+                await player.stop(reason: "PluginPlayBack.sceneRestore.missingFile")
+            }
+            return
+        }
+
         Task { @MainActor in
             guard generation == self.restoreGeneration else { return }
 

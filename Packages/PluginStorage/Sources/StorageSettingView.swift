@@ -80,6 +80,7 @@ public struct StorageSettingView: View, SuperLog {
                 }
             }
             .accessibilityIdentifier("cisum.settings.storage.location")
+            .accessibilityElement(children: .contain)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .sheet(isPresented: $showMigrationProgress) {
