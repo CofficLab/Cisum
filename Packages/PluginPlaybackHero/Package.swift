@@ -25,7 +25,7 @@ let package = Package(
         .package(name: "ProviderAppState", path: "../ProviderAppState"),
         .package(name: "ProviderAudioLibrary", path: "../ProviderAudioLibrary"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.3.4"),
     ],
     targets: [
         .target(
@@ -38,7 +38,7 @@ let package = Package(
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
-                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderAppState", package: "ProviderAppState"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
@@ -55,7 +55,7 @@ let package = Package(
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
-                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
             ],

@@ -26,9 +26,7 @@ let package = Package(
         .package(path: "../ProviderAudioNavigation"),
         .package(path: "../ProviderStorage"),
         .package(path: "../ProviderScene"),
-        .package(name: "ProviderRootView", path: "../ProviderRootView"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
-        .package(name: "ProviderToast", path: "../ProviderToast"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.3.4"),
     ],
     targets: [
         .target(
@@ -45,9 +43,9 @@ let package = Package(
                 .product(name: "ProviderAudioNavigation", package: "ProviderAudioNavigation"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
-                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
-                .product(name: "ProviderRootView", package: "ProviderRootView"),
-                .product(name: "ProviderToast", package: "ProviderToast"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
+                .product(name: "ProviderRootView", package: "LumiProviders"),
+                .product(name: "ProviderToast", package: "LumiProviders"),
             ],
             path: ".",
             sources: ["Sources"],

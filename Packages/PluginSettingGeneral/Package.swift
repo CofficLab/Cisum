@@ -21,7 +21,7 @@ let package = Package(
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
-        .package(path: "../ProviderDocsView"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.3.4"),
     ],
     targets: [
         .target(
@@ -33,7 +33,7 @@ let package = Package(
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
-                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
             ],
             path: ".",
             sources: ["Sources"],
@@ -46,7 +46,7 @@ let package = Package(
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
-                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
             ],
             path: "Tests"
         ),

@@ -19,7 +19,7 @@ let package = Package(
         .package(name: "ProviderPluginManaging", path: "../ProviderPluginManaging"),
         .package(name: "ProviderPlugin", path: "../ProviderPlugin"),
         .package(name: "ProviderStorage", path: "../ProviderStorage"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.3.4"),
     ],
     targets: [
         .target(
@@ -29,7 +29,7 @@ let package = Package(
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "CisumUIComponents", package: "KitUIComponents"),
                 .product(name: "LumiUI", package: "LumiUI"),
-                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderPluginManaging", package: "ProviderPluginManaging"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),

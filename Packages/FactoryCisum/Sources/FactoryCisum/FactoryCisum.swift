@@ -100,11 +100,11 @@ public enum CisumBuilder: SuperLog {
         try kernel.registerProvider((any CloudProviding).self, CloudService())
         try kernel.registerProvider((any DeviceProviding).self, DeviceService())
         try kernel.registerProvider((any DocsViewProviding).self, DefaultDocsViewProvider())
-        // 提示 Provider 必须在插件 onBoot 前存在；ToastPlugin 随后替换为真实实现。
-        let defaultToast = DefaultToastProvider()
+        // 提示 Provider 必须在插件 onBoot 前存在；ToastSuperPlugin 随后替换为真实实现。
+        let defaultToast = DefaultToastProviding()
         try kernel.registerProvider((any ToastProviding).self, defaultToast)
 
-        // 视图 Provider 也要在插件 onBoot 前注册，供 ToastPlugin 挂载根覆盖层。
+        // 视图 Provider 也要在插件 onBoot 前注册，供 ToastSuperPlugin 挂载根覆盖层。
         try registerViewProviders(into: kernel)
 
         // 3. 启动内核（插件 onBoot 注册 Storage 等服务 → 校验 → onReady → 贡献聚合）

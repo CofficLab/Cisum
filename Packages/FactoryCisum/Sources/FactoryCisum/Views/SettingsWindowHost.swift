@@ -32,8 +32,8 @@ public struct SettingsWindowHost: View {
                 let settings = ProviderSettings.SettingsWindow(
                     settings: kernel.resolveProvider((any PluginProviding).self)
                 ).environment(\.toastProviding, kernel.resolveProvider((any ToastProviding).self))
-                if let provider = kernel.resolveProvider((any ToastProviding).self) as? ToastProvider {
-                    ToastOverlay(content: settings, center: provider)
+                if let center = kernel.resolveProvider((any ToastProviding).self) as? ToastCenter {
+                    ToastOverlay(content: settings, center: center)
                         .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("cisum.settings.ready")
                 } else {

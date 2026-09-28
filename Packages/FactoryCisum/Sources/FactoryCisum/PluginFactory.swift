@@ -38,6 +38,7 @@ import PluginSettingsButton
 import PluginStorage
 import PluginStore
 import PluginWelcome
+import ProviderRootView
 
 /// 产出各种插件的工厂协议（对齐 Lumi `FactoryLumi/PluginFactory.swift`）。
 ///
@@ -96,7 +97,19 @@ public struct DefaultPluginFactory: PluginFactory {
             ScenePlugin.shared,
             LikeButtonPlugin.shared,
             OpenButtonPlugin.shared,
-            ToastPlugin.shared,
+            ToastSuperPlugin(
+                overlayInstaller: { kernel, center in
+                    kernel.resolveProvider((any RootViewProviding).self)?.addOverlays([
+                        RootOverlayItem(id: ToastSuperPlugin.overlayID, order: 10_000) { content in
+                            ToastOverlay(content: content, center: center)
+                        }
+                    ])
+                },
+                overlayUninstaller: { kernel in
+                    kernel.resolveProvider((any RootViewProviding).self)?
+                        .removeOverlays(ids: [ToastSuperPlugin.overlayID])
+                }
+            ),
             PluginPluginManager.shared,
             StoragePlugin.shared,
             StorePlugin.shared,

@@ -25,8 +25,7 @@ let package = Package(
         .package(path: "../ProviderBook"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(path: "../ProviderScene"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
-        .package(path: "../ProviderToast"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.3.4"),
     ],
     targets: [
         .target(
@@ -38,11 +37,11 @@ let package = Package(
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
-                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
                 "ProviderScene",
-                .product(name: "ProviderToast", package: "ProviderToast"),
+                .product(name: "ProviderToast", package: "LumiProviders"),
             ],
             path: ".",
             exclude: ["README.md", "Tests"],

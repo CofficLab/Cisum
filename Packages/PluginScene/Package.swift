@@ -23,7 +23,7 @@ let package = Package(
         .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
         .package(name: "ProviderStorage", path: "../ProviderStorage"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.3.4"),
     ],
     targets: [
         .target(
@@ -32,7 +32,7 @@ let package = Package(
                 .product(name: "MagicKit", package: "KitMagic"),
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
-                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "CisumUIComponents", package: "KitUIComponents"),
                 .product(name: "LumiUI", package: "LumiUI"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
