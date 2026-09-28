@@ -16,12 +16,11 @@ let package = Package(
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
         .package(name: "KitUIComponents", path: "../CisumUIComponents"),
-        .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
         // MARK: - Provider Contracts（设置窗口只依赖能力契约，不依赖内核/工厂）
         .package(name: "ProviderAppState", path: "../ProviderAppState"),
         .package(name: "ProviderStorage", path: "../ProviderStorage"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
-        .package(name: "ProviderTheme", path: "../ProviderTheme"),
     ],
     targets: [
         .target(
@@ -32,11 +31,9 @@ let package = Package(
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "CisumUIComponents", package: "KitUIComponents"),
                 .product(name: "LumiUI", package: "LumiUI"),
-                .product(name: "LumiUI", package: "LumiUI"),
                 .product(name: "ProviderAppState", package: "ProviderAppState"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
-                .product(name: "ProviderTheme", package: "ProviderTheme"),
             ],
             path: ".",
             exclude: ["README.md", "Tests"],

@@ -18,7 +18,7 @@ let package = Package(
         .package(name: "KitMagic", path: "../MagicKit"),
         .package(name: "KitDeviceData", path: "../../Packages/DeviceData"),
         .package(name: "KitUIComponents", path: "../../Packages/CisumUIComponents"),
-        .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
     ],
     targets: [
         .target(

@@ -17,7 +17,7 @@ let package = Package(
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
         .package(name: "KitUIComponents", path: "../CisumUIComponents"),
-        .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
         .package(path: "../ProviderStore"),
         .package(path: "../ProviderAudioLibrary"),
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
