@@ -1,5 +1,5 @@
 {
-  "originHash" : "c7a1bcf76e558f09a859515ecfd0a600d3e0002c52f7e9df4e6856288a224010",
+  "originHash" : "2ff1498c5c5416aee1d4c6f8c22638c02e84bb154c00b0ef26c17ab1e81ebdc2",
   "pins" : [
     {
       "identity" : "id3tageditor",
@@ -15,7 +15,26 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CofficLab/LumiKernel.git",
       "state" : {
-        "revision" : "7031fda7ff72492d574ef9a4b5d9ffdc801a6660"
+        "revision" : "4a30c5f4d6e3b24be61e87a036b14720ef0f1654",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "lumilogging",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/CofficLab/LumiLogging.git",
+      "state" : {
+        "revision" : "8c00bb13b76a21f88bee186a68ca20568550f65e",
+        "version" : "1.0.1"
+      }
+    },
+    {
+      "identity" : "lumiproviders",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/CofficLab/LumiProviders.git",
+      "state" : {
+        "revision" : "eb5e40248b3f960975c2b4425f81adac13c60371",
+        "version" : "1.1.1"
       }
     },
     {
