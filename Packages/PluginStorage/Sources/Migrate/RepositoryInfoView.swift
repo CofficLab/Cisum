@@ -24,53 +24,49 @@ struct RepositoryInfoView: View {
     let url: URL?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            headerView
+        AppCard(
+            style: .subtle,
+            cornerRadius: DesignTokens.Radius.sm,
+            padding: EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0),
+            showShadow: false
+        ) {
+            VStack(alignment: .leading, spacing: 0) {
+                headerView
 
-            if let url = url {
-                VStack(spacing: 0) {
+                if let url {
                     FileListView(
                         url: url,
                         expandByDefault: true
                     )
                     .frame(maxHeight: .infinity)
+                    .padding(.top, DesignTokens.Spacing.xs)
                 }
-                .background(Color.secondary.opacity(0.02))
-                .cornerRadius(6)
             }
         }
     }
 
     private var headerView: some View {
-        HStack {
+        HStack(spacing: DesignTokens.Spacing.sm) {
             Text(title)
-                .font(.headline)
-                .foregroundColor(.primary)
+                .font(DesignTokens.Typography.bodyEmphasized)
+                .foregroundStyle(appTheme.textPrimary)
             Text(location?.emojiTitle ?? String(localized: "Not Set", bundle: .module))
-                .font(.caption)
-                .foregroundColor(.secondary)
-            Spacer()
-
-            if let path = url?.path, isDesktop {
-                Text(path)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .help(path)
-            }
-
+                .font(DesignTokens.Typography.caption1)
+                .foregroundStyle(appTheme.textSecondary)
             Spacer()
 
             if let root = url,
                isDesktop,
                RepositoryInfoActionPolicy.canOpenInFinder(root) {
-                root.makeOpenButton()
+                AppButton(systemImage: "arrow.up.forward.square", style: .ghost, size: .small) {
+                    root.openFolder()
+                }
+                .accessibilityLabel(Text("Open Current Repository", bundle: .module))
+                .help(String(localized: "Open Current Repository", bundle: .module))
             }
         }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
+        .padding(.horizontal, DesignTokens.Spacing.md)
+        .padding(.vertical, DesignTokens.Spacing.sm)
         .background(appTheme.primary.opacity(0.1))
-        .cornerRadius(6)
     }
 }
