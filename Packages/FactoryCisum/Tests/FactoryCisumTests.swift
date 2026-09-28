@@ -5,6 +5,7 @@ import FactoryCisum
 import KernelCore
 import ProviderPlugin
 import ProviderTheme
+import PluginRootView
 import Testing
 
 @MainActor
@@ -37,7 +38,7 @@ struct FactoryCisumTests {
     @Test
     func mainViewAssemblyInjectsControlAndContentProviders() throws {
         let kernel = KernelCoreContainer()
-        let root = DefaultRootViewProvider(kernel: kernel)
+        let root = CisumRootViewProvider(kernel: kernel)
         let control = DefaultControlViewProvider()
         let content = DefaultContentViewProvider()
         try kernel.registerProvider((any RootViewProviding).self, root)

@@ -17,6 +17,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
         .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(name: "PluginRootView", path: "../PluginRootView"),
         .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.3.4"),
         .package(url: "https://github.com/CofficLab/LumiPluginToast.git", from: "1.1.0"),
         .package(url: "https://github.com/CofficLab/LumiThemePack.git", from: "1.0.4"),
@@ -74,6 +75,7 @@ let package = Package(
             name: "FactoryCisum",
             dependencies: [
                 .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "PluginRootView", package: "PluginRootView"),
                 .product(name: "CisumUIComponents", package: "KitUIComponents"),
                 .product(name: "ProviderTheme", package: "LumiProviders"),
                 .product(name: "LumiThemePack", package: "LumiThemePack"),
@@ -145,6 +147,7 @@ let package = Package(
             name: "FactoryCisumTests",
             dependencies: [
                 "FactoryCisum",
+                .product(name: "PluginRootView", package: "PluginRootView"),
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "ProviderTheme", package: "LumiProviders"),
                 .product(name: "LumiThemePack", package: "LumiThemePack"),

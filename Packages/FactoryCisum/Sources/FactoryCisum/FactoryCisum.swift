@@ -18,6 +18,7 @@ import Foundation
 import MagicKit
 import OSLog
 import ProviderSettings
+import PluginRootView
 import SwiftUI
 
 /// Cisum 应用组装工厂（Composition Root）。
@@ -79,7 +80,10 @@ public enum CisumBuilder: SuperLog {
 
         // 1. 通过插件工厂装配插件清单（对齐 Lumi `pluginFactory.makePlugins()`）
         let factory = pluginFactory ?? DefaultPluginFactory()
-        let plugins = factory.makePlugins()
+        // RootView provider is installed through the same plugin lifecycle as
+        // Lumi. Keep it ahead of feature plugins so overlays can resolve it
+        // during their own boot phase.
+        let plugins: [any SuperPlugin] = [CisumRootViewPlugin()] + factory.makePlugins()
 
         // 2. 注册基础设施 Provider
         let appState = BasicAppStateService()
@@ -104,7 +108,8 @@ public enum CisumBuilder: SuperLog {
         let defaultToast = DefaultToastProviding()
         try kernel.registerProvider((any ToastProviding).self, defaultToast)
 
-        // 视图 Provider 也要在插件 onBoot 前注册，供 ToastSuperPlugin 挂载根覆盖层。
+        // Other view providers are infrastructure. RootViewProviding itself is
+        // owned by CisumRootViewPlugin and registered through plugin lifecycle.
         try registerViewProviders(into: kernel)
 
         // 3. 启动内核（插件 onBoot 注册 Storage 等服务 → 校验 → onReady → 贡献聚合）
@@ -201,7 +206,6 @@ public enum CisumBuilder: SuperLog {
     /// Provider 契约，默认实现注册进内核；Factory 组装时只做解析 + 注入 +
     /// makeRootView。
     private static func registerViewProviders(into kernel: KernelCoreContainer) throws {
-        try kernel.registerProvider((any RootViewProviding).self, DefaultRootViewProvider(kernel: kernel))
         try kernel.registerProvider(
             (any ControlViewProviding).self,
             DefaultControlViewProvider(
