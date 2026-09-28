@@ -20,6 +20,7 @@ let package = Package(
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
         .package(path: "../ProviderPlugin"),
         .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(name: "KitAppEvents", path: "../KitAppEvents"),
         .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
         .package(name: "ProviderStorage", path: "../ProviderStorage"),
@@ -47,7 +48,10 @@ let package = Package(
         ),
         .testTarget(
             name: "PluginSceneTests",
-            dependencies: ["PluginScene"],
+            dependencies: [
+                "PluginScene",
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
+            ],
             path: "Tests/PluginSceneTests"
         ),
     ],

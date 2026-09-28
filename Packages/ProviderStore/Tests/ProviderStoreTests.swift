@@ -4,6 +4,7 @@ import SwiftUI
 import Testing
 @testable import ProviderStore
 
+@Suite(.serialized)
 struct ProviderStoreTests {
     @Test
     func purchaseInfoResolvesEntitlementAndExpiry() {
@@ -307,6 +308,12 @@ struct ProviderStoreTests {
 
         #expect(await task.value == productID)
     }
+
+    @Test
+    func storeStateClearResetsToNone() {
+        StoreState.clear()
+        #expect(StoreState.cachedPurchaseInfo().tier == .none)
+    }
 }
 
 private func product(
@@ -417,11 +424,4 @@ func nonRenewableEntitlementRequiresFutureExpiration() {
         expirationDate: nil,
         now: now
     ) == nil)
-}
-
-@Test
-func storeStateClearResetsToNone() {
-    // UserDefaults.standard 可能被并发测试污染，只断言确定性写入的 clear 语义。
-    StoreState.clear()
-    #expect(StoreState.cachedPurchaseInfo().tier == .none)
 }
