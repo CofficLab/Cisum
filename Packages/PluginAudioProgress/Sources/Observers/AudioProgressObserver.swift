@@ -1,7 +1,7 @@
 import ProviderAudioLibrary
 import ProviderScene
 import ProviderPlayback
-import ProviderStorage
+import CisumProviderStorage
 import Foundation
 import MagicKit
 

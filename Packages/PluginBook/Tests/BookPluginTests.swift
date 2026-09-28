@@ -1,4 +1,4 @@
-import ProviderStorage
+import CisumProviderStorage
 @testable import PluginBook
 import ProviderBook
 import ProviderBookData

@@ -1,7 +1,7 @@
 import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
-import ProviderStorage
+import CisumProviderStorage
 import CisumUIComponents
 import LumiUI
 import KernelCore

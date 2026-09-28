@@ -12,7 +12,7 @@ let package = Package(
         .library(name: "ProviderToolbar", targets: ["ProviderToolbar"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/CofficLab/LumiKernel.git", revision: "7031fda7ff72492d574ef9a4b5d9ffdc801a6660"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
         .package(name: "ProviderScene", path: "../ProviderScene"),

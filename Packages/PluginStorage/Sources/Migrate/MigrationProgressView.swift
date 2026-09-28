@@ -3,7 +3,7 @@ import LumiUI
 
 import OSLog
 import SwiftUI
-import ProviderStorage
+import CisumProviderStorage
 import MagicKit
 
 enum MigrationProgressUpdatePolicy {

@@ -1,4 +1,4 @@
-import ProviderTheme
+import CisumProviderTheme
 import MagicKit
 
 @MainActor

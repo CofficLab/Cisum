@@ -9,17 +9,19 @@ let package = Package(
         .iOS(.v17),
     ],
     products: [
-        .library(name: "ProviderPluginManaging", targets: ["ProviderPluginManaging"]),
+        .library(name: "ProviderPluginManaging", targets: ["CisumProviderPluginManaging"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/CofficLab/LumiKernel.git", revision: "7031fda7ff72492d574ef9a4b5d9ffdc801a6660"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.1.1"),
         .package(path: "../ProviderPlugin"),
     ],
     targets: [
         .target(
-            name: "ProviderPluginManaging",
+            name: "CisumProviderPluginManaging",
             dependencies: [
                 .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPluginControl", package: "LumiProviders"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
             ],
             path: ".",
@@ -30,7 +32,7 @@ let package = Package(
         .testTarget(
             name: "ProviderPluginManagingTests",
             dependencies: [
-                "ProviderPluginManaging",
+                "CisumProviderPluginManaging",
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
             ],

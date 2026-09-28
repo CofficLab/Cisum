@@ -5,7 +5,7 @@ import ProviderPlugin
 import KitAppEvents
 import CisumUIComponents
 import LumiUI
-import ProviderTheme
+import CisumProviderTheme
 import SwiftUI
 import Testing
 

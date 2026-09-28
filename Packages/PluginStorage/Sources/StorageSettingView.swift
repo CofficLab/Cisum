@@ -3,7 +3,7 @@ import CisumUIComponents
 import LumiUI
 import OSLog
 import SwiftUI
-import ProviderStorage
+import CisumProviderStorage
 
 public struct StorageSettingView: View, SuperLog {
     public nonisolated static let emoji: String = "🍴"

@@ -9,13 +9,13 @@ let package = Package(
         .iOS(.v17),
     ],
     products: [
-        .library(name: "ProviderStorage", targets: ["ProviderStorage"]),
+        .library(name: "ProviderStorage", targets: ["CisumProviderStorage"]),
     ],
     dependencies: [
         .package(path: "../KitEventObservation"),
     ],
     targets: [
-        .target(name: "ProviderStorage", dependencies: [
+        .target(name: "CisumProviderStorage", dependencies: [
             .product(name: "KitEventObservation", package: "KitEventObservation"),
         ], path: ".",
             exclude: ["README.md", "Tests"],
@@ -23,7 +23,7 @@ let package = Package(
             resources: [.process("Resources")]),
         .testTarget(
             name: "ProviderStorageTests",
-            dependencies: ["ProviderStorage"],
+            dependencies: ["CisumProviderStorage"],
             path: "Tests"
         ),
     ],

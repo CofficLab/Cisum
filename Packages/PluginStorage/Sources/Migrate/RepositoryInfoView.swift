@@ -2,7 +2,7 @@ import CisumUIComponents
 import LumiUI
 
 import SwiftUI
-import ProviderStorage
+import CisumProviderStorage
 
 enum RepositoryInfoActionPolicy {
     static func canOpenInFinder(

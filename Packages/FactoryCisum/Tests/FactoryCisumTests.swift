@@ -3,7 +3,7 @@ import ProviderContentView
 import ProviderRootView
 import FactoryCisum
 import KernelCore
-import ProviderTheme
+import CisumProviderTheme
 import Testing
 
 @MainActor

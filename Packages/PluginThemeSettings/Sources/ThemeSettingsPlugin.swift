@@ -1,5 +1,5 @@
 import ProviderDocsView
-import ProviderTheme
+import CisumProviderTheme
 import CisumUIComponents
 import LumiUI
 import KernelCore

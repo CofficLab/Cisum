@@ -5,7 +5,7 @@ import ProviderDocsView
 import ProviderToast
 import ProviderPlayback
 import ProviderAudioLibrary
-import ProviderStorage
+import CisumProviderStorage
 import CisumUIComponents
 import LumiUI
 import KernelCore

@@ -1,5 +1,5 @@
 import ProviderDocsView
-import ProviderStorage
+import CisumProviderStorage
 import KernelCore
 import ProviderPlugin
 import KitAppEvents

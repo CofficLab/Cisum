@@ -3,7 +3,7 @@ import LumiUI
 import Foundation
 import KernelCore
 import ProviderPlugin
-import ProviderPluginManaging
+import CisumProviderPluginManaging
 import ProviderScene
 import ProviderToast
 import MagicKit

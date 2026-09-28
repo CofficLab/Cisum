@@ -12,7 +12,7 @@ let package = Package(
         .library(name: "ProviderPlugin", targets: ["ProviderPlugin"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/CofficLab/LumiKernel.git", revision: "7031fda7ff72492d574ef9a4b5d9ffdc801a6660"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
         .package(name: "KitUIComponents", path: "../CisumUIComponents"),
         .package(url: "https://github.com/CofficLab/LumiUI", exact: "1.4.0"),
         .package(path: "../KitEventObservation"),

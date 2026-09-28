@@ -1,4 +1,4 @@
-import ProviderStorage
+import CisumProviderStorage
 import Testing
 @testable import PluginStorage
 import Foundation

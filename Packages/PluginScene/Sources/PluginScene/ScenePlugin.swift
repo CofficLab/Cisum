@@ -1,4 +1,4 @@
-import ProviderStorage
+import CisumProviderStorage
 import ProviderScene
 import ProviderDocsView
 import KernelCore

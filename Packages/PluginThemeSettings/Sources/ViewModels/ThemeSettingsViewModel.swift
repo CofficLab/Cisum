@@ -2,7 +2,7 @@ import Combine
 import Foundation
 import LumiUI
 import MagicKit
-import ProviderTheme
+import CisumProviderTheme
 
 @MainActor
 final class ThemeSettingsViewModel: ObservableObject, SuperLog {

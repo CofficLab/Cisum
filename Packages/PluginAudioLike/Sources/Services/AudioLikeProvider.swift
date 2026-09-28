@@ -1,5 +1,5 @@
 import ProviderAudioLike
-import ProviderStorage
+import CisumProviderStorage
 import Foundation
 import KernelCore
 import ProviderPlugin

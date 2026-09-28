@@ -4,7 +4,7 @@ import ProviderAudioLibrary
 import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
-import ProviderStorage
+import CisumProviderStorage
 import KernelCore
 import ProviderPlugin
 import KitAppEvents

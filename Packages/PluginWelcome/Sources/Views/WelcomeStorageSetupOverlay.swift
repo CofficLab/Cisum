@@ -1,4 +1,4 @@
-import ProviderStorage
+import CisumProviderStorage
 import SwiftUI
 
 /// First-run storage setup gate. It observes the storage contract directly so

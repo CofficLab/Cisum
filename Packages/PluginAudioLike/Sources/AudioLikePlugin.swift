@@ -2,7 +2,7 @@ import ProviderAudioLike
 import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
-import ProviderStorage
+import CisumProviderStorage
 import ProviderToast
 import KernelCore
 import ProviderPlugin

@@ -1,4 +1,4 @@
-import ProviderStorage
+import CisumProviderStorage
 import ProviderAudioLibrary
 import ProviderDocsView
 import CisumUIComponents

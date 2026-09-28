@@ -1,7 +1,7 @@
 import Combine
 import Foundation
 import MagicKit
-import ProviderStorage
+import CisumProviderStorage
 
 @MainActor
 final class StorageSettingsViewModel: ObservableObject, SuperLog {

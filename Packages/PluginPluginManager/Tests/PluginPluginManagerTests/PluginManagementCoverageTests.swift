@@ -1,6 +1,6 @@
 import Foundation
 import KernelCore
-import ProviderPluginManaging
+import CisumProviderPluginManaging
 import SwiftUI
 import Testing
 @testable import PluginPluginManager

@@ -1,5 +1,5 @@
-import ProviderStorage
-import ProviderPluginManaging
+import CisumProviderStorage
+import CisumProviderPluginManaging
 import KernelCore
 import Foundation
 

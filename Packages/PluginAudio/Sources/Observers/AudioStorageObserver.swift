@@ -1,4 +1,4 @@
-import ProviderStorage
+import CisumProviderStorage
 import MagicKit
 
 /// 音频根视图的存储变化观察者（迁移 Phase 2）。

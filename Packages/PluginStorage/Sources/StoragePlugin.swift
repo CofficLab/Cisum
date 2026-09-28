@@ -1,7 +1,7 @@
 import MagicKit
 import Foundation
 import ProviderDocsView
-import ProviderStorage
+import CisumProviderStorage
 import KernelCore
 import ProviderPlugin
 import CisumUIComponents

@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import ProviderStorage
+@testable import CisumProviderStorage
 
 @Test(arguments: [
     (StorageLocation.icloud, "icloud", "🌐 iCloud", "🌐", "iCloud", "Store data in iCloud, synced across devices"),

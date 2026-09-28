@@ -1,5 +1,5 @@
 import Foundation
-import ProviderPluginManaging
+import CisumProviderPluginManaging
 import MagicKit
 
 /// 插件启停变化的集中观察者（迁移 Phase 4）。

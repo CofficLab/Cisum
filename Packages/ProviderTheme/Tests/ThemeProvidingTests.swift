@@ -3,7 +3,7 @@ import CisumUIComponents
 import LumiUI
 import SwiftUI
 import Testing
-@testable import ProviderTheme
+@testable import CisumProviderTheme
 
 private struct ThemeStub: LumiAppChromeTheme {
     let identifier = "test-theme"

@@ -9,7 +9,7 @@ let package = Package(
         .iOS(.v17),
     ],
     products: [
-        .library(name: "ProviderTheme", targets: ["ProviderTheme"]),
+        .library(name: "ProviderTheme", targets: ["CisumProviderTheme"]),
     ],
     dependencies: [
         .package(name: "KitUIComponents", path: "../CisumUIComponents"),
@@ -19,7 +19,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "ProviderTheme",
+            name: "CisumProviderTheme",
             dependencies: [
                 .product(name: "CisumUIComponents", package: "KitUIComponents"),
                 .product(name: "LumiUI", package: "LumiUI"),
@@ -34,7 +34,7 @@ let package = Package(
         .testTarget(
             name: "ProviderThemeTests",
             dependencies: [
-                "ProviderTheme",
+                "CisumProviderTheme",
                 .product(name: "CisumUIComponents", package: "KitUIComponents"),
                 .product(name: "LumiUI", package: "LumiUI"),
             ],

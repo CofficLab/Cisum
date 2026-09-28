@@ -1,4 +1,4 @@
-import ProviderTheme
+import CisumProviderTheme
 import ProviderAppState
 import ProviderControlView
 import ProviderContentView
@@ -10,7 +10,7 @@ import ProviderDevice
 import ProviderCloud
 import KernelCore
 import ProviderPlugin
-import ProviderPluginManaging
+import CisumProviderPluginManaging
 import CisumUIComponents
 import LumiUI
 import Foundation

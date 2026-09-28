@@ -1,9 +1,9 @@
 import ProviderDocsView
-import ProviderStorage
+import CisumProviderStorage
 import KernelCore
 import CisumUIComponents
 import LumiUI
-import ProviderPluginManaging
+import CisumProviderPluginManaging
 import ProviderPlugin
 import SwiftUI
 

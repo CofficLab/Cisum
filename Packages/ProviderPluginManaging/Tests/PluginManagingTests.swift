@@ -2,7 +2,7 @@ import Combine
 import KernelCore
 import ProviderPlugin
 import Testing
-@testable import ProviderPluginManaging
+@testable import CisumProviderPluginManaging
 
 @MainActor
 private final class PluginManagingStub: PluginManaging {
