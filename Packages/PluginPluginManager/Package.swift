@@ -16,10 +16,10 @@ let package = Package(
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
         .package(name: "KitUIComponents", path: "../CisumUIComponents"),
         .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
         .package(name: "ProviderPluginManaging", path: "../ProviderPluginManaging"),
         .package(name: "ProviderPlugin", path: "../ProviderPlugin"),
         .package(name: "ProviderStorage", path: "../ProviderStorage"),
+        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
     ],
     targets: [
         .target(

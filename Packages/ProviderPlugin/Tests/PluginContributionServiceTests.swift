@@ -29,3 +29,21 @@ func explicitOwnerContributionsAreVisibleAndRemoved() throws {
     service.remove(owner: "contribution-test-plugin")
     #expect(service.getSettingNavigationItems().isEmpty)
 }
+
+@MainActor
+@Test
+func systemSettingContributionsRemainVisibleWithoutAnEnabledPlugin() throws {
+    let kernel = KernelCoreContainer()
+    let service = PluginContributionService(kernel: kernel)
+    let item = PluginSettingNavigationItem(
+        id: "system.settings",
+        title: "System Settings",
+        iconName: "gearshape",
+        order: 2,
+        destination: AnyView(EmptyView())
+    )
+
+    service.addSystemSettingNavigationItem(item)
+
+    #expect(service.getSettingNavigationItems().map(\.id) == [item.id])
+}

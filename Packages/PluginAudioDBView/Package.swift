@@ -21,12 +21,12 @@ let package = Package(
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(name: "ProviderAudioLibrary", path: "../ProviderAudioLibrary"),
         .package(path: "../ProviderScene"),
         .package(path: "../ProviderStorage"),
         .package(path: "../ProviderAppState"),
+        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
         .package(path: "../ProviderToast"),
     ],
     targets: [

@@ -29,6 +29,7 @@ public final class PluginContributionService: ObservableObject,
     private var tabViews: [String: @MainActor (String, Bool) -> (view: AnyView, label: String)?] = [:]
     private var settingViews: [String: AnyView] = [:]
     private var settingNavItems: [String: PluginSettingNavigationItem] = [:]
+    private var systemSettingNavItems: [String: PluginSettingNavigationItem] = [:]
     private var toolBarButtons: [String: [(id: String, view: AnyView)]] = [:]
     private var themeContributions: [String: [LumiUIThemeContribution]] = [:]
     private var heroViews: [String: AnyView] = [:]
@@ -100,6 +101,11 @@ public final class PluginContributionService: ObservableObject,
 
     public func addSettingNavigationItem(ownerPluginID: String, _ item: PluginSettingNavigationItem) {
         settingNavItems[ownerPluginID] = item
+        invalidateCaches()
+    }
+
+    public func addSystemSettingNavigationItem(_ item: PluginSettingNavigationItem) {
+        systemSettingNavItems[item.id] = item
         invalidateCaches()
     }
 
@@ -202,9 +208,10 @@ public final class PluginContributionService: ObservableObject,
         if let cachedSettingNavItems { return cachedSettingNavItems }
         // 对齐 Lumi `SettingEntryItem.order` 语义：按导航项自身 order 排序，
         // 允许插件在导航项中指定独立顺序（如「外观」紧跟「通用」排第 2）。
-        let value = settingNavItems
+        let pluginItems = settingNavItems
             .filter { enabledPluginIDs.contains($0.key) }
             .map(\.value)
+        let value = (Array(systemSettingNavItems.values) + pluginItems)
             .sorted { $0.order < $1.order }
         cachedSettingNavItems = value
         return value

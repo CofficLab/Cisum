@@ -3,6 +3,7 @@ import ProviderContentView
 import ProviderRootView
 import FactoryCisum
 import KernelCore
+import ProviderPlugin
 import ProviderTheme
 import Testing
 
@@ -56,10 +57,21 @@ struct FactoryCisumTests {
     func kernelLoadsThemeContributionsAfterPluginStartup() async throws {
         let kernel = try await CisumBuilder.createKernel()
         let theme = try #require(kernel.resolveProvider((any ThemeProviding).self))
-        // LumiThemePack 1.0.2 exposes the canonical 19-theme catalog plus
+        // LumiThemePack exposes the canonical 19-theme catalog plus
         // the three ProviderTheme appearance variants.
         #expect(theme.themes.count == 22)
         #expect(theme.selectedThemeId != nil)
+        try await kernel.stopAsync()
+        CisumBuilder.destroyKernel(kernel)
+    }
+
+    @Test
+    func kernelExposesSharedThemeSettingsNavigationItem() async throws {
+        let kernel = try await CisumBuilder.createKernel()
+        let settings = try #require(kernel.resolveProvider((any PluginProviding).self))
+
+        #expect(settings.getSettingNavigationItems().contains { $0.id == "appearance" })
+
         try await kernel.stopAsync()
         CisumBuilder.destroyKernel(kernel)
     }

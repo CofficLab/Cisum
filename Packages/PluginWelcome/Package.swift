@@ -21,9 +21,9 @@ let package = Package(
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
         .package(name: "ProviderRootView", path: "../ProviderRootView"),
         .package(path: "../ProviderStorage"),
+        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
     ],
     targets: [
         .target(

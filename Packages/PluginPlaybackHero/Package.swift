@@ -22,10 +22,10 @@ let package = Package(
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
         .package(name: "ProviderAppState", path: "../ProviderAppState"),
         .package(name: "ProviderAudioLibrary", path: "../ProviderAudioLibrary"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
+        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
     ],
     targets: [
         .target(

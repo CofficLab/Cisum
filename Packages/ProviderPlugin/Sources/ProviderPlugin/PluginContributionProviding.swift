@@ -36,6 +36,9 @@ public protocol PluginContributionProviding: AnyObject {
     /// 登记设置导航项。
     func addSettingNavigationItem(ownerPluginID: String, _ item: PluginSettingNavigationItem)
 
+    /// 登记由应用核心提供的设置导航项，不受插件启停状态过滤。
+    func addSystemSettingNavigationItem(_ item: PluginSettingNavigationItem)
+
     /// 登记工具栏按钮。
     func addToolBarButtons(ownerPluginID: String, _ buttons: [(id: String, view: AnyView)])
 

@@ -19,10 +19,10 @@ let package = Package(
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
         .package(name: "KitPlayback", path: "../MagicPlayMan"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
         .package(name: "ProviderStorage", path: "../ProviderStorage"),
+        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
     ],
     targets: [
         .target(
@@ -35,7 +35,7 @@ let package = Package(
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "MagicPlayMan", package: "KitPlayback"),
-                "ProviderDocsView",
+                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),

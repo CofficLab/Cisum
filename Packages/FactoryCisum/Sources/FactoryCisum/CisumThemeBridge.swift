@@ -70,8 +70,7 @@ enum CisumThemeBridge {
                 return
             }
 
-            contributions.addSettingNavigationItem(
-                ownerPluginID: "com.coffic.cisum.theme-pack",
+            contributions.addSystemSettingNavigationItem(
                 PluginSettingNavigationItem(
                     id: "appearance",
                     title: "Appearance",

@@ -26,8 +26,8 @@ let package = Package(
         .package(path: "../ProviderAudioNavigation"),
         .package(path: "../ProviderStorage"),
         .package(path: "../ProviderScene"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
         .package(name: "ProviderRootView", path: "../ProviderRootView"),
+        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
         .package(name: "ProviderToast", path: "../ProviderToast"),
     ],
     targets: [
