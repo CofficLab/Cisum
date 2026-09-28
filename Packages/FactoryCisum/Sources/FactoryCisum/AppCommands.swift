@@ -1,4 +1,4 @@
-import CisumProviderTheme
+import ProviderTheme
 import CisumProviderStorage
 import KernelCore
 import Foundation
@@ -140,13 +140,13 @@ private final class CisumMenuInstaller {
 
     private func makeThemeItems(kernel: KernelCoreContainer) -> [CisumMenuItem] {
         guard let theme = kernel.resolveProvider((any ThemeProviding).self) else { return [] }
-        return theme.allThemeContributions.map { contribution in
+        return theme.themes.map { contribution in
             CisumMenuItem(
                 id: "\(themeMenuID).select.\(contribution.id)",
                 title: contribution.displayName,
-                state: theme.selectedThemeID == contribution.id
+                state: theme.selectedThemeId == contribution.id
             ) {
-                theme.selectTheme(contribution.id)
+                try? theme.selectTheme(id: contribution.id)
             }
         }
     }

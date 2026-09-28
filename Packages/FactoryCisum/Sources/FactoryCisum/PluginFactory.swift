@@ -37,19 +37,6 @@ import PluginSettingGeneral
 import PluginSettingsButton
 import PluginStorage
 import PluginStore
-import PluginThemeAurora
-import PluginThemeCisum
-import PluginThemeDaylightSilver
-import PluginThemeForest
-import PluginThemeGraphiteBlack
-import PluginThemeMidnight
-import PluginThemeMono
-import PluginThemeNebula
-import PluginThemeOcean
-import PluginThemePaper
-import PluginThemeSettings
-import PluginThemeStudioBlue
-import PluginThemeSunset
 import PluginWelcome
 
 /// 产出各种插件的工厂协议（对齐 Lumi `FactoryLumi/PluginFactory.swift`）。
@@ -118,19 +105,6 @@ public struct DefaultPluginFactory: PluginFactory {
             PlaybackHeroPlugin.shared,
             AudioControlButtonsPlugin.shared,
             PlaybackProgressPlugin.shared,
-            ThemeAuroraPlugin.shared,
-            ThemeCisumPlugin.shared,
-            ThemeDaylightSilverPlugin.shared,
-            ThemeForestPlugin.shared,
-            ThemeGraphiteBlackPlugin.shared,
-            ThemeMidnightPlugin.shared,
-            ThemeMonoPlugin.shared,
-            ThemeNebulaPlugin.shared,
-            ThemeOceanPlugin.shared,
-            ThemePaperPlugin.shared,
-            ThemeSettingsPlugin.shared,
-            ThemeStudioBluePlugin.shared,
-            ThemeSunsetPlugin.shared,
             WelcomePlugin.shared,
         ] as [any SuperPlugin])
 

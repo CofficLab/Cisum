@@ -1,4 +1,5 @@
-import CisumProviderTheme
+import LumiThemePack
+import ProviderTheme
 import ProviderAppState
 import ProviderControlView
 import ProviderContentView
@@ -93,10 +94,8 @@ public enum CisumBuilder: SuperLog {
 
         // 播放引擎由 PluginPlayBack 插件在 onBoot 阶段创建并注册为 PlaybackProviding。
 
-        let themeService = ThemeService(contributionsProvider: { [weak kernel] in
-            kernel?.resolveProvider((any PluginProviding).self)?.getThemeContributions() ?? []
-        })
-        try kernel.registerProvider((any ThemeProviding).self, themeService)
+        let themeProvider = DefaultThemeProviding()
+        try kernel.registerProvider((any ThemeProviding).self, themeProvider)
 
         try kernel.registerProvider((any CloudProviding).self, CloudService())
         try kernel.registerProvider((any DeviceProviding).self, DeviceService())
@@ -111,10 +110,11 @@ public enum CisumBuilder: SuperLog {
         // 3. 启动内核（插件 onBoot 注册 Storage 等服务 → 校验 → onReady → 贡献聚合）
         try await kernel.startAsync(plugins: plugins)
 
-        // 主题插件在 onBoot 中向 PluginContributionService 登记主题；只有内核启动
-        // 完成后贡献集合才完整，因此此时同步加载主题 Provider 与 UI 注册表。
-        themeService.reloadThemes()
-        themeService.syncToCisumUI()
+        // 主题目录来自远程 LumiThemePack；宿主只负责注册共享主题、迁移旧选择，
+        // 并把 ProviderTheme 状态桥接到 Cisum 现有 LumiUI 根视图。
+        LumiThemeRegistration.register(in: themeProvider)
+        CisumThemeBridge.migrateLegacySelection(in: themeProvider)
+        CisumThemeBridge.install(themeProvider, in: kernel)
 
         // 3.5 视图 Provider 已在启动前注册，确保根覆盖层可以参与 makeRootView。
         kernel.resolveProvider((any RootViewProviding).self)?
@@ -147,12 +147,20 @@ public enum CisumBuilder: SuperLog {
     /// 销毁指定内核。
     public static func destroyKernel(_ kernel: KernelCoreContainer) {
         cancelObservers(for: kernel)
+        if let theme = kernel.resolveProvider(DefaultThemeProviding.self) {
+            CisumThemeBridge.remove(theme)
+        }
         kernels.removeAll { $0 === kernel }
     }
 
     /// 销毁所有内核。
     public static func destroyAllKernels() {
-        for kernel in kernels { cancelObservers(for: kernel) }
+        for kernel in kernels {
+            cancelObservers(for: kernel)
+            if let theme = kernel.resolveProvider(DefaultThemeProviding.self) {
+                CisumThemeBridge.remove(theme)
+            }
+        }
         kernels.removeAll()
     }
 

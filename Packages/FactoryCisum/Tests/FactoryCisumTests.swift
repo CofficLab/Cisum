@@ -3,7 +3,7 @@ import ProviderContentView
 import ProviderRootView
 import FactoryCisum
 import KernelCore
-import CisumProviderTheme
+import ProviderTheme
 import Testing
 
 @MainActor
@@ -13,7 +13,7 @@ struct FactoryCisumTests {
         let plugins = DefaultPluginFactory().makePlugins()
         let ids = plugins.map(\.id)
 
-        #expect(ids.count > 40)
+        #expect(ids.count > 30)
         #expect(Set(ids).count == ids.count)
     }
 
@@ -56,8 +56,10 @@ struct FactoryCisumTests {
     func kernelLoadsThemeContributionsAfterPluginStartup() async throws {
         let kernel = try await CisumBuilder.createKernel()
         let theme = try #require(kernel.resolveProvider((any ThemeProviding).self))
-        #expect(!theme.allThemeContributions.isEmpty)
-        #expect(!theme.selectedThemeID.isEmpty)
+        // LumiThemePack 1.0.2 exposes the canonical 19-theme catalog plus
+        // the three ProviderTheme appearance variants.
+        #expect(theme.themes.count == 22)
+        #expect(theme.selectedThemeId != nil)
         try await kernel.stopAsync()
         CisumBuilder.destroyKernel(kernel)
     }
