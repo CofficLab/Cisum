@@ -5,6 +5,7 @@ import Foundation
 import Combine
 import KernelCore
 import ProviderPlugin
+import ProviderStorage
 
 @Test func storagePluginInfoIsExposed() {
     #expect(StoragePluginInfo.titleKey == "Storage Settings")
@@ -26,6 +27,41 @@ import ProviderPlugin
     #expect(provider.currentStorageLocation == .local)
     #expect(defaults.string(forKey: "StorageLocation") == StorageLocation.local.rawValue)
     #expect(UserDefaults.standard.string(forKey: "StorageLocation") == standardValueBefore)
+}
+
+@MainActor
+@Test func storageProviderExposesLumiContractOverTheSameRoot() {
+    let provider = StorageProvider()
+    let shared = provider as any ProviderStorage.StorageProviding
+
+    #expect(shared.dataRootDirectory == provider.databaseRoot)
+
+    let pluginID = "SharedContractPlugin"
+    #expect(shared.pluginDataDirectory(for: pluginID) == provider.pluginDataDirectory(for: pluginID))
+
+    let core = shared.coreDataDirectory()
+    #expect(core == provider.databaseRoot.appendingPathComponent("Core", isDirectory: true))
+
+    var isDirectory: ObjCBool = false
+    #expect(FileManager.default.fileExists(atPath: core.path, isDirectory: &isDirectory))
+    #expect(isDirectory.boolValue)
+}
+
+@MainActor
+@Test func storagePluginRegistersOneInstanceUnderBothContracts() async throws {
+    let plugin = StoragePlugin()
+    let kernel = KernelCoreContainer()
+
+    try await plugin.onBootAsync(kernel: kernel)
+
+    let cisum = kernel.resolveProvider((any CisumProviderStorage.StorageProviding).self)
+    let lumi = kernel.resolveProvider((any ProviderStorage.StorageProviding).self)
+
+    #expect(cisum != nil)
+    #expect(lumi != nil)
+    #expect((cisum as AnyObject?) === (lumi as AnyObject?))
+
+    try await plugin.onShutdownAsync(kernel: kernel)
 }
 
 @Test func fileItemReportsDirectoryReadFailures() {
@@ -1089,7 +1125,7 @@ import ProviderPlugin
 
     let provider = TestStorageProviding()
     let kernel = KernelCoreContainer()
-    try kernel.registerProvider((any StorageProviding).self, provider)
+    try kernel.registerProvider((any CisumProviderStorage.StorageProviding).self, provider)
     try await plugin.onEnable(kernel: kernel)
 
     #expect(plugin.settingsViewModel === originalViewModel)
@@ -1104,11 +1140,11 @@ import ProviderPlugin
 }
 
 @MainActor
-private final class TestStorageProviding: ObservableObject, StorageProviding {
+private final class TestStorageProviding: ObservableObject, CisumProviderStorage.StorageProviding {
     @Published var currentStorageLocation: StorageLocation?
     let databaseRoot = URL(fileURLWithPath: "/tmp/cisum-storage-provider-test", isDirectory: true)
 
-    private var observers: [UUID: (StorageProvidingEvent) -> Void] = [:]
+    private var observers: [UUID: (CisumProviderStorage.StorageProvidingEvent) -> Void] = [:]
 
     init(currentStorageLocation: StorageLocation? = .local) {
         self.currentStorageLocation = currentStorageLocation
@@ -1152,8 +1188,8 @@ private final class TestStorageProviding: ObservableObject, StorageProviding {
     }
 
     func addObserver(
-        _ callback: @escaping (StorageProvidingEvent) -> Void
-    ) -> any StorageProvidingObserverHandle {
+        _ callback: @escaping (CisumProviderStorage.StorageProvidingEvent) -> Void
+    ) -> any CisumProviderStorage.StorageProvidingObserverHandle {
         let id = UUID()
         observers[id] = callback
         return TestStorageObserverHandle(provider: self, id: id)
@@ -1163,7 +1199,7 @@ private final class TestStorageProviding: ObservableObject, StorageProviding {
         observers.removeValue(forKey: id)
     }
 
-    private func notify(_ event: StorageProvidingEvent) {
+    private func notify(_ event: CisumProviderStorage.StorageProvidingEvent) {
         for observer in observers.values {
             observer(event)
         }
@@ -1171,7 +1207,7 @@ private final class TestStorageProviding: ObservableObject, StorageProviding {
 }
 
 @MainActor
-private final class TestStorageObserverHandle: StorageProvidingObserverHandle {
+private final class TestStorageObserverHandle: CisumProviderStorage.StorageProvidingObserverHandle {
     private weak var provider: TestStorageProviding?
     private let id: UUID
 

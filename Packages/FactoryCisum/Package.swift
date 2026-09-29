@@ -91,6 +91,7 @@ let package = Package(
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderAppState", package: "ProviderAppState"),
                 .product(name: "ProviderRootView", package: "LumiProviders"),
+                .product(name: "ProviderStorage", package: "LumiProviders"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderSettings", package: "ProviderSettings"),
                 .product(name: "ProviderToolbar", package: "LumiProviders"),

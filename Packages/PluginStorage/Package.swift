@@ -35,6 +35,7 @@ let package = Package(
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "KitEventObservation", package: "KitEventObservation"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
+                .product(name: "ProviderStorage", package: "LumiProviders"),
                 .product(name: "MagicKit", package: "KitMagic"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
             ],
@@ -51,6 +52,7 @@ let package = Package(
                 "PluginStorage",
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "ProviderStorage", package: "LumiProviders"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
             ],
             path: "Tests"

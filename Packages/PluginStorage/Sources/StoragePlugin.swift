@@ -7,6 +7,7 @@ import ProviderPlugin
 import CisumUIComponents
 import LumiUI
 import OSLog
+import ProviderStorage
 import SwiftUI
 
 @MainActor
@@ -48,10 +49,16 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
             if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
         }
         let provider = StorageProvider(userDefaults: Self.storageDefaults())
-        try kernel.registerProvider((any StorageProviding).self, provider)
+        // Keep one concrete service as the source of truth while exposing both
+        // the Cisum storage-location contract and Lumi's shared storage
+        // contract. This lets shared Lumi plugins resolve ProviderStorage
+        // without creating a second data root.
+        try kernel.registerProvider((any CisumProviderStorage.StorageProviding).self, provider)
+        try kernel.registerProvider((any ProviderStorage.StorageProviding).self, provider)
 
         // 插件启用状态持久化存储由 PluginPluginManager.onBoot 注入
-        // （解析 kernel.resolveProvider((any StorageProviding).self) 的根目录，写入 `<databaseRoot>/PluginManager/`）。
+        // （解析 kernel.resolveProvider((any CisumProviderStorage.StorageProviding).self)
+        // 的根目录，写入 `<databaseRoot>/PluginManager/`）。
 
         installSettingsState(kernel: kernel)
     }
@@ -123,7 +130,7 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     private func installSettingsState(kernel: KernelCoreContainer) {
-        guard let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
+        guard let storage = kernel.resolveProvider((any CisumProviderStorage.StorageProviding).self) else { return }
         installSettingsState(storage: storage)
     }
 
@@ -131,7 +138,7 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
     /// Navigation contributions may be requested before `onBoot`, so the initial model can
     /// legitimately exist without a capability.
     @MainActor
-    func installSettingsState(storage: any StorageProviding) {
+    func installSettingsState(storage: any CisumProviderStorage.StorageProviding) {
         let viewModel = settingsViewModel ?? StorageSettingsViewModel(storageProvider: storage)
         viewModel.updateStorageProvider(storage)
 

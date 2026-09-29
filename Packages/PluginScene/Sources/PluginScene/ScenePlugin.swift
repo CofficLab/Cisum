@@ -1,8 +1,8 @@
-import CisumProviderStorage
 import ProviderScene
 import ProviderDocsView
 import KernelCore
 import ProviderPlugin
+import ProviderStorage
 import CisumUIComponents
 import LumiUI
 import Foundation
@@ -78,7 +78,7 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
         // onReady 在所有插件 onBoot 完成后执行，此时 StoragePlugin 已注入 storage。
         // 不再替换实例，只给同一个 SceneProvider 挂上持久化目录并恢复上次场景
         // （对齐 Lumi `DefaultThemeProviding.setStorageDirectory`）。
-        if let storage = kernel.resolveProvider((any StorageProviding).self), let sceneProvider {
+        if let storage = kernel.resolveProvider((any ProviderStorage.StorageProviding).self), let sceneProvider {
             let pluginDir = storage.pluginDataDirectory(for: self.id)
             sceneProvider.enablePersistence(pluginDataDirectory: pluginDir)
         }

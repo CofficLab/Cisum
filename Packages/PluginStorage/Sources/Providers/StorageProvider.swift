@@ -4,6 +4,9 @@ import ProviderPlugin
 import Foundation
 import KitEventObservation
 import MagicKit
+import ProviderStorage
+
+private typealias CisumStorageProvidingEvent = CisumProviderStorage.StorageProvidingEvent
 
 /// `StorageProviding` 的具体实现。
 ///
@@ -17,7 +20,7 @@ import MagicKit
 /// - `UserDefaults` key `"StorageLocation"`（与旧版 `Config` 一致）。
 /// - 存储变更通过 `StorageProvidingEvent` 广播。
 @MainActor
-public final class StorageProvider: ObservableObject, StorageProviding {
+public final class StorageProvider: ObservableObject, CisumProviderStorage.StorageProviding, ProviderStorage.StorageProviding {
     private static let storageLocationKey = "StorageLocation"
     private let userDefaults: UserDefaults
 
@@ -26,7 +29,7 @@ public final class StorageProvider: ObservableObject, StorageProviding {
 
     /// 缓存的数据库根目录（init 时尽力创建）。
     public let databaseRoot: URL
-    private let eventObservers = EventObserverStore<StorageProvidingEvent>()
+    private let eventObservers = EventObserverStore<CisumStorageProvidingEvent>()
 
     public init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
@@ -43,6 +46,21 @@ public final class StorageProvider: ObservableObject, StorageProviding {
             .appendingPathComponent(dataRootDirectoryName, isDirectory: true)
         try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         databaseRoot = root
+    }
+
+    // MARK: - Lumi ProviderStorage compatibility
+
+    /// Lumi's shared storage contract uses the same application data root as
+    /// Cisum's database root. Keeping this as a computed property ensures both
+    /// protocol views always refer to the same directory.
+    public var dataRootDirectory: URL { databaseRoot }
+
+    /// Shared Lumi plugins keep infrastructure data under the same Core
+    /// directory used by Cisum's storage root.
+    public func coreDataDirectory() -> URL {
+        let directory = databaseRoot.appendingPathComponent("Core", isDirectory: true)
+        try? Self.ensureDirectory(at: directory)
+        return directory
     }
 
     public var currentStorageLocation: StorageLocation? {
@@ -95,8 +113,8 @@ public final class StorageProvider: ObservableObject, StorageProviding {
 
     @discardableResult
     public func addObserver(
-        _ callback: @escaping (StorageProvidingEvent) -> Void
-    ) -> any StorageProvidingObserverHandle {
+        _ callback: @escaping (CisumProviderStorage.StorageProvidingEvent) -> Void
+    ) -> any CisumProviderStorage.StorageProvidingObserverHandle {
         eventObservers.add(callback)
     }
 

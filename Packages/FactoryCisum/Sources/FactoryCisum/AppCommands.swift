@@ -1,5 +1,5 @@
 import ProviderTheme
-import CisumProviderStorage
+import ProviderStorage
 import KernelCore
 import Foundation
 import SwiftUI
@@ -131,7 +131,7 @@ private final class CisumMenuInstaller {
             },
             CisumMenuItem(id: "debug.openDatabase", title: menuString("Open Database Directory")) {
                 self.openDirectory(
-                    kernel.resolveProvider((any StorageProviding).self)?.databaseRoot,
+                    kernel.resolveProvider((any ProviderStorage.StorageProviding).self)?.dataRootDirectory,
                     missingMessage: self.menuString("Database directory does not exist")
                 )
             },

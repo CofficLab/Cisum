@@ -8,14 +8,14 @@ The core playback plugin. It creates and owns the `MagicPlayMan` playback engine
 - **Key types:**
   - `PluginPlayBack` — `@MainActor final class` conforming to `SuperPlugin`. `id = "PluginPlayBack"`, `order = 12`, category `.system`, policy `.alwaysOn`. Holds `magicPlayMan`, the `PlaybackProvider`, the `PlaybackStateStore`, and observers.
   - `PlaybackProvider` — concrete `PlaybackProviding` & `PlaybackMediaProviding` implementation that wraps `MagicPlayMan`, translates engine events (`onStateChanged`, `onCurrentURLChanged`, `onPlayModeChanged`, like/navigation events, time/duration notifications) into `PlaybackProvidingEvent`s, and exposes `makeMediaView()` / `localizedStateText(for:)`.
-  - `PlaybackStateStore` — persists `<databaseRoot>/PluginPlayBack/current-playback.plist` as a `[sceneName: URLString]` dictionary, with one-time migration of the legacy global `"url"` key.
+  - `PlaybackStateStore` — persists `<dataRootDirectory>/PluginPlayBack/current-playback.plist` as a `[sceneName: URLString]` dictionary, with one-time migration of the legacy global `"url"` key.
   - `PlaybackSceneObserver` — on scene change, loads that scene's last file (autoPlay off) or stops playback when the target scene has no history; uses a generation counter to ignore stale restores during rapid scene switches.
   - `PlaybackSettingsPlaybackObserver` / `PlaybackSettingsSceneObserver` — forward playback and scene events to the settings view model.
   - Reads the initial snapshot from the optional `PlaybackProviding` Provider directly; later state changes are delivered through `PlaybackSettingsPlaybackObserver`.
   - `PluginPlayBackSettingsViewModel` — publishes current scene/URL/state/time/duration and reads per-scene last files from the store.
   - `PluginPlayBackSettingView` — settings UI listing recent playback per scene and a live playback details card.
   - Views: `PluginPlayBackAboutView`, `PluginPlayBackManualView`.
-- **Plugin registration:** Registers as `PluginPlayBack`. `onBootAsync` creates `MagicPlayMan`, wraps it in `PlaybackProvider`, and registers both `PlaybackProviding` and `PlaybackMediaProviding`; it also builds the `PlaybackStateStore` from `StorageProviding.databaseRoot` and subscribes to `assetChanged` to record the current file. `onReadyAsync` creates the `PlaybackSceneObserver` (scene-aware restore) and installs the settings state. `onShutdownAsync` unregisters both providers and tears down observers.
+- **Plugin registration:** Registers as `PluginPlayBack`. `onBootAsync` creates `MagicPlayMan`, wraps it in `PlaybackProvider`, and registers both `PlaybackProviding` and `PlaybackMediaProviding`; it also builds the `PlaybackStateStore` from Lumi `StorageProviding.dataRootDirectory` and subscribes to `assetChanged` to record the current file. `onReadyAsync` creates the `PlaybackSceneObserver` (scene-aware restore) and installs the settings state. `onShutdownAsync` unregisters both providers and tears down observers.
 - **Workflow/data flow:**
   1. Engine events flow through `PlaybackProvider` to observers (other plugins' observers + the scene/settings observers).
   2. When the asset changes, the URL is saved into the current scene's slot in the plist.

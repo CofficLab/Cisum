@@ -1,10 +1,10 @@
 import ProviderDocsView
-import CisumProviderStorage
 import KernelCore
 import CisumUIComponents
 import LumiUI
 import CisumProviderPluginManaging
 import ProviderPlugin
+import ProviderStorage
 import SwiftUI
 
 /// 插件管理插件（对齐 Lumi `PluginPluginManager`）。
@@ -71,7 +71,7 @@ public final class PluginPluginManager: AsyncSuperPlugin {
         // 注入插件启用状态持久化存储：onBoot 阶段从内核的 StorageProviding
         // 解析插件专属数据目录（目录名 = 插件 ID，对齐 GitOK 规律）。
         // 本插件为 alwaysOn，先于所有可配置插件的启用判断完成注入。
-        if let storage = kernel.resolveProvider((any StorageProviding).self) {
+        if let storage = kernel.resolveProvider((any ProviderStorage.StorageProviding).self) {
             let pluginDir = storage.pluginDataDirectory(for: Self.pluginID)
             kernel.stateStore = PluginManagerStateStore(pluginDataDirectory: pluginDir)
         }

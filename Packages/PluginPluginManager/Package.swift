@@ -18,7 +18,6 @@ let package = Package(
         .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
         .package(name: "ProviderPluginManaging", path: "../ProviderPluginManaging"),
         .package(name: "ProviderPlugin", path: "../ProviderPlugin"),
-        .package(name: "ProviderStorage", path: "../ProviderStorage"),
         .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.3.4"),
     ],
     targets: [
@@ -32,7 +31,7 @@ let package = Package(
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderPluginManaging", package: "ProviderPluginManaging"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
-                .product(name: "ProviderStorage", package: "ProviderStorage"),
+                .product(name: "ProviderStorage", package: "LumiProviders"),
             ],
             path: ".",
             exclude: ["README.md", "Tests"],

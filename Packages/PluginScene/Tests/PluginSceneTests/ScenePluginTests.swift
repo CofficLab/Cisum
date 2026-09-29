@@ -24,6 +24,7 @@ private final class SceneDependentProbePlugin: SuperPlugin {
 }
 
 @MainActor
+@Suite(.serialized)
 struct ScenePluginTests {
     @Test
     func registersAndUnregistersSceneProvider() async throws {
@@ -39,6 +40,9 @@ struct ScenePluginTests {
 
     @Test
     func contributesSceneSwitcherAfterBootDependenciesAreReady() async throws {
+        clearLegacyPersistence()
+        defer { clearLegacyPersistence() }
+
         let kernel = KernelCoreContainer()
         let pluginProvider = PluginContributionService(kernel: kernel)
         let plugin = ScenePlugin()

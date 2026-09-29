@@ -1,4 +1,3 @@
-import CisumProviderStorage
 import Foundation
 import ProviderScene
 
@@ -20,7 +19,7 @@ public final class PlaybackStateStore {
 
     private let fileURL: URL
 
-    /// - Parameter rootDirectory: 数据库根目录（`kernel.resolveProvider((any StorageProviding).self)?.databaseRoot`）。
+    /// - Parameter rootDirectory: Lumi 存储协议提供的数据根目录。
     public init(rootDirectory: URL) {
         self.fileURL = rootDirectory
             .appendingPathComponent(Self.subdirectory, isDirectory: true)

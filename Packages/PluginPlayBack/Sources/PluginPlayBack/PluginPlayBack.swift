@@ -1,11 +1,11 @@
 import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
-import CisumProviderStorage
 import CisumUIComponents
 import LumiUI
 import KernelCore
 import ProviderPlugin
+import ProviderStorage
 import KitAppEvents
 import MagicPlayMan
 import SwiftUI
@@ -19,8 +19,8 @@ import SwiftUI
 ///
 /// ## 播放文件持久化
 /// 内核存在场景概念（`AppScene` 固定枚举），因此当前播放文件按「场景 + 文件」
-/// 持久化到 `<databaseRoot>/PluginPlayBack/current-playback.plist`：
-/// - `onBoot` 时从 `kernel.resolveProvider((any StorageProviding).self)` 解析数据库根目录，创建 `PlaybackStateStore`；
+/// 持久化到 `<dataRootDirectory>/PluginPlayBack/current-playback.plist`：
+/// - `onBoot` 时从 Lumi `StorageProviding` 解析数据根目录，创建 `PlaybackStateStore`；
 /// - `onReady` 时创建 `PlaybackSceneObserver`（Observers 目录）订阅场景变动，
 ///   在启动与场景切换时恢复对应场景上次播放的文件（`autoPlay: false`，
 ///   仅加载不自动播放）；
@@ -48,7 +48,7 @@ public final class PluginPlayBack: AsyncSuperPlugin {
     nonisolated(unsafe) public private(set) var magicPlayMan: MagicPlayMan?
     nonisolated(unsafe) private var playbackProvider: PlaybackProvider?
 
-    /// 当前播放文件的磁盘存储（onBoot 时从 kernel.resolveProvider((any StorageProviding).self) 创建）。
+    /// 当前播放文件的磁盘存储（onBoot 时从 Lumi StorageProviding 创建）。
     nonisolated(unsafe) private var stateStore: PlaybackStateStore?
 
     /// 场景观察者（onReady 时创建）：监听场景变动并按场景恢复/记录播放文件。
@@ -86,9 +86,9 @@ public final class PluginPlayBack: AsyncSuperPlugin {
         try kernel.registerProvider((any PlaybackProviding).self, playbackProvider)
         try kernel.registerProvider((any PlaybackMediaProviding).self, playbackProvider)
 
-        // 持久化存储（order 12 在 StoragePlugin 之后，kernel.resolveProvider((any StorageProviding).self) 已可用）
-        guard let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
-        let store = PlaybackStateStore(rootDirectory: storage.databaseRoot)
+        // 持久化存储（order 12 在 StoragePlugin 之后，Lumi StorageProviding 已可用）
+        guard let storage = kernel.resolveProvider((any ProviderStorage.StorageProviding).self) else { return }
+        let store = PlaybackStateStore(rootDirectory: storage.dataRootDirectory)
         stateStore = store
 
         // 监听播放文件变化，记录到当前场景的磁盘槽位（场景由 sceneObserver 提供）
