@@ -45,7 +45,7 @@ struct CisumRootLayoutView: View {
 
                     statusArea
                 }
-                .frame(width: geometry.size.width, height: geometry.size.height)
+                .frame(width: layoutWidth(for: geometry), height: geometry.size.height)
                 .offset(x: -horizontalOverflow(for: geometry))
             }
             .environment(\.playbackHeroVisibility, $isPlaybackHeroVisible)
@@ -146,14 +146,19 @@ struct CisumRootLayoutView: View {
 #endif
     }
 
+    private func layoutWidth(for geometry: GeometryProxy) -> CGFloat {
+#if os(macOS)
+        let window = contentWindow()
+        guard let window else { return geometry.size.width }
+        return min(geometry.size.width, max(0, window.frame.width))
+#else
+        geometry.size.width
+#endif
+    }
+
     private func horizontalOverflow(for geometry: GeometryProxy) -> CGFloat {
 #if os(macOS)
-        // The settings window becomes key while it is open. This root view
-        // belongs to the main window, so using keyWindow here can read the
-        // settings window's width and leave the main content horizontally
-        // offset after settings is closed.
-        let window = contentWindow()
-        guard let window else { return 0 }
+        guard let window = contentWindow() else { return 0 }
         return CisumPlayerLayout.horizontalCenteringOffset(
             proposedWidth: geometry.size.width,
             visibleWidth: window.frame.width

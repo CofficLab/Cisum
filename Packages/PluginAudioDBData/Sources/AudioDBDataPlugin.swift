@@ -48,6 +48,7 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         try installProviders(kernel: kernel)
+        seedUITestAudioIfRequested()
         setupStorageLocationObserver(kernel: kernel)
         startFileSystemMonitor()
     }
@@ -69,8 +70,49 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         teardownSynchronization()
+        await removeUITestAudioIfRequested()
         removeProviders(from: kernel)
         self.kernel = nil
+    }
+
+    // MARK: - UI test support
+
+    /// Creates a deterministic audio entry inside the app sandbox so UI tests
+    /// can exercise the repository list without driving the system file picker.
+    @MainActor
+    private func seedUITestAudioIfRequested() {
+        #if DEBUG
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let index = arguments.firstIndex(of: "--cisum-ui-testing-seed-audio"),
+              arguments.indices.contains(index + 1),
+              let provider = libraryProvider,
+              let disk = provider.audioDisk else { return }
+
+        let name = arguments[index + 1]
+        guard name.lowercased().hasSuffix(".wav") else { return }
+
+        let url = disk.appendingPathComponent(name, isDirectory: false)
+        do {
+            try Data([0]).write(to: url, options: .atomic)
+        } catch {
+            os_log(.error, "❌ UI test audio seed failed: \(error.localizedDescription)")
+        }
+        #endif
+    }
+
+    @MainActor
+    private func removeUITestAudioIfRequested() async {
+        #if DEBUG
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let index = arguments.firstIndex(of: "--cisum-ui-testing-seed-audio"),
+              arguments.indices.contains(index + 1),
+              let provider = libraryProvider,
+              let disk = provider.audioDisk else { return }
+
+        let url = disk.appendingPathComponent(arguments[index + 1], isDirectory: false)
+        try? FileManager.default.removeItem(at: url)
+        await provider.sync(urls: [], verbose: false, isFirst: true)
+        #endif
     }
 
     // MARK: - Audio library synchronization
