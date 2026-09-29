@@ -26,23 +26,25 @@ struct KernelRootView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            GeometryReader { geometry in
+        GeometryReader { geometry in
+            NavigationStack {
                 ZStack {
                     themeRegistry.chromeTheme.makeGlobalBackground(proxy: geometry)
                         .ignoresSafeArea()
 
                     rootContent
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+#if os(macOS)
                         .frame(
                             minWidth: CisumPlayerLayout.minimumWindowWidth,
                             minHeight: CisumPlayerLayout.minimumWindowHeight
                         )
+#endif
                 }
+                .frame(width: geometry.size.width, height: geometry.size.height)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .appThemedAppearance()
         .environment(\.toastProviding, kernel.resolveProvider((any ToastProviding).self))
 #if os(macOS)
