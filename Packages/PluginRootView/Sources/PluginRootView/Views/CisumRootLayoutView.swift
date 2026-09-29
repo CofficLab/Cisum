@@ -139,10 +139,7 @@ struct CisumRootLayoutView: View {
 
     private func windowHeight() -> CGFloat {
 #if os(macOS)
-        let window = NSApplication.shared.keyWindow
-            ?? NSApplication.shared.mainWindow
-            ?? NSApplication.shared.windows.first(where: { $0.isVisible && $0.canBecomeKey })
-            ?? NSApplication.shared.windows.first
+        let window = contentWindow()
         return window?.frame.height ?? 0
 #else
         0
@@ -151,14 +148,15 @@ struct CisumRootLayoutView: View {
 
     private func horizontalOverflow(for geometry: GeometryProxy) -> CGFloat {
 #if os(macOS)
-        let window = NSApplication.shared.keyWindow
-            ?? NSApplication.shared.mainWindow
-            ?? NSApplication.shared.windows.first(where: { $0.isVisible && $0.canBecomeKey })
-            ?? NSApplication.shared.windows.first
+        // The settings window becomes key while it is open. This root view
+        // belongs to the main window, so using keyWindow here can read the
+        // settings window's width and leave the main content horizontally
+        // offset after settings is closed.
+        let window = contentWindow()
         guard let window else { return 0 }
         return CisumPlayerLayout.horizontalCenteringOffset(
             proposedWidth: geometry.size.width,
-            visibleWidth: window.contentLayoutRect.width
+            visibleWidth: window.frame.width
         )
 #else
         0
@@ -168,10 +166,7 @@ struct CisumRootLayoutView: View {
     private func setWindowHeight(_ height: CGFloat) {
 #if os(macOS)
         guard height.isFinite,
-              let window = NSApplication.shared.keyWindow
-                ?? NSApplication.shared.mainWindow
-                ?? NSApplication.shared.windows.first(where: { $0.isVisible && $0.canBecomeKey })
-                ?? NSApplication.shared.windows.first else { return }
+              let window = contentWindow() else { return }
         var frame = window.frame
         frame.origin.y += frame.height - height
         frame.size.height = height
@@ -180,4 +175,24 @@ struct CisumRootLayoutView: View {
         _ = height
 #endif
     }
+
+#if os(macOS)
+    private func contentWindow() -> NSWindow? {
+        return mainApplicationWindow()
+    }
+
+    /// Always resolves the main content window, even while Settings is key.
+    private func mainApplicationWindow() -> NSWindow? {
+        NSApplication.shared.windows.first(where: {
+            $0.isVisible
+                && $0.canBecomeMain
+                && $0.identifier?.rawValue != "cisum.settings"
+                && $0.title != "设置"
+                && $0.title != "Settings"
+        })
+            ?? NSApplication.shared.mainWindow
+            ?? NSApplication.shared.windows.first(where: { $0.isVisible && $0.canBecomeKey })
+            ?? NSApplication.shared.windows.first
+    }
+#endif
 }

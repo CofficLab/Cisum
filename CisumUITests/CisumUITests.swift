@@ -173,6 +173,35 @@ class CisumUITestBase: XCTestCase {
         settingsCommand.click()
         #endif
     }
+
+    /// 关闭 macOS 独立设置窗口，并等待主窗口重新成为可交互窗口。
+    func closeSettingsWindow() {
+        #if os(macOS)
+        let settingsWindow = app.windows.matching(identifier: "cisum.settings").firstMatch
+        XCTAssertTrue(settingsWindow.waitForExistence(timeout: 10), "设置窗口未出现，无法关闭")
+
+        let closeButtonCandidates = [
+            settingsWindow.buttons.matching(identifier: "_XCUI:CloseWindow").firstMatch,
+            settingsWindow.buttons.matching(identifier: "AXCloseButton").firstMatch,
+            settingsWindow.buttons["Close"],
+            settingsWindow.buttons["关闭"],
+        ]
+        guard let closeButton = closeButtonCandidates.first(where: { $0.waitForExistence(timeout: 2) }) else {
+            XCTFail("设置窗口没有可用的关闭按钮：\n\(settingsWindow.debugDescription)")
+            return
+        }
+
+        closeButton.click()
+        XCTAssertTrue(
+            settingsWindow.waitForNonExistence(timeout: 10),
+            "设置窗口关闭后仍然存在"
+        )
+        XCTAssertTrue(
+            app.windows["Cisum"].waitForExistence(timeout: 10),
+            "关闭设置窗口后主窗口没有恢复"
+        )
+        #endif
+    }
 }
 
 // MARK: - 启动冒烟（覆盖 App 级回归）
@@ -231,6 +260,40 @@ final class CisumLaunchUITests: CisumUITestBase {
         XCTAssertFalse(element(identifier: "cisum.kernel.startup-error").exists)
         #else
         throw XCTSkip("工具栏设置按钮仅 macOS 支持")
+        #endif
+    }
+
+    /// 回归：全新启动后立即打开并关闭设置窗口，主窗口布局不能发生横向错位或截断。
+    func testToolbarSettingsRoundTripPreservesMainWindowLayout() throws {
+        #if os(macOS)
+        let window = app.windows["Cisum"]
+        XCTAssertTrue(window.waitForExistence(timeout: 10))
+
+        let toolbarButton = element(identifier: "cisum.settings.button")
+        XCTAssertTrue(toolbarButton.waitForExistence(timeout: 10), "工具栏设置按钮不可用")
+        toolbarButton.click()
+        XCTAssertTrue(
+            element(identifier: "cisum.settings.ready").waitForExistence(timeout: 15),
+            "工具栏设置按钮未打开设置窗口"
+        )
+
+        closeSettingsWindow()
+
+        try ensureMusicScene()
+        let controls = element(identifier: "cisum.player.controls")
+        XCTAssertTrue(controls.waitForExistence(timeout: 10), "播放器控制区未恢复")
+        for label in ["More", "Previous", "Play", "Next", "Playback mode"] {
+            let button = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
+            assertElementFitsWindow(button, window: window, description: "播放器按钮「\(label)」")
+        }
+
+        let emptyState = text(containing: [
+            "Drop music files here to add them",
+            "将音乐文件拖到这里可添加",
+        ])
+        assertElementFitsWindow(emptyState, window: window, description: "音乐仓库空状态")
+        #else
+        throw XCTSkip("设置窗口回归测试仅 macOS 支持")
         #endif
     }
 }
