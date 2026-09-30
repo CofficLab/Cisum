@@ -7,6 +7,7 @@ import KitAppEvents
 import CisumUIComponents
 import LumiUI
 import OSLog
+import ProviderSettingView
 import SwiftUI
 import MagicKit
 
@@ -22,7 +23,6 @@ public final class BookLikePlugin: AsyncSuperPlugin, SuperLog {
     public let metadata = PluginMetadata(
         id: String(describing: BookLikePlugin.self),
         name: BookLikePluginInfo.title,
-        description: BookLikePluginInfo.description,
         version: "1.0.0",
         category: .feature,
         stage: .stable,
@@ -48,7 +48,7 @@ public final class BookLikePlugin: AsyncSuperPlugin, SuperLog {
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             if let view = self.addSettingView() { contrib.addSettingView(ownerPluginID: id, view) }
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
@@ -79,6 +79,7 @@ public final class BookLikePlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["liked-books"])
         if Self.verbose { os_log("\(Self.t)🛑 onShutdown") }
         sceneBox.scene = nil
         teardownState()
@@ -96,15 +97,16 @@ public final class BookLikePlugin: AsyncSuperPlugin, SuperLog {
     }
 
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         let viewModel = resolveViewModel()
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: "liked-books",
             title: String(localized: "Liked Books", bundle: .module),
-            description: metadata.description,
-            iconName: iconName,
+            systemImage: iconName,
             order: order,
-            destination: AnyView(BookLikeSettingsView(viewModel: viewModel))
+            detail: {
+            BookLikeSettingsView(viewModel: viewModel)
+        }
         )
     }
 

@@ -1,15 +1,15 @@
 import ProviderToast
 import KernelCore
-import ProviderPlugin
+import ProviderSettingView
 import MagicKit
-import ProviderSettings
 import PluginToast
 import SwiftUI
 
 /// Factory 的设置窗口接线视图。
 ///
-/// 负责创建主内核，并在内核就绪后把插件设置 Provider 注入 `ProviderSettings.SettingsWindow`。
-/// 设置窗口 UI 本身不感知内核/工厂，与主窗口共享同一内核实例。
+/// 负责创建主内核，并在内核就绪后渲染远程设置外壳（PluginSettingView 插件
+/// 提供的 `SettingViewProviding.makeSettingView()`，AppSettingsSidebarShell
+/// 双栏布局）。设置窗口 UI 本身不感知内核/工厂，与主窗口共享同一内核实例。
 public struct SettingsWindowHost: View {
     @State private var kernel: KernelCoreContainer?
     @State private var initializationError: Error?
@@ -29,10 +29,11 @@ public struct SettingsWindowHost: View {
                 KernelErrorView(error: initializationError)
                     .accessibilityElement(children: .contain)
             } else if let kernel {
-                let settings = ProviderSettings.SettingsWindow(
-                    settings: kernel.resolveProvider((any PluginProviding).self)
-                ).environment(\.toastProviding, kernel.resolveProvider((any ToastProviding).self))
-                if let center = kernel.resolveProvider((any ToastProviding).self) as? ToastCenter {
+                let toast = kernel.resolveProvider((any ToastProviding).self)
+                let settings = kernel.resolveProvider((any SettingViewProviding).self)
+                    .map { AnyView($0.makeSettingView().environment(\.toastProviding, toast)) }
+                    ?? AnyView(EmptyView())
+                if let center = toast as? ToastCenter {
                     ToastOverlay(content: settings, center: center)
                         .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("cisum.settings.ready")

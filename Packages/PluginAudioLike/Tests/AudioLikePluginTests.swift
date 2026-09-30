@@ -19,7 +19,7 @@ private final class NotificationObserverToken: @unchecked Sendable {
 @MainActor
 func pluginExposesSettingsNavigationItem() {
     let view = AudioLikePlugin.shared.addSettingView()
-    let item = AudioLikePlugin.shared.addSettingNavigationItem()
+    let item = AudioLikePlugin.shared.makeSettingEntry()
 
     #expect(view == nil)
     #expect(item != nil)

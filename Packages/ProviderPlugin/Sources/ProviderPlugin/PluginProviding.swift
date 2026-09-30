@@ -48,9 +48,6 @@ public protocol PluginProviding: AnyObject, ObservableObject {
     /// 获取所有插件提供的设置视图。
     func getSettingViews() -> [AnyView]
 
-    /// 获取所有插件提供的设置导航项。
-    func getSettingNavigationItems() -> [PluginSettingNavigationItem]
-
     /// 获取所有插件提供的标签页视图。
     ///
     /// - Parameters:

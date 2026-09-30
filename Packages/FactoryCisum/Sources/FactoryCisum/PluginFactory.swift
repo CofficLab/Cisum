@@ -1,5 +1,6 @@
 import CisumUIComponents
 import LumiUI
+import PluginSettingView
 import KernelCore
 import PluginAudio
 import PluginAudioCopy
@@ -93,6 +94,7 @@ public struct DefaultPluginFactory: PluginFactory {
         #endif
 
         plugins.append(contentsOf: [
+            PluginSettingView(),
             PluginPlayBack.shared,
             ScenePlugin.shared,
             LikeButtonPlugin.shared,

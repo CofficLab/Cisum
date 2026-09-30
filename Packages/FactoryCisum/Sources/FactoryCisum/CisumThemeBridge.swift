@@ -3,6 +3,7 @@ import KernelCore
 import LumiThemePack
 import LumiUI
 import ProviderPlugin
+import ProviderSettingView
 import ProviderTheme
 import SwiftUI
 
@@ -65,22 +66,18 @@ enum CisumThemeBridge {
         }
 
         private func registerSettingsContribution() {
-            guard let kernel,
-                  let contributions = kernel.resolveProvider((any PluginContributionProviding).self) else {
-                return
-            }
+            guard let kernel else { return }
 
-            contributions.addSystemSettingNavigationItem(
-                PluginSettingNavigationItem(
+            kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([
+                SettingEntryItem(
                     id: "appearance",
                     title: "Appearance",
-                    description: "Shared Lumi theme catalog.",
-                    iconName: "paintpalette",
-                    order: 2,
-                    destination: AnyView(ThemeSettingsDetailView(theme: provider))
-                )
-            )
-            contributions.invalidateCaches()
+                    systemImage: "paintpalette",
+                    order: 2
+                ) {
+                    ThemeSettingsDetailView(theme: self.provider)
+                }
+            ])
         }
 
         private func resolvedColorScheme(for theme: ProviderTheme.LumiTheme) -> ColorScheme {

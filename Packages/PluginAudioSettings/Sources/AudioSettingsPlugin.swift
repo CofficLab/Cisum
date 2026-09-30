@@ -6,6 +6,7 @@ import LumiUI
 import KernelCore
 import ProviderPlugin
 import KitAppEvents
+import ProviderSettingView
 import SwiftUI
 import MagicKit
 
@@ -21,7 +22,6 @@ public final class AudioSettingsPlugin: AsyncSuperPlugin, SuperLog {
     public let metadata = PluginMetadata(
         id: String(describing: AudioSettingsPlugin.self),
         name: AudioSettingsPluginInfo.title,
-        description: AudioSettingsPluginInfo.description,
         version: "1.0.0",
         category: .system,
         stage: .stable,
@@ -45,7 +45,7 @@ public final class AudioSettingsPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
         self.kernel = kernel
         installState(kernel: kernel)
@@ -65,20 +65,22 @@ public final class AudioSettingsPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["audio-settings"])
         teardownState()
         self.kernel = nil
     }
 
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         let viewModel = resolveViewModel()
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: "audio-settings",
             title: AudioSettingsPluginInfo.title,
-            description: metadata.description,
-            iconName: "slider.horizontal.3",
+            systemImage: "slider.horizontal.3",
             order: AudioSettingsPluginInfo.order,
-            destination: AnyView(AudioSettingsPluginView(viewModel: viewModel))
+            detail: {
+            AudioSettingsPluginView(viewModel: viewModel)
+        }
         )
     }
 

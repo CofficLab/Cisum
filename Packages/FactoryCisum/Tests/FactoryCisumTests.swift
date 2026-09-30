@@ -3,6 +3,7 @@ import ProviderContentView
 import ProviderRootView
 import FactoryCisum
 import KernelCore
+import ProviderSettingView
 import ProviderPlugin
 import ProviderTheme
 import PluginRootView
@@ -69,9 +70,9 @@ struct FactoryCisumTests {
     @Test
     func kernelExposesSharedThemeSettingsNavigationItem() async throws {
         let kernel = try await CisumBuilder.createKernel()
-        let settings = try #require(kernel.resolveProvider((any PluginProviding).self))
+        let settings = try #require(kernel.resolveProvider((any SettingViewProviding).self))
 
-        #expect(settings.getSettingNavigationItems().contains { $0.id == "appearance" })
+        #expect(settings.entries.contains { $0.id == "appearance" })
 
         try await kernel.stopAsync()
         CisumBuilder.destroyKernel(kernel)

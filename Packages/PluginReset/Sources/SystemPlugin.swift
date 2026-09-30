@@ -5,6 +5,7 @@ import LumiUI
 import KernelCore
 import ProviderPlugin
 import KitAppEvents
+import ProviderSettingView
 import SwiftUI
 import MagicKit
 
@@ -20,7 +21,6 @@ public final class SystemPlugin: AsyncSuperPlugin, SuperLog {
     public let metadata = PluginMetadata(
         id: String(describing: SystemPlugin.self),
         name: ResetPluginInfo.title,
-        description: ResetPluginInfo.description,
         version: "1.0.0",
         category: .system,
         stage: .stable,
@@ -43,32 +43,32 @@ public final class SystemPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["system"])
     }
 
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
     }
 
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
-        PluginSettingNavigationItem(
+    public func makeSettingEntry() -> SettingEntryItem? {
+        return SettingEntryItem(
             id: "system",
             title: ResetPluginInfo.title,
-            description: metadata.description,
-            iconName: "gearshape.2",
+            systemImage: "gearshape.2",
             order: ResetPluginInfo.order,
-            destination: AnyView(
-                SystemPluginSettingView(
-                    resetSettings: { [weak self] in
-                        await MainActor.run {
-                            self?.kernel?.resolveProvider((any StorageProviding).self)?.resetStorageLocation()
-                        }
+            detail: {
+            SystemPluginSettingView(
+                                resetSettings: { [weak self] in
+                                    await MainActor.run {
+                                        self?.kernel?.resolveProvider((any StorageProviding).self)?.resetStorageLocation()
+        }
                     }
                 )
-            )
+            }
         )
     }
 }

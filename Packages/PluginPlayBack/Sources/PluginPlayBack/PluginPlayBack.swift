@@ -8,6 +8,7 @@ import ProviderPlugin
 import ProviderStorage
 import KitAppEvents
 import MagicPlayMan
+import ProviderSettingView
 import SwiftUI
 
 /// 播放插件：负责创建并持有 `MagicPlayMan` 播放引擎，将其作为
@@ -36,7 +37,6 @@ public final class PluginPlayBack: AsyncSuperPlugin {
     public let metadata = PluginMetadata(
         id: String(describing: PluginPlayBack.self),
         name: String(localized: "Play", bundle: .module),
-        description: String(localized: "Playback engine and playback-state management.", bundle: .module),
         version: "1.0.0",
         category: .system,
         stage: .stable,
@@ -75,7 +75,7 @@ public final class PluginPlayBack: AsyncSuperPlugin {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
         let player = MagicPlayMan()
         magicPlayMan = player
@@ -111,6 +111,7 @@ public final class PluginPlayBack: AsyncSuperPlugin {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["playback"])
         observerHandle?.cancel()
         observerHandle = nil
         sceneObserver?.cancel()
@@ -158,18 +159,17 @@ public final class PluginPlayBack: AsyncSuperPlugin {
     /// `PlaybackSettingsPlaybackObserver` 根据 Provider 事件实时刷新
     /// （`currentURL` / `isPlaying` / `duration` / `currentTime`）。
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         let viewModel = settingsViewModel ?? makeSettingsViewModel()
         guard let viewModel else { return nil }
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: "playback",
             title: String(localized: "Current File", bundle: .module),
-            description: metadata.description,
-            iconName: iconName,
+            systemImage: iconName,
             order: order,
-            destination: AnyView(
-                PluginPlayBackSettingView(viewModel: viewModel)
-            )
+            detail: {
+            PluginPlayBackSettingView(viewModel: viewModel)
+        }
         )
     }
 }

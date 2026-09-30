@@ -8,6 +8,7 @@ import CisumUIComponents
 import LumiUI
 import OSLog
 import ProviderStorage
+import ProviderSettingView
 import SwiftUI
 
 @MainActor
@@ -22,7 +23,6 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
     public let metadata = PluginMetadata(
         id: String(describing: StoragePlugin.self),
         name: String(localized: String.LocalizationValue(StoragePluginInfo.titleKey), bundle: .module),
-        description: String(localized: String.LocalizationValue(StoragePluginInfo.descriptionKey), bundle: .module),
         version: "1.0.0",
         category: .feature,
         stage: .stable,
@@ -46,7 +46,7 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
         let provider = StorageProvider(userDefaults: Self.storageDefaults())
         // Keep one concrete service as the source of truth while exposing both
@@ -98,11 +98,12 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["storage"])
         teardownSettingsState()
     }
 
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         // View 贡献可能在插件启动前被请求：保证返回一个稳定、长期存在的
         // ViewModel，而不是每次请求都重新创建。
         let viewModel = settingsViewModel ?? {
@@ -112,17 +113,16 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
             settingsViewModel = viewModel
             return viewModel
         }()
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: "storage",
             title: String(localized: String.LocalizationValue(StoragePluginInfo.titleKey), bundle: .module),
-            description: metadata.description,
-            iconName: StoragePluginInfo.iconName,
+            systemImage: StoragePluginInfo.iconName,
             order: 10,
-            destination: AnyView(
-                StorageSettingView(
-                    viewModel: viewModel,
-                )
-            )
+            detail: {
+            StorageSettingView(
+                                viewModel: viewModel,
+                            )
+        }
         )
     }
 

@@ -1,6 +1,6 @@
 import Foundation
 import KernelCore
-import CisumProviderPluginManaging
+import ProviderPluginManaging
 import SwiftUI
 import Testing
 @testable import PluginPluginManager
@@ -69,12 +69,22 @@ private final class ManagerProbe: PluginManaging {
 
     func isEnabled(id: String) -> Bool { enabledIDs.contains(id) }
 
+    func unloadPlugin(id: String) throws {
+        allPlugins.removeAll { $0.id == id }
+        registeredIDs.remove(id)
+        enabledIDs.remove(id)
+    }
+
+    func reloadPlugin(id: String) throws {
+        // 探针实现：不做实际重载，仅验证可调用。
+    }
+
     func emit(_ event: PluginManagingEvent) {
         for observer in observers.values { observer(event) }
     }
 
     @discardableResult
-    func addObserver(
+    func addPluginObserver(
         _ callback: @escaping (PluginManagingEvent) -> Void
     ) -> any PluginManagingObserverHandle {
         let id = UUID()
@@ -176,9 +186,9 @@ struct PluginManagerObserverTests {
         let observer = PluginManagerObserver(manager: manager, viewModel: viewModel)
         defer { observer.cancel() }
 
-        manager.emit(.enabledPluginsChanged)
+        manager.emit(.enabledStateChanged(pluginID: "x", enabled: true))
         #expect(viewModel.revision == 1)
-        manager.emit(.enabledPluginsChanged)
+        manager.emit(.enabledStateChanged(pluginID: "x", enabled: true))
         #expect(viewModel.revision == 2)
     }
 
@@ -189,151 +199,8 @@ struct PluginManagerObserverTests {
         let observer = PluginManagerObserver(manager: manager, viewModel: viewModel)
 
         observer.cancel()
-        manager.emit(.enabledPluginsChanged)
+        manager.emit(.enabledStateChanged(pluginID: "x", enabled: true))
         #expect(viewModel.revision == 0)
-    }
-}
-
-// MARK: - PluginManagerProvider（真实 BuiltinPluginManager）
-
-@MainActor
-struct PluginManagerProviderTests {
-    private func makeProvider() async -> (KernelCoreContainer, PluginManagerProvider) {
-        let kernel = KernelCoreContainer()
-        // 注入状态存储：isPluginEnabled 依赖 kernel.stateStore 读用户覆盖。
-        let dir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("PluginManagerTests-\(UUID().uuidString)", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        kernel.stateStore = PluginManagerStateStore(pluginDataDirectory: dir)
-
-        let configurable = ProbeConfigurablePlugin()
-        let alwaysOn = ProbeAlwaysOnPlugin()
-        try? kernel.registerPlugin(configurable)
-        try? kernel.registerPlugin(alwaysOn)
-        // 启动内核（empty incoming）：enable/disable 要求 lifecycleState == .running。
-        try? await kernel.startAsync(plugins: [])
-        let provider = PluginManagerProvider(kernel: kernel)
-        return (kernel, provider)
-    }
-
-    @Test
-    func exposesPluginRegistry() async {
-        let (kernel, provider) = await makeProvider()
-        _ = kernel
-        #expect(provider.pluginCount == 2)
-        #expect(provider.allPlugins.count == 2)
-        #expect(provider.configurablePlugins.count == 1)
-        #expect(provider.configurablePlugins.first?.id == "probe-configurable")
-        #expect(provider.isRegistered(id: "probe-configurable"))
-        #expect(!provider.isRegistered(id: "missing"))
-        #expect(provider.plugin(id: "probe-alwayson") != nil)
-        #expect(provider.plugin(id: "missing") == nil)
-    }
-
-    @Test
-    func enabledPluginsFiltersCandidates() async {
-        let (kernel, provider) = await makeProvider()
-        _ = kernel
-        let alwaysOn = provider.plugin(id: "probe-alwayson")!
-        let configurable = provider.plugin(id: "probe-configurable")!
-
-        // alwaysOn 默认启用；optIn 未启用。
-        let enabled = provider.enabledPlugins(from: [alwaysOn, configurable])
-        #expect(enabled.count == 1)
-        #expect(enabled.first?.id == "probe-alwayson")
-    }
-
-    @Test
-    func enableAndDisableRoundTrip() async {
-        let (kernel, provider) = await makeProvider()
-        _ = kernel // 保持 kernel 存活：PluginManagerProvider 弱引用内核。
-        let enabled = await provider.enablePlugin(id: "probe-configurable")
-        #expect(enabled)
-        #expect(provider.isEnabled(id: "probe-configurable"))
-        #expect(provider.lastErrorDescription == nil)
-
-        let disabled = await provider.disablePlugin(id: "probe-configurable")
-        #expect(disabled)
-        #expect(!provider.isEnabled(id: "probe-configurable"))
-    }
-
-    @Test
-    func successfulPluginChangesEmitTypedProviderEvents() async {
-        let (kernel, provider) = await makeProvider()
-        var eventCount = 0
-        let handle = provider.addObserver { event in
-            if case .enabledPluginsChanged = event { eventCount += 1 }
-        }
-        defer { handle.cancel() }
-
-        #expect(await provider.enablePlugin(id: "probe-configurable"))
-        #expect(await provider.disablePlugin(id: "probe-configurable"))
-        #expect(eventCount == 2)
-        _ = kernel
-    }
-
-    @Test
-    func pluginRegistersAndUnregistersPluginManagingProvider() async throws {
-        let kernel = KernelCoreContainer()
-        let plugin = PluginPluginManager()
-
-        #expect(kernel.resolveProvider((any PluginManaging).self) == nil)
-        try await plugin.onBootAsync(kernel: kernel)
-        #expect(kernel.resolveProvider((any PluginManaging).self) != nil)
-
-        try await plugin.onShutdownAsync(kernel: kernel)
-        #expect(kernel.resolveProvider((any PluginManaging).self) == nil)
-    }
-
-    @Test
-    func shutdownDoesNotUnregisterAProviderOwnedByAnotherPlugin() async throws {
-        let kernel = KernelCoreContainer()
-        let existingProvider = ManagerProbe()
-        try kernel.registerProvider((any PluginManaging).self, existingProvider)
-        let plugin = PluginPluginManager()
-
-        var bootFailed = false
-        do {
-            try await plugin.onBootAsync(kernel: kernel)
-        } catch {
-            bootFailed = true
-        }
-        #expect(bootFailed)
-
-        try await plugin.onShutdownAsync(kernel: kernel)
-        #expect(kernel.resolveProvider((any PluginManaging).self) === existingProvider)
-    }
-
-    @Test
-    func enableUnknownPluginFailsWithError() async {
-        let (kernel, provider) = await makeProvider()
-        _ = kernel
-        let result = await provider.enablePlugin(id: "missing")
-        #expect(!result)
-        #expect(provider.lastErrorDescription != nil)
-    }
-
-    @Test
-    func disableAlwaysOnPluginFails() async {
-        let (kernel, provider) = await makeProvider()
-        _ = kernel
-        // alwaysOn 插件默认已启用：enable 幂等成功；disable 受策略保护失败。
-        let enabled = await provider.enablePlugin(id: "probe-alwayson")
-        #expect(enabled)
-        #expect(provider.lastErrorDescription == nil)
-        let result = await provider.disablePlugin(id: "probe-alwayson")
-        #expect(!result)
-        #expect(provider.lastErrorDescription != nil)
-    }
-
-    @Test
-    func observerHandleCancelIsIdempotent() async {
-        let (kernel, provider) = await makeProvider()
-        _ = kernel
-        let handle = provider.addObserver { _ in }
-        handle.cancel()
-        handle.cancel()
-        // 不崩溃即为通过；重复取消无副作用。
     }
 }
 
@@ -355,13 +222,13 @@ struct PluginPluginManagerLifecycleTests {
         try await plugin.onBootAsync(kernel: kernel)
 
         // 无 storage 时不注入 stateStore，但保留 kernel 供导航项使用。
-        #expect(plugin.addSettingNavigationItem() != nil)
+        #expect(plugin.makeSettingEntry() != nil)
     }
 
     @Test
     func navigationItemBeforeBootIsNil() {
         let plugin = PluginPluginManager()
-        #expect(plugin.addSettingNavigationItem() == nil)
+        #expect(plugin.makeSettingEntry() == nil)
     }
 
     @Test
@@ -369,10 +236,10 @@ struct PluginPluginManagerLifecycleTests {
         let kernel = KernelCoreContainer()
         let plugin = PluginPluginManager()
         try await plugin.onBootAsync(kernel: kernel)
-        #expect(plugin.addSettingNavigationItem() != nil)
+        #expect(plugin.makeSettingEntry() != nil)
 
         try await plugin.onShutdownAsync(kernel: kernel)
         // shutdown 后导航项仍可构造（kernel 仍持有），不崩溃。
-        #expect(plugin.addSettingNavigationItem() != nil)
+        #expect(plugin.makeSettingEntry() != nil)
     }
 }

@@ -12,7 +12,7 @@ import ProviderPlayback
 @MainActor
 func pluginExposesSettingsNavigationItem() {
     let view = BookLikePlugin.shared.addSettingView()
-    let item = BookLikePlugin.shared.addSettingNavigationItem()
+    let item = BookLikePlugin.shared.makeSettingEntry()
 
     #expect(view == nil)
     #expect(item != nil)

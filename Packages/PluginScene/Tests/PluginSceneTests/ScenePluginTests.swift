@@ -58,11 +58,11 @@ struct ScenePluginTests {
 
     @Test
     func contributesSceneSettingsNavigationItem() {
-        let item = ScenePlugin().addSettingNavigationItem()
+        let item = ScenePlugin().makeSettingEntry()
 
         #expect(item?.id == "scene")
         #expect(item?.title == "Scene")
-        #expect(item?.iconName == "rectangle.3.group")
+        #expect(item?.systemImage == "rectangle.3.group")
     }
 
     @Test
@@ -237,16 +237,16 @@ struct ScenePluginTests {
         try await plugin.onBootAsync(kernel: kernel)
         try await plugin.onReady(kernel: kernel)
 
-        let first = plugin.addSettingNavigationItem()?.destination
-        let second = plugin.addSettingNavigationItem()?.destination
-        #expect(first != nil)
+        let first = plugin.makeSettingEntry() != nil
+        let second = plugin.makeSettingEntry() != nil
+        #expect(first)
         // 同一个长期存在的 ViewModel：两次请求不重建状态对象。
-        #expect(second != nil)
+        #expect(second)
 
         try await plugin.onDisable(kernel: kernel)
         try await plugin.onEnable(kernel: kernel)
         // 禁用再启用后仍可注入设置导航项。
-        #expect(plugin.addSettingNavigationItem() != nil)
+        #expect(plugin.makeSettingEntry() != nil)
 
         try await plugin.onShutdownAsync(kernel: kernel)
     }

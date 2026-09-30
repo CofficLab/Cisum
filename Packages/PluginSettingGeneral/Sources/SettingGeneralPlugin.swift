@@ -4,6 +4,7 @@ import LumiUI
 import KernelCore
 import ProviderPlugin
 import KitAppEvents
+import ProviderSettingView
 import SwiftUI
 import MagicKit
 
@@ -24,7 +25,6 @@ public final class SettingGeneralPlugin: AsyncSuperPlugin, SuperLog {
     public let metadata = PluginMetadata(
         id: String(describing: SettingGeneralPlugin.self),
         name: String(localized: "General Settings", bundle: .module),
-        description: String(localized: "Provides general settings such as app info and manuals in the Settings window.", bundle: .module),
         version: "1.0.0",
         category: .core,
         stage: .stable,
@@ -44,6 +44,7 @@ public final class SettingGeneralPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["general"])
     }
 
     /// onBoot 时保存的内核引用，用于构造说明书浏览器的数据源。
@@ -52,7 +53,7 @@ public final class SettingGeneralPlugin: AsyncSuperPlugin, SuperLog {
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             if let view = self.addSettingView() { contrib.addSettingView(ownerPluginID: id, view) }
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
         self.kernel = kernel
     }
@@ -63,18 +64,19 @@ public final class SettingGeneralPlugin: AsyncSuperPlugin, SuperLog {
     }
 
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
-        PluginSettingNavigationItem(
+    public func makeSettingEntry() -> SettingEntryItem? {
+        SettingEntryItem(
             id: "general",
             title: String(localized: "General", bundle: .module),
-            description: metadata.description,
-            iconName: iconName,
+            systemImage: iconName,
             order: order,
-            destination: AnyView(GeneralSettingsDetailView(
-                viewModel: GeneralSettingsViewModel(
-                    manualEntries: kernel?.resolveProvider((any DocsViewProviding).self)?.manualEntries ?? []
-                )
-            ))
+            detail: {
+            GeneralSettingsDetailView(
+                            viewModel: GeneralSettingsViewModel(
+                                manualEntries: self.kernel?.resolveProvider((any DocsViewProviding).self)?.manualEntries ?? []
+                            )
+                        )
+        }
         )
     }
 }

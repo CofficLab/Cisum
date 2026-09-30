@@ -11,13 +11,14 @@ import ProviderDevice
 import ProviderCloud
 import KernelCore
 import ProviderPlugin
-import CisumProviderPluginManaging
+import ProviderPluginManaging
 import CisumUIComponents
 import LumiUI
 import Foundation
 import MagicKit
 import OSLog
-import ProviderSettings
+import ProviderSettingView
+import PluginSettingView
 import PluginRootView
 import SwiftUI
 
@@ -112,6 +113,10 @@ public enum CisumBuilder: SuperLog {
         // owned by CisumRootViewPlugin and registered through plugin lifecycle.
         try registerViewProviders(into: kernel)
 
+        // 设置契约：由远程 LumiSettings 提供；PluginSettingView 外壳插件随后
+        // 在 onBoot 替换为 AppSettingsSidebarShell 渲染（保留此前注册的入口）。
+        try kernel.registerProvider((any SettingViewProviding).self, DefaultSettingViewProviding())
+
         // 3. 启动内核（插件 onBoot 注册 Storage 等服务 → 校验 → onReady → 贡献聚合）
         try await kernel.startAsync(plugins: plugins)
 
@@ -181,8 +186,8 @@ public enum CisumBuilder: SuperLog {
     /// 创建设置窗口视图。
     ///
     /// 设置窗口复用 `createMainKernel` 返回的主内核（幂等，与主窗口共享同一实例）。
-    /// 设置窗口 UI 本体在独立的 `ProviderSettings` 包中（只依赖 Provider 契约），
-    /// 此处仅做接线：创建内核 → 解析各 Provider → 注入设置窗口。
+    /// 设置外壳由远程 LumiPluginSettingView 的 PluginSettingView 插件渲染
+    /// （AppSettingsSidebarShell 双栏），此处仅做接线：创建内核 → 渲染外壳。
     public static func makeSettingsWindow(configuration: FactoryCisumConfiguration) -> some View {
         SettingsWindowHost(configuration: configuration)
     }
@@ -272,8 +277,8 @@ public enum CisumBuilder: SuperLog {
     /// 订阅插件启用/禁用语义事件，触发贡献缓存失效。
     private static func subscribeToPluginChanges(kernel: KernelCoreContainer) {
         guard let provider = kernel.resolveProvider((any PluginManaging).self) else { return }
-        let handle = provider.addObserver { [weak kernel] event in
-            guard case .enabledPluginsChanged = event, let kernel else { return }
+        let handle = provider.addPluginObserver { [weak kernel] event in
+            guard case .enabledStateChanged = event, let kernel else { return }
             kernel.resolveProvider((any PluginProviding).self)?.invalidateCaches()
         }
         pluginManagerObserverHandles[ObjectIdentifier(kernel)] = handle

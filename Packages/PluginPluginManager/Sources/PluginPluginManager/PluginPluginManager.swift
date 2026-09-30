@@ -2,9 +2,11 @@ import ProviderDocsView
 import KernelCore
 import CisumUIComponents
 import LumiUI
-import CisumProviderPluginManaging
+import ProviderPluginManaging
+import ProviderPluginControl
 import ProviderPlugin
 import ProviderStorage
+import ProviderSettingView
 import SwiftUI
 
 /// 插件管理插件（对齐 Lumi `PluginPluginManager`）。
@@ -12,7 +14,7 @@ import SwiftUI
 /// 在设置窗口注册「插件管理」导航入口（puzzlepiece.extension，order 90），
 /// 详情展示所有可配置插件的列表 + 分类筛选 + 启停开关，并展示每个插件
 /// 贡献的 about 视图（未贡献时回退默认 about）。onBoot 保存内核引用，
-/// 供 `addSettingNavigationItem()` 构造 `PluginManaging` 数据源；自身也在
+/// 供 `makeSettingEntry()` 构造 `PluginManaging` 数据源；自身也在
 /// `onRegister` 中贡献关于页与说明书。
 @MainActor
 public final class PluginPluginManager: AsyncSuperPlugin {
@@ -25,7 +27,6 @@ public final class PluginPluginManager: AsyncSuperPlugin {
     public let metadata = PluginMetadata(
         id: pluginID,
         name: String(localized: "Plugin Manager", bundle: .module),
-        description: String(localized: "Manages all registered plugins.", bundle: .module),
         version: "1.0.0",
         category: .system,
         stage: .stable,
@@ -38,7 +39,7 @@ public final class PluginPluginManager: AsyncSuperPlugin {
 
     /// onBoot 时保存的内核引用，用于构建插件管理数据源。
     ///
-    /// 仅在主线程访问（onBoot / addSettingNavigationItem 均 @MainActor）。
+    /// 仅在主线程访问（onBoot / makeSettingEntry 均 @MainActor）。
     nonisolated(unsafe) private var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var managementManager: (any PluginManaging)?
     nonisolated(unsafe) private var managementViewModel: PluginManagementViewModel?
@@ -66,14 +67,14 @@ public final class PluginPluginManager: AsyncSuperPlugin {
 
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             if let view = self.addSettingView() { contrib.addSettingView(ownerPluginID: id, view) }
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
         // 注入插件启用状态持久化存储：onBoot 阶段从内核的 StorageProviding
         // 解析插件专属数据目录（目录名 = 插件 ID，对齐 GitOK 规律）。
         // 本插件为 alwaysOn，先于所有可配置插件的启用判断完成注入。
         if let storage = kernel.resolveProvider((any ProviderStorage.StorageProviding).self) {
             let pluginDir = storage.pluginDataDirectory(for: Self.pluginID)
-            kernel.stateStore = PluginManagerStateStore(pluginDataDirectory: pluginDir)
+            kernel.stateStore = PluginEnabledStateStore(pluginDirectory: pluginDir)
         }
 
     }
@@ -81,6 +82,7 @@ public final class PluginPluginManager: AsyncSuperPlugin {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: [Self.settingsEntryID])
         if let managementManager,
            kernel.resolveProvider((any PluginManaging).self) === managementManager {
             kernel.unregisterProvider((any PluginManaging).self)
@@ -94,17 +96,18 @@ public final class PluginPluginManager: AsyncSuperPlugin {
     }
 
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         guard let kernel else { return nil }
         try? installState(kernel: kernel)
         let viewModel = resolveViewModel()
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: Self.settingsEntryID,
             title: String(localized: "Plugin Manager", bundle: .module),
-            description: metadata.description,
-            iconName: iconName,
+            systemImage: iconName,
             order: order,
-            destination: AnyView(PluginManagementView(docsProvider: kernel.resolveProvider((any DocsViewProviding).self), viewModel: viewModel))
+            detail: {
+            PluginManagementView(docsProvider: self.kernel?.resolveProvider((any DocsViewProviding).self), viewModel: viewModel)
+        }
         )
     }
 
@@ -113,7 +116,12 @@ public final class PluginPluginManager: AsyncSuperPlugin {
     @MainActor
     private func installState(kernel: KernelCoreContainer) throws {
         guard managementViewModel == nil else { return }
-        let manager = PluginManagerProvider(kernel: kernel)
+        // 远程三件套（对齐 Lumi Factory 装配：DefaultPluginControlling /
+        // DefaultPluginManager / PluginEnabledStateStore）
+        try kernel.registerProvider((any PluginControlling).self, DefaultPluginControlling(kernel: kernel))
+        let controlling = kernel.resolveProvider((any PluginControlling).self)
+            ?? DefaultPluginControlling(kernel: kernel)
+        let manager = DefaultPluginManager(kernel: kernel, controlling: controlling)
         try kernel.registerProvider((any PluginManaging).self, manager)
         let viewModel = PluginManagementViewModel(manager: manager)
         let observer = PluginManagerObserver(manager: manager, viewModel: viewModel)

@@ -1117,7 +1117,7 @@ import ProviderStorage
 @MainActor
 @Test func storagePluginBindsPreexistingSettingsViewModelWhenProviderBecomesAvailable() async throws {
     let plugin = StoragePlugin()
-    _ = plugin.addSettingNavigationItem()
+    _ = plugin.makeSettingEntry()
 
     let originalViewModel = plugin.settingsViewModel
     #expect(originalViewModel != nil)

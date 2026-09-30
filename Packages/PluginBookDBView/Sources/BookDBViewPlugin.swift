@@ -7,6 +7,7 @@ import ProviderPlugin
 import KitAppEvents
 import OSLog
 import ProviderBook
+import ProviderSettingView
 import SwiftUI
 import MagicKit
 
@@ -22,7 +23,6 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
     public let metadata = PluginMetadata(
         id: String(describing: BookDBViewPlugin.self),
         name: String(localized: String.LocalizationValue(BookDBViewPluginInfo.titleKey), bundle: .module),
-        description: String(localized: String.LocalizationValue(BookDBViewPluginInfo.descriptionKey), bundle: .module),
         version: "1.0.0",
         category: .feature,
         stage: .stable,
@@ -49,7 +49,7 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             contrib.addTabView(ownerPluginID: id) { reason, demoMode in self.addTabView(reason: reason, demoMode: demoMode) }
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
@@ -78,6 +78,7 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["bookdb"])
         if Self.verbose { os_log("\(Self.t)🛑 onShutdown") }
         sceneBox.scene = nil
         teardownState()
@@ -108,27 +109,26 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
 
     /// 设置窗口入口：展示有声书仓库书籍列表（方式一）与目录树（方式二）。
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         // 设置页使用独立的 BookListViewModel，避免与主窗口内容区（BookGrid）
         // 共享同一实例——否则设置页 onAppear 触发重载时，共享状态变化会传播
         // 到主窗口内容区，导致其闪动。
         let settingList = BookListViewModel(
-            bookProvider: kernel?.resolveProvider(BookDatabaseProviding.self)
+            bookProvider: self.kernel?.resolveProvider(BookDatabaseProviding.self)
         )
         let settingTree = BookTreeViewModel(disk: bookDiskProvider)
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: "bookdb",
             title: String(localized: String.LocalizationValue(BookDBViewPluginInfo.titleKey), bundle: .module),
-            description: metadata.description,
-            iconName: iconName,
+            systemImage: iconName,
             order: order,
-            destination: AnyView(
-                BookDBSettingView(
-                    viewModel: settingList,
-                    treeViewModel: settingTree,
-                    dependencies: settingDependencies
-                )
-            )
+            detail: {
+            BookDBSettingView(
+                                viewModel: settingList,
+                                treeViewModel: settingTree,
+                                dependencies: self.settingDependencies
+                            )
+        }
         )
     }
 

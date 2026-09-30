@@ -3,7 +3,7 @@ import LumiUI
 import Foundation
 import KernelCore
 import ProviderPlugin
-import CisumProviderPluginManaging
+import ProviderPluginManaging
 import ProviderScene
 import ProviderToast
 import MagicKit
@@ -93,8 +93,8 @@ private final class KernelRootProviderObserver: ObservableObject {
 
     func start() {
         guard pluginHandle == nil, sceneHandle == nil, let kernel else { return }
-        pluginHandle = kernel.resolveProvider((any PluginManaging).self)?.addObserver { [weak self] event in
-            guard case .enabledPluginsChanged = event else { return }
+        pluginHandle = kernel.resolveProvider((any PluginManaging).self)?.addPluginObserver { [weak self] event in
+            guard case .enabledStateChanged = event else { return }
             self?.revision += 1
         }
         sceneHandle = kernel.resolveProvider((any SceneProviding).self)?.addObserver { [weak self] event in

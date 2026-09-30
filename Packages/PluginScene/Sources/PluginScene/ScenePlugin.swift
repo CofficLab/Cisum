@@ -6,6 +6,7 @@ import ProviderStorage
 import CisumUIComponents
 import LumiUI
 import Foundation
+import ProviderSettingView
 import SwiftUI
 import MagicKit
 
@@ -31,7 +32,6 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
     public let metadata = PluginMetadata(
         id: "scene",
         name: String(localized: "Scene", bundle: .module),
-        description: String(localized: "Manages the current scene", bundle: .module),
         version: "1.0.0",
         category: .core,
         stage: .stable,
@@ -68,7 +68,7 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
         // 先设置 kernel 并注册 SceneProviding，再构建依赖它的设置/工具栏
         // ViewModel；否则 SceneSwitcher 会永久持有空场景列表。
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
             contrib.addToolBarButtons(ownerPluginID: id, self.addToolBarButtons())
         }
     }
@@ -97,23 +97,24 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
     }
 
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         // View 贡献可能在插件启动前被请求：保证返回一个稳定、长期存在的
         // ViewModel，而不是每次请求都重新创建。
         let viewModel = settingsViewModel ?? {
-            let viewModel = SceneSettingsViewModel(sceneProvider: kernel?.resolveProvider((any SceneProviding).self))
+            let viewModel = SceneSettingsViewModel(sceneProvider: self.kernel?.resolveProvider((any SceneProviding).self))
             settingsViewModel = viewModel
             return viewModel
         }()
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: metadata.id,
             title: metadata.name,
-            description: metadata.description,
-            iconName: iconName,
+            systemImage: iconName,
             // 设置入口排序不使用 order（-1000 是启动优先级），
             // 使用独立值确保「通用」（order=1）排在最前。
             order: 100,
-            destination: AnyView(SceneSettingsView(model: viewModel))
+            detail: {
+            SceneSettingsView(model: viewModel)
+        }
         )
     }
 
@@ -131,6 +132,7 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: [metadata.id])
         teardownSettingsState()
         sceneProvider = nil
         kernel.unregisterProvider((any SceneProviding).self)

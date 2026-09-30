@@ -6,6 +6,7 @@ import ProviderPlugin
 import KitAppEvents
 import ProviderBook
 import OSLog
+import ProviderSettingView
 import SwiftUI
 import MagicKit
 
@@ -21,7 +22,6 @@ public final class BookSettingsPlugin: AsyncSuperPlugin, SuperLog {
     public let metadata = PluginMetadata(
         id: String(describing: BookSettingsPlugin.self),
         name: BookSettingsPluginInfo.title,
-        description: BookSettingsPluginInfo.description,
         version: "1.0.0",
         category: .system,
         stage: .stable,
@@ -45,7 +45,7 @@ public final class BookSettingsPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
@@ -68,21 +68,23 @@ public final class BookSettingsPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["book-settings"])
         if Self.verbose { os_log("\(Self.t)🛑 onShutdown") }
         teardownState()
         self.kernel = nil
     }
 
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         let viewModel = resolveViewModel()
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: "book-settings",
             title: BookSettingsPluginInfo.title,
-            description: metadata.description,
-            iconName: "book",
+            systemImage: "book",
             order: BookSettingsPluginInfo.order,
-            destination: AnyView(BookSettingsPluginView(viewModel: viewModel))
+            detail: {
+            BookSettingsPluginView(viewModel: viewModel)
+        }
         )
     }
 

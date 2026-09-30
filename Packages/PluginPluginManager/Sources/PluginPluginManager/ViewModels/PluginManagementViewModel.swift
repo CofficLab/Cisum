@@ -2,7 +2,7 @@ import Combine
 import Foundation
 import KernelCore
 import ProviderPlugin
-import CisumProviderPluginManaging
+import ProviderPluginManaging
 import MagicKit
 
 /// 插件管理视图的状态容器（迁移 Phase 4）。

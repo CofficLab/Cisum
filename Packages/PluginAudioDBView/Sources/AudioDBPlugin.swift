@@ -8,6 +8,7 @@ import ProviderToast
 import KernelCore
 import ProviderPlugin
 import KitAppEvents
+import ProviderSettingView
 import SwiftUI
 import MagicKit
 import OSLog
@@ -24,7 +25,6 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
     public let metadata = PluginMetadata(
         id: String(describing: AudioDBViewPlugin.self),
         name: String(localized: String.LocalizationValue(AudioDBPluginInfo.titleKey), bundle: .module),
-        description: String(localized: String.LocalizationValue(AudioDBPluginInfo.descriptionKey), bundle: .module),
         version: "1.0.0",
         category: .feature,
         stage: .stable,
@@ -55,7 +55,7 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             contrib.addTabView(ownerPluginID: id) { reason, demoMode in self.addTabView(reason: reason, demoMode: demoMode) }
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
         self.kernel = kernel
         // 跨插件 Provider（Scene / Playback）一律在 onReady 中解析，不假设其他插件
@@ -92,6 +92,7 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["audiodb"])
         sceneBox.scene = nil
         teardownState()
     }
@@ -146,33 +147,32 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
 
     /// 设置窗口入口：展示音频库文件列表（方式一）与目录树（方式二）。
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         // 设置页使用独立的 AudioListViewModel，避免与主窗口内容区（AudioList）
         // 共享同一实例——否则设置页 onAppear 触发 handleOnAppear() 重载时，
         // 共享状态变化会传播到主窗口 contentview，导致其闪动。
-        let playback = kernel?.resolveProvider((any PlaybackProviding).self)
+        let playback = self.kernel?.resolveProvider((any PlaybackProviding).self)
         let settingList = AudioListViewModel(
             audioLibrary: audioLibraryProvider,
             playbackProvider: playback,
-            toastProvider: kernel?.resolveProvider((any ToastProviding).self)
+            toastProvider: self.kernel?.resolveProvider((any ToastProviding).self)
         )
         let settingTree = AudioTreeViewModel(disk: audioDiskProvider)
         settingPlaybackObserver = AudioDBPlaybackObserver(playback: playback, viewModel: settingList)
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: "audiodb",
             title: String(localized: String.LocalizationValue(AudioDBPluginInfo.titleKey), bundle: .module),
-            description: metadata.description,
-            iconName: iconName,
+            systemImage: iconName,
             // 设置入口排序不使用 order（1 是启动优先级），
             // 使用独立值确保「通用」（order=1）排在最前。
             order: 10,
-            destination: AnyView(
-                AudioDBSettingView(
-                    viewModel: settingList,
-                    treeViewModel: settingTree,
-                    dependencies: settingDependencies
-                )
-            )
+            detail: {
+            AudioDBSettingView(
+                                viewModel: settingList,
+                                treeViewModel: settingTree,
+                                dependencies: self.settingDependencies
+                            )
+        }
         )
     }
 

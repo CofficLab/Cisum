@@ -4,6 +4,7 @@ import LumiUI
 import KernelCore
 import ProviderPlugin
 import KitAppEvents
+import ProviderSettingView
 import SwiftUI
 import MagicKit
 import ProviderStore
@@ -20,7 +21,6 @@ public final class StorePlugin: AsyncSuperPlugin, SuperLog {
     public let metadata = PluginMetadata(
         id: String(describing: StorePlugin.self),
         name: String(localized: String.LocalizationValue(StorePluginInfo.titleKey), bundle: .module),
-        description: String(localized: String.LocalizationValue(StorePluginInfo.descriptionKey), bundle: .module),
         version: "1.0.0",
         category: .system,
         stage: .stable,
@@ -43,7 +43,7 @@ public final class StorePlugin: AsyncSuperPlugin, SuperLog {
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         StoreService.bootstrap()
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addSettingNavigationItem() { contrib.addSettingNavigationItem(ownerPluginID: id, view) }
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
         installState()
     }
@@ -51,19 +51,21 @@ public final class StorePlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["store"])
         teardownState()
     }
 
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         let viewModel = resolveViewModel()
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: "store",
             title: String(localized: String.LocalizationValue(StorePluginInfo.titleKey), bundle: .module),
-            description: metadata.description,
-            iconName: iconName,
+            systemImage: iconName,
             order: 80,
-            destination: AnyView(StoreSetting(viewModel: viewModel))
+            detail: {
+            StoreSetting(viewModel: viewModel)
+        }
         )
     }
 

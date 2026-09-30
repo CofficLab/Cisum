@@ -6,7 +6,7 @@ import SwiftUI
 /// 展示并控制单个插件的启用状态（对齐 Lumi `PluginPluginManager.PluginEnableControl`）。
 ///
 /// 关闭 / 打开开关会调用 `PluginManaging.enablePlugin / disablePlugin`，
-/// 完成运行期启停 + 贡献重建 + 持久化（写入 `PluginManagerStateStore`），
+/// 完成运行期启停 + 贡献重建 + 持久化（写入远程 `PluginEnabledStateStore`），
 /// 并随 `PluginManaging` 语义事件自动刷新。
 ///
 /// 不可配置的插件（alwaysOn / disabled）不渲染开关，只展示对应的策略标签。
