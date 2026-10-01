@@ -18,6 +18,7 @@
         "swiftlint",
         "swiftui",
         "xcodeproj",
+        "xcproj",
         "xlarge"
     ],
     "editor.quickSuggestions": {
