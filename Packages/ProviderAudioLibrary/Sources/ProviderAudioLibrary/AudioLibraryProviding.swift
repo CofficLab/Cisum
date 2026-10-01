@@ -1,4 +1,5 @@
 import Foundation
+import KitEventObservation
 
 public enum AudioLibraryProvidingError: Error, Sendable {
     case unavailable
@@ -8,12 +9,15 @@ public enum AudioLibraryProvidingError: Error, Sendable {
 ///
 /// 事件只描述跨插件可观察的事实，不暴露 SwiftData、NotificationCenter
 /// 或任何具体仓库类型。
-@MainActor
-public enum AudioLibraryProvidingEvent {
+public enum AudioLibraryProvidingEvent: Sendable {
     case syncing
     case synced(totalCount: Int)
     case updated(totalCount: Int)
     case deleted(urls: [URL], totalCount: Int)
+    /// The repository has been successfully scanned or changed and contains no indexed audio.
+    case repositoryEmpty
+    /// The backing storage location changed and callers should re-check availability.
+    case repositoryAvailabilityChanged
     case sorting
     case sortCompleted
 }
@@ -62,6 +66,8 @@ public protocol AudioLibraryProviding: AnyObject, Sendable {
     /// 随机调整播放顺序。
     func sortRandom(url: URL?, reason: String, verbose: Bool) async throws
 
+    /// Observers receive future library events. If the provider has already
+    /// confirmed an empty repository, the empty event is replayed immediately.
     @discardableResult
     func addObserver(_ callback: @escaping (AudioLibraryProvidingEvent) -> Void) -> any AudioLibraryProvidingObserverHandle
 }
@@ -78,3 +84,5 @@ public final class NoopAudioLibraryProvidingObserverHandle: AudioLibraryProvidin
     public init() {}
     public func cancel() {}
 }
+
+extension EventObserverHandle: AudioLibraryProvidingObserverHandle {}

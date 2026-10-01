@@ -1,6 +1,8 @@
+import ProviderScene
 import Foundation
 import KernelCore
-import ProviderScene
+import ProviderPlugin
+import KitAppEvents
 import Testing
 @testable import PluginBookScene
 
@@ -54,7 +56,7 @@ private final class ProbeSceneHandle: SceneProvidingObserverHandle {
 struct BookScenePluginLifecycleTests {
     @Test
     func onRegisterWithNoDocsIsSafe() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let plugin = BookScenePlugin()
         try await plugin.onRegister(kernel: kernel)
         // docs 未注册时静默跳过，不崩溃。
@@ -62,7 +64,7 @@ struct BookScenePluginLifecycleTests {
 
     @Test
     func onReadyWithoutSceneProviderKeepsFallback() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let plugin = BookScenePlugin()
 
         try await plugin.onBoot(kernel: kernel)
@@ -74,7 +76,7 @@ struct BookScenePluginLifecycleTests {
 
     @Test
     func onReadyInstallsSceneActionWhenProviderRegistered() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let scene = SceneProbe()
         try kernel.registerProvider((any SceneProviding).self, scene)
 
@@ -89,7 +91,7 @@ struct BookScenePluginLifecycleTests {
 
     @Test
     func onEnableReinstallsAfterDisable() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let scene = SceneProbe()
         try kernel.registerProvider((any SceneProviding).self, scene)
 
@@ -104,7 +106,7 @@ struct BookScenePluginLifecycleTests {
 
     @Test
     func onShutdownClearsSceneAction() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let scene = SceneProbe()
         try kernel.registerProvider((any SceneProviding).self, scene)
 
@@ -118,9 +120,9 @@ struct BookScenePluginLifecycleTests {
 
     @Test
     func metadataExportsRegistrationInfo() {
-        #expect(BookScenePlugin.metadata.displayName == BookScenePluginInfo.title)
-        #expect(BookScenePlugin.metadata.description == BookScenePluginInfo.description)
-        #expect(BookScenePlugin.metadata.iconName == BookScenePluginInfo.iconName)
-        #expect(BookScenePlugin.metadata.order == BookScenePluginInfo.order)
+        #expect(BookScenePlugin().metadata.name == BookScenePluginInfo.title)
+        #expect(BookScenePlugin().metadata.description == BookScenePluginInfo.description)
+        #expect(BookScenePlugin().iconName == BookScenePluginInfo.iconName)
+        #expect(BookScenePlugin().order == BookScenePluginInfo.order)
     }
 }

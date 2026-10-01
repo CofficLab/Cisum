@@ -40,6 +40,16 @@
                ReferencedContainer = "container:Packages/MagicKit">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "0B5168FC306747DF005718A1"
+               BuildableName = "CisumUITests.xctest"
+               ReferencedContainer = "container:Cisum.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

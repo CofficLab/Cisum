@@ -1,5 +1,7 @@
+import MagicKit
 import Foundation
 import CisumUIComponents
+import LumiUI
 import OSLog
 import SwiftData
 
@@ -36,6 +38,7 @@ public enum AudioLikeRepositoryConfiguration {
 }
 
 public actor AudioLikeRepo: SuperLog {
+
     public static let emoji = "💖"
     public static let verbose = false
 

@@ -1,5 +1,7 @@
+import MagicKit
 import Foundation
 import CisumUIComponents
+import LumiUI
 import OSLog
 
 typealias ProgressCallback = (Double, String) -> Void

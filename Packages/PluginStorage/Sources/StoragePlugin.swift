@@ -1,21 +1,33 @@
-import KernelCore
+import MagicKit
+import Foundation
 import ProviderDocsView
+import CisumProviderStorage
+import KernelCore
+import ProviderPlugin
 import CisumUIComponents
+import LumiUI
 import OSLog
 import ProviderStorage
+import ProviderSettingView
 import SwiftUI
 
-public actor StoragePlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: StoragePlugin.self)
+
     public static let shared = StoragePlugin()
     public nonisolated static let emoji = "💾"
     public static let verbose = false
-    public static let metadata = PluginMetadata(
-        displayName: String(localized: String.LocalizationValue(StoragePluginInfo.titleKey), bundle: .module),
-        description: String(localized: String.LocalizationValue(StoragePluginInfo.descriptionKey), bundle: .module),
-        iconName: StoragePluginInfo.iconName,
-        order: 10,
+    public let order = 10
+    public let iconName = StoragePluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: StoragePlugin.self),
+        name: String(localized: String.LocalizationValue(StoragePluginInfo.titleKey), bundle: .module),
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
         policy: .alwaysOn,
-        category: .library,
+        permissions: []
     )
 
     nonisolated(unsafe) var settingsViewModel: StorageSettingsViewModel?
@@ -24,73 +36,101 @@ public actor StoragePlugin: SuperPlugin, SuperLog {
     public init() {}
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { StoragePluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { StoragePluginManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { StoragePluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { StoragePluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
-        let provider = StorageProvider()
-        StorageProvider.current = provider
-        try kernel.registerStorage(provider)
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
+        }
+        let provider = StorageProvider(userDefaults: Self.storageDefaults())
+        // Keep one concrete service as the source of truth while exposing both
+        // the Cisum storage-location contract and Lumi's shared storage
+        // contract. This lets shared Lumi plugins resolve ProviderStorage
+        // without creating a second data root.
+        try kernel.registerProvider((any CisumProviderStorage.StorageProviding).self, provider)
+        try kernel.registerProvider((any ProviderStorage.StorageProviding).self, provider)
 
         // 插件启用状态持久化存储由 PluginPluginManager.onBoot 注入
-        // （解析 kernel.storage 的根目录，写入 `<databaseRoot>/PluginManager/`）。
+        // （解析 kernel.resolveProvider((any CisumProviderStorage.StorageProviding).self)
+        // 的根目录，写入 `<databaseRoot>/PluginManager/`）。
 
         installSettingsState(kernel: kernel)
     }
 
     @MainActor
-    public func onEnable(kernel: CisumKernel) async throws {
+    public func onEnable(kernel: KernelCoreContainer) async throws {
         installSettingsState(kernel: kernel)
     }
 
+    /// UI tests use a private preferences suite so onboarding tests never reset
+    /// or overwrite the developer's real Debug-app storage selection.
+    private static func storageDefaults() -> UserDefaults {
+        #if DEBUG
+            let arguments = ProcessInfo.processInfo.arguments
+            guard arguments.contains("--cisum-ui-testing") else { return .standard }
+
+            let suiteName = "\(Bundle.main.bundleIdentifier ?? "com.yueyi.cisum").ui-testing"
+            let defaults = UserDefaults(suiteName: suiteName) ?? .standard
+            if arguments.contains("--cisum-ui-testing-reset-storage") {
+                defaults.removeObject(forKey: "StorageLocation")
+            }
+            if arguments.contains("--cisum-ui-testing-storage-local") {
+                defaults.set(StorageLocation.local.rawValue, forKey: "StorageLocation")
+            }
+            return defaults
+        #else
+            return .standard
+        #endif
+    }
+
     @MainActor
-    public func onDisable(kernel: CisumKernel) async throws {
+    public func onDisable(kernel: KernelCoreContainer) async throws {
         teardownSettingsState()
     }
 
     /// 内核关闭时清空静态引用，避免卸载后残留对内核生命周期服务的持有。
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["storage"])
         teardownSettingsState()
-        StorageProvider.current = nil
     }
 
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         // View 贡献可能在插件启动前被请求：保证返回一个稳定、长期存在的
         // ViewModel，而不是每次请求都重新创建。
         let viewModel = settingsViewModel ?? {
             let viewModel = StorageSettingsViewModel(
-                capability: makeStorageCapability(from: StorageProvider.current)
+                storageProvider: nil
             )
             settingsViewModel = viewModel
             return viewModel
         }()
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: "storage",
             title: String(localized: String.LocalizationValue(StoragePluginInfo.titleKey), bundle: .module),
-            description: Self.metadata.description,
-            iconName: StoragePluginInfo.iconName,
+            systemImage: StoragePluginInfo.iconName,
             order: 10,
-            destination: AnyView(
-                StorageSettingView(
-                    viewModel: viewModel,
-                    dependencies: StorageProvider.makePluginDependencies()
-                )
-            )
+            detail: {
+            StorageSettingView(
+                                viewModel: viewModel,
+                            )
+        }
         )
     }
 
     // MARK: - Settings state assembly
 
     @MainActor
-    private func installSettingsState(kernel: CisumKernel) {
-        guard let storage = kernel.storage else { return }
+    private func installSettingsState(kernel: KernelCoreContainer) {
+        guard let storage = kernel.resolveProvider((any CisumProviderStorage.StorageProviding).self) else { return }
         installSettingsState(storage: storage)
     }
 
@@ -98,9 +138,9 @@ public actor StoragePlugin: SuperPlugin, SuperLog {
     /// Navigation contributions may be requested before `onBoot`, so the initial model can
     /// legitimately exist without a capability.
     @MainActor
-    func installSettingsState(storage: any StorageProviding) {
-        let viewModel = settingsViewModel ?? StorageSettingsViewModel(capability: nil)
-        viewModel.updateCapability(makeStorageCapability(from: storage))
+    func installSettingsState(storage: any CisumProviderStorage.StorageProviding) {
+        let viewModel = settingsViewModel ?? StorageSettingsViewModel(storageProvider: storage)
+        viewModel.updateStorageProvider(storage)
 
         settingsObserver?.cancel()
         settingsObserver = StorageProvidingObserver(provider: storage, viewModel: viewModel)
@@ -114,11 +154,4 @@ public actor StoragePlugin: SuperPlugin, SuperLog {
         settingsViewModel = nil
     }
 
-    @MainActor
-    private func makeStorageCapability(
-        from storage: (any StorageProviding)?
-    ) -> (any StorageSettingsCapability)? {
-        guard let storage else { return nil }
-        return StorageSettingsCapabilityAdapter(storage: storage)
-    }
 }

@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import KernelCore
 import SwiftUI
 
@@ -6,7 +7,7 @@ import SwiftUI
 ///
 /// 负责创建 Kernel，并在 Kernel 准备完成后显示 `KernelRootView`。
 public struct WindowMain: View {
-    @State private var kernel: CisumKernel?
+    @State private var kernel: KernelCoreContainer?
     @State private var initializationError: Error?
     @State private var isInitializing = true
     private let configuration: FactoryCisumConfiguration
@@ -19,10 +20,14 @@ public struct WindowMain: View {
         Group {
             if isInitializing {
                 KernelLoadingView()
+                    .accessibilityElement(children: .contain)
             } else if let initializationError {
                 KernelErrorView(error: initializationError)
+                    .accessibilityElement(children: .contain)
             } else if let kernel {
                 KernelRootView(kernel: kernel)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("cisum.kernel.ready")
             }
         }
         .appThemedAppearance()

@@ -813,35 +813,6 @@
         }
       }
     },
-    "Could not load products from the App Store" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Could not load products from the App Store"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法从 App Store 加载产品"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法從 App Store 載入產品"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法從 App Store 載入產品"
-          }
-        }
-      }
-    },
     "Cross-Device Restore" : {
       "localizations" : {
         "en" : {
@@ -1599,35 +1570,6 @@
         }
       }
     },
-    "No subscription options yet" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No subscription options yet"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "暂无订阅选项"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "暫無訂閱選項"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "暫無訂閱選項"
-          }
-        }
-      }
-    },
     "NonRenewables (%lld)" : {
       "localizations" : {
         "en" : {
@@ -1904,35 +1846,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "隱私政策"
-          }
-        }
-      }
-    },
-    "Pro" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pro"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "专业版"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "專業版"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "專業版"
           }
         }
       }
@@ -2973,35 +2886,6 @@
         }
       }
     },
-    "Support us to make it better" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Support us to make it better"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "支持我们做得更好"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "支持我們做得更好"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "支持我們做得更好"
-          }
-        }
-      }
-    },
     "Test Purchase" : {
       "localizations" : {
         "en" : {
@@ -3082,35 +2966,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "類型"
-          }
-        }
-      }
-    },
-    "Ultimate version" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ultimate version"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "旗舰版"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "旗艦版"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "旗艦版"
           }
         }
       }

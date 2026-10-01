@@ -1,5 +1,7 @@
+import MagicKit
 import Foundation
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 public struct AudioLikeRootView<Content>: View, SuperLog where Content: View {

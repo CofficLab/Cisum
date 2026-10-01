@@ -1,7 +1,9 @@
+import ProviderDocsView
+import ProviderPlayback
 import Foundation
 import KernelCore
-import ProviderPlayback
-import ProviderDocsView
+import ProviderPlugin
+import KitAppEvents
 import Testing
 @testable import PluginPlaybackProgress
 
@@ -70,50 +72,37 @@ private final class PlaybackObserverHandle: PlaybackProvidingObserverHandle {
 }
 
 @MainActor
-private final class PlaybackCapabilityStub: PlaybackProgressCapability {
-    var currentTime: TimeInterval
-    var duration: TimeInterval
-    private(set) var seekTimes: [TimeInterval] = []
-
-    init(currentTime: TimeInterval, duration: TimeInterval) {
-        self.currentTime = currentTime
-        self.duration = duration
-    }
-
-    func seek(toTime: TimeInterval) {
-        seekTimes.append(toTime)
-    }
-}
-
-@MainActor
 struct PlaybackProgressTests {
     @Test
-    func capabilityAdapterForwardsPlaybackAndSeek() {
+    func viewModelUsesPlaybackProviderForSnapshotAndSeek() {
         let playback = PlaybackStub(currentTime: 12, duration: 60)
-        let adapter = PlaybackProgressCapabilityAdapter(playback: playback)
+        let viewModel = PlaybackProgressViewModel(playbackProvider: playback)
 
-        #expect(adapter.currentTime == 12)
-        #expect(adapter.duration == 60)
+        #expect(viewModel.currentTime == 12)
+        #expect(viewModel.duration == 60)
 
-        adapter.seek(toTime: 25)
+        viewModel.seek(to: 25)
         #expect(playback.seekTimes == [25])
     }
 
     @Test
-    func capabilityAdapterFallsBackAfterPlaybackIsReleased() {
+    func viewModelUsesSafeSnapshotAfterPlaybackIsReleased() {
         var playback: PlaybackStub? = PlaybackStub(currentTime: 12, duration: 60)
-        let adapter = PlaybackProgressCapabilityAdapter(playback: playback!)
+        let viewModel = PlaybackProgressViewModel(playbackProvider: playback)
+        #expect(viewModel.currentTime == 12)
+        #expect(viewModel.duration == 60)
         playback = nil
 
-        #expect(adapter.currentTime == 0)
-        #expect(adapter.duration == 0)
-        adapter.seek(toTime: 20)
+        viewModel.handleAssetChanged()
+        #expect(viewModel.currentTime == 0)
+        #expect(viewModel.duration == 0)
+        viewModel.seek(to: 20)
     }
 
     @Test
     func viewModelSyncsInitialAndAssetStateAndNormalizesSeekInput() {
-        let capability = PlaybackCapabilityStub(currentTime: 3, duration: 10)
-        let viewModel = PlaybackProgressViewModel(playbackCapability: capability)
+        let playback = PlaybackStub(currentTime: 3, duration: 10)
+        let viewModel = PlaybackProgressViewModel(playbackProvider: playback)
 
         #expect(viewModel.currentTime == 3)
         #expect(viewModel.duration == 10)
@@ -123,8 +112,8 @@ struct PlaybackProgressTests {
         #expect(viewModel.currentTime == 6)
         #expect(viewModel.duration == 15)
 
-        capability.currentTime = 8
-        capability.duration = 20
+        playback.currentTime = 8
+        playback.duration = 20
         viewModel.handleAssetChanged()
         #expect(viewModel.currentTime == 8)
         #expect(viewModel.duration == 20)
@@ -133,30 +122,29 @@ struct PlaybackProgressTests {
         viewModel.seek(to: .nan)
         viewModel.seek(to: 4.5)
         #expect(viewModel.currentTime == 4.5)
-        #expect(capability.seekTimes == [0, 0, 4.5])
+        #expect(playback.seekTimes == [0, 0, 4.5])
     }
 
     @Test
     func progressBindingUpdatesDisplayWithoutDuplicatingPlaybackSeek() {
-        let capability = PlaybackCapabilityStub(currentTime: 1, duration: 10)
-        let viewModel = PlaybackProgressViewModel(playbackCapability: capability)
+        let playback = PlaybackStub(currentTime: 1, duration: 10)
+        let viewModel = PlaybackProgressViewModel(playbackProvider: playback)
         let view = PlaybackProgressView(viewModel: viewModel)
         let binding = view.makeCurrentTimeBinding()
 
         binding.wrappedValue = 3
         #expect(viewModel.currentTime == 3)
-        #expect(capability.seekTimes.isEmpty)
+        #expect(playback.seekTimes.isEmpty)
 
         view.handleSeek(4)
         #expect(viewModel.currentTime == 4)
-        #expect(capability.seekTimes == [4])
+        #expect(playback.seekTimes == [4])
     }
 
     @Test
     func observerRoutesProgressEventsAndStopsAfterCancellation() {
         let playback = PlaybackStub(currentTime: 1, duration: 10)
-        let capability = PlaybackProgressCapabilityAdapter(playback: playback)
-        let viewModel = PlaybackProgressViewModel(playbackCapability: capability)
+        let viewModel = PlaybackProgressViewModel(playbackProvider: playback)
         let observer = PlaybackProgressObserver(playback: playback, viewModel: viewModel)
 
         playback.send(.timeChanged(currentTime: 4, progress: 0.4))
@@ -179,7 +167,7 @@ struct PlaybackProgressTests {
 
     @Test
     func observerWithoutPlaybackCanBeCancelled() {
-        let viewModel = PlaybackProgressViewModel(playbackCapability: nil)
+        let viewModel = PlaybackProgressViewModel(playbackProvider: nil)
         let observer = PlaybackProgressObserver(playback: nil, viewModel: viewModel)
 
         observer.cancel()
@@ -189,11 +177,11 @@ struct PlaybackProgressTests {
 
     @Test
     func pluginRegistersDocsAndRestoresObserverAcrossLifecycle() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let playback = PlaybackStub(currentTime: 5, duration: 25)
         let docs = DefaultDocsViewProvider()
-        try kernel.registerPlayback(playback)
-        try kernel.registerDocsService(docs)
+        try kernel.registerProvider((any PlaybackProviding).self, playback)
+        try kernel.registerProvider((any DocsViewProviding).self, docs)
 
         let plugin = PlaybackProgressPlugin()
         try await plugin.onRegister(kernel: kernel)
@@ -202,12 +190,12 @@ struct PlaybackProgressTests {
         _ = docs.aboutEntries.first?.makeView()
         _ = docs.manualEntries.first?.makeView()
 
-        try await plugin.onBoot(kernel: kernel)
-        try await plugin.onReady(kernel: kernel)
+        try await plugin.onBootAsync(kernel: kernel)
+        try await plugin.onReadyAsync(kernel: kernel)
         #expect(plugin.addProgressView() != nil)
         #expect(playback.observerCount == 1)
 
-        try await plugin.onReady(kernel: kernel)
+        try await plugin.onReadyAsync(kernel: kernel)
         #expect(playback.observerCount == 1)
 
         try await plugin.onDisable(kernel: kernel)
@@ -216,24 +204,24 @@ struct PlaybackProgressTests {
         try await plugin.onEnable(kernel: kernel)
         #expect(playback.observerCount == 1)
 
-        try await plugin.onShutdown(kernel: kernel)
+        try await plugin.onShutdownAsync(kernel: kernel)
         #expect(playback.observerCount == 0)
     }
 
     @Test
     func pluginHandlesMissingOptionalProviders() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let plugin = PlaybackProgressPlugin()
 
         try await plugin.onRegister(kernel: kernel)
-        try await plugin.onReady(kernel: kernel)
+        try await plugin.onReadyAsync(kernel: kernel)
         #expect(plugin.addProgressView() != nil)
-        try await plugin.onShutdown(kernel: kernel)
+        try await plugin.onShutdownAsync(kernel: kernel)
     }
 
     @Test
     func progressAndDocumentationViewsBuildTheirContent() {
-        let viewModel = PlaybackProgressViewModel(playbackCapability: nil)
+        let viewModel = PlaybackProgressViewModel(playbackProvider: nil)
         _ = PlaybackProgressView(viewModel: viewModel).body
         _ = PlaybackProgressPluginAboutView().body
         _ = PlaybackProgressPluginManualView().body

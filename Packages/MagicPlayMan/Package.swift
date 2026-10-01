@@ -3,7 +3,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "MagicPlayMan",
+    name: "KitPlayback",
     defaultLocalization: "en",
     platforms: [
         .macOS(.v14),
@@ -16,13 +16,19 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../CisumUIComponents"),
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(path: "../ProviderPlayback"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
     ],
     targets: [
         .target(
             name: "MagicPlayMan",
             dependencies: [
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "ProviderPlayback", package: "ProviderPlayback"),
+                .product(name: "LumiUI", package: "LumiUI"),
             ],
             path: ".",
             sources: ["Sources"],
@@ -32,7 +38,10 @@ let package = Package(
         ),
         .testTarget(
             name: "MagicPlayManTests",
-            dependencies: ["MagicPlayMan"],
+            dependencies: [
+                "MagicPlayMan",
+                .product(name: "ProviderPlayback", package: "ProviderPlayback")
+            ],
             path: "Tests"
         )
     ]

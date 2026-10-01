@@ -1,5 +1,7 @@
-import KernelCore
 import ProviderScene
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import Testing
 @testable import PluginAudioDBView
 
@@ -14,47 +16,48 @@ import Testing
 struct AudioDBViewPluginSceneTests {
     @Test
     func contributesMusicTabWithSceneProviderResolvedAtReady() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         // onBoot 阶段存在的临时 Provider；它不会被替换后再更新场景。
-        try kernel.registerSceneService(StubSceneProvider(currentScene: .audiobooks))
+        let sceneProvider = StubSceneProvider(currentScene: .audiobooks)
+        try kernel.registerProvider((any SceneProviding).self, sceneProvider)
 
         let plugin = AudioDBViewPlugin()
-        try await plugin.onBoot(kernel: kernel)
+        try await plugin.onBootAsync(kernel: kernel)
 
         // 模拟 ScenePlugin.onReady：不再替换实例，只给同一个 SceneProvider 挂上
         // 持久化目录并恢复上次场景。这里用 Stub 直接 setCurrentScene(.music)。
-        let liveProvider = kernel.resolveProvider(SceneProviding.self) as? StubSceneProvider
-        #expect(liveProvider != nil)
-        liveProvider?.setCurrentScene(.music)
+        let liveProvider = kernel.resolveProvider((any SceneProviding).self)
+        #expect(liveProvider === sceneProvider)
+        sceneProvider.setCurrentScene(.music)
 
-        try await plugin.onReady(kernel: kernel)
+        try await plugin.onReadyAsync(kernel: kernel)
 
         // 读到的是同一个实例 → 音乐场景贡献 Tab（旧实现读到的是被释放的临时
         // Provider 弱引用 nil，此断言会失败）。
         #expect(plugin.addTabView(reason: "AppTabView") != nil)
 
         // 场景切走后不再贡献，切回后恢复 —— 守卫跟随当前激活 Provider。
-        liveProvider?.setCurrentScene(.audiobooks)
+        sceneProvider.setCurrentScene(.audiobooks)
         #expect(plugin.addTabView(reason: "AppTabView") == nil)
 
-        liveProvider?.setCurrentScene(.music)
+        sceneProvider.setCurrentScene(.music)
         #expect(plugin.addTabView(reason: "AppTabView") != nil)
     }
 
     @Test
     func duplicateSceneRegistrationThrowsUntilUnregistered() async throws {
-        let kernel = CisumKernel()
-        try kernel.registerSceneService(StubSceneProvider(currentScene: .music))
+        let kernel = KernelCoreContainer()
+        try kernel.registerProvider((any SceneProviding).self, StubSceneProvider(currentScene: .music))
 
         // 重复注册同一个 key 必须抛 providerAlreadyRegistered。
-        #expect(throws: CisumKernelError.self) {
-            try kernel.registerSceneService(StubSceneProvider(currentScene: .audiobooks))
+        #expect(throws: KernelCoreError.self) {
+            try kernel.registerProvider((any SceneProviding).self, StubSceneProvider(currentScene: .audiobooks))
         }
 
         // 显式 unregister 后允许再次注册（Lumi 风格的合法替换路径）。
-        kernel.unregisterProvider(SceneProviding.self)
-        try kernel.registerSceneService(StubSceneProvider(currentScene: .audiobooks))
-        #expect(kernel.scene?.currentScene == .audiobooks)
+        kernel.unregisterProvider((any SceneProviding).self)
+        try kernel.registerProvider((any SceneProviding).self, StubSceneProvider(currentScene: .audiobooks))
+        #expect(kernel.resolveProvider((any SceneProviding).self)?.currentScene == .audiobooks)
     }
 }
 

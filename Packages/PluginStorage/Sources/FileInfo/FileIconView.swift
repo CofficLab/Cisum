@@ -1,5 +1,6 @@
 import SwiftUI
 import CisumUIComponents
+import LumiUI
 
 
 struct FileIconView: View {

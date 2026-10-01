@@ -1,7 +1,12 @@
+import CisumProviderStorage
 import KernelCore
+import ProviderPlugin
 import Foundation
+import KitEventObservation
 import MagicKit
 import ProviderStorage
+
+private typealias CisumStorageProvidingEvent = CisumProviderStorage.StorageProvidingEvent
 
 /// `StorageProviding` 的具体实现。
 ///
@@ -13,19 +18,21 @@ import ProviderStorage
 /// 吸收了旧版 `Config` 的存储位置逻辑（iCloud / 本地 / 自定义）与数据库目录
 /// 管理，成为存储能力的唯一数据源。保持向后兼容：
 /// - `UserDefaults` key `"StorageLocation"`（与旧版 `Config` 一致）。
-/// - 存储变更通过内核事件 `.cisumStorageLocationDidChange` / `.cisumStorageLocationDidReset` 广播。
+/// - 存储变更通过 `StorageProvidingEvent` 广播。
 @MainActor
-public final class StorageProvider: ObservableObject, StorageProviding {
+public final class StorageProvider: ObservableObject, CisumProviderStorage.StorageProviding, ProviderStorage.StorageProviding {
     private static let storageLocationKey = "StorageLocation"
+    private let userDefaults: UserDefaults
 
     /// 数据根目录名：`db_<debug|production>_v<majorVersion>`（对齐 Lumi/GitOK 命名规则）。
     private let dataRootDirectoryName: String
 
     /// 缓存的数据库根目录（init 时尽力创建）。
     public let databaseRoot: URL
-    private let eventObservers = KernelEventObserverStore<StorageProvidingEvent>()
+    private let eventObservers = EventObserverStore<CisumStorageProvidingEvent>()
 
-    public init() {
+    public init(userDefaults: UserDefaults = .standard) {
+        self.userDefaults = userDefaults
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1"
         let majorVersion = Self.majorVersion(from: version)
 
@@ -41,8 +48,23 @@ public final class StorageProvider: ObservableObject, StorageProviding {
         databaseRoot = root
     }
 
+    // MARK: - Lumi ProviderStorage compatibility
+
+    /// Lumi's shared storage contract uses the same application data root as
+    /// Cisum's database root. Keeping this as a computed property ensures both
+    /// protocol views always refer to the same directory.
+    public var dataRootDirectory: URL { databaseRoot }
+
+    /// Shared Lumi plugins keep infrastructure data under the same Core
+    /// directory used by Cisum's storage root.
+    public func coreDataDirectory() -> URL {
+        let directory = databaseRoot.appendingPathComponent("Core", isDirectory: true)
+        try? Self.ensureDirectory(at: directory)
+        return directory
+    }
+
     public var currentStorageLocation: StorageLocation? {
-        guard let raw = UserDefaults.standard.string(forKey: Self.storageLocationKey),
+        guard let raw = userDefaults.string(forKey: Self.storageLocationKey),
               let location = StorageLocation(rawValue: raw) else { return nil }
         guard storageRoot(for: location) != nil else { return nil }
         return location
@@ -78,43 +100,22 @@ public final class StorageProvider: ObservableObject, StorageProviding {
     }
 
     public func setStorageLocation(_ location: StorageLocation?) {
-        UserDefaults.standard.set(location?.rawValue, forKey: Self.storageLocationKey)
+        userDefaults.set(location?.rawValue, forKey: Self.storageLocationKey)
         eventObservers.send(.locationChanged(location))
         eventObservers.send(.storageAvailabilityChanged)
-        NotificationCenter.default.post(name: .cisumStorageLocationDidChange, object: nil)
     }
 
     public func resetStorageLocation() {
-        UserDefaults.standard.removeObject(forKey: Self.storageLocationKey)
+        userDefaults.removeObject(forKey: Self.storageLocationKey)
         eventObservers.send(.locationChanged(nil))
         eventObservers.send(.storageAvailabilityChanged)
-        NotificationCenter.default.post(name: .cisumStorageLocationDidReset, object: nil)
     }
 
     @discardableResult
     public func addObserver(
-        _ callback: @escaping (StorageProvidingEvent) -> Void
-    ) -> any StorageProvidingObserverHandle {
+        _ callback: @escaping (CisumProviderStorage.StorageProvidingEvent) -> Void
+    ) -> any CisumProviderStorage.StorageProvidingObserverHandle {
         eventObservers.add(callback)
-    }
-
-    // MARK: - Bridging（为旧版 `StorageDependencies` 视图提供兼容入口）
-
-    /// 由插件在 `onBoot` 设置，供 `StoragePlugin.addSettingView` 构建旧版依赖闭包使用。
-    nonisolated(unsafe) public static var current: StorageProvider?
-
-    /// 构建旧版 `StorageDependencies`，桥接到当前 `StorageProvider`。
-    public static func makePluginDependencies() -> StorageDependencies {
-        StorageDependencies(
-            getStorageLocation: { current?.currentStorageLocation.map { StoragePluginLocation($0) } },
-            updateStorageLocation: { current?.setStorageLocation($0.map { StorageLocation($0) }) },
-            getStorageRoot: { current?.storageRoot },
-            getStorageRootForLocation: { current?.storageRoot(for: StorageLocation($0)) },
-            postStorageLocationUpdated: {
-                NotificationCenter.default.post(name: .cisumStorageLocationDidChange, object: nil)
-            },
-            isDesktop: MagicApp.isDesktop
-        )
     }
 
     // MARK: - 数据根目录命名（对齐 GitOK DefaultStorageProvider）
@@ -138,19 +139,5 @@ public final class StorageProvider: ObservableObject, StorageProviding {
             try FileManager.default.removeItem(at: url)
         }
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-    }
-}
-
-// MARK: - StorageLocation ↔ StoragePluginLocation
-
-public extension StoragePluginLocation {
-    init(_ location: StorageLocation) {
-        self = StoragePluginLocation(rawValue: location.rawValue) ?? .local
-    }
-}
-
-public extension StorageLocation {
-    init(_ location: StoragePluginLocation) {
-        self = StorageLocation(rawValue: location.rawValue) ?? .local
     }
 }

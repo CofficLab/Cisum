@@ -1,4 +1,6 @@
 import CisumUIComponents
+import MagicKit
+import LumiUI
 import OSLog
 import StoreKit
 import SwiftUI

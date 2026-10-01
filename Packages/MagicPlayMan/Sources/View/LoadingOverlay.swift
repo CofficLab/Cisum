@@ -1,5 +1,7 @@
 import SwiftUI
 import CisumUIComponents
+import LumiUI
+import MagicKit
 
 struct LoadingOverlay: View {
     let state: PlaybackState.LoadingState

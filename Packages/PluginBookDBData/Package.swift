@@ -16,8 +16,10 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../KernelCore"),
-        .package(path: "../MagicKit"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
+        .package(path: "../KitAppEvents"),
+        .package(path: "../ProviderPlugin"),
+        .package(name: "KitMagic", path: "../MagicKit"),
         .package(path: "../ProviderBook"),
         .package(path: "../ProviderStorage"),
     ],
@@ -25,8 +27,10 @@ let package = Package(
         .target(
             name: "PluginBookDBData",
             dependencies: [
-                .product(name: "KernelCore", package: "KernelCore"),
-                .product(name: "MagicKit", package: "MagicKit"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
+                .product(name: "MagicKit", package: "KitMagic"),
                 .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "ProviderBookData", package: "ProviderBook"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
@@ -37,7 +41,9 @@ let package = Package(
             name: "BookDBDataPluginTests",
             dependencies: [
                 "PluginBookDBData",
-                .product(name: "KernelCore", package: "KernelCore"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
             ],

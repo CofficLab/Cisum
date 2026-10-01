@@ -1,8 +1,8 @@
+import CisumProviderStorage
 @testable import PluginBook
 import ProviderBook
 import ProviderBookData
 import Foundation
-import ProviderStorage
 import Testing
 @testable import ProviderBookData
 import SwiftData
@@ -46,14 +46,8 @@ import SwiftUI
         withDestinationURL: root.appendingPathComponent("missing-books", isDirectory: true)
     )
 
-    BookPluginHost.configure(
-        dbRoot: { root.appendingPathComponent("db", isDirectory: true) },
-        storageRoot: { root },
-        storageLocationDidChangeNotifications: []
-    )
-
     let preparedDisk = try #require(
-        try BookPluginHost.getStorageRoot()?.appendingPathComponent(BookPlugin.dirName, isDirectory: true).ensureDirectory()
+        try root.appendingPathComponent(BookPlugin.dirName, isDirectory: true).ensureDirectory()
     )
     var isDirectory: ObjCBool = false
 
@@ -61,26 +55,6 @@ import SwiftUI
     #expect(FileManager.default.fileExists(atPath: bookDisk.path, isDirectory: &isDirectory))
     #expect(isDirectory.boolValue)
     #expect((try? FileManager.default.destinationOfSymbolicLink(atPath: bookDisk.path)) == nil)
-}
-
-@MainActor
-@Test func bookDBDeletedNotificationPostsSynchronouslyOnMainThread() {
-    let deletedURL = URL(fileURLWithPath: "/tmp/cisum-book-event-tests/deleted.m4b")
-    let receivedURLs = TestNotificationValue<[URL]>([])
-    let token = NotificationCenter.default.addObserver(
-        forName: .bookDBDeleted,
-        object: nil,
-        queue: nil
-    ) { notification in
-        let urls = notification.userInfo?["urls"] as? [URL] ?? []
-        guard urls == [deletedURL] else { return }
-        receivedURLs.set(urls)
-    }
-    defer { NotificationCenter.default.removeObserver(token) }
-
-    NotificationCenter.postBookDBDeleted(urls: [deletedURL])
-
-    #expect(receivedURLs.value == [deletedURL])
 }
 
 @Test func symlinkedBookFolderIsSupportedLibraryItem() throws {
@@ -956,30 +930,23 @@ private actor CoverLoaderProbe {
     #expect(next == fourth)
 }
 
-@Test func bookDBDeleteByIDPostsDeletedURLs() async throws {
+@MainActor
+@Test func bookDBDeleteByIDPublishesTypedDeletedURLs() async throws {
     let schema = Schema([BookModel.self, BookState.self])
     let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
     let container = try ModelContainer(for: schema, configurations: [configuration])
-    let db = BookDB(container, reason: "bookDBDeleteByIDPostsDeletedURLs")
-    let bookURL = URL(fileURLWithPath: "/tmp/cisum-book-delete-notification/Novel.m4b")
     let receivedURLs = TestNotificationValue<[URL]>([])
-    let token = NotificationCenter.default.addObserver(
-        forName: .bookDBDeleted,
-        object: nil,
-        queue: nil
-    ) { notification in
-        let urls = notification.userInfo?["urls"] as? [URL] ?? []
-        guard urls == [bookURL] else { return }
-        receivedURLs.set(urls)
-    }
-    defer { NotificationCenter.default.removeObserver(token) }
+    let db = BookDB(
+        container,
+        reason: "bookDBDeleteByIDPublishesTypedDeletedURLs",
+        eventHandler: { event in
+            guard case .libraryDeleted(let urls) = event else { return }
+            receivedURLs.set(urls)
+        }
+    )
+    let bookURL = URL(fileURLWithPath: "/tmp/cisum-book-delete-notification/Novel.m4b")
 
     try await db.insertAndDeleteBookForTesting(bookURL)
-
-    for _ in 0..<10 where receivedURLs.value != [bookURL] {
-        try await Task.sleep(nanoseconds: 10_000_000)
-    }
-
     #expect(receivedURLs.value == [bookURL])
 }
 
@@ -1028,10 +995,10 @@ private actor CoverLoaderProbe {
 }
 
 extension BookDB {
-    func insertAndDeleteBookForTesting(_ url: URL) throws {
+    func insertAndDeleteBookForTesting(_ url: URL) async throws {
         let book = BookModel(url: url, order: 10)
         try insertModel(book)
-        _ = delete(ids: [book.id], verbose: false)
+        _ = await delete(ids: [book.id], verbose: false)
     }
 
     func findOrCreateReturnsInsertedBook(_ url: URL) -> Bool {
@@ -1042,12 +1009,12 @@ extension BookDB {
         return created === fetched
     }
 
-    func deleteReturnsNilWhenOnlyNextIsSymlinkedDuplicate(realBook: URL, linkedBook: URL) throws -> Bool {
+    func deleteReturnsNilWhenOnlyNextIsSymlinkedDuplicate(realBook: URL, linkedBook: URL) async throws -> Bool {
         let book = BookModel(url: realBook, order: 10)
         try insertModel(book)
         try insertModel(BookModel(url: linkedBook, order: 20))
 
-        return delete(ids: [book.id], verbose: false) == nil
+        return await delete(ids: [book.id], verbose: false) == nil
     }
 
     func deleteNextURLAfterBatchDeleting(
@@ -1055,7 +1022,7 @@ extension BookDB {
         second: URL,
         third: URL,
         fourth: URL
-    ) throws -> URL? {
+    ) async throws -> URL? {
         try insertModel(BookModel(url: first, order: 10))
         let secondBook = BookModel(url: second, order: 20)
         let thirdBook = BookModel(url: third, order: 30)
@@ -1063,7 +1030,7 @@ extension BookDB {
         try insertModel(thirdBook)
         try insertModel(BookModel(url: fourth, order: 40))
 
-        return delete(ids: [thirdBook.id, secondBook.id], verbose: false)?.url
+        return await delete(ids: [thirdBook.id, secondBook.id], verbose: false)?.url
     }
 }
 

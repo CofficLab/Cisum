@@ -1,6 +1,6 @@
-import MagicPlayMan
-import ProviderPlayback
 import ProviderScene
+import ProviderPlayback
+import MagicPlayMan
 import MagicKit
 
 @MainActor
@@ -21,9 +21,7 @@ final class AudioPlayModeObserver: SuperLog {
         }
         playbackHandle = playback.addObserver { [weak self] event in
             guard case .playModeChanged(let mode) = event else { return }
-                self?.viewModel?.applyPlayModeChanged(
-                    MagicPlayMode(rawValue: mode.rawValue) ?? .sequence
-                )
+            self?.viewModel?.applyPlayModeChanged(mode)
         }
     }
 

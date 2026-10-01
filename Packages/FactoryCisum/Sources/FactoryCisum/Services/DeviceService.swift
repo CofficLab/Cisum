@@ -1,7 +1,6 @@
-import KernelCore
+import ProviderDevice
 import Foundation
 import MagicKit
-import ProviderDevice
 #if canImport(AppKit)
     import AppKit
 #endif

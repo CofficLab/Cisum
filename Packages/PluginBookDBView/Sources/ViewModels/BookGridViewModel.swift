@@ -3,6 +3,8 @@ import Foundation
 import MagicKit
 import OSLog
 import ProviderBook
+import ProviderPlayback
+import ProviderToast
 import SwiftUI
 
 /// 书籍网格视图的集中状态容器（迁移 Phase 3）。
@@ -24,8 +26,8 @@ final class BookGridViewModel: ObservableObject, SuperLog {
     @Published var lastStateUpdatedURL: URL?
 
     private var currentAsset: URL?
-    /// 书籍/章节点击所需的最小播放能力。
-    private let playbackCapability: (any BookDBPlaybackCapability)?
+    private let playbackProvider: (any PlaybackProviding)?
+    private let toastProvider: (any ToastProviding)?
     private var bookProvider: (any BookDatabaseProviding)?
     private var updateBooksGeneration = 0
     private var playBookGeneration = 0
@@ -33,8 +35,9 @@ final class BookGridViewModel: ObservableObject, SuperLog {
 
     private static let verbose = false
 
-    init(playbackCapability: (any BookDBPlaybackCapability)? = nil) {
-        self.playbackCapability = playbackCapability
+    init(playbackProvider: (any PlaybackProviding)? = nil, toastProvider: (any ToastProviding)? = nil) {
+        self.playbackProvider = playbackProvider
+        self.toastProvider = toastProvider
     }
 
     func bind(provider: (any BookDatabaseProviding)?) {
@@ -94,11 +97,6 @@ final class BookGridViewModel: ObservableObject, SuperLog {
         playBookGeneration = BookGridPlaybackRequestPolicy.generationAfterInvalidatingPendingPlayback(playBookGeneration)
         scheduleUpdateBooksDebounced()
         isSyncing = false
-    }
-
-    func handleBookDBSortDone() {
-        playBookGeneration = BookGridPlaybackRequestPolicy.generationAfterInvalidatingPendingPlayback(playBookGeneration)
-        scheduleUpdateBooksDebounced()
     }
 
     func handleBookDBUpdated() {
@@ -208,7 +206,7 @@ final class BookGridViewModel: ObservableObject, SuperLog {
         }
 
         if Self.verbose { os_log("\(Self.t)▶️ 播放(\(reason)): \(url.lastPathComponent) @ \(time.map { "\($0)s" } ?? "开头")") }
-        await playbackCapability?.play(url, startTime: time)
+        await playbackProvider?.play(url, startTime: time)
     }
 
     private func playBook(_ book: BookDTO, generation: Int) async {
@@ -240,7 +238,7 @@ final class BookGridViewModel: ObservableObject, SuperLog {
             ) else {
                 return
             }
-            await playbackCapability?.play(first, startTime: nil)
+            await playbackProvider?.play(first, startTime: nil)
         } else {
             guard BookGridPlaybackRequestPolicy.shouldReportNoPlayableChapters(
                 currentGeneration: playBookGeneration,
@@ -254,11 +252,11 @@ final class BookGridViewModel: ObservableObject, SuperLog {
 
             guard FileManager.default.fileExists(atPath: book.url.path),
                   BookPluginInfo.supportedExtensions.contains(book.url.pathExtension.lowercased()) else {
-                alert_error(String(localized: "No playable chapters found", bundle: .module))
+                toastProvider?.error(String(localized: "No playable chapters found", bundle: .module))
                 return
             }
 
-            await playbackCapability?.play(book.url, startTime: nil)
+            await playbackProvider?.play(book.url, startTime: nil)
         }
     }
 

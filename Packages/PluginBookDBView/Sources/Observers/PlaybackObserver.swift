@@ -1,5 +1,5 @@
-import OSLog
 import ProviderPlayback
+import OSLog
 import MagicKit
 
 /// 有声书库播放状态观察者：把当前章节变化转发到网格 ViewModel。

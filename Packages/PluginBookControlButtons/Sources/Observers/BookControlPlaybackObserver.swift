@@ -1,7 +1,7 @@
+import ProviderPlayback
 import Foundation
 import OSLog
 import MagicPlayMan
-import ProviderPlayback
 import MagicKit
 
 /// 播放观察者：订阅 `PlaybackProviding` 的播放事件，转发到
@@ -23,9 +23,7 @@ final class BookControlPlaybackObserver: SuperLog {
             case .stateChanged(let state):
                 self.viewModel?.applyStateChanged(state)
             case .playModeChanged(let mode):
-                self.viewModel?.applyPlayModeChanged(
-                    MagicPlayMode(rawValue: mode.rawValue) ?? .sequence
-                )
+                self.viewModel?.applyPlayModeChanged(mode)
             case .previousRequested(let asset):
                 self.viewModel?.handlePreviousRequested(asset)
             case .nextRequested(let asset):

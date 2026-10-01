@@ -1,42 +1,57 @@
-import KernelCore
-import ProviderDocsView
-import CisumUIComponents
 import ProviderAudioLike
-import ProviderStorage
-import ProviderPlayback
 import ProviderScene
+import ProviderDocsView
+import ProviderPlayback
+import CisumProviderStorage
+import ProviderToast
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
+import CisumUIComponents
+import LumiUI
+import ProviderSettingView
 import SwiftUI
 import MagicKit
 
-public actor AudioLikePlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class AudioLikePlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: AudioLikePlugin.self)
+
     nonisolated static let verbose = false
 
     public static let shared = AudioLikePlugin()
-    public static let metadata = PluginMetadata(
-        displayName: AudioLikePluginInfo.title,
-        description: AudioLikePluginInfo.description,
-        iconName: AudioLikePluginInfo.iconName,
-        order: AudioLikePluginInfo.order,
+    public let order = AudioLikePluginInfo.order
+    public let iconName = AudioLikePluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: AudioLikePlugin.self),
+        name: AudioLikePluginInfo.title,
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
         policy: .disabled,
-        category: .like,
+        permissions: []
     )
 
     nonisolated(unsafe) private let sceneBox = SceneBox()
-    nonisolated(unsafe) private weak var kernel: CisumKernel?
+    nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var viewModel: AudioLikeViewModel?
     nonisolated(unsafe) private var observer: AudioLikeObserver?
     nonisolated(unsafe) private var likeProvider: AudioLikeProvider?
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { AudioLikePluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { AudioLikePluginManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { AudioLikePluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { AudioLikePluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            if let view = self.addSettingView() { contrib.addSettingView(ownerPluginID: id, view) }
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
+        }
         self.kernel = kernel
         // 跨插件 Provider（Scene / Playback）在 onReady 中解析，
         // 不假设其他插件已完成 Provider 注册。
@@ -44,26 +59,28 @@ public actor AudioLikePlugin: SuperPlugin, SuperLog {
 
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
     @MainActor
-    public func onReady(kernel: CisumKernel) async throws {
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         try installProvider(kernel: kernel)
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onEnable(kernel: CisumKernel) async throws {
+    public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         try installProvider(kernel: kernel)
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onDisable(kernel: CisumKernel) async throws {
+    public func onDisable(kernel: KernelCoreContainer) async throws {
         teardownState()
         removeProvider(from: kernel)
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["liked-audio"])
         sceneBox.scene = nil
         teardownState()
         removeProvider(from: kernel)
@@ -82,15 +99,16 @@ public actor AudioLikePlugin: SuperPlugin, SuperLog {
     }
 
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         let viewModel = resolveViewModel()
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: "liked-audio",
             title: String(localized: "Liked audio", bundle: .module),
-            description: Self.metadata.description,
-            iconName: Self.metadata.iconName,
-            order: Self.metadata.order,
-            destination: AnyView(AudioLikeSettingsView(viewModel: viewModel))
+            systemImage: iconName,
+            order: order,
+            detail: {
+            AudioLikeSettingsView(viewModel: viewModel)
+        }
         )
     }
 
@@ -98,7 +116,7 @@ public actor AudioLikePlugin: SuperPlugin, SuperLog {
 
     /// 创建并持有喜欢状态 ViewModel 与观察者（幂等）。
     @MainActor
-    private func installState(kernel: CisumKernel) {
+    private func installState(kernel: KernelCoreContainer) {
         guard viewModel == nil else { return }
 
         guard let scene = kernel.resolveProvider((any SceneProviding).self),
@@ -106,9 +124,10 @@ public actor AudioLikePlugin: SuperPlugin, SuperLog {
         sceneBox.scene = scene
 
         let viewModel = AudioLikeViewModel(
-            playbackCapability: makePlaybackCapability(from: playback),
+            isPlaybackAvailable: true,
             loadLikedAudios: makeLoadLikedAudios(),
-            saveLikeStatus: makeSaveLikeStatus()
+            saveLikeStatus: makeSaveLikeStatus(),
+            toastProvider: kernel.resolveProvider((any ToastProviding).self)
         )
         let observer = AudioLikeObserver(scene: scene, playback: playback, viewModel: viewModel)
         self.viewModel = viewModel
@@ -116,15 +135,15 @@ public actor AudioLikePlugin: SuperPlugin, SuperLog {
     }
 
     @MainActor
-    private func installProvider(kernel: CisumKernel) throws {
-        guard likeProvider == nil, let storage = kernel.storage else { return }
+    private func installProvider(kernel: KernelCoreContainer) throws {
+        guard likeProvider == nil, let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
         let provider = AudioLikeProvider(storage: storage)
         likeProvider = provider
-        try kernel.registerAudioLike(provider)
+        try kernel.registerProvider((any AudioLikeProviding).self, provider)
     }
 
     @MainActor
-    private func removeProvider(from kernel: CisumKernel) {
+    private func removeProvider(from kernel: KernelCoreContainer) {
         likeProvider?.shutdown()
         likeProvider = nil
         kernel.unregisterProvider(AudioLikeProviding.self)
@@ -145,28 +164,20 @@ public actor AudioLikePlugin: SuperPlugin, SuperLog {
             return viewModel
         }
         let viewModel = AudioLikeViewModel(
-            playbackCapability: makePlaybackCapability(from: kernel?.playback),
+            isPlaybackAvailable: kernel?.resolveProvider((any PlaybackProviding).self) != nil,
             loadLikedAudios: makeLoadLikedAudios(),
-            saveLikeStatus: makeSaveLikeStatus()
+            saveLikeStatus: makeSaveLikeStatus(),
+            toastProvider: kernel?.resolveProvider((any ToastProviding).self)
         )
         self.viewModel = viewModel
         return viewModel
-    }
-
-    /// 将内核能力收窄后注入 ViewModel；ViewModel 不持有 Kernel。
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any AudioLikePlaybackCapability)? {
-        guard let playback else { return nil }
-        return AudioLikePlaybackCapabilityAdapter(playback: playback)
     }
 
     /// 本地喜欢仓库的加载入口（由插件入口组装，不暴露单例给 ViewModel）。
     @MainActor
     private func makeLoadLikedAudios() -> AudioLikeLoadProvider {
         { @MainActor in
-            await self.kernel?.audioLike?.allLiked() ?? []
+            await self.kernel?.resolveProvider((any AudioLikeProviding).self)?.allLiked() ?? []
         }
     }
 
@@ -174,7 +185,7 @@ public actor AudioLikePlugin: SuperPlugin, SuperLog {
     @MainActor
     private func makeSaveLikeStatus() -> AudioLikeSaveProvider {
         { @MainActor audioId, liked, url, title in
-            guard let provider = self.kernel?.audioLike else { return }
+            guard let provider = self.kernel?.resolveProvider((any AudioLikeProviding).self) else { return }
             try await provider.updateLikeStatus(
                 audioId: audioId,
                 liked: liked,

@@ -1,10 +1,13 @@
+import MagicKit
 import CisumUIComponents
+import LumiUI
 import Foundation
 import OSLog
 import SwiftData
 import SwiftUI
 import UniformTypeIdentifiers
 import ProviderAudioLibrary
+import ProviderToast
 
 // NSItemProvider is thread-safe by design but not yet marked Sendable by Apple.
 extension NSItemProvider: @retroactive @unchecked Sendable {}
@@ -15,6 +18,7 @@ public struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
     public nonisolated static let verbose = false
 
     @ObservedObject private var dbViewModel: AudioDBViewModel
+    @Environment(\.toastProviding) private var toastProvider
     private let listViewModel: AudioListViewModel
     private let dependencies: AudioDBDependencies
     @LumiTheme private var appTheme
@@ -25,6 +29,23 @@ public struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
 
     /// 是否正在复制导入文件
     @State private var isImportingFiles: Bool = false
+
+    /// 文件选择器的呈现状态由当前 SwiftUI subtree 持有；仅写入外部 provider
+    /// Binding 不会使此视图失效，导致点击导入后选择器不呈现。
+    @State private var isPresentingImporter = false
+
+    private var viewDependencies: AudioDBDependencies {
+        AudioDBDependencies(
+            audioLibrary: dependencies.audioLibrary,
+            audioDisk: dependencies.audioDisk,
+            audioDiagnostics: dependencies.audioDiagnostics,
+            supportedExtensions: dependencies.supportedExtensions,
+            isDesktop: dependencies.isDesktop,
+            isNotDesktop: dependencies.isNotDesktop,
+            showDBView: dependencies.showDBView,
+            isImporting: $isPresentingImporter
+        )
+    }
 
     init(
         isDemoMode: Bool,
@@ -47,13 +68,13 @@ public struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
             if isDemoMode {
                 EmptyView()
             } else {
-                AudioList(viewModel: listViewModel, dependencies: dependencies)
+                AudioList(viewModel: listViewModel, dependencies: viewDependencies)
             }
         }
         .overlay(alignment: .center) {
             if dbViewModel.isSorting {
                 AudioDBTips(
-                    dependencies: dependencies,
+                    dependencies: viewDependencies,
                     variant: .sorting,
                     sortingMessage: dbViewModel.sortMode.description
                 )
@@ -63,11 +84,14 @@ public struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
         .frame(maxHeight: .infinity)
         .background(appTheme.background.ignoresSafeArea())
         .fileImporter(
-            isPresented: dependencies.isImporting,
+            isPresented: $isPresentingImporter,
             allowedContentTypes: [.audio],
             allowsMultipleSelection: true,
             onCompletion: handleFileImport
         )
+        .onChange(of: isPresentingImporter) { _, isImporting in
+            dependencies.isImporting.wrappedValue = isImporting
+        }
         .onDrop(of: [UTType.fileURL], isTargeted: $isDropping, perform: handleDrop)
     }
 }
@@ -333,7 +357,7 @@ extension AudioDBView {
         }
 
         guard Self.shouldStartImport(isImporting: isImportingFiles) else {
-            alert_warning(String(localized: "Import is already in progress", bundle: .module))
+            toastProvider?.warning(String(localized: "Import is already in progress", bundle: .module))
             return
         }
 
@@ -348,16 +372,16 @@ extension AudioDBView {
         )
 
         guard !importableURLs.isEmpty else {
-            alert_error(String(localized: "No files were added", bundle: .module))
+            toastProvider?.error(String(localized: "No files were added", bundle: .module))
             return
         }
 
         if importableURLs.count < urls.count {
-            alert_warning(String(localized: "Some files were skipped because they are not supported audio files", bundle: .module))
+            toastProvider?.warning(String(localized: "Some files were skipped because they are not supported audio files", bundle: .module))
         }
 
         guard let storageRoot = await fetchStorageRoot() else {
-            alert_error(String(localized: "Storage location is unavailable", bundle: .module))
+            toastProvider?.error(String(localized: "Storage location is unavailable", bundle: .module))
             return
         }
 
@@ -365,14 +389,14 @@ extension AudioDBView {
             let copiedURLs = try await copyFiles(importableURLs, to: storageRoot)
             guard let library = dependencies.audioLibrary() else {
                 Self.cleanUpCopiedFiles(copiedURLs)
-                alert_error(String(localized: "Import failed: audio repository is unavailable", bundle: .module))
+                toastProvider?.error(String(localized: "Import failed: audio repository is unavailable", bundle: .module))
                 return
             }
 
             await library.sync(urls: copiedURLs, verbose: false, isFirst: false)
         } catch {
             os_log(.error, "\(self.t)❌ Failed to copy files: \(error.localizedDescription)")
-            alert_error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))
+            toastProvider?.error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))
         }
     }
 }
@@ -394,7 +418,7 @@ extension AudioDBView {
 
             case let .failure(error):
                 os_log(.error, "\(self.t)❌ File import failed: \(error.localizedDescription)")
-                alert_error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))
+                toastProvider?.error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))
             }
         }
     }
@@ -413,10 +437,10 @@ extension AudioDBView {
                 if Self.shouldReportDroppedURLLoadFailure(droppedFiles.urls, errors: droppedFiles.errors),
                    let error = droppedFiles.errors.first {
                     os_log(.error, "\(self.t)⚠️ Failed to load dropped file: \(error.localizedDescription)")
-                    alert_error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))
+                    toastProvider?.error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))
                 } else if Self.shouldReportPartialDroppedURLLoadFailure(droppedFiles.urls, errors: droppedFiles.errors) {
                     os_log(.error, "\(self.t)⚠️ Some dropped files failed to load")
-                    alert_warning(String(localized: "Some dropped files could not be loaded", bundle: .module))
+                    toastProvider?.warning(String(localized: "Some dropped files could not be loaded", bundle: .module))
                 }
 
                 guard Self.shouldImportDroppedURLs(droppedFiles.urls, after: droppedFiles.errors) else {

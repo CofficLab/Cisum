@@ -15,21 +15,31 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../MagicKit"),
-        .package(path: "../CisumUIComponents"),
-        .package(path: "../KernelCore"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
-        .package(path: "../ProviderAudioLibrary")
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.0.1"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
+        .package(path: "../KitAppEvents"),
+        .package(path: "../ProviderPlugin"),
+        .package(path: "../ProviderAudioLibrary"),
+        .package(name: "ProviderStorage", path: "../ProviderStorage"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.3.4"),
     ],
     targets: [
         .target(
             name: "PluginAudioSettings",
             dependencies: [
-                .product(name: "MagicKit", package: "MagicKit"),
-                "CisumUIComponents",
-                "KernelCore",
-                "ProviderDocsView",
-                .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary")
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
+                .product(name: "ProviderSettingView", package: "LumiSettings"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
+                .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+                .product(name: "ProviderStorage", package: "ProviderStorage"),
             ],
             path: ".",
             sources: ["Sources"],

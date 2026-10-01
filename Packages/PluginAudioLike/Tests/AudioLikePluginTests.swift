@@ -1,8 +1,8 @@
+import ProviderScene
+import ProviderPlayback
 import Foundation
 @testable import PluginAudioLike
 import ProviderAudioLike
-import ProviderPlayback
-import ProviderScene
 import Testing
 
 private final class NotificationObserverToken: @unchecked Sendable {
@@ -19,7 +19,7 @@ private final class NotificationObserverToken: @unchecked Sendable {
 @MainActor
 func pluginExposesSettingsNavigationItem() {
     let view = AudioLikePlugin.shared.addSettingView()
-    let item = AudioLikePlugin.shared.addSettingNavigationItem()
+    let item = AudioLikePlugin.shared.makeSettingEntry()
 
     #expect(view == nil)
     #expect(item != nil)
@@ -340,16 +340,11 @@ private final class ProbeSceneHandle: SceneProvidingObserverHandle {
 }
 
 @MainActor
-private final class LikePlaybackProbe: AudioLikePlaybackCapability {
-    var isAvailable = true
-}
-
-@MainActor
 struct AudioLikeViewModelTests {
     @Test
     func reloadAppliesOnlyLatestGeneration() async throws {
         let viewModel = AudioLikeViewModel(
-            playbackCapability: nil,
+            isPlaybackAvailable: false,
             loadLikedAudios: { [] },
             saveLikeStatus: { _, _, _, _ in }
         )
@@ -365,7 +360,7 @@ struct AudioLikeViewModelTests {
     func sceneChangeActivationGatesLikeSaving() async throws {
         var saved: [String] = []
         let viewModel = AudioLikeViewModel(
-            playbackCapability: LikePlaybackProbe(),
+            isPlaybackAvailable: true,
             loadLikedAudios: { [] },
             saveLikeStatus: { audioId, _, _, _ in saved.append(audioId) }
         )
@@ -395,7 +390,7 @@ struct AudioLikeViewModelTests {
         let scene = SceneProbe()
         scene.currentScene = .music
         let viewModel = AudioLikeViewModel(
-            playbackCapability: LikePlaybackProbe(),
+            isPlaybackAvailable: true,
             loadLikedAudios: { [] },
             saveLikeStatus: { _, _, _, _ in }
         )

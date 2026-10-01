@@ -1,49 +1,70 @@
-import CisumUIComponents
-import KernelCore
+import ProviderAppState
 import ProviderDocsView
 import ProviderPlayback
+import ProviderAudioLibrary
+import ProviderScene
+import CisumUIComponents
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import SwiftUI
 import MagicKit
 
 /// 播放封面插件：向播放控制区注入封面/标题区视图（`setHeroView`）。
-public actor PlaybackHeroPlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: PlaybackHeroPlugin.self)
+
     nonisolated static let verbose = false
 
     public static let shared = PlaybackHeroPlugin()
-    public static let metadata = PluginMetadata(
-        displayName: String(localized: "Playback Cover", bundle: .module),
+    public let order = 19
+    public let iconName = "photo"
+    public let metadata = PluginMetadata(
+        id: String(describing: PlaybackHeroPlugin.self),
+        name: String(localized: "Playback Cover", bundle: .module),
         description: String(localized: "Provides the cover and title view for the player control area.", bundle: .module),
-        iconName: "photo",
-        order: 19,
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
         policy: .alwaysOn,
-        category: .playback,
-        version: "1.0.0"
+        permissions: []
     )
 
-    nonisolated(unsafe) private weak var kernel: CisumKernel?
+    nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var viewModel: PlaybackHeroViewModel?
     nonisolated(unsafe) private var observer: PlaybackHeroObserver?
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { PlaybackHeroPluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { PlaybackHeroPluginManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { PlaybackHeroPluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { PlaybackHeroPluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
     }
 
     @MainActor
-    public func onReady(kernel: CisumKernel) async throws {
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         installState(kernel: kernel)
+
+        guard let contribution = kernel.resolveProvider((any PluginContributionProviding).self) else { return }
+        if let view = addHeroView() {
+            contribution.addHeroView(ownerPluginID: id, view)
+        }
+        if let view = addRightAlbumView() {
+            contribution.addRightAlbumView(ownerPluginID: id, view)
+        }
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
         observer?.cancel()
         observer = nil
         viewModel = nil
@@ -58,7 +79,7 @@ public actor PlaybackHeroPlugin: SuperPlugin, SuperLog {
         return AnyView(
             PlaybackHeroView(
                 viewModel: viewModel,
-                isDemoMode: kernel?.appState?.isDemoMode ?? false
+                isDemoMode: kernel?.resolveProvider((any AppStateProviding).self)?.isDemoMode ?? false
             )
         )
     }
@@ -72,13 +93,18 @@ public actor PlaybackHeroPlugin: SuperPlugin, SuperLog {
     }
 
     @MainActor
-    private func installState(kernel: CisumKernel?) {
+    private func installState(kernel: KernelCoreContainer?) {
         guard viewModel == nil else { return }
-        guard let playback = kernel?.playback else { return }
+        guard let playback = kernel?.resolveProvider((any PlaybackProviding).self) else { return }
         let media = kernel?.resolveProvider((any PlaybackMediaProviding).self)
-        let capability = PlaybackHeroPlaybackCapabilityAdapter(playback: playback, media: media)
-        let viewModel = PlaybackHeroViewModel(playbackCapability: capability)
+        let library = kernel?.resolveProvider((any AudioLibraryProviding).self)
+        let scene = kernel?.resolveProvider((any SceneProviding).self)
+        let viewModel = PlaybackHeroViewModel(
+            playbackProvider: playback,
+            mediaProvider: media,
+            isMusicSceneActive: scene.map { $0.currentScene == .music } ?? true
+        )
         self.viewModel = viewModel
-        observer = PlaybackHeroObserver(playback: playback, viewModel: viewModel)
+        observer = PlaybackHeroObserver(playback: playback, library: library, scene: scene, viewModel: viewModel)
     }
 }

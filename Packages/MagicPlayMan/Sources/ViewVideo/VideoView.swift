@@ -1,6 +1,8 @@
 import AVKit
 import SwiftUI
 import CisumUIComponents
+import LumiUI
+import MagicKit
 
 struct VideoPlayerView: View {
     let player: AVPlayer

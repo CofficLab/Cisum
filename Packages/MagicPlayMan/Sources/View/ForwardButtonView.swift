@@ -1,4 +1,6 @@
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import SwiftUI
 
 /// 快进按钮视图
@@ -37,7 +39,7 @@ struct ForwardButtonView: View {
 
     var body: some View {
         Button(action: { man.skipForward() }) {
-            Image(systemName: .iconGoforward10)
+        Image(systemName: PlaybackSymbol.goForwardTen)
                 .frame(width: size, height: size)
         }
         .disabled(disabledReason != nil)

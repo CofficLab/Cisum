@@ -1,9 +1,13 @@
+import MagicKit
 import Foundation
+import ProviderPlayback
 import CisumUIComponents
+import LumiUI
 import MagicPlayMan
 import OSLog
 
 public actor AudioPlayModeStore: SuperLog {
+
     public static let emoji = "💾"
     public static let verbose = false
 
@@ -13,26 +17,26 @@ public actor AudioPlayModeStore: SuperLog {
 
     private init() {}
 
-    public func getPlayMode() -> MagicPlayMode {
+    public func getPlayMode() -> PlaybackMode {
         Self.resolvedPlayMode(
             localRawValue: UserDefaults.standard.string(forKey: Self.playModeKey),
             cloudRawValue: NSUbiquitousKeyValueStore.default.string(forKey: Self.playModeKey)
         )
     }
 
-    static func resolvedPlayMode(localRawValue: String?, cloudRawValue: String?) -> MagicPlayMode {
-        if let localRawValue, let playMode = MagicPlayMode(rawValue: localRawValue) {
+    static func resolvedPlayMode(localRawValue: String?, cloudRawValue: String?) -> PlaybackMode {
+        if let localRawValue, let playMode = PlaybackMode(rawValue: localRawValue) {
             return playMode
         }
 
-        if let cloudRawValue, let playMode = MagicPlayMode(rawValue: cloudRawValue) {
+        if let cloudRawValue, let playMode = PlaybackMode(rawValue: cloudRawValue) {
             return playMode
         }
 
         return .sequence
     }
 
-    public func storePlayMode(_ mode: MagicPlayMode) {
+    public func storePlayMode(_ mode: PlaybackMode) {
         storePlayModeRawValue(mode.rawValue, shortName: mode.shortName)
     }
 
@@ -48,7 +52,7 @@ public actor AudioPlayModeStore: SuperLog {
     }
 
     public func resetToDefault() {
-        let defaultMode = MagicPlayMode.sequence
+        let defaultMode = PlaybackMode.sequence
         storePlayMode(defaultMode)
 
         if Self.verbose {
@@ -56,11 +60,11 @@ public actor AudioPlayModeStore: SuperLog {
         }
     }
 
-    public func getAvailableModes() -> [MagicPlayMode] {
+    public func getAvailableModes() -> [PlaybackMode] {
         [.sequence, .repeatAll, .loop, .shuffle]
     }
 
-    public func isModeAvailable(_ mode: MagicPlayMode) -> Bool {
+    public func isModeAvailable(_ mode: PlaybackMode) -> Bool {
         getAvailableModes().contains(mode)
     }
 }

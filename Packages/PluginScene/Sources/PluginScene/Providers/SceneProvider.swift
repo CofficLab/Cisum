@@ -1,6 +1,6 @@
+import ProviderScene
 import Combine
 import Foundation
-import ProviderScene
 
 /// `SceneProviding` 的磁盘持久化实现。
 ///

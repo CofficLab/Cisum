@@ -1,78 +1,96 @@
-import CisumUIComponents
-import KernelCore
-import ProviderDocsView
+import CisumProviderStorage
 import ProviderAudioLibrary
+import ProviderDocsView
+import CisumUIComponents
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
+import ProviderSettingView
 import SwiftUI
 import MagicKit
 
-public actor AudioSettingsPlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class AudioSettingsPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: AudioSettingsPlugin.self)
+
     nonisolated static let verbose = false
 
     public static let shared = AudioSettingsPlugin()
-    public static let metadata = PluginMetadata(
-        displayName: AudioSettingsPluginInfo.title,
-        description: AudioSettingsPluginInfo.description,
-        iconName: AudioSettingsPluginInfo.iconName,
-        order: AudioSettingsPluginInfo.order,
-        category: .settings,
+    public let order = AudioSettingsPluginInfo.order
+    public let iconName = AudioSettingsPluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: AudioSettingsPlugin.self),
+        name: AudioSettingsPluginInfo.title,
+        version: "1.0.0",
+        category: .system,
+        stage: .stable,
+        policy: .disabled,
+        permissions: []
     )
 
     nonisolated(unsafe) private var settingsViewModel: AudioSettingsViewModel?
     nonisolated(unsafe) private var settingsObserver: AudioSettingsObserver?
-    nonisolated(unsafe) private weak var kernel: CisumKernel?
+    nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
+    public func onRegister(kernel: KernelCoreContainer) throws {
         self.kernel = kernel
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { AudioSettingsPluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { AudioSettingsPluginManualView() })
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { AudioSettingsPluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { AudioSettingsPluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
+        }
         self.kernel = kernel
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onEnable(kernel: CisumKernel) async throws {
+    public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onDisable(kernel: CisumKernel) async throws {
+    public func onDisable(kernel: KernelCoreContainer) async throws {
         teardownState()
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["audio-settings"])
         teardownState()
         self.kernel = nil
     }
 
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         let viewModel = resolveViewModel()
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: "audio-settings",
             title: AudioSettingsPluginInfo.title,
-            description: Self.metadata.description,
-            iconName: "slider.horizontal.3",
+            systemImage: "slider.horizontal.3",
             order: AudioSettingsPluginInfo.order,
-            destination: AnyView(AudioSettingsPluginView(viewModel: viewModel))
+            detail: {
+            AudioSettingsPluginView(viewModel: viewModel)
+        }
         )
     }
 
     // MARK: - State assembly
 
     @MainActor
-    private func installState(kernel: CisumKernel) {
+    private func installState(kernel: KernelCoreContainer) {
         guard settingsViewModel == nil else { return }
         let viewModel = AudioSettingsViewModel(audioDisk: { [weak self] in self?.kernelAudioDisk() })
-        guard let storage = kernel.storage else { return }
+        guard let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
         let observer = AudioSettingsObserver(provider: storage, viewModel: viewModel)
         settingsViewModel = viewModel
         settingsObserver = observer
@@ -95,6 +113,6 @@ public actor AudioSettingsPlugin: SuperPlugin, SuperLog {
 
     @MainActor
     private func kernelAudioDisk() -> URL? {
-        kernel?.audioLibrary?.audioDisk
+        kernel?.resolveProvider((any AudioLibraryProviding).self)?.audioDisk
     }
 }

@@ -1,8 +1,8 @@
+import ProviderPlayback
 import Combine
 import Foundation
 import MagicKit
 import MagicPlayMan
-import ProviderPlayback
 import SwiftUI
 import os
 
@@ -112,7 +112,7 @@ public final class PlaybackProvider: PlaybackProviding, PlaybackMediaProviding, 
         if Self.verbose {
             Self.logger.info("\(Self.t)🔁 setPlayMode: \(mode.rawValue)")
         }
-        playback.changePlayMode(MagicPlayMode(rawValue: mode.rawValue) ?? .sequence)
+        playback.changePlayMode(PlaybackMode(rawValue: mode.rawValue) ?? .sequence)
     }
     public func toggleCurrentLike() { playback.toggleLike() }
     public func reset() async {
@@ -280,7 +280,7 @@ private extension PlaybackFailure {
     }
 }
 
-private extension MagicPlayMode {
+private extension PlaybackMode {
     var providerMode: PlaybackMode {
         PlaybackMode(rawValue: rawValue) ?? .sequence
     }

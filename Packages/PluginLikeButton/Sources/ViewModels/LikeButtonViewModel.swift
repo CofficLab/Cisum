@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import MagicKit
+import ProviderPlayback
 
 @MainActor
 final class LikeButtonViewModel: ObservableObject, SuperLog {
@@ -8,26 +9,26 @@ final class LikeButtonViewModel: ObservableObject, SuperLog {
 
     @Published private(set) var hasAsset = false
     @Published private(set) var isLiked = false
-    private let playbackCapability: (any LikeButtonPlaybackCapability)?
+    private let playbackProvider: (any PlaybackProviding)?
 
-    init(playbackCapability: (any LikeButtonPlaybackCapability)?) {
-        self.playbackCapability = playbackCapability
-        hasAsset = playbackCapability?.hasAsset ?? false
-        isLiked = playbackCapability?.currentURL.map { playbackCapability?.likedAssets.contains($0) ?? false } ?? false
+    init(playbackProvider: (any PlaybackProviding)?) {
+        self.playbackProvider = playbackProvider
+        hasAsset = playbackProvider?.hasAsset ?? false
+        isLiked = playbackProvider?.currentURL.map { playbackProvider?.likedAssets.contains($0) ?? false } ?? false
     }
 
     func handleAssetChanged(_ url: URL?) {
         hasAsset = url != nil
-        isLiked = url.map { playbackCapability?.likedAssets.contains($0) ?? false } ?? false
+        isLiked = url.map { playbackProvider?.likedAssets.contains($0) ?? false } ?? false
     }
 
     func handleLikeStatusChanged(_ liked: Bool) {
         isLiked = liked
     }
 
-    func handleLikedAssetsChanged(_ assets: [URL]) {
-        isLiked = playbackCapability?.currentURL.map { assets.contains($0) } ?? false
+    func handleLikedAssetsChanged(_ assets: Set<URL>) {
+        isLiked = playbackProvider?.currentURL.map { assets.contains($0) } ?? false
     }
 
-    func toggleLike() { playbackCapability?.toggleCurrentLike() }
+    func toggleLike() { playbackProvider?.toggleCurrentLike() }
 }

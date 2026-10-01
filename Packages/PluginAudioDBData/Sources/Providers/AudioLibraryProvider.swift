@@ -1,8 +1,8 @@
+import ProviderAudioLibrary
+import CisumProviderStorage
 import Foundation
 import MagicKit
 import OSLog
-import ProviderAudioLibrary
-import ProviderStorage
 
 /// 音频数据库 Provider：负责构造 `AudioRepo` 并暴露给视图层。
 ///
@@ -16,24 +16,22 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
     private let storage: any StorageProviding
     private var cachedRepo: AudioRepo?
     private var storageObserver: AudioStorageObserver?
-    private var eventTokens: [NSObjectProtocol] = []
     private var observers: [WeakAudioLibraryObserver] = []
+    private var repositoryIsKnownEmpty: Bool?
 
     init(storage: any StorageProviding) {
         self.storage = storage
         storageObserver = AudioStorageObserver(provider: storage) { [weak self] _ in
             self?.invalidateRepository()
         }
-        installEventBridge()
     }
 
     func shutdown() {
         storageObserver?.cancel()
         storageObserver = nil
-        eventTokens.forEach { NotificationCenter.default.removeObserver($0) }
-        eventTokens.removeAll()
         observers.removeAll()
         cachedRepo = nil
+        repositoryIsKnownEmpty = nil
     }
 
     // MARK: - AudioLibraryProviding
@@ -46,7 +44,14 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
             guard let disk = audioDisk else { return nil }
             guard let databaseURL = try? storage.databaseFile(name: "audio") else { return nil }
             guard let container = try? AudioConfigRepo.getContainer(databaseURL: databaseURL) else { return nil }
-            let repo = try? AudioRepo(container: container, disk: disk, reason: "AudioDBDataPlugin")
+            let repo = try? AudioRepo(
+                container: container,
+                disk: disk,
+                reason: "AudioDBDataPlugin",
+                eventHandler: { [weak self] event in
+                    await MainActor.run { self?.notify(event) }
+                }
+            )
             cachedRepo = repo
             return repo
         }
@@ -121,11 +126,16 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
     ) -> any AudioLibraryProvidingObserverHandle {
         let observer = AudioLibraryObserver(owner: self, callback: callback)
         observers.append(WeakAudioLibraryObserver(observer))
+        if repositoryIsKnownEmpty == true {
+            observer.invoke(.repositoryEmpty)
+        }
         return observer
     }
 
     func invalidateRepository() {
         cachedRepo = nil
+        repositoryIsKnownEmpty = nil
+        notify(.repositoryAvailabilityChanged)
     }
 
     func nextURL(after current: URL?, verbose: Bool) async throws -> URL? {
@@ -148,42 +158,30 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
         return try await repo.getLast()
     }
 
-    private func installEventBridge() {
-        let center = NotificationCenter.default
-        eventTokens.append(center.addObserver(forName: .dbSyncing, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.notify(.syncing) }
-        })
-        eventTokens.append(center.addObserver(forName: .dbSynced, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in
-                guard let self else { return }
-                self.notify(.synced(totalCount: await self.totalCount()))
-            }
-        })
-        eventTokens.append(center.addObserver(forName: .dbUpdated, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in
-                guard let self else { return }
-                self.notify(.updated(totalCount: await self.totalCount()))
-            }
-        })
-        eventTokens.append(center.addObserver(forName: .dbDeleted, object: nil, queue: .main) { [weak self] notification in
-            let urls = notification.userInfo?["urls"] as? [URL] ?? []
-            Task { @MainActor in
-                guard let self else { return }
-                self.notify(.deleted(urls: urls, totalCount: await self.totalCount()))
-            }
-        })
-        eventTokens.append(center.addObserver(forName: .DBSorting, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.notify(.sorting) }
-        })
-        eventTokens.append(center.addObserver(forName: .DBSortDone, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.notify(.sortCompleted) }
-        })
-    }
-
     private func notify(_ event: AudioLibraryProvidingEvent) {
+        let isEmpty: Bool?
+        switch event {
+        case .synced(let totalCount), .updated(let totalCount), .deleted(_, let totalCount):
+            isEmpty = totalCount == 0
+        case .syncing, .repositoryEmpty, .repositoryAvailabilityChanged, .sorting, .sortCompleted:
+            isEmpty = nil
+        }
+
+        let shouldPublishEmpty = isEmpty == true && repositoryIsKnownEmpty != true
+        if let isEmpty {
+            repositoryIsKnownEmpty = isEmpty
+        }
+
         observers.removeAll { $0.observer == nil }
         for observer in observers {
             observer.observer?.invoke(event)
+        }
+
+        if shouldPublishEmpty {
+            observers.removeAll { $0.observer == nil }
+            for observer in observers {
+                observer.observer?.invoke(.repositoryEmpty)
+            }
         }
     }
 }

@@ -123,30 +123,46 @@ import Testing
 // MARK: - ViewModel 命令处理
 
 @MainActor
-private final class WidgetCapabilityProbe: AudioWidgetPlaybackCapability {
+private final class WidgetPlaybackProbe: PlaybackProviding {
     var state: PlaybackStatus = .idle
     var currentURL: URL?
     var playMode: PlaybackMode = .sequence
+    var currentTime: TimeInterval = 0
+    var duration: TimeInterval = 0
+    var progress: Double = 0
+    var likedAssets: Set<URL> = []
+    var isPlaying: Bool { state.isPlaying }
+    var hasAsset: Bool { currentURL != nil }
     var toggleCount = 0
     var pauseCount = 0
     var playedURLs: [URL] = []
 
-    func toggle() { toggleCount += 1 }
+    func play(_ url: URL) async { playedURLs.append(url); currentURL = url }
     func pause() { pauseCount += 1 }
-    func play(_ url: URL) async { playedURLs.append(url) }
+    func toggle() { toggleCount += 1 }
+    func seek(toProgress progress: Double) {}
+    func seek(toTime time: TimeInterval) {}
+    func next() {}
+    func previous() {}
+    func setPlayMode(_ mode: PlaybackMode) { playMode = mode }
+    func toggleCurrentLike() {}
+    func togglePlayMode() {}
+    func addObserver(_ callback: @escaping (PlaybackProvidingEvent) -> Void) -> any PlaybackProvidingObserverHandle {
+        NoopPlaybackProvidingObserverHandle()
+    }
 }
 
 @MainActor
 struct AudioWidgetControlViewModelTests {
     @Test
     func playPauseOddCommandToggles() {
-        let capability = WidgetCapabilityProbe()
+        let playback = WidgetPlaybackProbe()
         let defaults = UserDefaults(suiteName: AudioWidgetCommandStore.suiteName)!
         defaults.removeObject(forKey: "widgetPlayPauseTrigger")
         defaults.set(3, forKey: "widgetPlayPauseTrigger")
 
         let viewModel = AudioWidgetControlViewModel(
-            playbackCapability: capability,
+            playbackProvider: playback,
             nextAsset: { _, _ in nil },
             previousAsset: { _, _ in nil },
             firstAsset: { nil },
@@ -154,19 +170,19 @@ struct AudioWidgetControlViewModelTests {
         )
         viewModel.handleWidgetCommands()
 
-        #expect(capability.toggleCount == 1)
+        #expect(playback.toggleCount == 1)
         #expect(defaults.object(forKey: "widgetPlayPauseTrigger") == nil)
     }
 
     @Test
     func playPauseEvenCommandIsNoOp() {
-        let capability = WidgetCapabilityProbe()
+        let playback = WidgetPlaybackProbe()
         let defaults = UserDefaults(suiteName: AudioWidgetCommandStore.suiteName)!
         defaults.removeObject(forKey: "widgetPlayPauseTrigger")
         defaults.set(4, forKey: "widgetPlayPauseTrigger")
 
         let viewModel = AudioWidgetControlViewModel(
-            playbackCapability: capability,
+            playbackProvider: playback,
             nextAsset: { _, _ in nil },
             previousAsset: { _, _ in nil },
             firstAsset: { nil },
@@ -175,24 +191,24 @@ struct AudioWidgetControlViewModelTests {
         viewModel.handleWidgetCommands()
 
         // 偶数次点击互相抵消：不触发任何动作，但命令仍被消费。
-        #expect(capability.pauseCount == 0)
-        #expect(capability.toggleCount == 0)
+        #expect(playback.pauseCount == 0)
+        #expect(playback.toggleCount == 0)
         #expect(defaults.object(forKey: "widgetPlayPauseTrigger") == nil)
     }
 
     @Test
     func nextCommandNavigatesToAdjacentAsset() async throws {
-        let capability = WidgetCapabilityProbe()
+        let playback = WidgetPlaybackProbe()
         let current = URL(fileURLWithPath: "/tmp/current.mp3")
         let next = URL(fileURLWithPath: "/tmp/next.mp3")
-        capability.currentURL = current
+        playback.currentURL = current
 
         let defaults = UserDefaults(suiteName: AudioWidgetCommandStore.suiteName)!
         defaults.removeObject(forKey: "widgetNextTrigger")
         defaults.set(1, forKey: "widgetNextTrigger")
 
         let viewModel = AudioWidgetControlViewModel(
-            playbackCapability: capability,
+            playbackProvider: playback,
             nextAsset: { asset, _ in asset == current ? next : nil },
             previousAsset: { _, _ in nil },
             firstAsset: { nil },
@@ -201,26 +217,26 @@ struct AudioWidgetControlViewModelTests {
         viewModel.handleWidgetCommands()
 
         // 等待导航任务完成。
-        for _ in 0..<50 where capability.playedURLs.isEmpty {
+        for _ in 0..<50 where playback.playedURLs.isEmpty {
             try await Task.sleep(for: .milliseconds(20))
         }
-        #expect(capability.playedURLs == [next])
+        #expect(playback.playedURLs == [next])
     }
 
     @Test
     func previousCommandFallsBackToLastAssetInRepeatAll() async throws {
-        let capability = WidgetCapabilityProbe()
+        let playback = WidgetPlaybackProbe()
         let current = URL(fileURLWithPath: "/tmp/current.mp3")
         let last = URL(fileURLWithPath: "/tmp/last.mp3")
-        capability.currentURL = current
-        capability.playMode = .repeatAll
+        playback.currentURL = current
+        playback.playMode = .repeatAll
 
         let defaults = UserDefaults(suiteName: AudioWidgetCommandStore.suiteName)!
         defaults.removeObject(forKey: "widgetPreviousTrigger")
         defaults.set(1, forKey: "widgetPreviousTrigger")
 
         let viewModel = AudioWidgetControlViewModel(
-            playbackCapability: capability,
+            playbackProvider: playback,
             nextAsset: { _, _ in nil },
             previousAsset: { _, _ in nil },
             firstAsset: { nil },
@@ -228,10 +244,10 @@ struct AudioWidgetControlViewModelTests {
         )
         viewModel.handleWidgetCommands()
 
-        for _ in 0..<50 where capability.playedURLs.isEmpty {
+        for _ in 0..<50 where playback.playedURLs.isEmpty {
             try await Task.sleep(for: .milliseconds(20))
         }
-        #expect(capability.playedURLs == [last])
+        #expect(playback.playedURLs == [last])
     }
 
     @Test
@@ -241,7 +257,7 @@ struct AudioWidgetControlViewModelTests {
         defaults.set(5, forKey: "widgetPlayPauseTrigger")
 
         let viewModel = AudioWidgetControlViewModel(
-            playbackCapability: nil,
+            playbackProvider: nil,
             nextAsset: { _, _ in nil },
             previousAsset: { _, _ in nil },
             firstAsset: { nil },

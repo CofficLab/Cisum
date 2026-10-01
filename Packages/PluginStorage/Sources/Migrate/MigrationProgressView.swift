@@ -1,7 +1,10 @@
 import CisumUIComponents
+import LumiUI
 
 import OSLog
 import SwiftUI
+import CisumProviderStorage
+import MagicKit
 
 enum MigrationProgressUpdatePolicy {
     static func shouldApplyUpdate(currentGeneration: Int, updateGeneration: Int) -> Bool {
@@ -36,12 +39,12 @@ enum MigrationProgressErrorMessagePolicy {
 struct MigrationProgressView: View {
     @LumiTheme private var appTheme
     @StateObject private var migrationManager = MigrationManager()
-    let sourceLocation: StoragePluginLocation?
-    let targetLocation: StoragePluginLocation
+    let sourceLocation: StorageLocation?
+    let targetLocation: StorageLocation
     let sourceURL: URL?
     let targetURL: URL?
     let onDismiss: () -> Void
-    let dependencies: StorageDependencies
+    let storageProvider: any StorageProviding
 
     @State private var processedFiles: [FileStatus] = []
     @State private var sourceFiles: [String] = []
@@ -106,7 +109,7 @@ struct MigrationProgressView: View {
         requestedMigration && sourceURL != nil && targetURL != nil
     }
 
-    nonisolated static func canMigrateExistingData(sourceLocation: StoragePluginLocation?, sourceURL: URL?) -> Bool {
+    nonisolated static func canMigrateExistingData(sourceLocation: StorageLocation?, sourceURL: URL?) -> Bool {
         guard sourceLocation != nil, let sourceURL else { return false }
         return FileManager.default.fileExists(atPath: sourceURL.path)
     }
@@ -164,50 +167,84 @@ struct MigrationProgressView: View {
     }
 
     var body: some View {
-        VStack(spacing: 5) {
-            GroupBox {
-                RepositoryInfoView(
-                    isDesktop: dependencies.isDesktop,
-                    title: String(localized: "Source Library", bundle: .module),
-                    location: sourceLocation,
-                    url: sourceURL
-                ).frame(height: 200)
-            }
+        VStack(spacing: DesignTokens.Spacing.sm) {
+            RepositoryInfoView(
+                isDesktop: MagicApp.isDesktop,
+                title: String(localized: "Source Library", bundle: .module),
+                location: sourceLocation,
+                url: sourceURL
+            )
+            .frame(height: 200)
 
             HStack {
                 Spacer()
                 Image(systemName: "arrow.down")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(appTheme.textSecondary)
                     .imageScale(.large)
                     .font(.system(size: 12))
                 Spacer()
             }
+            .frame(height: DesignTokens.Spacing.sm)
 
-            GroupBox {
-                RepositoryInfoView(
-                    isDesktop: dependencies.isDesktop,
-                    title: String(localized: "Target Library", bundle: .module),
-                    location: targetLocation,
-                    url: targetURL
-                ).frame(height: 200)
-            }
+            RepositoryInfoView(
+                isDesktop: MagicApp.isDesktop,
+                title: String(localized: "Target Library", bundle: .module),
+                location: targetLocation,
+                url: targetURL
+            )
+            .frame(height: 200)
 
-            GroupBox {
+            AppCard(
+                style: .subtle,
+                cornerRadius: DesignTokens.Radius.sm,
+                padding: EdgeInsets(
+                    top: DesignTokens.Spacing.sm,
+                    leading: DesignTokens.Spacing.md,
+                    bottom: DesignTokens.Spacing.sm,
+                    trailing: DesignTokens.Spacing.md
+                ),
+                showShadow: false
+            ) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(Self.localizedStorageText(Self.migrationWarningTitleKey))
-                        .font(.subheadline)
-                        .foregroundColor(.orange)
-
-                    Group {
-                        Text(Self.localizedStorageText(Self.migrationWarningICloudKey))
-                        Text(Self.localizedStorageText(Self.migrationWarningDoNotCloseKey))
-                        Text(Self.localizedStorageText(Self.migrationWarningMigrateKey))
-                        Text(Self.localizedStorageText(Self.migrationWarningUseDirectlyKey)).foregroundStyle(.primary)
-                        Text(Self.localizedStorageText(Self.migrationWarningCancelKey))
+                    Label {
+                        Text(Self.localizedStorageText(Self.migrationWarningTitleKey))
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill")
                     }
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                }.frame(maxWidth: .infinity)
+                    .font(DesignTokens.Typography.bodyEmphasized)
+                    .foregroundStyle(appTheme.warning)
+
+                    VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
+                        Text(Self.localizedStorageText(Self.migrationWarningICloudKey))
+                            .lineLimit(nil)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(Self.localizedStorageText(Self.migrationWarningDoNotCloseKey))
+                            .lineLimit(nil)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(Self.localizedStorageText(Self.migrationWarningMigrateKey))
+                            .lineLimit(nil)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(Self.localizedStorageText(Self.migrationWarningUseDirectlyKey))
+                            .foregroundStyle(appTheme.textPrimary)
+                            .lineLimit(nil)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(Self.localizedStorageText(Self.migrationWarningCancelKey))
+                            .lineLimit(nil)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .font(DesignTokens.Typography.caption1)
+                    .foregroundStyle(appTheme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                // Give the text a finite proposal so long localized strings wrap
+                // instead of being measured at their intrinsic one-line width.
+                .frame(width: 400, alignment: .leading)
             }
             .frame(maxWidth: .infinity)
 
@@ -221,7 +258,7 @@ struct MigrationProgressView: View {
                 actionButtons
             }
         }
-        .padding()
+        .padding(DesignTokens.Spacing.md)
         .onAppear {
             loadSourceFiles()
             loadTargetFiles()
@@ -290,7 +327,7 @@ struct MigrationProgressView: View {
                     updateGeneration: generation
                 ) else { return }
                 let completionMessage = Self.completionMessage(shouldMigrate: migrationRoots != nil)
-                dependencies.updateStorageLocation(targetLocation)
+                storageProvider.setStorageLocation(targetLocation)
                 self.migrationCompleted = true
                 self.completionMessage = completionMessage
                 self.currentMigratingFile = completionMessage
@@ -437,42 +474,45 @@ struct MigrationProgressView: View {
     }
 
     private var confirmationButtons: some View {
-        HStack(spacing: 48) {
-            Button {
+        HStack(spacing: DesignTokens.Spacing.sm) {
+            AppButton(
+                String(localized: "Cancel", bundle: .module),
+                style: .tonal,
+                size: .small
+            ) {
                 onDismiss()
-            } label: {
-                Text("Cancel", bundle: .module)
             }
-            .buttonStyle(.bordered)
             .help(String(localized: "Keep the original location unchanged", bundle: .module))
 
-            Button {
+            AppButton(
+                String(localized: "Use Directly", bundle: .module),
+                style: .primary,
+                size: .small
+            ) {
                 showConfirmation = false
                 
                 Task {
                     await startMigration(shouldMigrate: false)
                 }
-            } label: {
-                Text("Use Directly", bundle: .module)
             }
-            .buttonStyle(.borderedProminent)
             .help(String(localized: "Use the new location directly and keep existing data unchanged", bundle: .module))
 
             if Self.canMigrateExistingData(sourceLocation: sourceLocation, sourceURL: sourceURL) {
-                Button {
+                AppButton(
+                    String(localized: "Migrate Data", bundle: .module),
+                    style: .secondary,
+                    size: .small
+                ) {
                     showConfirmation = false
 
                     Task {
                         await startMigration(shouldMigrate: true)
                     }
-                } label: {
-                    Text("Migrate Data", bundle: .module)
                 }
-                .buttonStyle(.bordered)
                 .help(String(localized: "Move existing data to the new location", bundle: .module))
             }
         }
-        .padding()
+        .padding(.top, DesignTokens.Spacing.xs)
         .frame(maxWidth: 500)
     }
 
@@ -480,19 +520,21 @@ struct MigrationProgressView: View {
         Group {
             if errorMessage == nil {
                 if migrationCompleted || migrationCancelled {
-                    Button {
+                    AppButton(
+                        String(localized: "Done", bundle: .module),
+                        style: .primary,
+                        size: .small
+                    ) {
                         onDismiss()
-                    } label: {
-                        Text("Done", bundle: .module)
                     }
-                    .buttonStyle(.borderedProminent)
                 } else {
-                    Button {
+                    AppButton(
+                        String(localized: cancellationRequested ? "Cancelling..." : "Cancel Migration", bundle: .module),
+                        style: .destructive,
+                        size: .small
+                    ) {
                         showCancelConfirmation = true
-                    } label: {
-                        Text(cancellationRequested ? "Cancelling..." : "Cancel Migration", bundle: .module)
                     }
-                    .buttonStyle(.borderless)
                     .disabled(cancellationRequested)
                     .alert(Text("Cancel migration?", bundle: .module), isPresented: $showCancelConfirmation) {
                         Button(role: .cancel) { } label: {
@@ -509,70 +551,83 @@ struct MigrationProgressView: View {
                     }
                 }
             } else {
-                HStack(spacing: 16) {
-                    Button {
+                HStack(spacing: DesignTokens.Spacing.sm) {
+                    AppButton(
+                        String(localized: "Retry", bundle: .module),
+                        style: .primary,
+                        size: .small
+                    ) {
                         prepareForRetry()
                         showConfirmation = true
-                    } label: {
-                        Text("Retry", bundle: .module)
                     }
-                    .buttonStyle(.borderedProminent)
 
-                    Button {
+                    AppButton(
+                        String(localized: "Give Up", bundle: .module),
+                        style: .secondary,
+                        size: .small
+                    ) {
                         onDismiss()
-                    } label: {
-                        Text("Give Up", bundle: .module)
                     }
-                    .buttonStyle(.bordered)
                 }
             }
         }
-        .padding(.bottom)
+        .padding(.vertical, DesignTokens.Spacing.xs)
     }
 
     // 修改状态显示部分
     private var migrationStatusView: some View {
-        GroupBox {
+        AppCard(
+            style: .subtle,
+            cornerRadius: DesignTokens.Radius.sm,
+            padding: EdgeInsets(
+                top: DesignTokens.Spacing.sm,
+                leading: DesignTokens.Spacing.md,
+                bottom: DesignTokens.Spacing.sm,
+                trailing: DesignTokens.Spacing.md
+            ),
+            showShadow: false
+        ) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Migration Status", bundle: .module)
-                    .font(.headline)
-                    .foregroundColor(.primary)
+                    .font(DesignTokens.Typography.bodyEmphasized)
+                    .foregroundStyle(appTheme.textPrimary)
 
                 if migrationCompleted {
                     Text(completionMessage.isEmpty ? Self.completionMessage(shouldMigrate: true) : completionMessage)
-                        .font(.subheadline)
-                        .foregroundColor(appTheme.success)
+                        .font(DesignTokens.Typography.body)
+                        .foregroundStyle(appTheme.success)
                 } else if migrationCancelled {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Migration Cancelled", bundle: .module)
-                            .font(.subheadline)
-                            .foregroundColor(appTheme.warning)
+                            .font(DesignTokens.Typography.body)
+                            .foregroundStyle(appTheme.warning)
 
-                        Button {
+                        AppButton(
+                            String(localized: "Retry Migration", bundle: .module),
+                            style: .primary,
+                            size: .small
+                        ) {
                             prepareForRetry()
                             showConfirmation = true
-                        } label: {
-                            Text("Retry Migration", bundle: .module)
                         }
-                        .buttonStyle(.borderedProminent)
                     }
                 } else if let errorMessage = errorMessage {
                     Text("Migration failed: \(errorMessage)", bundle: .module)
-                        .font(.subheadline)
-                        .foregroundColor(appTheme.error)
+                        .font(DesignTokens.Typography.body)
+                        .foregroundStyle(appTheme.error)
                 } else {
                     Text(cancellationRequested ? "Cancelling..." : "Migrating...", bundle: .module)
-                        .font(.subheadline)
-                        .foregroundColor(appTheme.info)
+                        .font(DesignTokens.Typography.body)
+                        .foregroundStyle(appTheme.info)
                 }
 
                 if !migrationCancelled {
                     ProgressView(value: migrationProgress)
+                        .tint(appTheme.primary)
                         .padding(.top, 4)
                 }
             }
             .frame(maxWidth: .infinity)
-            .padding()
         }
     }
 }

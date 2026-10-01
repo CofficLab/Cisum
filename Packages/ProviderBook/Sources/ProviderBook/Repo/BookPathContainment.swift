@@ -1,5 +1,4 @@
 import Foundation
-import ProviderBook
 
 enum BookPathContainment {
     static func representsSameFile(_ lhs: URL, _ rhs: URL) -> Bool {

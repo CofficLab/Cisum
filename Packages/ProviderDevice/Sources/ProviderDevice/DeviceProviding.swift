@@ -1,4 +1,5 @@
 import Foundation
+import KitEventObservation
 import SwiftUI
 
 @MainActor
@@ -18,8 +19,8 @@ public protocol DeviceProvidingObserverHandle: AnyObject {
 /// ## 使用示例
 ///
 /// ```swift
-/// let isMac = kernel.device?.isMac ?? false
-/// let isPad = kernel.device?.isPad ?? false
+/// let isMac = kernel.resolveProvider((any DeviceProviding).self)?.isMac ?? false
+/// let isPad = kernel.resolveProvider((any DeviceProviding).self)?.isPad ?? false
 /// ```
 @MainActor
 public protocol DeviceProviding: AnyObject, ObservableObject {
@@ -60,3 +61,5 @@ public final class NoopDeviceProvidingObserverHandle: DeviceProvidingObserverHan
     public init() {}
     public func cancel() {}
 }
+
+extension EventObserverHandle: DeviceProvidingObserverHandle {}

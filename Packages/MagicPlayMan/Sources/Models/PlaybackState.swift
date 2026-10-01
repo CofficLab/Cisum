@@ -1,6 +1,8 @@
 import Foundation
 import SwiftUI
 import CisumUIComponents
+import LumiUI
+import MagicKit
 
 public enum PlaybackState: Equatable {
     case idle

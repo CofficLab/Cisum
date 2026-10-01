@@ -171,35 +171,6 @@
         }
       }
     },
-    "Enable a plugin that provides a scene": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enable a plugin that provides a scene"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "启用一个提供场景的插件"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "啓用一個提供場景的插件"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "啟用一個提供場景的外掛"
-          }
-        }
-      }
-    },
     "Enter Scene": {
       "localizations": {
         "en": {

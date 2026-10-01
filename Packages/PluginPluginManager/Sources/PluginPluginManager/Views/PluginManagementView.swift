@@ -1,13 +1,14 @@
-import CisumUIComponents
-import KernelCore
 import ProviderDocsView
+import CisumUIComponents
+import LumiUI
+import KernelCore
 import SwiftUI
 
 /// 插件管理设置页（对齐 Lumi `PluginPluginManager.PluginManagementView`）。
 ///
 /// 两栏布局：左侧为插件列表（搜索 + 分类筛选），右侧为选中插件的详情
 /// 与启用状态。数据源：`PluginManaging` Provider。列表与详情直接读取
-/// Provider 的状态，并监听 `.cisumEnabledPluginsDidChange` 通知在启停后
+/// Provider 的状态，并监听 `PluginManaging` 语义事件在启停后
 /// 自动刷新。
 ///
 /// 该文件只保留容器 / 布局 / 状态逻辑；具体渲染拆分为：
@@ -79,20 +80,20 @@ struct PluginManagementView: View {
 
     /// 列表上出现的分类（按 `sortOrder` 排序），用于筛选标签栏。
     private var availableCategories: [PluginCategory] {
-        let present = Set(plugins.map { type(of: $0).metadata.category })
-        return PluginCategory.allCases
+        let present = Set(plugins.map { $0.metadata.category })
+        return PluginCategoryPresentation.categories
             .filter { present.contains($0) }
-            .sorted { $0.sortOrder < $1.sortOrder }
+            .sorted { PluginCategoryPresentation.order(of: $0) < PluginCategoryPresentation.order(of: $1) }
     }
 
     /// 按分类 + 搜索词过滤后的插件。
     private var filteredPlugins: [any SuperPlugin] {
         let keyword = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         return plugins.filter { plugin in
-            let metadata = type(of: plugin).metadata
+            let metadata = plugin.metadata
             let matchesCategory = selectedCategory.map { metadata.category == $0 } ?? true
             let matchesKeyword = keyword.isEmpty
-                || metadata.displayName.localizedCaseInsensitiveContains(keyword)
+                || metadata.name.localizedCaseInsensitiveContains(keyword)
                 || plugin.id.localizedCaseInsensitiveContains(keyword)
                 || metadata.description.localizedCaseInsensitiveContains(keyword)
             return matchesCategory && matchesKeyword
@@ -129,7 +130,7 @@ struct PluginManagementView: View {
                             selectedCategory = nil
                         }
                         ForEach(availableCategories, id: \.self) { category in
-                            categoryChip(title: category.displayName, isSelected: selectedCategory == category) {
+                            categoryChip(title: PluginCategoryPresentation.title(for: category), isSelected: selectedCategory == category) {
                                 selectedCategory = category
                             }
                         }

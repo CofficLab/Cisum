@@ -1,8 +1,9 @@
 import Foundation
+import ProviderPlayback
 import CisumUIComponents
+import LumiUI
 import MagicPlayMan
 import OSLog
-import ProviderBook
 import ProviderBook
 import SwiftUI
 
@@ -262,7 +263,7 @@ enum BookControlChapterLoader {
         in chapters: [URL],
         current asset: URL,
         offset: Int,
-        playMode: MagicPlayMode
+        playMode: PlaybackMode
     ) -> URL? {
         guard !chapters.isEmpty,
               let index = chapters.firstIndex(where: { isSameFile($0, asset) }) else { return nil }

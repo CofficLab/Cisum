@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 struct AudioLikePluginRootView<Content>: View where Content: View {

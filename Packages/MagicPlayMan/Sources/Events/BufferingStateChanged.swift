@@ -2,6 +2,8 @@ import Combine
 import Foundation
 import SwiftUI
 import CisumUIComponents
+import LumiUI
+import MagicKit
 
 /// 缓冲状态变更事件
 /// 当播放缓冲状态发生变化时触发

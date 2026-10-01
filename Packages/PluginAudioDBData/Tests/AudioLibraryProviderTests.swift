@@ -1,8 +1,11 @@
+import ProviderAudioNavigation
+import ProviderAudioLibrary
+import CisumProviderStorage
 import Combine
 import Foundation
 import KernelCore
-import ProviderAudioLibrary
-import ProviderStorage
+import ProviderPlugin
+import KitAppEvents
 import Testing
 @testable import PluginAudioDBData
 
@@ -135,6 +138,9 @@ struct AudioLibraryProviderTests {
         #expect(await provider.allURLs(reason: "test").isEmpty)
         #expect(await provider.urls(offset: 0, limit: 10, reason: "test").isEmpty)
         #expect(!(await provider.contains(URL(fileURLWithPath: "/missing.mp3"))))
+        var events: [AudioLibraryProvidingEvent] = []
+        let observer = provider.addObserver { events.append($0) }
+        #expect(events.isEmpty, "Unavailable storage must not be reported as an empty repository")
 
         await expectHostNotConfigured {
             try await provider.delete(urls: [], verbose: false)
@@ -154,6 +160,7 @@ struct AudioLibraryProviderTests {
         await expectHostNotConfigured {
             _ = try await provider.lastURL()
         }
+        observer.cancel()
     }
 
     @Test
@@ -184,6 +191,8 @@ struct AudioLibraryProviderTests {
             case let .synced(totalCount): receivedEvents.append("synced:\(totalCount)")
             case let .updated(totalCount): receivedEvents.append("updated:\(totalCount)")
             case let .deleted(urls, totalCount): receivedEvents.append("deleted:\(urls.count):\(totalCount)")
+            case .repositoryEmpty: receivedEvents.append("repositoryEmpty")
+            case .repositoryAvailabilityChanged: receivedEvents.append("repositoryAvailabilityChanged")
             case .sorting: receivedEvents.append("sorting")
             case .sortCompleted: receivedEvents.append("sortCompleted")
             }
@@ -194,6 +203,7 @@ struct AudioLibraryProviderTests {
 
         #expect(provider.audioDisk == disk)
         #expect(await provider.totalCount() == 2)
+        #expect(receivedEvents.first == "syncing")
         #expect(await provider.allURLs(reason: "test") == [first, second])
         #expect(await provider.urls(offset: -1, limit: 1, reason: "test") == [first])
         #expect(await provider.urls(offset: 1, limit: 1, reason: "test") == [second])
@@ -213,6 +223,10 @@ struct AudioLibraryProviderTests {
         #expect(receivedEvents.contains("sorting"))
         #expect(receivedEvents.contains("sortCompleted"))
 
+        await provider.sync(urls: [first, second], verbose: false, isFirst: false)
+        await waitForLibraryNotifications()
+        #expect(receivedEvents.contains("updated:2"))
+
         try await provider.sortRandom(url: second, reason: "test", verbose: false)
         #expect(await provider.allURLs(reason: "random") == [second, first])
         try await provider.delete(urls: [second], verbose: false)
@@ -223,6 +237,51 @@ struct AudioLibraryProviderTests {
         #expect(await provider.allURLs(reason: "deleted") == [first])
         #expect(receivedEvents.contains("deleted:1:1"))
         observer.cancel()
+    }
+
+    @Test
+    func emitsRepositoryEmptyAfterConfirmedEmptySyncAndWhenLastTrackIsDeleted() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AudioLibraryEmptyEventTests-\(UUID().uuidString)", isDirectory: true)
+        let storageRoot = root.appendingPathComponent("Documents", isDirectory: true)
+        try FileManager.default.createDirectory(at: storageRoot, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let provider = AudioLibraryProvider(
+            storage: TestStorageProvider(storageRoot: storageRoot, databaseRoot: root.appendingPathComponent("Database"))
+        )
+        defer { provider.shutdown() }
+
+        var emptyEventCount = 0
+        let observer = provider.addObserver { event in
+            if case .repositoryEmpty = event { emptyEventCount += 1 }
+        }
+
+        await provider.sync(urls: [], verbose: false, isFirst: true)
+        await waitForLibraryNotifications()
+        #expect(emptyEventCount == 1)
+
+        var lateObserverEmptyEventCount = 0
+        let lateObserver = provider.addObserver { event in
+            if case .repositoryEmpty = event { lateObserverEmptyEventCount += 1 }
+        }
+        #expect(lateObserverEmptyEventCount == 1, "A late observer should receive the confirmed empty state")
+
+        let track = try #require(provider.audioDisk).appendingPathComponent("last-track.mp3")
+        try Data([0x01, 0x02]).write(to: track)
+        await provider.sync(urls: [track], verbose: false, isFirst: false)
+        await waitForLibraryNotifications()
+        #expect(await provider.totalCount() == 1)
+        #expect(emptyEventCount == 1, "Non-empty updates must reset the empty-state edge")
+
+        try await provider.delete(urls: [track], verbose: false)
+        await waitForLibraryNotifications()
+        #expect(await provider.totalCount() == 0)
+        #expect(emptyEventCount == 2, "Deleting the final track should publish a new empty event")
+        #expect(lateObserverEmptyEventCount == 2)
+
+        observer.cancel()
+        lateObserver.cancel()
     }
 
     @Test
@@ -240,14 +299,20 @@ struct AudioLibraryProviderTests {
 
         let firstRepository = try #require(await provider.currentRepository())
         #expect(storage.activeObserverCount == 1)
+        var availabilityEvents = 0
+        let availabilityObserver = provider.addObserver { event in
+            if case .repositoryAvailabilityChanged = event { availabilityEvents += 1 }
+        }
         storage.updateStorageRoot(secondStorageRoot)
         let secondRepository = try #require(await provider.currentRepository())
 
         #expect(firstRepository !== secondRepository)
+        #expect(availabilityEvents > 0, "Storage changes should notify views to retry repository loading")
         #expect(await firstRepository.getStorageRoot() == firstStorageRoot.appendingPathComponent(AudioPluginInfo.effectiveDBDirName, isDirectory: true))
         #expect(await secondRepository.getStorageRoot() == secondStorageRoot.appendingPathComponent(AudioPluginInfo.effectiveDBDirName, isDirectory: true))
 
         provider.shutdown()
+        availabilityObserver.cancel()
         #expect(storage.activeObserverCount == 0)
     }
 
@@ -260,8 +325,8 @@ struct AudioLibraryProviderTests {
         defer { try? FileManager.default.removeItem(at: root) }
 
         let storage = TestStorageProvider(storageRoot: storageRoot, databaseRoot: root.appendingPathComponent("Database"))
-        let kernel = CisumKernelContainer()
-        try kernel.registerStorage(storage)
+        let kernel = KernelCoreContainer()
+        try kernel.registerProvider((any StorageProviding).self, storage)
         let plugin = AudioDBDataPlugin()
         let audioURL = storageRoot
             .appendingPathComponent(AudioPluginInfo.effectiveDBDirName, isDirectory: true)
@@ -272,11 +337,11 @@ struct AudioLibraryProviderTests {
         )
         try Data([0x01, 0x02]).write(to: audioURL)
 
-        try await plugin.onBoot(kernel: kernel)
-        try await plugin.onReady(kernel: kernel)
+        try await plugin.onBootAsync(kernel: kernel)
+        try await plugin.onReadyAsync(kernel: kernel)
 
-        let library = try #require(kernel.audioLibrary)
-        let navigation = try #require(kernel.audioTrackNavigation)
+        let library = try #require(kernel.resolveProvider((any AudioLibraryProviding).self))
+        let navigation = try #require(kernel.resolveProvider((any AudioTrackNavigationProviding).self))
         for _ in 0..<100 where await library.totalCount() == 0 {
             try await Task.sleep(nanoseconds: 20_000_000)
         }
@@ -319,16 +384,16 @@ struct AudioLibraryProviderTests {
         #expect(await library.contains(switchedAudioURL))
 
         try await plugin.onDisable(kernel: kernel)
-        #expect(kernel.audioLibrary == nil)
-        #expect(kernel.audioTrackNavigation == nil)
+        #expect(kernel.resolveProvider((any AudioLibraryProviding).self) == nil)
+        #expect(kernel.resolveProvider((any AudioTrackNavigationProviding).self) == nil)
         #expect(storage.activeObserverCount == 0)
 
         try await plugin.onEnable(kernel: kernel)
-        let reenabledNavigation = try #require(kernel.audioTrackNavigation)
-        for _ in 0..<100 where await kernel.audioLibrary?.totalCount() == 0 {
+        let reenabledNavigation = try #require(kernel.resolveProvider((any AudioTrackNavigationProviding).self))
+        for _ in 0..<100 where await kernel.resolveProvider((any AudioLibraryProviding).self)?.totalCount() == 0 {
             try await Task.sleep(nanoseconds: 20_000_000)
         }
-        #expect(await kernel.audioLibrary?.totalCount() == 1)
+        #expect(await kernel.resolveProvider((any AudioLibraryProviding).self)?.totalCount() == 1)
 
         storage.updateStorageRoot(nil)
         await #expect(throws: AudioPluginError.self) {
@@ -344,26 +409,66 @@ struct AudioLibraryProviderTests {
             try await reenabledNavigation.lastURL()
         }
 
-        try await plugin.onShutdown(kernel: kernel)
-        #expect(kernel.audioLibrary == nil)
-        #expect(kernel.audioTrackNavigation == nil)
+        try await plugin.onShutdownAsync(kernel: kernel)
+        #expect(kernel.resolveProvider((any AudioLibraryProviding).self) == nil)
+        #expect(kernel.resolveProvider((any AudioTrackNavigationProviding).self) == nil)
         #expect(storage.activeObserverCount == 0)
     }
 
     @Test
-    func navigationProviderReportsUnavailableLibraryWhenStorageWasNotInjected() async throws {
-        let kernel = CisumKernelContainer()
+    func navigationProviderIsInstalledAfterStorageArrivesBetweenBootAndReady() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AudioDBDataLateStorage-\(UUID().uuidString)", isDirectory: true)
+        let storageRoot = root.appendingPathComponent("Documents", isDirectory: true)
+        let audioDisk = storageRoot.appendingPathComponent(AudioPluginInfo.effectiveDBDirName, isDirectory: true)
+        let audioURL = audioDisk.appendingPathComponent("late-storage-track.mp3")
+        try FileManager.default.createDirectory(at: audioDisk, withIntermediateDirectories: true)
+        try Data([0x01, 0x02]).write(to: audioURL)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let kernel = KernelCoreContainer()
         let plugin = AudioDBDataPlugin()
+        try await plugin.onBootAsync(kernel: kernel)
 
-        try await plugin.onReady(kernel: kernel)
+        let storage = TestStorageProvider(
+            storageRoot: storageRoot,
+            databaseRoot: root.appendingPathComponent("Database")
+        )
+        try kernel.registerProvider((any StorageProviding).self, storage)
+        try await plugin.onReadyAsync(kernel: kernel)
 
-        let navigation = try #require(kernel.audioTrackNavigation)
-        await #expect(throws: AudioPluginError.self) {
-            try await navigation.nextURL(after: nil, verbose: false)
+        let library = try #require(kernel.resolveProvider((any AudioLibraryProviding).self))
+        let navigation = try #require(kernel.resolveProvider((any AudioTrackNavigationProviding).self))
+        for _ in 0..<100 where await library.totalCount() == 0 {
+            try await Task.sleep(nanoseconds: 20_000_000)
         }
 
-        try await plugin.onShutdown(kernel: kernel)
-        #expect(kernel.audioTrackNavigation == nil)
-        #expect(kernel.audioLibrary == nil)
+        #expect(await library.contains(audioURL))
+        let firstURL: URL?
+        do {
+            firstURL = try await navigation.firstURL()
+        } catch {
+            Issue.record("Navigation did not resolve through the ready library provider: \(error)")
+            firstURL = nil
+        }
+        #expect(firstURL?.resolvingSymlinksInPath().standardizedFileURL.path == audioURL.resolvingSymlinksInPath().standardizedFileURL.path)
+
+        try await plugin.onShutdownAsync(kernel: kernel)
+        #expect(kernel.resolveProvider((any AudioLibraryProviding).self) == nil)
+        #expect(kernel.resolveProvider((any AudioTrackNavigationProviding).self) == nil)
+    }
+
+    @Test
+    func navigationProviderIsNotInstalledWhenStorageWasNeverInjected() async throws {
+        let kernel = KernelCoreContainer()
+        let plugin = AudioDBDataPlugin()
+
+        try await plugin.onReadyAsync(kernel: kernel)
+
+        #expect(kernel.resolveProvider((any AudioTrackNavigationProviding).self) == nil)
+
+        try await plugin.onShutdownAsync(kernel: kernel)
+        #expect(kernel.resolveProvider((any AudioTrackNavigationProviding).self) == nil)
+        #expect(kernel.resolveProvider((any AudioLibraryProviding).self) == nil)
     }
 }

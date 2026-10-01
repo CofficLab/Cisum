@@ -1,8 +1,9 @@
+import ProviderScene
+import ProviderPlayback
+import ProviderAudioLibrary
+import CisumProviderStorage
 import Foundation
 import MagicKit
-import MagicPlayMan
-import ProviderPlayback
-import ProviderScene
 import os
 
 /// 订阅播放、场景和音频库外部事件，并把事件回写给 ViewModel。
@@ -15,9 +16,16 @@ final class ControlButtonsObserver: SuperLog {
     private weak var viewModel: ControlButtonsViewModel?
     private var playbackHandle: (any PlaybackProvidingObserverHandle)?
     private var sceneHandle: (any SceneProvidingObserverHandle)?
-    private var notificationTokens: [NSObjectProtocol] = []
+    private var libraryHandle: (any AudioLibraryProvidingObserverHandle)?
+    private var storageHandle: (any StorageProvidingObserverHandle)?
 
-    init(scene: any SceneProviding, playback: any PlaybackProviding, viewModel: ControlButtonsViewModel) {
+    init(
+        scene: any SceneProviding,
+        playback: any PlaybackProviding,
+        library: (any AudioLibraryProviding)?,
+        storage: (any StorageProviding)?,
+        viewModel: ControlButtonsViewModel
+    ) {
         self.viewModel = viewModel
         if Self.verbose {
             Self.log.info("\(Self.t)👀 ControlButtons observer installed; scene=\(String(describing: scene.currentScene))")
@@ -51,9 +59,7 @@ final class ControlButtonsObserver: SuperLog {
                 if Self.verbose {
                     Self.log.info("\(Self.t)📥 Playback mode changed: \(String(describing: mode))")
                 }
-                self.viewModel?.applyPlayModeChanged(
-                    MagicPlayMode(rawValue: mode.rawValue) ?? .sequence
-                )
+                self.viewModel?.applyPlayModeChanged(mode)
             case .previousRequested(let asset):
                 if Self.verbose {
                     Self.log.info("\(Self.t)⬅️ Playback emitted previous request: \(asset.lastPathComponent)")
@@ -72,18 +78,14 @@ final class ControlButtonsObserver: SuperLog {
             }
         }
 
-        let center = NotificationCenter.default
-        notificationTokens.append(center.addObserver(forName: Notification.Name("dbDeleted"), object: nil, queue: .main) { [weak self] notification in
-            let urls = notification.userInfo?["urls"] as? [URL] ?? []
-            Task { @MainActor in
-                self?.viewModel?.handleDBDeleted(urlsToDelete: urls)
-            }
-        })
-        notificationTokens.append(center.addObserver(forName: Notification.Name("storageLocationDidReset"), object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in
-                self?.viewModel?.handleStorageLocationDidReset()
-            }
-        })
+        libraryHandle = library?.addObserver { [weak self] event in
+            guard case .deleted(let urls, _) = event else { return }
+            self?.viewModel?.handleDBDeleted(urlsToDelete: urls)
+        }
+        storageHandle = storage?.addObserver { [weak self] event in
+            guard case .locationChanged = event else { return }
+            self?.viewModel?.handleStorageLocationDidReset()
+        }
     }
 
     func cancel() {
@@ -91,7 +93,9 @@ final class ControlButtonsObserver: SuperLog {
         sceneHandle = nil
         playbackHandle?.cancel()
         playbackHandle = nil
-        notificationTokens.forEach(NotificationCenter.default.removeObserver)
-        notificationTokens.removeAll()
+        libraryHandle?.cancel()
+        libraryHandle = nil
+        storageHandle?.cancel()
+        storageHandle = nil
     }
 }

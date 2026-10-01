@@ -1,7 +1,10 @@
+import MagicKit
 import CisumUIComponents
+import LumiUI
 import Foundation
 import OSLog
 import SwiftUI
+import ProviderToast
 
 enum AudioItemFileSizeLoadPolicy {
     static func shouldApplySize(currentURL: URL, requestedURL: URL) -> Bool {
@@ -126,6 +129,7 @@ struct AudioItemView: View, Equatable, SuperLog {
     nonisolated static let verbose = false
 
     @ObservedObject var listViewModel: AudioListViewModel
+    @Environment(\.toastProviding) private var toastProvider
     @LumiTheme private var appTheme
 
     let url: URL
@@ -302,12 +306,12 @@ extension AudioItemView {
                 if Self.verbose {
                     os_log("\(Self.t)✅ File exported to: \(finalDestinationURL.path)")
                 }
-                alert_info(String(localized: "File copied to Downloads", bundle: .module))
+                toastProvider?.info(String(localized: "File copied to Downloads", bundle: .module))
             } catch {
                 if Self.verbose {
                     os_log("\(Self.t)❌ Failed to export file: \(error.localizedDescription)")
                 }
-                alert_error(String(localized: "Export failed: \(error.localizedDescription)", bundle: .module))
+                toastProvider?.error(String(localized: "Export failed: \(error.localizedDescription)", bundle: .module))
             }
         }
     }

@@ -1,8 +1,8 @@
 import Testing
 @testable import PluginBookDBData
 
-@Test func bookDBDataPluginMetadataDescribesDataLayer() {
-    #expect(BookDBDataPlugin.metadata.order == 11)
-    #expect(BookDBDataPlugin.metadata.category == .library)
-    #expect(BookDBDataPlugin.metadata.iconName == "externaldrive.badge.timemachine")
+@Test @MainActor func bookDBDataPluginMetadataDescribesDataLayer() {
+    #expect(BookDBDataPlugin().order == 11)
+    #expect(BookDBDataPlugin().metadata.category == .feature)
+    #expect(BookDBDataPlugin().iconName == "externaldrive.badge.timemachine")
 }

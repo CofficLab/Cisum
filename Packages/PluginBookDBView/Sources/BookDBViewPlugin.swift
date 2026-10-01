@@ -1,69 +1,84 @@
-import KernelCore
+import ProviderScene
 import ProviderDocsView
+import ProviderPlayback
+import ProviderToast
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import OSLog
 import ProviderBook
-import ProviderBook
-import ProviderPlayback
-import ProviderScene
+import ProviderSettingView
 import SwiftUI
 import MagicKit
 
-public actor BookDBViewPlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: BookDBViewPlugin.self)
+
     nonisolated static let verbose = false
 
     public static let shared = BookDBViewPlugin()
-    public static let metadata = PluginMetadata(
-        displayName: String(localized: String.LocalizationValue(BookDBViewPluginInfo.titleKey), bundle: .module),
-        description: String(localized: String.LocalizationValue(BookDBViewPluginInfo.descriptionKey), bundle: .module),
-        iconName: BookDBViewPluginInfo.iconName,
-        order: 12,
+    public let order = 12
+    public let iconName = BookDBViewPluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: BookDBViewPlugin.self),
+        name: String(localized: String.LocalizationValue(BookDBViewPluginInfo.titleKey), bundle: .module),
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
         policy: .alwaysOn,
-        category: .library,
+        permissions: []
     )
 
     nonisolated(unsafe) private let sceneBox = SceneBox()
-    nonisolated(unsafe) private weak var kernel: CisumKernel?
+    nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var gridViewModel: BookGridViewModel?
     nonisolated(unsafe) private var databaseObserver: DBObserver?
     nonisolated(unsafe) private var playbackObserver: PlaybackObserver?
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
+    public func onRegister(kernel: KernelCoreContainer) throws {
         if Self.verbose { os_log("\(Self.t)🔌 onRegister") }
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { BookDBViewPluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { BookDBViewPluginManualView() })
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { BookDBViewPluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { BookDBViewPluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            contrib.addTabView(ownerPluginID: id) { reason, demoMode in self.addTabView(reason: reason, demoMode: demoMode) }
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
+        }
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
     }
 
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
     @MainActor
-    public func onReady(kernel: CisumKernel) async throws {
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         if Self.verbose { os_log("\(Self.t)🟢 onReady") }
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onEnable(kernel: CisumKernel) async throws {
+    public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)✅ onEnable") }
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onDisable(kernel: CisumKernel) async throws {
+    public func onDisable(kernel: KernelCoreContainer) async throws {
         if Self.verbose { os_log("\(Self.t)⏹️ onDisable") }
         teardownState()
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["bookdb"])
         if Self.verbose { os_log("\(Self.t)🛑 onShutdown") }
         sceneBox.scene = nil
         teardownState()
@@ -84,8 +99,8 @@ public actor BookDBViewPlugin: SuperPlugin, SuperLog {
             dbRoot: databaseRootProvider(),
             bookDisk: bookDiskProvider(),
             bookProvider: provider,
-            isDesktop: ConfigShim.isDesktop,
-            isNotDesktop: ConfigShim.isNotDesktop
+            isDesktop: MagicApp.isDesktop,
+            isNotDesktop: MagicApp.isNotDesktop
         )
         let viewModel = resolveViewModel()
         let view = BookDBView(dependencies: dependencies, viewModel: viewModel)
@@ -94,27 +109,26 @@ public actor BookDBViewPlugin: SuperPlugin, SuperLog {
 
     /// 设置窗口入口：展示有声书仓库书籍列表（方式一）与目录树（方式二）。
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         // 设置页使用独立的 BookListViewModel，避免与主窗口内容区（BookGrid）
         // 共享同一实例——否则设置页 onAppear 触发重载时，共享状态变化会传播
         // 到主窗口内容区，导致其闪动。
         let settingList = BookListViewModel(
-            bookProvider: kernel?.resolveProvider(BookDatabaseProviding.self)
+            bookProvider: self.kernel?.resolveProvider(BookDatabaseProviding.self)
         )
         let settingTree = BookTreeViewModel(disk: bookDiskProvider)
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: "bookdb",
             title: String(localized: String.LocalizationValue(BookDBViewPluginInfo.titleKey), bundle: .module),
-            description: Self.metadata.description,
-            iconName: Self.metadata.iconName,
-            order: Self.metadata.order,
-            destination: AnyView(
-                BookDBSettingView(
-                    viewModel: settingList,
-                    treeViewModel: settingTree,
-                    dependencies: settingDependencies
-                )
-            )
+            systemImage: iconName,
+            order: order,
+            detail: {
+            BookDBSettingView(
+                                viewModel: settingList,
+                                treeViewModel: settingTree,
+                                dependencies: self.settingDependencies
+                            )
+        }
         )
     }
 
@@ -147,7 +161,7 @@ public actor BookDBViewPlugin: SuperPlugin, SuperLog {
     }
 
     @MainActor
-    private func installState(kernel: CisumKernel) {
+    private func installState(kernel: KernelCoreContainer) {
         guard gridViewModel == nil else { return }
 
         guard let scene = kernel.resolveProvider((any SceneProviding).self) else { return }
@@ -155,11 +169,12 @@ public actor BookDBViewPlugin: SuperPlugin, SuperLog {
         if Self.verbose { os_log("\(Self.t)🔧 installState") }
 
         let viewModel = BookGridViewModel(
-            playbackCapability: makePlaybackCapability(from: kernel.playback)
+            playbackProvider: kernel.resolveProvider((any PlaybackProviding).self),
+            toastProvider: kernel.resolveProvider((any ToastProviding).self)
         )
         guard let provider = kernel.resolveProvider(BookDatabaseProviding.self) else { return }
         let observer = DBObserver(viewModel: viewModel, provider: provider)
-        let playbackObserver = PlaybackObserver(playback: kernel.playback, viewModel: viewModel)
+        let playbackObserver = PlaybackObserver(playback: kernel.resolveProvider((any PlaybackProviding).self), viewModel: viewModel)
         gridViewModel = viewModel
         databaseObserver = observer
         self.playbackObserver = playbackObserver
@@ -181,34 +196,14 @@ public actor BookDBViewPlugin: SuperPlugin, SuperLog {
             return gridViewModel
         }
         let viewModel = BookGridViewModel(
-            playbackCapability: makePlaybackCapability(from: kernel?.playback)
+            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
+            toastProvider: kernel?.resolveProvider((any ToastProviding).self)
         )
         gridViewModel = viewModel
         return viewModel
     }
 
-    /// 将内核播放 Provider 收窄后注入 ViewModel。
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any BookDBPlaybackCapability)? {
-        guard let playback else { return nil }
-        return BookDBPlaybackCapabilityAdapter(playback: playback)
-    }
-
     private final class SceneBox {
         weak var scene: (any SceneProviding)?
     }
-}
-
-private enum ConfigShim {
-    static var isDesktop: Bool {
-        #if os(macOS)
-            true
-        #else
-            false
-        #endif
-    }
-
-    static var isNotDesktop: Bool { !isDesktop }
 }

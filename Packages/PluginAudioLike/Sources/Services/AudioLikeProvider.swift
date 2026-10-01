@@ -1,7 +1,9 @@
+import ProviderAudioLike
+import CisumProviderStorage
 import Foundation
 import KernelCore
-import ProviderAudioLike
-import ProviderStorage
+import ProviderPlugin
+import KitAppEvents
 
 /// 喜欢数据的唯一实现入口。
 ///

@@ -18,5 +18,7 @@
 			<string>ANY</string>
 		</dict>
 	</dict>
+	<key>CisumAppGroupIdentifier</key>
+	<string>$(CISUM_APP_GROUP_IDENTIFIER)</string>
 </dict>
 </plist>

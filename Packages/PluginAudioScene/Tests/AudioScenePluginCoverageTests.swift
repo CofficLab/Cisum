@@ -1,6 +1,8 @@
+import ProviderScene
 import Foundation
 import KernelCore
-import ProviderScene
+import ProviderPlugin
+import KitAppEvents
 import Testing
 @testable import PluginAudioScene
 
@@ -54,7 +56,7 @@ private final class ProbeSceneHandle: SceneProvidingObserverHandle {
 struct AudioScenePluginLifecycleTests {
     @Test
     func onRegisterWithNoDocsIsSafe() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let plugin = AudioScenePlugin()
         try await plugin.onRegister(kernel: kernel)
         // 不崩溃即为通过；docs 未注册时静默跳过。
@@ -62,7 +64,7 @@ struct AudioScenePluginLifecycleTests {
 
     @Test
     func onReadyWithoutSceneProviderKeepsFallback() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let plugin = AudioScenePlugin()
 
         try await plugin.onBoot(kernel: kernel)
@@ -75,7 +77,7 @@ struct AudioScenePluginLifecycleTests {
 
     @Test
     func onReadyInstallsSceneActionWhenProviderRegistered() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let scene = SceneProbe()
         try kernel.registerProvider((any SceneProviding).self, scene)
 
@@ -91,7 +93,7 @@ struct AudioScenePluginLifecycleTests {
 
     @Test
     func onEnableReinstallsAfterDisable() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let scene = SceneProbe()
         try kernel.registerProvider((any SceneProviding).self, scene)
 
@@ -107,7 +109,7 @@ struct AudioScenePluginLifecycleTests {
 
     @Test
     func onShutdownClearsSceneAction() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let scene = SceneProbe()
         try kernel.registerProvider((any SceneProviding).self, scene)
 
@@ -121,9 +123,9 @@ struct AudioScenePluginLifecycleTests {
 
     @Test
     func metadataExportsRegistrationInfo() {
-        #expect(AudioScenePlugin.metadata.displayName == AudioScenePluginInfo.title)
-        #expect(AudioScenePlugin.metadata.description == AudioScenePluginInfo.description)
-        #expect(AudioScenePlugin.metadata.iconName == AudioScenePluginInfo.iconName)
-        #expect(AudioScenePlugin.metadata.order == AudioScenePluginInfo.order)
+        #expect(AudioScenePlugin().metadata.name == AudioScenePluginInfo.title)
+        #expect(AudioScenePlugin().metadata.description == AudioScenePluginInfo.description)
+        #expect(AudioScenePlugin().iconName == AudioScenePluginInfo.iconName)
+        #expect(AudioScenePlugin().order == AudioScenePluginInfo.order)
     }
 }

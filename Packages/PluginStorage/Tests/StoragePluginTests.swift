@@ -1,14 +1,67 @@
+import CisumProviderStorage
 import Testing
 @testable import PluginStorage
 import Foundation
 import Combine
 import KernelCore
+import ProviderPlugin
 import ProviderStorage
 
 @Test func storagePluginInfoIsExposed() {
     #expect(StoragePluginInfo.titleKey == "Storage Settings")
-    #expect(StoragePluginLocation.local.rawValue == "local")
-    #expect(StoragePlugin.shouldRegister)
+    #expect(StorageLocation.local.rawValue == "local")
+}
+
+@MainActor
+@Test func storageProviderPersistsLocationToInjectedPreferencesOnly() {
+    let suiteName = "StorageProviderTests.\(UUID().uuidString)"
+    let defaults = UserDefaults(suiteName: suiteName)!
+    let standardValueBefore = UserDefaults.standard.string(forKey: "StorageLocation")
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+
+    let provider = StorageProvider(userDefaults: defaults)
+    #expect(provider.currentStorageLocation == nil)
+
+    provider.setStorageLocation(.local)
+
+    #expect(provider.currentStorageLocation == .local)
+    #expect(defaults.string(forKey: "StorageLocation") == StorageLocation.local.rawValue)
+    #expect(UserDefaults.standard.string(forKey: "StorageLocation") == standardValueBefore)
+}
+
+@MainActor
+@Test func storageProviderExposesLumiContractOverTheSameRoot() {
+    let provider = StorageProvider()
+    let shared = provider as any ProviderStorage.StorageProviding
+
+    #expect(shared.dataRootDirectory == provider.databaseRoot)
+
+    let pluginID = "SharedContractPlugin"
+    #expect(shared.pluginDataDirectory(for: pluginID) == provider.pluginDataDirectory(for: pluginID))
+
+    let core = shared.coreDataDirectory()
+    #expect(core == provider.databaseRoot.appendingPathComponent("Core", isDirectory: true))
+
+    var isDirectory: ObjCBool = false
+    #expect(FileManager.default.fileExists(atPath: core.path, isDirectory: &isDirectory))
+    #expect(isDirectory.boolValue)
+}
+
+@MainActor
+@Test func storagePluginRegistersOneInstanceUnderBothContracts() async throws {
+    let plugin = StoragePlugin()
+    let kernel = KernelCoreContainer()
+
+    try await plugin.onBootAsync(kernel: kernel)
+
+    let cisum = kernel.resolveProvider((any CisumProviderStorage.StorageProviding).self)
+    let lumi = kernel.resolveProvider((any ProviderStorage.StorageProviding).self)
+
+    #expect(cisum != nil)
+    #expect(lumi != nil)
+    #expect((cisum as AnyObject?) === (lumi as AnyObject?))
+
+    try await plugin.onShutdownAsync(kernel: kernel)
 }
 
 @Test func fileItemReportsDirectoryReadFailures() {
@@ -992,13 +1045,13 @@ import ProviderStorage
 @Test func storageObserverPerformsInitialSync() {
     let service = StorageProvider()
     let viewModel = StorageSettingsViewModel(
-        capability: StorageSettingsCapabilityAdapter(storage: service)
+        storageProvider: service
     )
     let observer = StorageProvidingObserver(provider: service, viewModel: viewModel)
     defer { observer.cancel() }
 
     // 监听安装前已经存在的状态不能丢失。
-    #expect(viewModel.location == service.currentStorageLocation.map { StoragePluginLocation($0) })
+    #expect(viewModel.location == service.currentStorageLocation)
     #expect(viewModel.isICloudAvailable == (service.storageRoot(for: .icloud) != nil))
     #expect(viewModel.isLocalStorageAvailable == (service.storageRoot(for: .local) != nil))
 }
@@ -1007,7 +1060,7 @@ import ProviderStorage
 @Test func storageObserverForwardsLocationChangeToViewModel() {
     let service = StorageProvider()
     let viewModel = StorageSettingsViewModel(
-        capability: StorageSettingsCapabilityAdapter(storage: service)
+        storageProvider: service
     )
     let observer = StorageProvidingObserver(provider: service, viewModel: viewModel)
     defer { observer.cancel() }
@@ -1021,9 +1074,9 @@ import ProviderStorage
 
 @MainActor
 @Test func storageObserverCancelStopsViewModelUpdates() {
-    let service = StorageProvider()
+    let service = TestStorageProviding(currentStorageLocation: nil)
     let viewModel = StorageSettingsViewModel(
-        capability: StorageSettingsCapabilityAdapter(storage: service)
+        storageProvider: service
     )
     let observer = StorageProvidingObserver(provider: service, viewModel: viewModel)
 
@@ -1064,15 +1117,15 @@ import ProviderStorage
 @MainActor
 @Test func storagePluginBindsPreexistingSettingsViewModelWhenProviderBecomesAvailable() async throws {
     let plugin = StoragePlugin()
-    _ = plugin.addSettingNavigationItem()
+    _ = plugin.makeSettingEntry()
 
     let originalViewModel = plugin.settingsViewModel
     #expect(originalViewModel != nil)
     #expect(originalViewModel?.location == nil)
 
     let provider = TestStorageProviding()
-    let kernel = CisumKernel()
-    try kernel.registerStorage(provider)
+    let kernel = KernelCoreContainer()
+    try kernel.registerProvider((any CisumProviderStorage.StorageProviding).self, provider)
     try await plugin.onEnable(kernel: kernel)
 
     #expect(plugin.settingsViewModel === originalViewModel)
@@ -1087,11 +1140,15 @@ import ProviderStorage
 }
 
 @MainActor
-private final class TestStorageProviding: ObservableObject, StorageProviding {
-    @Published var currentStorageLocation: StorageLocation? = .local
+private final class TestStorageProviding: ObservableObject, CisumProviderStorage.StorageProviding {
+    @Published var currentStorageLocation: StorageLocation?
     let databaseRoot = URL(fileURLWithPath: "/tmp/cisum-storage-provider-test", isDirectory: true)
 
-    private var observers: [UUID: (StorageProvidingEvent) -> Void] = [:]
+    private var observers: [UUID: (CisumProviderStorage.StorageProvidingEvent) -> Void] = [:]
+
+    init(currentStorageLocation: StorageLocation? = .local) {
+        self.currentStorageLocation = currentStorageLocation
+    }
 
     var storageRoot: URL? {
         currentStorageLocation.flatMap(storageRoot(for:))
@@ -1131,8 +1188,8 @@ private final class TestStorageProviding: ObservableObject, StorageProviding {
     }
 
     func addObserver(
-        _ callback: @escaping (StorageProvidingEvent) -> Void
-    ) -> any StorageProvidingObserverHandle {
+        _ callback: @escaping (CisumProviderStorage.StorageProvidingEvent) -> Void
+    ) -> any CisumProviderStorage.StorageProvidingObserverHandle {
         let id = UUID()
         observers[id] = callback
         return TestStorageObserverHandle(provider: self, id: id)
@@ -1142,7 +1199,7 @@ private final class TestStorageProviding: ObservableObject, StorageProviding {
         observers.removeValue(forKey: id)
     }
 
-    private func notify(_ event: StorageProvidingEvent) {
+    private func notify(_ event: CisumProviderStorage.StorageProvidingEvent) {
         for observer in observers.values {
             observer(event)
         }
@@ -1150,7 +1207,7 @@ private final class TestStorageProviding: ObservableObject, StorageProviding {
 }
 
 @MainActor
-private final class TestStorageObserverHandle: StorageProvidingObserverHandle {
+private final class TestStorageObserverHandle: CisumProviderStorage.StorageProvidingObserverHandle {
     private weak var provider: TestStorageProviding?
     private let id: UUID
 

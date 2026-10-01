@@ -1,9 +1,9 @@
+import ProviderBookData
+import CisumProviderStorage
 import Foundation
 import MagicKit
 import OSLog
 import ProviderBook
-import ProviderBookData
-import ProviderStorage
 
 @MainActor
 final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
@@ -13,6 +13,7 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
     private let storage: any StorageProviding
     private var cachedRepository: BookRepo?
     private var storageObserver: (any StorageProvidingObserverHandle)?
+    private var observers: [WeakBookProvidingObserver] = []
 
     init(storage: any StorageProviding) {
         self.storage = storage
@@ -56,7 +57,11 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
 
         let repository = try? BookRepo(
             disk: disk,
-            db: BookDB(container, reason: "BookDBDataPlugin")
+            db: BookDB(
+                container,
+                reason: "BookDBDataPlugin",
+                eventHandler: { [weak self] event in self?.notify(event) }
+            )
         )
         cachedRepository = repository
         return repository
@@ -125,75 +130,72 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
 
     @discardableResult
     func addObserver(
-        _ callback: @escaping @Sendable (BookProvidingEvent) -> Void
+        _ callback: @escaping @MainActor @Sendable (BookProvidingEvent) -> Void
     ) -> any BookProvidingObserverHandle {
-        let center = NotificationCenter.default
-        let names: [Notification.Name] = [
-            .bookDBSyncing,
-            .bookDBSynced,
-            .bookDBUpdated,
-            .bookDBDeleted,
-            .bookDBSortDone,
-            .bookStateUpdated,
-        ]
-        var tokens: [NSObjectProtocol] = []
-        for name in names {
-            tokens.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] notification in
-                let deletedURLs = notification.userInfo?["urls"] as? [URL] ?? []
-                let playbackURL = notification.userInfo?["url"] as? URL
-                Task { @MainActor in
-                    guard let self else { return }
-                    if name == .bookDBSyncing || name == .bookDBSynced || name == .bookDBUpdated || name == .bookDBDeleted || name == .bookDBSortDone {
-                        BookCoverRepo.clearCache()
-                    }
-                    if name == .bookDBSyncing {
-                        callback(.librarySyncing)
-                    } else if name == .bookDBSynced {
-                        callback(.librarySynced)
-                    } else if name == .bookDBDeleted {
-                        callback(.libraryDeleted(urls: deletedURLs))
-                    } else if name == .bookDBSortDone {
-                        callback(.librarySorted)
-                    } else if name == .bookStateUpdated {
-                        callback(.playbackStateChanged(url: playbackURL))
-                    } else {
-                        callback(.libraryChanged(totalCount: await self.totalCount()))
-                    }
-                }
-            })
-        }
-        let storageHandle = storage.addObserver { event in
+        let observer = BookProvidingObserver(owner: self, callback: callback)
+        observers.append(WeakBookProvidingObserver(observer))
+        observer.storageHandle = storage.addObserver { [weak observer] event in
             guard case .locationChanged = event else { return }
-            callback(.storageLocationChanged)
+            observer?.invoke(.storageLocationChanged)
         }
-        return BookProvidingNotificationObserverHandle(tokens: tokens, storageHandle: storageHandle)
+        return observer
     }
 
     func invalidateRepository() {
         cachedRepository?.shutdown()
         cachedRepository = nil
     }
+
+    private func notify(_ event: BookProvidingEvent) {
+        switch event {
+        case .librarySyncing, .librarySynced, .libraryChanged, .libraryDeleted:
+            BookCoverRepo.clearCache()
+        case .playbackStateChanged, .storageLocationChanged:
+            break
+        }
+        observers.removeAll { $0.observer == nil }
+        observers.forEach { $0.observer?.invoke(event) }
+    }
+
+    fileprivate func removeObserver(_ observer: BookProvidingObserver) {
+        observers.removeAll { $0.observer === observer }
+    }
 }
 
 @MainActor
-private final class BookProvidingNotificationObserverHandle: BookProvidingObserverHandle {
-    private var tokens: [NSObjectProtocol]
-    private var storageHandle: (any StorageProvidingObserverHandle)?
+private final class BookProvidingObserver: BookProvidingObserverHandle {
+    private weak var owner: BookDatabaseProvider?
+    private let callback: @MainActor @Sendable (BookProvidingEvent) -> Void
+    fileprivate var storageHandle: (any StorageProvidingObserverHandle)?
+    private var cancelled = false
 
     init(
-        tokens: [NSObjectProtocol],
-        storageHandle: (any StorageProvidingObserverHandle)?
+        owner: BookDatabaseProvider,
+        callback: @escaping @MainActor @Sendable (BookProvidingEvent) -> Void
     ) {
-        self.tokens = tokens
-        self.storageHandle = storageHandle
+        self.owner = owner
+        self.callback = callback
+    }
+
+    func invoke(_ event: BookProvidingEvent) {
+        guard !cancelled else { return }
+        callback(event)
     }
 
     func cancel() {
-        let center = NotificationCenter.default
-        tokens.forEach { center.removeObserver($0) }
-        tokens.removeAll()
+        guard !cancelled else { return }
+        cancelled = true
         storageHandle?.cancel()
         storageHandle = nil
+        owner?.removeObserver(self)
     }
+}
 
+@MainActor
+private final class WeakBookProvidingObserver {
+    weak var observer: BookProvidingObserver?
+
+    init(_ observer: BookProvidingObserver) {
+        self.observer = observer
+    }
 }

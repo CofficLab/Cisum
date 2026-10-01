@@ -172,8 +172,8 @@ private func subscriptionProduct(id: String) -> ProductDTO {
 @MainActor
 func storePluginAssemblesAndTearsDownState() async throws {
     let plugin = StorePlugin()
-    #expect(plugin.addSettingNavigationItem() != nil)
-    #expect(plugin.addSettingNavigationItem() != nil) // 二次调用复用同一 ViewModel
+    #expect(plugin.makeSettingEntry() != nil)
+    #expect(plugin.makeSettingEntry() != nil) // 二次调用复用同一 ViewModel
 }
 
 @Test

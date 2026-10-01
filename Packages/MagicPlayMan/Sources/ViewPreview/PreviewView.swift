@@ -1,4 +1,6 @@
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import OSLog
 import SwiftUI
 
@@ -96,7 +98,7 @@ public struct MagicPlayManPreviewView: View {
         }
         .shadowNone()
         .localization(_playMan.wrappedValue.localization)
-        .infinite()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

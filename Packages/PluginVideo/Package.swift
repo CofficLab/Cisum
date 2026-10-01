@@ -15,15 +15,20 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../../Packages/CisumUIComponents")
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
     ],
     targets: [
         .target(
             name: "PluginVideo",
             dependencies: [
-                .product(name: "CisumUIComponents", package: "CisumUIComponents")
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources"],
             resources: [
                 .process("Resources/Localizable.xcstrings")

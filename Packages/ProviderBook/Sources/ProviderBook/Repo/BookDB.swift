@@ -1,23 +1,31 @@
-import Foundation
 import ProviderBook
+import Foundation
 import CisumUIComponents
+import MagicKit
+import LumiUI
 import OSLog
 import SwiftData
 import SwiftUI
 
-public actor BookDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
+public actor BookDB: ModelActor, ObservableObject, SuperLog, SuperThread {
+
     public static let emoji = "📦"
     public static let verbose = false
 
     public let modelContainer: ModelContainer
     public let modelExecutor: any ModelExecutor
     public let context: ModelContext
+    private let eventHandler: @MainActor @Sendable (BookProvidingEvent) -> Void
     let queue = DispatchQueue(label: "DB")
 
 
     var onUpdated: () -> Void = { os_log("🍋 DB::updated") }
 
-    public init(_ container: ModelContainer, reason: String) {
+    public init(
+        _ container: ModelContainer,
+        reason: String,
+        eventHandler: @escaping @MainActor @Sendable (BookProvidingEvent) -> Void = { _ in }
+    ) {
         if Self.verbose {
             let message = "\(Self.t)🚩🚩🚩 初始化(\(reason))"
 
@@ -30,6 +38,7 @@ public actor BookDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperTh
         modelExecutor = DefaultSerialModelExecutor(
             modelContext: context
         )
+        self.eventHandler = eventHandler
     }
 
     func setOnUpdated(_ callback: @escaping () -> Void) {
@@ -202,7 +211,7 @@ extension BookDB {
         for bookURL: URL,
         currentURL: URL?,
         time: TimeInterval?
-    ) throws {
+    ) async throws {
         let existingState = try context.fetch(BookState.descriptorOf(bookURL)).first
             ?? context.fetch(BookState.descriptorAll).first { state in
                 BookState.representsSameBookURL(state.url, as: bookURL)
@@ -219,7 +228,7 @@ extension BookDB {
         }
 
         try context.save()
-        NotificationCenter.postBookStateUpdated(bookURL: bookURL)
+        await eventHandler(.playbackStateChanged(url: bookURL))
     }
 }
 
@@ -310,7 +319,7 @@ extension BookDB {
         return nil
     }
 
-    func delete(ids: [BookModel.ID], verbose: Bool) -> BookModel? {
+    func delete(ids: [BookModel.ID], verbose: Bool) async -> BookModel? {
         if verbose {
             os_log("\(self.t)删除")
         }
@@ -352,21 +361,22 @@ extension BookDB {
         }
 
         if !deletedURLs.isEmpty {
-            NotificationCenter.postBookDBDeleted(urls: deletedURLs)
+            await eventHandler(.libraryDeleted(urls: deletedURLs))
         }
 
         return next
     }
 
-    func delete(urls: [URL]) {
+    func delete(urls: [URL]) async {
         for deletedURL in urls {
             deleteModels(for: deletedURL)
         }
 
-        saveAndNotifyDeleted(urls: urls)
+        await saveAndNotifyDeleted(urls: urls)
     }
 
-    public func sync(_ items: [URL], isFirst: Bool) {
+    public func sync(_ items: [URL], isFirst: Bool) async {
+        await eventHandler(.librarySyncing)
         var message = "\(self.t)SyncBook(\(items.count))"
 
         if let first = items.first, first.checkIsDownloading() == true {
@@ -384,23 +394,24 @@ extension BookDB {
         }
 
         if isFirst {
-            bookSyncWithDisk(items)
+            await bookSyncWithDisk(items)
         } else {
             do {
-                try bookSyncWithUpdatedItems(items)
+                try await bookSyncWithUpdatedItems(items)
             } catch let e {
                 os_log(.error, "\(e.localizedDescription)")
             }
         }
     }
 
-    public func syncImportedItems(_ items: [URL]) throws {
-        try bookSyncWithUpdatedItems(items)
+    public func syncImportedItems(_ items: [URL]) async throws {
+        await eventHandler(.librarySyncing)
+        try await bookSyncWithUpdatedItems(items)
     }
 
     // MARK: SyncWithDisk
 
-    private func bookSyncWithDisk(_ items: [URL]) {
+    private func bookSyncWithDisk(_ items: [URL]) async {
         let verbose = false
         let startTime: DispatchTime = .now()
 
@@ -450,12 +461,12 @@ extension BookDB {
         }
 
         self.updateBookParent()
-        NotificationCenter.postBookDBSynced()
+        await eventHandler(.librarySynced)
     }
 
     // MARK: SyncWithUpdatedItems
 
-    func bookSyncWithUpdatedItems(_ metas: [URL], verbose: Bool = false) throws {
+    func bookSyncWithUpdatedItems(_ metas: [URL], verbose: Bool = false) async throws {
         let startTime: DispatchTime = .now()
 
         var nextOrder = nextAppendOrder()
@@ -475,7 +486,7 @@ extension BookDB {
         repairBookOrderIfNeeded()
         try context.save()
         updateBookParent()
-        NotificationCenter.postBookDBUpdated()
+        await eventHandler(.libraryChanged(totalCount: (try? count(for: BookModel.self)) ?? 0))
 
         if verbose {
             os_log("\(self.jobEnd(startTime, title: "\(self.t)SyncBookWithUpdatedItems(\(metas.count))", tolerance: 0.01))")
@@ -601,10 +612,10 @@ extension BookDB {
         }
     }
 
-    private func saveAndNotifyDeleted(urls: [URL]) {
+    private func saveAndNotifyDeleted(urls: [URL]) async {
         do {
             try context.save()
-            NotificationCenter.postBookDBDeleted(urls: urls)
+            await eventHandler(.libraryDeleted(urls: urls))
         } catch let e {
             os_log(.error, "\(e.localizedDescription)")
         }
@@ -632,7 +643,7 @@ extension BookDB {
     }
 
     /// 更新书籍当前播放的URL
-    public func updateBookCurrent(_ bookURL: URL, currentURL: URL?, time: TimeInterval? = nil) {
+    public func updateBookCurrent(_ bookURL: URL, currentURL: URL?, time: TimeInterval? = nil) async {
         if let existingState = findBookState(bookURL) {
             // 更新现有状态
             existingState.currentURL = currentURL
@@ -648,7 +659,7 @@ extension BookDB {
 
         do {
             try context.save()
-            NotificationCenter.postBookStateUpdated(bookURL: bookURL)
+            await eventHandler(.playbackStateChanged(url: bookURL))
             if Self.verbose {
                 os_log("\(self.t)💾 保存书籍状态: \(bookURL.lastPathComponent)")
             }

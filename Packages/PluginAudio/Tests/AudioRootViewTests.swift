@@ -1,6 +1,5 @@
-import ProviderStorage
+import CisumProviderStorage
 import Foundation
-import ProviderStorage
 import Testing
 @testable import PluginAudio
 

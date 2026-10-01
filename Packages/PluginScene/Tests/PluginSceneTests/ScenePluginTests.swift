@@ -1,68 +1,79 @@
+import ProviderScene
 import Foundation
 import KernelCore
-import ProviderScene
+import ProviderPlugin
+import KitAppEvents
 @testable import PluginScene
 import Testing
 
-private actor SceneDependentProbePlugin: SuperPlugin {
-    static let shared = SceneDependentProbePlugin()
+@MainActor
+private final class SceneDependentProbePlugin: SuperPlugin {
+    let id = "scene-dependent-probe"
+    let order: Int = 9999
+    let metadata = PluginMetadata(
+        id: "scene-dependent-probe",
+        name: "Scene dependent probe",
+        description: ""
+    )
 
-    nonisolated var id: String { "scene-dependent-probe" }
-
-    static var metadata: PluginMetadata {
-        PluginMetadata(
-            id: "scene-dependent-probe",
-            displayName: "Scene dependent probe",
-            description: "",
-            order: 0
-        )
-    }
-
-    @MainActor
-    func onBoot(kernel: CisumKernel) async throws {
-        guard kernel.scene != nil else {
-            throw CisumKernelError.serviceNotAvailable(service: "SceneProviding")
+    func onBootAsync(kernel: KernelCoreContainer) async throws {
+        guard kernel.resolveProvider((any SceneProviding).self) != nil else {
+            throw KernelCoreError.providerNotFound(type: (any SceneProviding).self)
         }
     }
 }
 
 @MainActor
+@Suite(.serialized)
 struct ScenePluginTests {
     @Test
     func registersAndUnregistersSceneProvider() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let plugin = ScenePlugin()
 
-        try await plugin.onBoot(kernel: kernel)
-        #expect(kernel.scene != nil)
+        try await plugin.onBootAsync(kernel: kernel)
+        #expect(kernel.resolveProvider((any SceneProviding).self) != nil)
 
-        try await plugin.onShutdown(kernel: kernel)
-        #expect(kernel.scene == nil)
+        try await plugin.onShutdownAsync(kernel: kernel)
+        #expect(kernel.resolveProvider((any SceneProviding).self) == nil)
+    }
+
+    @Test
+    func contributesSceneSwitcherAfterBootDependenciesAreReady() async throws {
+        clearLegacyPersistence()
+        defer { clearLegacyPersistence() }
+
+        let kernel = KernelCoreContainer()
+        let pluginProvider = PluginContributionService(kernel: kernel)
+        let plugin = ScenePlugin()
+        try kernel.registerProvider((any PluginProviding).self, pluginProvider)
+        try kernel.registerProvider((any PluginContributionProviding).self, pluginProvider)
+
+        try await kernel.startAsync(plugins: [plugin])
+
+        #expect(kernel.resolveProvider((any SceneProviding).self)?.scenes == [.music, .audiobooks])
+        #expect(pluginProvider.getToolBarButtons().map(\.id) == ["scene-switcher"])
+        #expect(plugin.settingsViewModel?.currentScene == .music)
     }
 
     @Test
     func contributesSceneSettingsNavigationItem() {
-        let item = ScenePlugin().addSettingNavigationItem()
+        let item = ScenePlugin().makeSettingEntry()
 
         #expect(item?.id == "scene")
         #expect(item?.title == "Scene")
-        #expect(item?.iconName == "rectangle.3.group")
+        #expect(item?.systemImage == "rectangle.3.group")
     }
 
     @Test
     func bootsBeforeSameOrderSceneDependentPlugins() async throws {
-        let kernel = CisumKernel()
-        let manager = kernel.pluginManager
+        let kernel = KernelCoreContainer()
 
-        // The dependent plugin is intentionally registered first and has the
-        // old order value 0. ScenePlugin must still register its provider first.
-        manager.initializePlugins([
-            SceneDependentProbePlugin(),
-            ScenePlugin(),
-        ])
-
-        try await manager.onBoot(kernel: kernel)
-        #expect(kernel.scene != nil)
+        // The dependent plugin is intentionally ordered after ScenePlugin
+        // (old order value 0 -> 9999) and must boot after ScenePlugin
+        // registers its provider first.
+        try await kernel.startAsync(plugins: [SceneDependentProbePlugin(), ScenePlugin()])
+        #expect(kernel.resolveProvider((any SceneProviding).self) != nil)
     }
 
     @Test
@@ -162,7 +173,7 @@ struct ScenePluginTests {
         service.setCurrentScene(.audiobooks)
 
         let viewModel = SceneSettingsViewModel(
-            capability: SceneSettingsCapabilityAdapter(scene: service)
+            sceneProvider: service
         )
         let observer = SceneProvidingObserver(provider: service, viewModel: viewModel)
         defer { observer.cancel() }
@@ -184,7 +195,7 @@ struct ScenePluginTests {
         service.restoreCurrentScene()
 
         let viewModel = SceneSettingsViewModel(
-            capability: SceneSettingsCapabilityAdapter(scene: service)
+            sceneProvider: service
         )
         let observer = SceneProvidingObserver(provider: service, viewModel: viewModel)
         defer { observer.cancel() }
@@ -205,7 +216,7 @@ struct ScenePluginTests {
         service.restoreCurrentScene()
 
         let viewModel = SceneSettingsViewModel(
-            capability: SceneSettingsCapabilityAdapter(scene: service)
+            sceneProvider: service
         )
         let observer = SceneProvidingObserver(provider: service, viewModel: viewModel)
 
@@ -220,23 +231,23 @@ struct ScenePluginTests {
 
     @Test
     func pluginAssemblySurvivesEnableDisableCycles() async throws {
-        let kernel = CisumKernel()
+        let kernel = KernelCoreContainer()
         let plugin = ScenePlugin()
 
-        try await plugin.onBoot(kernel: kernel)
+        try await plugin.onBootAsync(kernel: kernel)
         try await plugin.onReady(kernel: kernel)
 
-        let first = plugin.addSettingNavigationItem()?.destination
-        let second = plugin.addSettingNavigationItem()?.destination
-        #expect(first != nil)
+        let first = plugin.makeSettingEntry() != nil
+        let second = plugin.makeSettingEntry() != nil
+        #expect(first)
         // 同一个长期存在的 ViewModel：两次请求不重建状态对象。
-        #expect(second != nil)
+        #expect(second)
 
         try await plugin.onDisable(kernel: kernel)
         try await plugin.onEnable(kernel: kernel)
         // 禁用再启用后仍可注入设置导航项。
-        #expect(plugin.addSettingNavigationItem() != nil)
+        #expect(plugin.makeSettingEntry() != nil)
 
-        try await plugin.onShutdown(kernel: kernel)
+        try await plugin.onShutdownAsync(kernel: kernel)
     }
 }

@@ -1,6 +1,6 @@
-import Foundation
-import ProviderPlayback
 import ProviderScene
+import ProviderPlayback
+import Foundation
 import MagicKit
 
 /// 音频喜欢状态通知的集中观察者（迁移 Phase 2）。

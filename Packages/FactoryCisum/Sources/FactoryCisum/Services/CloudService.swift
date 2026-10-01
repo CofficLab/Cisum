@@ -1,8 +1,8 @@
-import KernelCore
+import ProviderCloud
 import CloudKit
 import Foundation
+import KitEventObservation
 import MagicKit
-import ProviderCloud
 
 /// `CloudProviding` 的具体实现。
 ///
@@ -19,7 +19,7 @@ public final class CloudService: ObservableObject, CloudProviding {
     }
 
     private var observer: NSObjectProtocol?
-    private let eventObservers = KernelEventObserverStore<CloudProvidingEvent>()
+    private let eventObservers = EventObserverStore<CloudProvidingEvent>()
 
     public init() {
         refresh()

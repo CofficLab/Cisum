@@ -7,5 +7,7 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.widgetkit-extension</string>
 	</dict>
+	<key>CisumAppGroupIdentifier</key>
+	<string>$(CISUM_APP_GROUP_IDENTIFIER)</string>
 </dict>
 </plist>

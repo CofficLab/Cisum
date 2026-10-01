@@ -1,4 +1,5 @@
 import Foundation
+import KitEventObservation
 
 @MainActor
 public enum AppStateProvidingEvent {
@@ -22,9 +23,9 @@ public protocol AppStateProvidingObserverHandle: AnyObject {
 /// ## 使用示例
 ///
 /// ```swift
-/// kernel.appState?.enterDemoMode()
-/// let isDemo = kernel.appState?.isDemoMode ?? false
-/// kernel.appState?.appendStateMessage("Imported 3 files")
+/// kernel.resolveProvider((any AppStateProviding).self)?.enterDemoMode()
+/// let isDemo = kernel.resolveProvider((any AppStateProviding).self)?.isDemoMode ?? false
+/// kernel.resolveProvider((any AppStateProviding).self)?.appendStateMessage("Imported 3 files")
 /// ```
 @MainActor
 public protocol AppStateProviding: AnyObject, ObservableObject {
@@ -93,3 +94,5 @@ public final class NoopAppStateProvidingObserverHandle: AppStateProvidingObserve
     public init() {}
     public func cancel() {}
 }
+
+extension EventObserverHandle: AppStateProvidingObserverHandle {}

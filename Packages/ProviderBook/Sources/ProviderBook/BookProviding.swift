@@ -7,7 +7,6 @@ public enum BookProvidingEvent {
     case librarySynced
     case libraryChanged(totalCount: Int)
     case libraryDeleted(urls: [URL])
-    case librarySorted
     case playbackStateChanged(url: URL?)
     case storageLocationChanged
 }
@@ -40,7 +39,7 @@ public protocol BookProviding: AnyObject {
 
     @discardableResult
     func addObserver(
-        _ callback: @escaping @Sendable (BookProvidingEvent) -> Void
+        _ callback: @escaping @MainActor @Sendable (BookProvidingEvent) -> Void
     ) -> any BookProvidingObserverHandle
 }
 
@@ -89,7 +88,7 @@ public final class NoopBookProvidingObserverHandle: BookProvidingObserverHandle 
 public extension BookProviding {
     @discardableResult
     func addObserver(
-        _ callback: @escaping @Sendable (BookProvidingEvent) -> Void
+        _ callback: @escaping @MainActor @Sendable (BookProvidingEvent) -> Void
     ) -> any BookProvidingObserverHandle {
         NoopBookProvidingObserverHandle()
     }

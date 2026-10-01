@@ -1,6 +1,6 @@
+import ProviderPlayback
 import MagicKit
 import OSLog
-import ProviderPlayback
 
 /// 音频库播放状态观察者：将播放服务的当前资源变化转发给列表 ViewModel。
 @MainActor

@@ -10,9 +10,13 @@ struct PlaybackHeroRightAlbumView: View {
     }
 
     var body: some View {
-        viewModel.makeMediaView()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .aspectRatio(1, contentMode: .fit)
-            .clipped()
+        Group {
+            if viewModel.isHeroVisible {
+                viewModel.makeMediaView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .aspectRatio(1, contentMode: .fit)
+                    .clipped()
+            }
+        }
     }
 }

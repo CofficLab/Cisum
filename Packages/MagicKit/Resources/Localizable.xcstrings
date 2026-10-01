@@ -477,35 +477,6 @@
         }
       }
     },
-    "Open Database Directory" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open Database Directory"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开数据库目录"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打開資料庫目錄"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打開資料庫目錄"
-          }
-        }
-      }
-    },
     "Open Documents Directory" : {
       "localizations" : {
         "en" : {

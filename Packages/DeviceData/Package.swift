@@ -3,7 +3,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "DeviceData",
+    name: "KitDeviceData",
     defaultLocalization: "en",
     platforms: [
         .macOS(.v14),

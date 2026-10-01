@@ -11,11 +11,15 @@ let package = Package(
     products: [
         .library(name: "ProviderAudioLibrary", targets: ["ProviderAudioLibrary"]),
     ],
-    dependencies: [],
+    dependencies: [
+        .package(path: "../KitEventObservation"),
+    ],
     targets: [
         .target(
             name: "ProviderAudioLibrary",
-            dependencies: [],
+            dependencies: [
+                .product(name: "KitEventObservation", package: "KitEventObservation"),
+            ],
             path: "Sources/ProviderAudioLibrary"
         ),
         .testTarget(

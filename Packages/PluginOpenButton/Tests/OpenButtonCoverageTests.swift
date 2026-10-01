@@ -1,5 +1,5 @@
-import Foundation
 import ProviderPlayback
+import Foundation
 import Testing
 @testable import PluginOpenButton
 
@@ -63,10 +63,6 @@ private final class ProbePlaybackHandle: PlaybackProvidingObserverHandle {
 }
 
 @MainActor
-private final class CapabilityProbe: OpenButtonPlaybackCapability {
-    var currentURL: URL?
-}
-
 @Test
 func pluginInfoIsStable() {
     #expect(!OpenButtonPluginInfo.iconName.isEmpty)
@@ -77,21 +73,21 @@ func pluginInfoIsStable() {
 struct OpenButtonViewModelTests {
     @Test
     func initReflectsCurrentURL() {
-        let capability = CapabilityProbe()
-        capability.currentURL = URL(fileURLWithPath: "/tmp/song.mp3")
-        let viewModel = OpenButtonViewModel(playbackCapability: capability)
-        #expect(viewModel.url == capability.currentURL)
+        let playback = PlaybackProbe()
+        playback.currentURL = URL(fileURLWithPath: "/tmp/song.mp3")
+        let viewModel = OpenButtonViewModel(playbackProvider: playback)
+        #expect(viewModel.url == playback.currentURL)
     }
 
     @Test
-    func initWithoutCapabilityKeepsNil() {
-        let viewModel = OpenButtonViewModel(playbackCapability: nil)
+    func initWithoutPlaybackKeepsNil() {
+        let viewModel = OpenButtonViewModel(playbackProvider: nil)
         #expect(viewModel.url == nil)
     }
 
     @Test
     func handleAssetChangedUpdatesURL() {
-        let viewModel = OpenButtonViewModel(playbackCapability: nil)
+        let viewModel = OpenButtonViewModel(playbackProvider: nil)
         let url = URL(fileURLWithPath: "/tmp/new.mp3")
         viewModel.handleAssetChanged(url)
         #expect(viewModel.url == url)
@@ -101,22 +97,11 @@ struct OpenButtonViewModelTests {
 }
 
 @MainActor
-struct OpenButtonPlaybackCapabilityAdapterTests {
-    @Test
-    func adapterExposesCurrentURL() {
-        let probe = PlaybackProbe()
-        probe.currentURL = URL(fileURLWithPath: "/tmp/a.mp3")
-        let adapter = OpenButtonPlaybackCapabilityAdapter(playback: probe)
-        #expect(adapter.currentURL == probe.currentURL)
-    }
-}
-
-@MainActor
 struct OpenButtonObserverTests {
     @Test
     func forwardsAssetChanges() {
         let probe = PlaybackProbe()
-        let viewModel = OpenButtonViewModel(playbackCapability: nil)
+        let viewModel = OpenButtonViewModel(playbackProvider: nil)
         let observer = OpenButtonObserver(playback: probe, viewModel: viewModel)
         defer { observer.cancel() }
 
@@ -129,7 +114,7 @@ struct OpenButtonObserverTests {
     @Test
     func cancellingObserverStopsForwarding() {
         let probe = PlaybackProbe()
-        let viewModel = OpenButtonViewModel(playbackCapability: nil)
+        let viewModel = OpenButtonViewModel(playbackProvider: nil)
         let observer = OpenButtonObserver(playback: probe, viewModel: viewModel)
 
         observer.cancel()

@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 /// 播放控制区域：封面、标题、状态、进度条和底部操作按钮。
@@ -16,6 +17,7 @@ struct ControlView: View {
     var progressView: AnyView? = nil
     var controlButtonsView: AnyView? = nil
     var rightAlbumView: AnyView? = nil
+    @Environment(\.playbackHeroVisibility) private var heroVisibility
 
     var body: some View {
         GeometryReader { geometry in
@@ -24,7 +26,7 @@ struct ControlView: View {
                     if heroView != nil {
                         heroArea(for: geometry)
                             .frame(maxWidth: .infinity)
-                            .frame(height: heroHeight(for: geometry), alignment: .top)
+                            .frame(height: heroVisibility.wrappedValue ? heroHeight(for: geometry) : 0, alignment: .top)
                     }
 
                     stateArea
@@ -62,7 +64,11 @@ struct ControlView: View {
         #else
             .ignoresSafeArea()
         #endif
-        .frame(minHeight: CisumPlayerLayout.controlMinimumHeight)
+        .frame(minHeight: heroVisibility.wrappedValue
+            ? CisumPlayerLayout.controlMinimumHeight
+            : CisumPlayerLayout.emptyPlayerControlHeight)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("cisum.player.controls")
     }
 
     @ViewBuilder

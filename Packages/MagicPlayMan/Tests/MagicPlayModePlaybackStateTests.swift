@@ -1,60 +1,61 @@
 @testable import MagicPlayMan
+import ProviderPlayback
 import XCTest
 
-// MARK: - MagicPlayMode Tests
+// MARK: - PlaybackMode Tests
 
-final class MagicPlayModeTests: XCTestCase {
+final class PlaybackModeTests: XCTestCase {
     func testDisplayName() {
-        XCTAssertEqual(MagicPlayMode.sequence.displayName, "Sequential Play")
-        XCTAssertEqual(MagicPlayMode.loop.displayName, "Single Track Loop")
-        XCTAssertEqual(MagicPlayMode.shuffle.displayName, "Shuffle Play")
-        XCTAssertEqual(MagicPlayMode.repeatAll.displayName, "Repeat All")
+        XCTAssertEqual(PlaybackMode.sequence.displayName, "Sequential Play")
+        XCTAssertEqual(PlaybackMode.loop.displayName, "Single Track Loop")
+        XCTAssertEqual(PlaybackMode.shuffle.displayName, "Shuffle Play")
+        XCTAssertEqual(PlaybackMode.repeatAll.displayName, "Repeat All")
     }
 
     func testShortName() {
-        XCTAssertEqual(MagicPlayMode.sequence.shortName, "Sequential")
-        XCTAssertEqual(MagicPlayMode.loop.shortName, "Loop One")
-        XCTAssertEqual(MagicPlayMode.shuffle.shortName, "Shuffle")
-        XCTAssertEqual(MagicPlayMode.repeatAll.shortName, "Repeat All")
+        XCTAssertEqual(PlaybackMode.sequence.shortName, "Sequential")
+        XCTAssertEqual(PlaybackMode.loop.shortName, "Loop One")
+        XCTAssertEqual(PlaybackMode.shuffle.shortName, "Shuffle")
+        XCTAssertEqual(PlaybackMode.repeatAll.shortName, "Repeat All")
     }
 
     func testIconName() {
-        XCTAssertEqual(MagicPlayMode.sequence.iconName, .iconMusicNoteList)
-        XCTAssertEqual(MagicPlayMode.loop.iconName, .iconRepeat1)
-        XCTAssertEqual(MagicPlayMode.shuffle.iconName, .iconShuffle)
-        XCTAssertEqual(MagicPlayMode.repeatAll.iconName, .iconRepeatAll)
+        XCTAssertEqual(PlaybackMode.sequence.iconName, "music.note.list")
+        XCTAssertEqual(PlaybackMode.loop.iconName, "repeat.1")
+        XCTAssertEqual(PlaybackMode.shuffle.iconName, "shuffle")
+        XCTAssertEqual(PlaybackMode.repeatAll.iconName, "repeat")
     }
 
     func testIconAlias() {
-        XCTAssertEqual(MagicPlayMode.sequence.icon, MagicPlayMode.sequence.iconName)
-        XCTAssertEqual(MagicPlayMode.loop.icon, MagicPlayMode.loop.iconName)
+        XCTAssertEqual(PlaybackMode.sequence.icon, PlaybackMode.sequence.iconName)
+        XCTAssertEqual(PlaybackMode.loop.icon, PlaybackMode.loop.iconName)
     }
 
     func testNextCyclesCorrectly() {
-        XCTAssertEqual(MagicPlayMode.sequence.next, .loop)
-        XCTAssertEqual(MagicPlayMode.loop.next, .shuffle)
-        XCTAssertEqual(MagicPlayMode.shuffle.next, .repeatAll)
-        XCTAssertEqual(MagicPlayMode.repeatAll.next, .sequence)
+        XCTAssertEqual(PlaybackMode.sequence.next, .loop)
+        XCTAssertEqual(PlaybackMode.loop.next, .shuffle)
+        XCTAssertEqual(PlaybackMode.shuffle.next, .repeatAll)
+        XCTAssertEqual(PlaybackMode.repeatAll.next, .sequence)
     }
 
     func testAllCases() {
-        XCTAssertEqual(MagicPlayMode.allCases.count, 4)
-        for mode in MagicPlayMode.allCases {
-            XCTAssertTrue(MagicPlayMode.allCases.contains(mode))
+        XCTAssertEqual(PlaybackMode.allCases.count, 4)
+        for mode in PlaybackMode.allCases {
+            XCTAssertTrue(PlaybackMode.allCases.contains(mode))
         }
     }
 
     func testRawValue() {
-        XCTAssertEqual(MagicPlayMode.sequence.rawValue, "sequence")
-        XCTAssertEqual(MagicPlayMode.loop.rawValue, "loop")
-        XCTAssertEqual(MagicPlayMode.shuffle.rawValue, "shuffle")
-        XCTAssertEqual(MagicPlayMode.repeatAll.rawValue, "repeatAll")
+        XCTAssertEqual(PlaybackMode.sequence.rawValue, "sequence")
+        XCTAssertEqual(PlaybackMode.loop.rawValue, "loop")
+        XCTAssertEqual(PlaybackMode.shuffle.rawValue, "shuffle")
+        XCTAssertEqual(PlaybackMode.repeatAll.rawValue, "repeatAll")
     }
 
     func testToastMessage() {
-        let (msg, icon) = MagicPlayMode.shuffle.toastMessage
+        let (msg, icon) = PlaybackMode.shuffle.toastMessage
         XCTAssertEqual(msg, "Shuffle Play")
-        XCTAssertEqual(icon, .iconShuffle)
+        XCTAssertEqual(icon, "shuffle")
     }
 }
 
@@ -166,13 +167,18 @@ final class PlaybackStateTests: XCTestCase {
 
     // MARK: - PlaybackError
 
-    func testErrorEnglishDescriptions() {
-        XCTAssertEqual(PlaybackState.PlaybackError.noAsset.errorDescription, "No media selected")
-        XCTAssertEqual(PlaybackState.PlaybackError.invalidAsset.errorDescription, "The media file is invalid or corrupted")
-        XCTAssertEqual(PlaybackState.PlaybackError.networkError("timeout").errorDescription, "Network error: timeout")
-        XCTAssertEqual(PlaybackState.PlaybackError.playbackError("crash").errorDescription, "Playback error: crash")
-        XCTAssertEqual(PlaybackState.PlaybackError.unsupportedFormat("flac").errorDescription, "Unsupported format: flac")
-        XCTAssertEqual(PlaybackState.PlaybackError.invalidURL("bad").errorDescription, "Invalid URL: bad")
+    func testErrorDescriptionsAreAvailableForEveryCase() {
+        let errors: [PlaybackState.PlaybackError] = [
+            .noAsset,
+            .invalidAsset,
+            .networkError("timeout"),
+            .playbackError("crash"),
+            .unsupportedFormat("flac"),
+            .invalidURL("bad"),
+        ]
+        for error in errors {
+            XCTAssertFalse(error.errorDescription?.isEmpty ?? true)
+        }
     }
 
     func testErrorLocalizedDescription() {

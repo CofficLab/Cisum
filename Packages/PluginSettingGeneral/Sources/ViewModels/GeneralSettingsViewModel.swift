@@ -1,5 +1,5 @@
-import Foundation
 import ProviderDocsView
+import Foundation
 
 /// 通用设置页的唯一数据来源。
 ///

@@ -281,35 +281,6 @@
         }
       }
     },
-    "Favorite audio" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Favorite audio"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "喜欢的音频"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "喜歡的音訊"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "喜歡的音訊"
-          }
-        }
-      }
-    },
     "Favorites the current music with one click." : {
       "localizations" : {
         "en" : {
@@ -558,35 +529,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "音樂喜歡"
-          }
-        }
-      }
-    },
-    "No favorite audio yet" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No favorite audio yet"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "还没有喜欢的音频"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "還沒有喜歡的音訊"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "還沒有喜歡的音訊"
           }
         }
       }

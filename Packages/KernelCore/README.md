@@ -1,3 +1,15 @@
 # KernelCore
 
-Cisum 轻量级内核核心：提供插件注册表（`CisumKernelContainer`）、`SuperPlugin` 生命周期、内置插件管理器（`BuiltinPluginManager`）、事件分发（`EventManager`）与默认服务实现（`ThemeService` / `PluginContributionService` / `BasicAppStateService`）。
+> **Status:** Reserved directory — no `Package.swift`, source code, or README yet (contains only a stale `Package.resolved`).
+
+This directory is reserved for the kernel core package, intended to hold the fundamental kernel types and protocols.
+
+## Functional Logic
+
+- **Intended responsibility:** Provide core kernel abstractions (service registry, provider resolution, lifecycle hooks) that higher-level kernel packages build upon.
+- **Current state:** Contains only a stale `Package.resolved`. No `Package.swift`, `Sources/`, or `Tests/` exist.
+
+## Testing Logic
+
+- This package has no source code and therefore no unit tests.
+- Once source is added, tests can be run with `swift test` from this directory.

@@ -1,10 +1,14 @@
-import CisumUIComponents
-import KernelCore
-import MagicPlayMan
+import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
-import ProviderScene
+import CisumUIComponents
+import LumiUI
+import KernelCore
+import ProviderPlugin
 import ProviderStorage
+import KitAppEvents
+import MagicPlayMan
+import ProviderSettingView
 import SwiftUI
 
 /// 播放插件：负责创建并持有 `MagicPlayMan` 播放引擎，将其作为
@@ -16,29 +20,35 @@ import SwiftUI
 ///
 /// ## 播放文件持久化
 /// 内核存在场景概念（`AppScene` 固定枚举），因此当前播放文件按「场景 + 文件」
-/// 持久化到 `<databaseRoot>/PluginPlayBack/current-playback.plist`：
-/// - `onBoot` 时从 `kernel.storage` 解析数据库根目录，创建 `PlaybackStateStore`；
+/// 持久化到 `<dataRootDirectory>/PluginPlayBack/current-playback.plist`：
+/// - `onBoot` 时从 Lumi `StorageProviding` 解析数据根目录，创建 `PlaybackStateStore`；
 /// - `onReady` 时创建 `PlaybackSceneObserver`（Observers 目录）订阅场景变动，
 ///   在启动与场景切换时恢复对应场景上次播放的文件（`autoPlay: false`，
 ///   仅加载不自动播放）；
 /// - 播放引擎的 `.assetChanged` 事件把当前播放文件写入当前场景的槽位。
 /// 该功能仅有此插件维护。
-public actor PluginPlayBack: SuperPlugin {
+@MainActor
+public final class PluginPlayBack: AsyncSuperPlugin {
+    public let id = String(describing: PluginPlayBack.self)
+
     public static let shared = PluginPlayBack()
-    public static let metadata = PluginMetadata(
-        displayName: String(localized: "Play", bundle: .module),
-        description: String(localized: "Playback engine and playback-state management.", bundle: .module),
-        iconName: "play.circle",
-        order: 12,
+    public let order = 12
+    public let iconName = "play.circle"
+    public let metadata = PluginMetadata(
+        id: String(describing: PluginPlayBack.self),
+        name: String(localized: "Play", bundle: .module),
+        version: "1.0.0",
+        category: .system,
+        stage: .stable,
         policy: .alwaysOn,
-        category: .system
+        permissions: []
     )
 
     /// 持有的播放引擎；onBoot 时创建并注册为 `PlaybackProviding`。
     nonisolated(unsafe) public private(set) var magicPlayMan: MagicPlayMan?
     nonisolated(unsafe) private var playbackProvider: PlaybackProvider?
 
-    /// 当前播放文件的磁盘存储（onBoot 时从 kernel.storage 创建）。
+    /// 当前播放文件的磁盘存储（onBoot 时从 Lumi StorageProviding 创建）。
     nonisolated(unsafe) private var stateStore: PlaybackStateStore?
 
     /// 场景观察者（onReady 时创建）：监听场景变动并按场景恢复/记录播放文件。
@@ -55,27 +65,30 @@ public actor PluginPlayBack: SuperPlugin {
     public init() {}
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { PluginPlayBackAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { PluginPlayBackManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { PluginPlayBackAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { PluginPlayBackManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
+        }
         let player = MagicPlayMan()
         magicPlayMan = player
         
         // 使用 PlaybackProvider 包装并注册为 PlaybackProviding
         let playbackProvider = PlaybackProvider(playback: player)
         self.playbackProvider = playbackProvider
-        try kernel.registerPlayback(playbackProvider)
+        try kernel.registerProvider((any PlaybackProviding).self, playbackProvider)
         try kernel.registerProvider((any PlaybackMediaProviding).self, playbackProvider)
 
-        // 持久化存储（order 12 在 StoragePlugin 之后，kernel.storage 已可用）
-        guard let storage = kernel.storage else { return }
-        let store = PlaybackStateStore(rootDirectory: storage.databaseRoot)
+        // 持久化存储（order 12 在 StoragePlugin 之后，Lumi StorageProviding 已可用）
+        guard let storage = kernel.resolveProvider((any ProviderStorage.StorageProviding).self) else { return }
+        let store = PlaybackStateStore(rootDirectory: storage.dataRootDirectory)
         stateStore = store
 
         // 监听播放文件变化，记录到当前场景的磁盘槽位（场景由 sceneObserver 提供）
@@ -89,14 +102,16 @@ public actor PluginPlayBack: SuperPlugin {
     /// 上次播放的文件（启动恢复 + 后续场景切换恢复都由它负责），同时安装设置页
     /// 的场景化状态。
     @MainActor
-    public func onReady(kernel: CisumKernel) async throws {
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         guard let player = magicPlayMan, let store = stateStore else { return }
-        sceneObserver = PlaybackSceneObserver(scene: kernel.scene, player: player, store: store)
+        sceneObserver = PlaybackSceneObserver(scene: kernel.resolveProvider((any SceneProviding).self), player: player, store: store)
         installSettingsState(kernel: kernel)
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["playback"])
         observerHandle?.cancel()
         observerHandle = nil
         sceneObserver?.cancel()
@@ -118,11 +133,11 @@ public actor PluginPlayBack: SuperPlugin {
 
     /// 创建并持有设置页的 ViewModel 与场景观察者（幂等）。
     @MainActor
-    private func installSettingsState(kernel: CisumKernel) {
+    private func installSettingsState(kernel: KernelCoreContainer) {
         guard settingsSceneObserver == nil else { return }
         guard let viewModel = settingsViewModel ?? makeSettingsViewModel() else { return }
-        let observer = PlaybackSettingsSceneObserver(provider: kernel.scene, viewModel: viewModel)
-        let playbackObserver = PlaybackSettingsPlaybackObserver(playback: kernel.playback, viewModel: viewModel)
+        let observer = PlaybackSettingsSceneObserver(provider: kernel.resolveProvider((any SceneProviding).self), viewModel: viewModel)
+        let playbackObserver = PlaybackSettingsPlaybackObserver(playback: kernel.resolveProvider((any PlaybackProviding).self), viewModel: viewModel)
         settingsSceneObserver = observer
         settingsPlaybackObserver = playbackObserver
     }
@@ -132,18 +147,10 @@ public actor PluginPlayBack: SuperPlugin {
         guard let store = stateStore else { return nil }
         let viewModel = PluginPlayBackSettingsViewModel(
             store: store,
-            playbackCapability: makePlaybackSettingsCapability(from: playbackProvider)
+            playbackProvider: playbackProvider
         )
         settingsViewModel = viewModel
         return viewModel
-    }
-
-    @MainActor
-    private func makePlaybackSettingsCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any PlaybackSettingsCapability)? {
-        guard let playback else { return nil }
-        return PlaybackSettingsCapabilityAdapter(playback: playback)
     }
 
     /// 设置窗口入口：按场景展示各场景最近播放文件与当前播放详情。
@@ -152,18 +159,17 @@ public actor PluginPlayBack: SuperPlugin {
     /// `PlaybackSettingsPlaybackObserver` 根据 Provider 事件实时刷新
     /// （`currentURL` / `isPlaying` / `duration` / `currentTime`）。
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         let viewModel = settingsViewModel ?? makeSettingsViewModel()
         guard let viewModel else { return nil }
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: "playback",
             title: String(localized: "Current File", bundle: .module),
-            description: Self.metadata.description,
-            iconName: Self.metadata.iconName,
-            order: Self.metadata.order,
-            destination: AnyView(
-                PluginPlayBackSettingView(viewModel: viewModel)
-            )
+            systemImage: iconName,
+            order: order,
+            detail: {
+            PluginPlayBackSettingView(viewModel: viewModel)
+        }
         )
     }
 }

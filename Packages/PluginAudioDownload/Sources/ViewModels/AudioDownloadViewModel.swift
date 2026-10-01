@@ -2,18 +2,22 @@ import Foundation
 import MagicKit
 import OSLog
 import ProviderScene
+import ProviderToast
+import ProviderPlayback
 
 @MainActor
 final class AudioDownloadViewModel: SuperLog {
     static let emoji = "⬇️"
     private static let verbose = false
-    private let playbackCapability: (any AudioDownloadPlaybackCapability)?
+    private weak var playbackProvider: (any PlaybackProviding)?
+    private let toastProvider: (any ToastProviding)?
     private var currentScene: AppScene?
     private var generation = 0
     private var activeDownloadAssets: [URL] = []
 
-    init(playbackCapability: (any AudioDownloadPlaybackCapability)?) {
-        self.playbackCapability = playbackCapability
+    init(playbackProvider: (any PlaybackProviding)?, toastProvider: (any ToastProviding)? = nil) {
+        self.playbackProvider = playbackProvider
+        self.toastProvider = toastProvider
     }
 
     func handleSceneChange(_ scene: AppScene?) {
@@ -22,7 +26,7 @@ final class AudioDownloadViewModel: SuperLog {
         }
         currentScene = scene
         guard scene == .music else { return }
-        handleAssetChanged(playbackCapability?.currentURL)
+        handleAssetChanged(playbackProvider?.currentURL)
     }
 
     func handleAssetChanged(_ url: URL?) {
@@ -39,7 +43,7 @@ final class AudioDownloadViewModel: SuperLog {
             guard let self,
                   AudioDownloadRequestPolicy.shouldApplyDownloadResult(
                       requestedAsset: url,
-                      currentAsset: self.playbackCapability?.currentURL,
+                      currentAsset: self.playbackProvider?.currentURL,
                       isSceneActive: self.currentScene == .music,
                       currentGeneration: self.generation,
                       requestGeneration: requestGeneration
@@ -48,7 +52,7 @@ final class AudioDownloadViewModel: SuperLog {
                 try await url!.ensureLocalAvailability()
                 guard AudioDownloadRequestPolicy.shouldApplyDownloadResult(
                     requestedAsset: url,
-                    currentAsset: self.playbackCapability?.currentURL,
+                    currentAsset: self.playbackProvider?.currentURL,
                     isSceneActive: self.currentScene == .music,
                     currentGeneration: self.generation,
                     requestGeneration: requestGeneration
@@ -57,7 +61,7 @@ final class AudioDownloadViewModel: SuperLog {
             } catch {
                 guard self.currentScene == .music, self.generation == requestGeneration else { return }
                 os_log(.error, "音频文件下载失败: %{public}@", error.localizedDescription)
-                alert_error(String(localized: "Download failed: \(error.localizedDescription)", bundle: .module))
+                toastProvider?.error(String(localized: "Download failed: \(error.localizedDescription)", bundle: .module))
             }
         }
     }

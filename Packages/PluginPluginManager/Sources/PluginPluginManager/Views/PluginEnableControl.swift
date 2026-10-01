@@ -1,12 +1,13 @@
 import CisumUIComponents
+import LumiUI
 import KernelCore
 import SwiftUI
 
 /// 展示并控制单个插件的启用状态（对齐 Lumi `PluginPluginManager.PluginEnableControl`）。
 ///
 /// 关闭 / 打开开关会调用 `PluginManaging.enablePlugin / disablePlugin`，
-/// 完成运行期启停 + 贡献重建 + 持久化（写入 `PluginManagerStateStore`），
-/// 并随 `.cisumEnabledPluginsDidChange` 通知自动刷新。
+/// 完成运行期启停 + 贡献重建 + 持久化（写入远程 `PluginEnabledStateStore`），
+/// 并随 `PluginManaging` 语义事件自动刷新。
 ///
 /// 不可配置的插件（alwaysOn / disabled）不渲染开关，只展示对应的策略标签。
 struct PluginEnableControl: View {
@@ -20,7 +21,7 @@ struct PluginEnableControl: View {
 
     var body: some View {
         Group {
-            if type(of: plugin).metadata.policy.allowUserToggle {
+            if plugin.metadata.policy.isConfigurable {
                 Toggle(isOn: Binding(
                     get: { viewModel.isEnabled(id: plugin.id) },
                     set: { newValue in toggle(newValue) }
@@ -55,8 +56,8 @@ struct PluginEnableControl: View {
 
     @ViewBuilder
     private var policyTag: some View {
-        switch type(of: plugin).metadata.policy {
-        case .alwaysOn:
+        switch plugin.metadata.policy {
+        case .required, .alwaysOn:
             AppTag(
                 String(localized: "Always Enabled", bundle: .module),
                 systemImage: "lock.fill",
@@ -68,7 +69,7 @@ struct PluginEnableControl: View {
                 systemImage: "minus.circle",
                 style: .subtle
             )
-        case .optOut, .optIn:
+        case .enabledByDefault, .disabledByDefault:
             EmptyView()
         }
     }

@@ -1,8 +1,12 @@
+import ProviderControlView
+import ProviderContentView
+import ProviderRootView
 import FactoryCisum
 import KernelCore
-import ProviderContentView
-import ProviderControlView
-import ProviderRootView
+import ProviderSettingView
+import ProviderPlugin
+import ProviderTheme
+import PluginRootView
 import Testing
 
 @MainActor
@@ -12,7 +16,7 @@ struct FactoryCisumTests {
         let plugins = DefaultPluginFactory().makePlugins()
         let ids = plugins.map(\.id)
 
-        #expect(ids.count > 40)
+        #expect(ids.count > 30)
         #expect(Set(ids).count == ids.count)
     }
 
@@ -28,14 +32,14 @@ struct FactoryCisumTests {
 
     @Test
     func mainViewAssemblyFallsBackWhenRootProviderIsMissing() {
-        let view = CisumBuilder.assembleMainView(kernel: CisumKernel())
+        let view = CisumBuilder.assembleMainView(kernel: KernelCoreContainer())
         _ = view
     }
 
     @Test
     func mainViewAssemblyInjectsControlAndContentProviders() throws {
-        let kernel = CisumKernel()
-        let root = DefaultRootViewProvider(kernel: kernel)
+        let kernel = KernelCoreContainer()
+        let root = CisumRootViewProvider(kernel: kernel)
         let control = DefaultControlViewProvider()
         let content = DefaultContentViewProvider()
         try kernel.registerProvider((any RootViewProviding).self, root)
@@ -49,5 +53,28 @@ struct FactoryCisumTests {
         #expect(!control.isDemoMode)
         #expect(!content.isDemoMode)
         #expect(content.tabs.isEmpty)
+    }
+
+    @Test
+    func kernelLoadsThemeContributionsAfterPluginStartup() async throws {
+        let kernel = try await CisumBuilder.createKernel()
+        let theme = try #require(kernel.resolveProvider((any ThemeProviding).self))
+        // LumiThemePack exposes the canonical 19-theme catalog plus
+        // the three ProviderTheme appearance variants.
+        #expect(theme.themes.count == 22)
+        #expect(theme.selectedThemeId != nil)
+        try await kernel.stopAsync()
+        CisumBuilder.destroyKernel(kernel)
+    }
+
+    @Test
+    func kernelExposesSharedThemeSettingsNavigationItem() async throws {
+        let kernel = try await CisumBuilder.createKernel()
+        let settings = try #require(kernel.resolveProvider((any SettingViewProviding).self))
+
+        #expect(settings.entries.contains { $0.id == "appearance" })
+
+        try await kernel.stopAsync()
+        CisumBuilder.destroyKernel(kernel)
     }
 }

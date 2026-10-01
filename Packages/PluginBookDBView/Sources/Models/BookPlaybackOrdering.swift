@@ -1,6 +1,6 @@
 import Foundation
 import CisumUIComponents
-import ProviderBook
+import LumiUI
 import ProviderBook
 
 enum BookPlaybackOrdering {

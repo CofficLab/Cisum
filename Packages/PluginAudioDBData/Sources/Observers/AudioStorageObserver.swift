@@ -1,5 +1,5 @@
+import CisumProviderStorage
 import MagicKit
-import ProviderStorage
 
 /// 音频数据层的存储变化观察者。
 ///

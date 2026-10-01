@@ -1,13 +1,13 @@
+import ProviderScene
+import ProviderPlayback
 import Foundation
 import OSLog
-import ProviderPlayback
-import ProviderScene
 import ProviderBook
 import MagicKit
 
 /// 书籍进度的数据库删除观察者（迁移 Phase 5）。
 ///
-/// 订阅 `.bookDBDeleted` 通知，转发到 `BookProgressViewModel`；
+/// 订阅书库删除事件，转发到 `BookProgressViewModel`；
 /// 取代原 `BookProgressRootView` 的 `.onReceive` 直接订阅。
 @MainActor
 final class BookProgressObserver: SuperLog {

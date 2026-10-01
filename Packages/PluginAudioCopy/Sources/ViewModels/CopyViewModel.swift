@@ -3,6 +3,7 @@ import Combine
 import Foundation
 import MagicKit
 import OSLog
+import ProviderToast
 import SwiftData
 import SwiftUI
 
@@ -24,6 +25,11 @@ final class CopyViewModel: ObservableObject, SuperLog {
     @Published private(set) var tasks: [CopyTask] = []
 
     private static let verbose = false
+    private let toastProvider: (any ToastProviding)?
+
+    init(toastProvider: (any ToastProviding)? = nil) {
+        self.toastProvider = toastProvider
+    }
 
     /// 是否应该显示状态视图
     var shouldShow: Bool {
@@ -60,7 +66,7 @@ final class CopyViewModel: ObservableObject, SuperLog {
         taskCount = 0
         pendingCount = 0
         failedCount = 0
-        alert_info(String(localized: "Copy completed", bundle: .module))
+        toastProvider?.info(String(localized: "Copy completed", bundle: .module))
     }
 
     @discardableResult
@@ -95,12 +101,12 @@ final class CopyViewModel: ObservableObject, SuperLog {
 
     func deleteTasks(at offsets: IndexSet) {
         guard let container = AudioCopyService.container else {
-            alert_error(String(localized: "Copy service is unavailable", bundle: .module))
+            toastProvider?.error(String(localized: "Copy service is unavailable", bundle: .module))
             return
         }
 
         guard let tasksToDelete = CopyList.tasksToDelete(from: offsets, in: tasks) else {
-            alert_error(String(localized: "Delete failed: copy task list changed. Please try again.", bundle: .module))
+            toastProvider?.error(String(localized: "Delete failed: copy task list changed. Please try again.", bundle: .module))
             return
         }
 
@@ -109,7 +115,7 @@ final class CopyViewModel: ObservableObject, SuperLog {
             refreshTasks(postCountChanged: true)
         } catch {
             os_log(.error, "Delete failed: \(error.localizedDescription)")
-            alert_error(String(localized: "Delete failed: \(error.localizedDescription)", bundle: .module))
+            toastProvider?.error(String(localized: "Delete failed: \(error.localizedDescription)", bundle: .module))
         }
     }
 }

@@ -1,8 +1,11 @@
+import MagicKit
 #if os(macOS)
     import CisumUIComponents
+import LumiUI
     import MagicKit
     import OSLog
     import ProviderAudioLibrary
+    import ProviderToast
     import SwiftData
     import SwiftUI
     import UniformTypeIdentifiers
@@ -28,6 +31,7 @@
         nonisolated static var verbose: Bool { false }
 
         @State var error: Error? = nil
+        @Environment(\.toastProviding) private var toastProvider
 
         private var content: Content
 
@@ -97,7 +101,7 @@
 
             if Self.shouldReportPartialDroppedURLLoadFailure(sourceURLs: sourceURLs, errors: preparationErrors) {
                 await MainActor.run {
-                    alert_warning(String(localized: "Some dropped files could not be loaded", bundle: .module))
+                    toastProvider?.warning(String(localized: "Some dropped files could not be loaded", bundle: .module))
                 }
             }
 
@@ -105,12 +109,12 @@
                 if Self.shouldReportPreparationFailure(preparedCount: sourceURLs.count, preparationErrors: preparationErrors),
                    let error = preparationErrors.first {
                     await MainActor.run {
-                        alert_error(String(localized: "Failed to prepare file: \(error.localizedDescription)", bundle: .module))
+                        toastProvider?.error(String(localized: "Failed to prepare file: \(error.localizedDescription)", bundle: .module))
                     }
                 }
                 if Self.shouldShowNoFilesAdded(taskCount: 0, preparationErrors: preparationErrors) {
                     await MainActor.run {
-                        alert_error(String(localized: "No files were added", bundle: .module))
+                        toastProvider?.error(String(localized: "No files were added", bundle: .module))
                     }
                 }
                 return false
@@ -118,7 +122,7 @@
 
             if Self.shouldReportSkippedUnsupportedSources(droppedFiles.urls, sourceURLs: sourceURLs) {
                 await MainActor.run {
-                    alert_warning(String(localized: "Some files were skipped because they are not supported audio files", bundle: .module))
+                    toastProvider?.warning(String(localized: "Some files were skipped because they are not supported audio files", bundle: .module))
                 }
             }
 
@@ -126,14 +130,14 @@
             if allowedTaskCount < sourceURLs.count {
                 if allowedTaskCount == 0 {
                     await MainActor.run {
-                        alert_error(String(localized: "Copy limit reached", bundle: .module))
+                        toastProvider?.error(String(localized: "Copy limit reached", bundle: .module))
                     }
                     return false
                 }
 
                 sourceURLs = Array(sourceURLs.prefix(allowedTaskCount))
                 await MainActor.run {
-                    alert_warning(String(localized: "Only \(allowedTaskCount) files were added because the free copy limit is almost full", bundle: .module))
+                    toastProvider?.warning(String(localized: "Only \(allowedTaskCount) files were added because the free copy limit is almost full", bundle: .module))
                 }
             }
 
@@ -144,7 +148,7 @@
             }
             if isOutOfLimit {
                 await MainActor.run {
-                    alert_error(String(localized: "Copy limit reached", bundle: .module))
+                    toastProvider?.error(String(localized: "Copy limit reached", bundle: .module))
                 }
                 return false
             }
@@ -152,7 +156,7 @@
             guard let disk = await MainActor.run(body: { AudioCopyService.getAudioDisk() }) else {
                 os_log(.error, "\(self.t)No Disk")
                 await MainActor.run {
-                    alert_error(String(localized: "Storage location is unavailable", bundle: .module))
+                    toastProvider?.error(String(localized: "Storage location is unavailable", bundle: .module))
                 }
                 return false
             }
@@ -161,7 +165,7 @@
             guard let worker = AudioCopyService.getWorker() else {
                 os_log(.error, "\(self.t)Failed to get worker")
                 await MainActor.run {
-                    alert_error(String(localized: "Copy service is unavailable", bundle: .module))
+                    toastProvider?.error(String(localized: "Copy service is unavailable", bundle: .module))
                 }
                 return false
             }
@@ -183,12 +187,12 @@
                 if Self.shouldReportPreparationFailure(preparedCount: tasks.count, preparationErrors: preparationErrors),
                    let error = preparationErrors.first {
                     await MainActor.run {
-                        alert_error(String(localized: "Failed to prepare file: \(error.localizedDescription)", bundle: .module))
+                        toastProvider?.error(String(localized: "Failed to prepare file: \(error.localizedDescription)", bundle: .module))
                     }
                 }
                 if Self.shouldShowNoFilesAdded(taskCount: tasks.count, preparationErrors: preparationErrors) {
                     await MainActor.run {
-                        alert_error(String(localized: "No files were added", bundle: .module))
+                        toastProvider?.error(String(localized: "No files were added", bundle: .module))
                     }
                 }
                 return false

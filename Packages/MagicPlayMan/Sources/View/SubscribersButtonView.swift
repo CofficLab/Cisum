@@ -1,4 +1,6 @@
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import SwiftUI
 
 /// 订阅者按钮视图
@@ -29,7 +31,7 @@ struct SubscribersButtonView: View {
 
     var body: some View {
         Button(action: { isShowingPopover.toggle() }) {
-            Image(systemName: .iconPersonGroup)
+            Image(systemName: PlaybackSymbol.personGroup)
                 .frame(width: size, height: size)
         }
         .buttonStyle(.borderless)

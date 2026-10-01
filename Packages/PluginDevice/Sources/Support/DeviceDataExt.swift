@@ -2,6 +2,8 @@ import Foundation
 import OSLog
 import SwiftData
 import CisumUIComponents
+import MagicKit
+import LumiUI
 import CisumDeviceData
 
 

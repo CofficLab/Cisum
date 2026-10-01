@@ -1,7 +1,7 @@
+import ProviderScene
+import ProviderPlayback
 import Foundation
 import MagicPlayMan
-import ProviderPlayback
-import ProviderScene
 import Testing
 @testable import PluginAudioPlayMode
 
@@ -111,19 +111,6 @@ private final class ProbeSceneHandle: SceneProvidingObserverHandle {
     }
 }
 
-/// 播放能力探针：可配置 currentURL/playMode，记录 setPlayMode 调用。
-@MainActor
-private final class CapabilityProbe: AudioPlayModePlaybackCapability {
-    var currentURL: URL?
-    var playMode: MagicPlayMode = .sequence
-    var setModes: [MagicPlayMode] = []
-
-    func setPlayMode(_ mode: MagicPlayMode) {
-        setModes.append(mode)
-        playMode = mode
-    }
-}
-
 // MARK: - AudioPlayModeStore
 
 @Suite(.serialized)
@@ -131,8 +118,8 @@ struct AudioPlayModeStoreTests {
     @Test
     func resolvedPlayModePrefersLocalValue() {
         #expect(AudioPlayModeStore.resolvedPlayMode(
-            localRawValue: MagicPlayMode.loop.rawValue,
-            cloudRawValue: MagicPlayMode.shuffle.rawValue
+            localRawValue: PlaybackMode.loop.rawValue,
+            cloudRawValue: PlaybackMode.shuffle.rawValue
         ) == .loop)
     }
 
@@ -140,7 +127,7 @@ struct AudioPlayModeStoreTests {
     func resolvedPlayModeFallsBackToCloud() {
         #expect(AudioPlayModeStore.resolvedPlayMode(
             localRawValue: nil,
-            cloudRawValue: MagicPlayMode.shuffle.rawValue
+            cloudRawValue: PlaybackMode.shuffle.rawValue
         ) == .shuffle)
     }
 
@@ -190,7 +177,7 @@ struct AudioPlayModeStoreTests {
 struct AudioPlayModeViewModelTests {
     private func makeViewModel(
         targetScene: AppScene = .music,
-        capability: CapabilityProbe? = CapabilityProbe(),
+        capability: PlaybackProbe? = PlaybackProbe(),
         onSort: @escaping AudioPlayModeSortAction = { _ in },
         onShuffle: @escaping AudioPlayModeShuffleAction = { _ in },
         load: @escaping AudioPlayModeLoadAction = { .sequence },
@@ -198,7 +185,7 @@ struct AudioPlayModeViewModelTests {
     ) -> AudioPlayModeViewModel {
         AudioPlayModeViewModel(
             targetScene: targetScene,
-            playbackCapability: capability,
+            playbackProvider: capability,
             sort: onSort,
             shuffle: onShuffle,
             loadPlayMode: load,
@@ -208,7 +195,7 @@ struct AudioPlayModeViewModelTests {
 
     @Test
     func sceneChangeToTargetActivatesAndRestoresMode() async throws {
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
         capability.playMode = .sequence
         let viewModel = makeViewModel(capability: capability, load: { .loop })
 
@@ -220,7 +207,7 @@ struct AudioPlayModeViewModelTests {
 
     @Test
     func sceneChangeToOtherSceneDeactivates() async throws {
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
         let viewModel = makeViewModel(capability: capability, load: { .loop })
 
         viewModel.handleSceneChange(.audiobooks)
@@ -235,7 +222,7 @@ struct AudioPlayModeViewModelTests {
 
     @Test
     func activateSkipsWhenStoredModeMatchesCurrent() async throws {
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
         capability.playMode = .loop
         let viewModel = makeViewModel(capability: capability, load: { .loop })
 
@@ -247,7 +234,7 @@ struct AudioPlayModeViewModelTests {
 
     @Test
     func playModeChangedToSequenceSortsQueue() async throws {
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
         capability.playMode = .sequence
         capability.currentURL = URL(fileURLWithPath: "/tmp/a.mp3")
         var sortedURL: URL?
@@ -264,12 +251,12 @@ struct AudioPlayModeViewModelTests {
         try await Task.sleep(for: .milliseconds(200))
 
         #expect(sortedURL == capability.currentURL)
-        #expect(stored == [MagicPlayMode.sequence.rawValue])
+        #expect(stored == [PlaybackMode.sequence.rawValue])
     }
 
     @Test
     func playModeChangedToShuffleShufflesQueue() async throws {
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
         capability.playMode = .sequence
         var shuffledURL: URL?
         let viewModel = makeViewModel(
@@ -288,7 +275,7 @@ struct AudioPlayModeViewModelTests {
 
     @Test
     func playModeChangedToLoopOnlyStores() async throws {
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
         capability.playMode = .sequence
         var sorted = false
         var shuffled = false
@@ -307,12 +294,12 @@ struct AudioPlayModeViewModelTests {
 
         #expect(!sorted)
         #expect(!shuffled)
-        #expect(stored == [MagicPlayMode.loop.rawValue])
+        #expect(stored == [PlaybackMode.loop.rawValue])
     }
 
     @Test
     func playModeChangedWhenInactiveIsIgnored() async throws {
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
         var sorted = false
         let viewModel = makeViewModel(capability: capability, onSort: { _ in sorted = true })
 
@@ -323,7 +310,7 @@ struct AudioPlayModeViewModelTests {
 
     @Test
     func sortErrorIsHandledGracefully() async throws {
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
         capability.playMode = .sequence
         let viewModel = makeViewModel(
             capability: capability,
@@ -344,26 +331,6 @@ private enum PlayModeTestError: Error {
     case boom
 }
 
-// MARK: - AudioPlayModePlaybackCapabilityAdapter
-
-@MainActor
-struct AudioPlayModePlaybackCapabilityAdapterTests {
-    @Test
-    func adapterMapsPlayModeAndForwardsSet() {
-        let probe = PlaybackProbe()
-        probe.playMode = .shuffle
-        probe.currentURL = URL(fileURLWithPath: "/tmp/song.mp3")
-
-        let adapter = AudioPlayModePlaybackCapabilityAdapter(playback: probe)
-        #expect(adapter.currentURL == probe.currentURL)
-        #expect(adapter.playMode == .shuffle)
-
-        adapter.setPlayMode(.loop)
-        #expect(probe.setModes == [.loop])
-        #expect(adapter.playMode == .loop)
-    }
-}
-
 // MARK: - AudioPlayModeObserver
 
 @MainActor
@@ -374,11 +341,11 @@ struct AudioPlayModeObserverTests {
         scene.currentScene = .music
         let playback = PlaybackProbe()
         playback.playMode = .sequence
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
 
         let viewModel = AudioPlayModeViewModel(
             targetScene: .music,
-            playbackCapability: capability,
+            playbackProvider: capability,
             sort: { _ in },
             shuffle: { _ in },
             loadPlayMode: { .shuffle },
@@ -400,12 +367,12 @@ struct AudioPlayModeObserverTests {
     func playbackModeEventsApplyToViewModel() async throws {
         let scene = SceneProbe()
         let playback = PlaybackProbe()
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
         capability.playMode = .sequence
         var stored: [String] = []
         let viewModel = AudioPlayModeViewModel(
             targetScene: .music,
-            playbackCapability: capability,
+            playbackProvider: capability,
             sort: { _ in },
             shuffle: { _ in },
             loadPlayMode: { .sequence },
@@ -420,17 +387,17 @@ struct AudioPlayModeObserverTests {
         playback.emitPlayModeChanged(.loop)
         try await Task.sleep(for: .milliseconds(200))
 
-        #expect(stored == [MagicPlayMode.loop.rawValue])
+        #expect(stored == [PlaybackMode.loop.rawValue])
     }
 
     @Test
     func cancellingObserverStopsUpdates() async throws {
         let scene = SceneProbe()
         let playback = PlaybackProbe()
-        let capability = CapabilityProbe()
+        let capability = PlaybackProbe()
         let viewModel = AudioPlayModeViewModel(
             targetScene: .music,
-            playbackCapability: capability,
+            playbackProvider: capability,
             sort: { _ in },
             shuffle: { _ in },
             loadPlayMode: { .shuffle },

@@ -2,18 +2,18 @@ import Foundation
 import Testing
 @testable import PluginAudioDBData
 
-@Test func audioDatabasePluginIsAlwaysOnForLibrarySynchronization() {
-    #expect(AudioDBDataPlugin.metadata.policy == .alwaysOn)
+@Test @MainActor func audioDatabasePluginIsAlwaysOnForLibrarySynchronization() {
+    #expect(AudioDBDataPlugin().metadata.policy == .alwaysOn)
 }
 
-@Test func localFileChangesUseFullSync() {
+@Test @MainActor func localFileChangesUseFullSync() {
     let localDisk = URL(fileURLWithPath: "/tmp/cisum-audio-db-sync-tests", isDirectory: true)
 
     #expect(AudioFileSystemMonitor.shouldPerformFullSync(isFirst: true, disk: nil))
     #expect(AudioFileSystemMonitor.shouldPerformFullSync(isFirst: false, disk: localDisk))
 }
 
-@Test func emptyFullSyncIsOnlyAllowedForAReadableEmptyDirectory() throws {
+@Test @MainActor func emptyFullSyncIsOnlyAllowedForAReadableEmptyDirectory() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent("cisum-audio-db-empty-sync-\(UUID().uuidString)", isDirectory: true)
     defer { try? FileManager.default.removeItem(at: root) }
@@ -27,11 +27,11 @@ import Testing
     #expect(!AudioFileSystemMonitor.shouldApplyEmptyFullSync(disk: root))
 }
 
-@Test func emptyFullSyncIsRejectedWithoutResolvedDirectory() {
+@Test @MainActor func emptyFullSyncIsRejectedWithoutResolvedDirectory() {
     #expect(!AudioFileSystemMonitor.shouldApplyEmptyFullSync(disk: nil))
 }
 
-@Test func staleMonitorRunStopsAfterRestart() {
+@Test @MainActor func staleMonitorRunStopsAfterRestart() {
     let firstRun = UUID()
     let secondRun = UUID()
 
@@ -52,7 +52,7 @@ import Testing
     ))
 }
 
-@Test func staleMonitorEventsAreIgnoredAfterRestart() {
+@Test @MainActor func staleMonitorEventsAreIgnoredAfterRestart() {
     let firstRun = UUID()
     let secondRun = UUID()
 
@@ -73,14 +73,14 @@ import Testing
     ))
 }
 
-@Test func monitorScanErrorsDoNotSyncEmptyResults() {
+@Test @MainActor func monitorScanErrorsDoNotSyncEmptyResults() {
     let error = NSError(domain: "AudioFileSystemMonitorTests", code: 1)
 
     #expect(AudioFileSystemMonitor.shouldSyncMonitorItems(error: nil))
     #expect(!AudioFileSystemMonitor.shouldSyncMonitorItems(error: error))
 }
 
-@Test func staleMonitorCancellationDoesNotStopReplacementRun() {
+@Test @MainActor func staleMonitorCancellationDoesNotStopReplacementRun() {
     let firstRun = UUID()
     let secondRun = UUID()
 

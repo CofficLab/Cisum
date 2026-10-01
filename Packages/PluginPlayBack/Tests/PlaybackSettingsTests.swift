@@ -1,8 +1,10 @@
+import ProviderScene
+import ProviderPlayback
 import Combine
 import Foundation
 import KernelCore
-import ProviderPlayback
-import ProviderScene
+import ProviderPlugin
+import KitAppEvents
 import Testing
 @testable import PluginPlayBack
 
@@ -94,48 +96,45 @@ private final class SceneObserverHandle: SceneProvidingObserverHandle {
 }
 
 @MainActor
-private final class PlaybackSettingsCapabilityStub: PlaybackSettingsCapability {
-    var currentURL: URL? = URL(fileURLWithPath: "/library/current.mp3")
-    var isPlaying = true
-    var state: PlaybackStatus = .playing
-    var currentTime: TimeInterval = 9
-    var duration: TimeInterval = 36
-}
-
-@MainActor
 struct PlaybackSettingsTests {
     @Test
-    func capabilityAdapterMapsPlaybackAndUsesSafeFallbackAfterRelease() {
+    func viewModelWeaklyHoldsPlaybackProvider() throws {
+        let root = try temporaryRoot()
+        defer { try? FileManager.default.removeItem(at: root) }
         var playback: PlaybackStub? = PlaybackStub()
+        weak var weakPlayback = playback
         playback?.state = .playing
-        let adapter = PlaybackSettingsCapabilityAdapter(playback: playback!)
+        let store = PlaybackStateStore(rootDirectory: root)
+        let viewModel = PluginPlayBackSettingsViewModel(store: store, playbackProvider: playback)
 
-        #expect(adapter.currentURL == playback?.currentURL)
-        #expect(adapter.isPlaying)
-        #expect(adapter.state == .playing)
-        #expect(adapter.currentTime == 12)
-        #expect(adapter.duration == 48)
+        #expect(viewModel.currentURL == playback?.currentURL)
+        #expect(viewModel.isPlaying)
+        #expect(viewModel.state == .playing)
+        #expect(viewModel.currentTime == 12)
+        #expect(viewModel.duration == 48)
 
         playback = nil
-        #expect(adapter.currentURL == nil)
-        #expect(!adapter.isPlaying)
-        #expect(adapter.state == .idle)
-        #expect(adapter.currentTime == 0)
-        #expect(adapter.duration == 0)
+        #expect(weakPlayback == nil)
+        #expect(viewModel.currentURL == URL(fileURLWithPath: "/library/current.mp3"))
+        // Published state is a snapshot; release of the Provider does not erase it.
     }
 
     @Test
-    func settingsViewModelInitializesFromCapabilityAndTracksEvents() throws {
+    func settingsViewModelInitializesFromProviderAndTracksEvents() throws {
         let root = try temporaryRoot()
         defer { try? FileManager.default.removeItem(at: root) }
         let store = PlaybackStateStore(rootDirectory: root)
         let savedURL = URL(fileURLWithPath: "/library/saved-book.mp3")
         store.saveCurrentFile(savedURL, for: .audiobooks)
-        let capability = PlaybackSettingsCapabilityStub()
-        let viewModel = PluginPlayBackSettingsViewModel(store: store, playbackCapability: capability)
+        let playback = PlaybackStub()
+        playback.currentURL = URL(fileURLWithPath: "/library/current.mp3")
+        playback.state = .playing
+        playback.currentTime = 9
+        playback.duration = 36
+        let viewModel = PluginPlayBackSettingsViewModel(store: store, playbackProvider: playback)
 
         #expect(viewModel.scenes == AppScene.allCases)
-        #expect(viewModel.currentURL == capability.currentURL)
+        #expect(viewModel.currentURL == playback.currentURL)
         #expect(viewModel.isPlaying)
         #expect(viewModel.state == .playing)
         #expect(viewModel.currentTime == 9)
@@ -206,16 +205,17 @@ struct PlaybackSettingsTests {
 
     @Test
     func pluginShutdownUnregistersBothPlaybackProviderContracts() async throws {
-        let kernel = CisumKernelContainer()
+        let kernel = KernelCoreContainer()
         let plugin = PluginPlayBack()
-        kernel.activePluginID = plugin.id
+        try await kernel.startAsync(plugins: [plugin])
 
-        try await plugin.onBoot(kernel: kernel)
-
+        #expect(kernel.isPluginRegistered(id: plugin.id))
+        #expect(kernel.isPluginEnabled(id: plugin.id))
+        #expect(plugin.magicPlayMan != nil)
         #expect(kernel.resolveProvider(PlaybackProviding.self) != nil)
         #expect(kernel.resolveProvider((any PlaybackMediaProviding).self) != nil)
 
-        try await plugin.onShutdown(kernel: kernel)
+        try await kernel.stopAsync()
 
         #expect(kernel.resolveProvider(PlaybackProviding.self) == nil)
         #expect(kernel.resolveProvider((any PlaybackMediaProviding).self) == nil)

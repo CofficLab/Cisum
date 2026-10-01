@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "CisumUIComponents",
+    name: "KitUIComponents",
     defaultLocalization: "en",
     platforms: [
         .macOS(.v14),
@@ -15,14 +15,12 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(name: "MagicKit", path: "../MagicKit"),
-        .package(name: "LumiUI", url: "https://github.com/CofficLab/LumiUI", from: "1.2.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
     ],
     targets: [
         .target(
             name: "CisumUIComponents",
             dependencies: [
-                .product(name: "MagicKit", package: "MagicKit"),
                 .product(name: "LumiUI", package: "LumiUI"),
             ],
             path: ".",

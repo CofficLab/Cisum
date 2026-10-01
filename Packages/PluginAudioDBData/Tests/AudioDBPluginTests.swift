@@ -42,23 +42,6 @@ import ProviderAudioLibrary
     #expect((try? FileManager.default.destinationOfSymbolicLink(atPath: audioDisk.path)) == nil)
 }
 
-@MainActor
-@Test func audioDBUpdatedNotificationPostsSynchronouslyOnMainThread() {
-    let receivedCount = TestNotificationCounter()
-    let token = NotificationCenter.default.addObserver(
-        forName: .dbUpdated,
-        object: nil,
-        queue: nil
-    ) { _ in
-        receivedCount.increment()
-    }
-    defer { NotificationCenter.default.removeObserver(token) }
-
-    NotificationCenter.postDBUpdated()
-
-    #expect(receivedCount.value == 1)
-}
-
 @Test func audioDBUniqueSupportedFilesDeduplicatesByResolvedIdentity() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -779,14 +762,14 @@ func audioRepoSingleDeleteRejectsFilesOutsideLibrary() async throws {
 }
 
 extension AudioDB {
-    func deleteNextURLAfterSymlinkedDuplicate(realAudio: URL, linkedAudio: URL, nextAudio: URL) throws -> URL? {
+    func deleteNextURLAfterSymlinkedDuplicate(realAudio: URL, linkedAudio: URL, nextAudio: URL) async throws -> URL? {
         let audio = AudioModel(realAudio)
         audio.order = 10
         insertAudio(audio, force: true)
         insertAudio(url: linkedAudio, order: 20, force: true)
         insertAudio(url: nextAudio, order: 30, force: true)
 
-        return try deleteAudios(ids: [audio.id], verbose: false)?.url
+        return try await deleteAudios(ids: [audio.id], verbose: false)?.url
     }
 
     func deleteNextURLAfterBatchDeleting(
@@ -794,7 +777,7 @@ extension AudioDB {
         second: URL,
         third: URL,
         fourth: URL
-    ) throws -> URL? {
+    ) async throws -> URL? {
         insertAudio(url: first, order: 10, force: true)
         let secondAudio = AudioModel(second, order: 20)
         let thirdAudio = AudioModel(third, order: 30)
@@ -802,21 +785,6 @@ extension AudioDB {
         insertAudio(thirdAudio, force: true)
         insertAudio(url: fourth, order: 40, force: true)
 
-        return try deleteAudios(ids: [thirdAudio.id, secondAudio.id], verbose: false)?.url
-    }
-}
-
-private final class TestNotificationCounter: @unchecked Sendable {
-    private let lock = NSLock()
-    private var count = 0
-
-    var value: Int {
-        lock.withLock { count }
-    }
-
-    func increment() {
-        lock.withLock {
-            count += 1
-        }
+        return try await deleteAudios(ids: [thirdAudio.id, secondAudio.id], verbose: false)?.url
     }
 }

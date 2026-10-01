@@ -15,25 +15,33 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../MagicKit"),
-        .package(path: "../CisumUIComponents"),
-        .package(path: "../KernelCore"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
+        .package(path: "../KitAppEvents"),
+        .package(path: "../ProviderPlugin"),
         .package(path: "../ProviderAudioLibrary"),
-        .package(path: "../MagicPlayMan"),
+        .package(name: "KitPlayback", path: "../MagicPlayMan"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
+        .package(path: "../ProviderAudioNavigation"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.3.4"),
     ],
     targets: [
         .target(
             name: "PluginAudioWidgetControl",
             dependencies: [
-                .product(name: "MagicKit", package: "MagicKit"),
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
-                .product(name: "KernelCore", package: "KernelCore"),
-                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
-                .product(name: "MagicPlayMan", package: "MagicPlayMan"),
+                .product(name: "MagicPlayMan", package: "KitPlayback"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
+                .product(name: "ProviderAudioNavigation", package: "ProviderAudioNavigation"),
             ],
             path: ".",
             sources: ["Sources"],
@@ -43,7 +51,10 @@ let package = Package(
         ),
         .testTarget(
             name: "AudioWidgetControlPluginTests",
-            dependencies: ["PluginAudioWidgetControl"],
+            dependencies: [
+                "PluginAudioWidgetControl",
+                .product(name: "ProviderPlayback", package: "ProviderPlayback")
+            ],
             path: "Tests"
         )
     ]

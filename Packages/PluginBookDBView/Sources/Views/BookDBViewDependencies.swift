@@ -1,6 +1,5 @@
 import Foundation
 import ProviderBook
-import ProviderBook
 import SwiftUI
 
 /// 有声书仓库视图依赖：数据访问统一通过 Kernel 注册的 Provider 注入。

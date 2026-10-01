@@ -1,3 +1,20 @@
 # ProviderPlugin
 
-插件兼容包：将 KernelCore 中的插件契约重新导出，保持与旧版 Provider 的兼容性。
+Provider-layer contracts and the host-side registry for Cisum plugin UI contributions.
+
+## Functional Logic
+
+- **Core responsibility**: own `PluginProviding`, `PluginContributionProviding`, their presentation item model, and `PluginContributionService`.
+- **Dependencies**: `KernelCore`, `CisumUIComponents`, and `KitEventObservation`.
+
+## Testing Logic
+
+- **Test file**: `Tests/ProviderPluginExportsTests.swift`.
+- **Key scenarios tested**:
+  - A plugin setting navigation item preserves its stable identity, title, and order.
+- **Running tests**:
+  ```bash
+  cd /Users/angel/Code/Coffic/Cisum/Packages/ProviderPlugin
+  swift test
+  ```
+- **Note**: generic kernel plugin contracts remain owned by `LumiKernel`; Cisum-specific UI contribution APIs are owned here.

@@ -1,5 +1,5 @@
-import Foundation
 import ProviderAudioLibrary
+import Foundation
 import MagicKit
 
 /// 音频数据库根视图的状态容器（迁移 Phase 2）。

@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 import ProviderAudioLibrary
 
@@ -60,7 +61,6 @@ struct AudioDBTips: View {
 
                 BtnAdd(dependencies: dependencies)
                     .buttonStyle(.bordered)
-                    .cisumIf(dependencies.isNotDesktop)
 
             case .loading:
                 AppLoadingOverlay(message: LocalizedStringKey(String(localized: "Reading repository", bundle: .module)), size: .large)
@@ -85,6 +85,7 @@ struct AudioDBTips: View {
         .background(appTheme.background.opacity(0.5))
         .cisumRoundedMedium()
         .cisumShadowXl()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

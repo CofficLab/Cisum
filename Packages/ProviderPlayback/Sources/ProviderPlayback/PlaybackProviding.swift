@@ -1,4 +1,5 @@
 import Foundation
+import KitEventObservation
 import SwiftUI
 
 /// 播放能力的基础状态。该类型属于 Provider 契约，不依赖具体播放器实现。
@@ -184,3 +185,5 @@ public final class NoopPlaybackProvidingObserverHandle: PlaybackProvidingObserve
     public init() {}
     public func cancel() {}
 }
+
+extension EventObserverHandle: PlaybackProvidingObserverHandle {}

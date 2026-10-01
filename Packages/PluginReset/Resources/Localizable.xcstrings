@@ -1,35 +1,6 @@
 {
   "sourceLanguage": "en",
   "strings": {
-    "All user preferences will be reset": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "All user preferences will be reset"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "所有用户偏好设置将被重置"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "所有用户偏好設置將被重置"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "所有使用者偏好設定將被重置"
-          }
-        }
-      }
-    },
     "App Information": {
       "extractionState": "manual",
       "localizations": {
@@ -201,64 +172,6 @@
         }
       }
     },
-    "Data Storage Reset": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Data Storage Reset"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "数据存储重置"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "數據存儲重置"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "資料儲存重置"
-          }
-        }
-      }
-    },
-    "Data storage will be restored to default location": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Data storage will be restored to default location"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "数据存储将恢复到默认位置"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "數據存儲將恢復到默認位置"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "資料儲存將恢復到預設位置"
-          }
-        }
-      }
-    },
     "Irreversible": {
       "localizations": {
         "en": {
@@ -339,64 +252,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "保留偏好設定"
-          }
-        }
-      }
-    },
-    "Preferences Reset": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Preferences Reset"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "偏好设置重置"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "偏好設置重置"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "偏好設定重置"
-          }
-        }
-      }
-    },
-    "Reset Settings": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reset Settings"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重置设置"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重置設置"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重置設定"
           }
         }
       }
@@ -482,35 +337,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在重置…"
-          }
-        }
-      }
-    },
-    "Restoring default settings, please wait": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Restoring default settings, please wait"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在恢复默认设置，请稍候"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在恢復默認設置，請稍候"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在恢復預設設定，請稍候"
           }
         }
       }

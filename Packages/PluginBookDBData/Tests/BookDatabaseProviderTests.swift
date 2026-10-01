@@ -1,8 +1,10 @@
+import CisumProviderStorage
 import Combine
 import Foundation
 import KernelCore
+import ProviderPlugin
+import KitAppEvents
 import ProviderBook
-import ProviderStorage
 import Testing
 @testable import PluginBookDBData
 
@@ -110,8 +112,6 @@ private final class BookEventRecorder {
             events.append("changed:\(totalCount)")
         case let .libraryDeleted(urls):
             events.append("deleted:\(urls.count)")
-        case .librarySorted:
-            events.append("sorted")
         case let .playbackStateChanged(url):
             events.append("playback:\(url?.lastPathComponent ?? "nil")")
         case .storageLocationChanged:
@@ -217,28 +217,30 @@ struct BookDatabaseProviderTests {
     }
 
     @Test
-    func providerNotificationsMapToEventsAndCancelCleanly() async throws {
+    func providerPublishesTypedDatabaseAndStorageEventsAndCancelsCleanly() async throws {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("BookDatabaseObserver-\(UUID().uuidString)", isDirectory: true)
-        let storage = BookTestStorageProvider(storageRoot: nil, databaseRoot: root)
+        let storageRoot = root.appendingPathComponent("Documents", isDirectory: true)
+        let disk = storageRoot.appendingPathComponent(BookPluginInfo.dirName, isDirectory: true)
+        try FileManager.default.createDirectory(at: disk, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let storage = BookTestStorageProvider(storageRoot: storageRoot, databaseRoot: root.appendingPathComponent("Database"))
         let provider = BookDatabaseProvider(storage: storage)
+        defer { provider.shutdown() }
         let recorder = BookEventRecorder()
         let observer = provider.addObserver { event in
-            Task { @MainActor in recorder.record(event) }
+            recorder.record(event)
         }
-        let book = URL(fileURLWithPath: "/library/novel.mp3")
+        let book = disk.appendingPathComponent("novel.mp3")
+        let chapter = disk.appendingPathComponent("chapter.mp3")
+        try Data([0x01, 0x02]).write(to: book)
 
-        NotificationCenter.default.post(name: .bookDBSyncing, object: nil)
-        NotificationCenter.default.post(name: .bookDBSynced, object: nil)
-        NotificationCenter.default.post(name: .bookDBUpdated, object: nil)
-        NotificationCenter.default.post(name: .bookDBDeleted, object: nil, userInfo: ["urls": [book]])
-        NotificationCenter.default.post(name: .bookDBSortDone, object: nil)
-        NotificationCenter.default.post(name: .bookStateUpdated, object: nil, userInfo: ["url": book])
+        try await provider.syncImportedItems([book])
+        try await provider.savePlaybackState(for: book, currentURL: chapter, time: 12)
         storage.setStorageLocation(.local)
 
-        let expectedEvents: Set<String> = [
-            "syncing", "synced", "changed:0", "deleted:1", "sorted", "playback:novel.mp3", "storage",
-        ]
+        let expectedEvents: Set<String> = ["syncing", "changed:1", "playback:novel.mp3", "storage"]
         for _ in 0..<100 where !expectedEvents.isSubset(of: Set(recorder.events)) {
             try await Task.sleep(nanoseconds: 10_000_000)
         }
@@ -247,7 +249,6 @@ struct BookDatabaseProviderTests {
 
         observer.cancel()
         let eventCountAfterCancellation = recorder.events.count
-        NotificationCenter.default.post(name: .bookDBUpdated, object: nil)
         storage.resetStorageLocation()
         try await Task.sleep(nanoseconds: 30_000_000)
 
@@ -258,18 +259,18 @@ struct BookDatabaseProviderTests {
 
     @Test
     func pluginLifecycleSkipsRegistrationUntilStorageIsAvailable() async throws {
-        let kernel = CisumKernelContainer()
+        let kernel = KernelCoreContainer()
         let plugin = BookDBDataPlugin()
 
-        try await plugin.onBoot(kernel: kernel)
-        try await plugin.onReady(kernel: kernel)
+        try await plugin.onBootAsync(kernel: kernel)
+        try await plugin.onReadyAsync(kernel: kernel)
         #expect(kernel.resolveProvider(BookDatabaseProviding.self) == nil)
 
         try await plugin.onEnable(kernel: kernel)
         #expect(kernel.resolveProvider(BookDatabaseProviding.self) == nil)
 
         try await plugin.onDisable(kernel: kernel)
-        try await plugin.onShutdown(kernel: kernel)
+        try await plugin.onShutdownAsync(kernel: kernel)
         #expect(kernel.resolveProvider(BookDatabaseProviding.self) == nil)
     }
 
@@ -282,13 +283,13 @@ struct BookDatabaseProviderTests {
         defer { try? FileManager.default.removeItem(at: root) }
 
         let storage = BookTestStorageProvider(storageRoot: storageRoot, databaseRoot: root.appendingPathComponent("Database"))
-        let kernel = CisumKernelContainer()
-        try kernel.registerStorage(storage)
+        let kernel = KernelCoreContainer()
+        try kernel.registerProvider((any StorageProviding).self, storage)
         let plugin = BookDBDataPlugin()
 
-        try await plugin.onBoot(kernel: kernel)
+        try await plugin.onBootAsync(kernel: kernel)
         let initialProvider = try #require(kernel.resolveProvider(BookDatabaseProviding.self))
-        try await plugin.onReady(kernel: kernel)
+        try await plugin.onReadyAsync(kernel: kernel)
         #expect(kernel.resolveProvider(BookDatabaseProviding.self) as AnyObject? === initialProvider)
         #expect(storage.activeObserverCount == 1)
 
@@ -300,7 +301,7 @@ struct BookDatabaseProviderTests {
         #expect(kernel.resolveProvider(BookDatabaseProviding.self) != nil)
         #expect(storage.activeObserverCount == 1)
 
-        try await plugin.onShutdown(kernel: kernel)
+        try await plugin.onShutdownAsync(kernel: kernel)
         #expect(kernel.resolveProvider(BookDatabaseProviding.self) == nil)
         #expect(storage.activeObserverCount == 0)
     }
@@ -315,17 +316,17 @@ struct BookDatabaseProviderTests {
 
         let storage = BookTestStorageProvider(storageRoot: storageRoot, databaseRoot: root.appendingPathComponent("Database"))
         let existingProvider = BookDatabaseProvider(storage: storage)
-        let kernel = CisumKernelContainer()
-        try kernel.registerStorage(storage)
+        let kernel = KernelCoreContainer()
+        try kernel.registerProvider((any StorageProviding).self, storage)
         try kernel.registerProvider(BookDatabaseProviding.self, existingProvider)
         let plugin = BookDBDataPlugin()
 
-        await #expect(throws: CisumKernelError.self) {
-            try await plugin.onBoot(kernel: kernel)
+        await #expect(throws: KernelCoreError.self) {
+            try await plugin.onBootAsync(kernel: kernel)
         }
         #expect(storage.activeObserverCount == 1)
 
-        try await plugin.onShutdown(kernel: kernel)
+        try await plugin.onShutdownAsync(kernel: kernel)
         #expect(kernel.resolveProvider(BookDatabaseProviding.self) as AnyObject? === existingProvider)
         #expect(storage.activeObserverCount == 1)
 

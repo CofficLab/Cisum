@@ -1,6 +1,9 @@
 import AVFoundation
 import Foundation
+import ProviderPlayback
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import OSLog
 import SwiftUI
 
@@ -56,7 +59,7 @@ enum MagicPlayManControlInputPolicy {
 public extension MagicPlayMan {
     /// 设置播放模式
     /// - Parameter mode: 要设置的播放模式
-    func changePlayMode(_ mode: MagicPlayMode) {
+    func changePlayMode(_ mode: PlaybackMode) {
         Task { @MainActor in
             setPlayMode(mode)
         }
@@ -156,7 +159,7 @@ public extension MagicPlayMan {
     ///   - startTime: 加载完成后定位到的起始时间，默认为 nil
     ///   - reason: 更新原因
     @MainActor
-    public func play(_ url: URL, autoPlay: Bool = true, startTime: TimeInterval? = nil, reason: String) async {
+    func play(_ url: URL, autoPlay: Bool = true, startTime: TimeInterval? = nil, reason: String) async {
         if self.verbose {
             os_log("\(self.t)🚀 (\(reason)) Play: \(url.title), AutoPlay: \(autoPlay)")
         }

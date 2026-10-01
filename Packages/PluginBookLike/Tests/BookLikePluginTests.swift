@@ -1,10 +1,7 @@
 @testable import PluginBookLike
 import Testing
 import Foundation
-
-private final class NotificationObserverToken: @unchecked Sendable {
-    var value: NSObjectProtocol?
-}
+import ProviderPlayback
 
 @Test func pluginInfoExportsRegistrationMetadata() {
     #expect(BookLikePluginInfo.iconName == "heart")
@@ -15,7 +12,7 @@ private final class NotificationObserverToken: @unchecked Sendable {
 @MainActor
 func pluginExposesSettingsNavigationItem() {
     let view = BookLikePlugin.shared.addSettingView()
-    let item = BookLikePlugin.shared.addSettingNavigationItem()
+    let item = BookLikePlugin.shared.makeSettingEntry()
 
     #expect(view == nil)
     #expect(item != nil)
@@ -25,31 +22,6 @@ func pluginExposesSettingsNavigationItem() {
 
 @Test func bookLikeSettingsUsesLocalizedLoadingText() {
     #expect(BookLikeSettingsView.loadingTextKey == "Loading...")
-}
-
-@Test func bookLikeStatusNotificationIsDeliveredOnMainThread() async {
-    let url = URL(fileURLWithPath: "/tmp/Cisum Books/Main Thread Book")
-
-    let deliveredOnMainThread = await withCheckedContinuation { continuation in
-        let token = NotificationObserverToken()
-        token.value = NotificationCenter.default.addObserver(
-            forName: .BookLikeStatusChanged,
-            object: nil,
-            queue: nil
-        ) { _ in
-            if let observer = token.value {
-                NotificationCenter.default.removeObserver(observer)
-                token.value = nil
-            }
-            continuation.resume(returning: Thread.isMainThread)
-        }
-
-        Task.detached {
-            NotificationCenter.postBookLikeStatusChanged(url: url, liked: true)
-        }
-    }
-
-    #expect(deliveredOnMainThread)
 }
 
 @Test func bookLikeStorePersistsRealLikedBooks() throws {
@@ -155,8 +127,29 @@ func pluginExposesSettingsNavigationItem() {
 // MARK: - ViewModel 集成
 
 @MainActor
-private final class BookLikeCapabilityProbe: BookLikePlaybackCapability {
-    var isAvailable = true
+private final class BookLikePlaybackProbe: PlaybackProviding {
+    var state: PlaybackStatus = .idle
+    var currentURL: URL?
+    var currentTime: TimeInterval = 0
+    var duration: TimeInterval = 0
+    var progress: Double = 0
+    var playMode: PlaybackMode = .sequence
+    var likedAssets: Set<URL> = []
+    var isPlaying = false
+    var hasAsset: Bool { currentURL != nil }
+    func play(_ url: URL) async {}
+    func pause() {}
+    func toggle() {}
+    func seek(toProgress progress: Double) {}
+    func seek(toTime time: TimeInterval) {}
+    func next() {}
+    func previous() {}
+    func setPlayMode(_ mode: PlaybackMode) {}
+    func toggleCurrentLike() {}
+    func togglePlayMode() {}
+    func addObserver(_ callback: @escaping (PlaybackProvidingEvent) -> Void) -> any PlaybackProvidingObserverHandle {
+        NoopPlaybackProvidingObserverHandle()
+    }
 }
 
 @MainActor
@@ -165,7 +158,7 @@ struct BookLikeViewModelTests {
     func reloadLoadsLikedBooks() {
         let items = [BookLikeItem(url: URL(fileURLWithPath: "/tmp/book-a"), title: "A")]
         let viewModel = BookLikeViewModel(
-            playbackCapability: BookLikeCapabilityProbe(),
+            playbackProvider: BookLikePlaybackProbe(),
             loadLikedBooks: { items },
             saveLikeStatus: { _, _ in }
         )
@@ -180,7 +173,7 @@ struct BookLikeViewModelTests {
     func likeSaveRequiresActiveScene() {
         var saved: [(Bool, URL)] = []
         let viewModel = BookLikeViewModel(
-            playbackCapability: BookLikeCapabilityProbe(),
+            playbackProvider: BookLikePlaybackProbe(),
             loadLikedBooks: { [] },
             saveLikeStatus: { liked, url in saved.append((liked, url)) }
         )
@@ -201,12 +194,10 @@ struct BookLikeViewModelTests {
     }
 
     @Test
-    func activationRequiresAvailableCapability() {
-        let unavailable = BookLikeCapabilityProbe()
-        unavailable.isAvailable = false
+    func activationRequiresPlaybackProvider() {
         var saved: [(Bool, URL)] = []
         let viewModel = BookLikeViewModel(
-            playbackCapability: unavailable,
+            playbackProvider: nil,
             loadLikedBooks: { [] },
             saveLikeStatus: { liked, url in saved.append((liked, url)) }
         )
@@ -220,7 +211,7 @@ struct BookLikeViewModelTests {
     func likeStatusChangeReloadsList() {
         var loadCount = 0
         let viewModel = BookLikeViewModel(
-            playbackCapability: BookLikeCapabilityProbe(),
+            playbackProvider: BookLikePlaybackProbe(),
             loadLikedBooks: {
                 loadCount += 1
                 return []

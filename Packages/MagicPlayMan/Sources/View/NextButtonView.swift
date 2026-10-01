@@ -1,4 +1,6 @@
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import SwiftUI
 
 /// 下一曲按钮视图
@@ -36,14 +38,14 @@ struct NextButtonView: View {
     }
 
     var body: some View {
-        Image(systemName: .iconForwardEndFill)
-            .frame(width: size, height: size)
-            .inButtonWithAction {
-                man.next()
-            }
-            .disabled(disabledReason != nil)
-            .accessibilityLabel(loc.nextTrack)
-            .help(disabledReason ?? loc.nextTrack)
+        Button(action: man.next) {
+            Image(systemName: PlaybackSymbol.forwardEndFill)
+                .frame(width: size, height: size)
+        }
+        .buttonStyle(.borderless)
+        .disabled(disabledReason != nil)
+        .accessibilityLabel(loc.nextTrack)
+        .help(disabledReason ?? loc.nextTrack)
     }
 }
 

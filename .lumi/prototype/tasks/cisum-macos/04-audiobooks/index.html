@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cisum - 有声书</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --sunset: linear-gradient(135deg, #ff5c33 0%, #ffa354 46%, #57adff 100%);
+            --bg: #f4f4f6;
+            --ink: #1d1d1f;
+            --sub: #86868b;
+            --accent: #0a84ff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background: var(--sunset);
+            color: var(--ink);
+        }
+
+        .app { height: 100%; display: flex; flex-direction: column; }
+
+        .titlebar {
+            height: 46px; flex-shrink: 0;
+            display: flex; align-items: center; gap: 14px; padding: 0 16px;
+            background: rgba(255,255,255,.14);
+            border-bottom: 1px solid rgba(255,255,255,.22);
+        }
+        .traffic { display: flex; gap: 8px; }
+        .traffic i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+        .tl-r { background: #ff5f57; } .tl-y { background: #febc2e; } .tl-g { background: #28c840; }
+        .scene-pill {
+            display: flex; align-items: center; gap: 7px;
+            padding: 5px 12px; border-radius: 7px;
+            background: rgba(255,255,255,.18);
+            color: #fff; font-size: 12px; font-weight: 500; border: none; cursor: pointer;
+        }
+        .scene-pill svg { width: 14px; height: 14px; fill: #fff; }
+        .tb-actions { margin-left: auto; display: flex; gap: 10px; }
+        .icon-btn {
+            width: 32px; height: 32px; border-radius: 8px; border: none;
+            background: rgba(255,255,255,.16);
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .icon-btn svg { width: 16px; height: 16px; fill: #fff; }
+
+        .player { height: 282px; flex-shrink: 0; display: flex; align-items: center; }
+        .player-left {
+            flex: 1; padding: 18px 36px;
+            display: flex; flex-direction: column; justify-content: center; min-width: 0;
+        }
+        .song-title { color: #fff; font-size: 24px; font-weight: 700; }
+        .song-artist { margin-top: 4px; font-size: 13px; color: rgba(255,255,255,.85); }
+        .progress { margin-top: 14px; }
+        .pbar { height: 4px; border-radius: 2px; background: rgba(255,255,255,.28); overflow: hidden; }
+        .pbar > i { display: block; height: 100%; width: 47%; background: #fff; border-radius: 2px; }
+        .ptime {
+            display: flex; justify-content: space-between; margin-top: 6px;
+            font-size: 11.5px; color: rgba(255,255,255,.88); font-variant-numeric: tabular-nums;
+        }
+        .controls { display: flex; align-items: center; gap: 22px; margin-top: 12px; }
+        .cbtn { border: none; background: none; cursor: pointer; display: flex; color: rgba(255,255,255,.92); padding: 4px; }
+        .cbtn svg { fill: currentColor; }
+        .cbtn.play {
+            width: 50px; height: 50px; border-radius: 50%; background: #fff; color: #ff5c33;
+            justify-content: center; align-items: center; box-shadow: 0 6px 16px rgba(0,0,0,.2);
+        }
+        .cbtn.play svg { fill: #ff5c33; width: 23px; height: 23px; }
+        .player-right { padding: 0 28px 0 0; display: flex; align-items: center; }
+        .album-sm {
+            width: 224px; height: 224px; border-radius: 10px; position: relative; overflow: hidden;
+            box-shadow: 0 16px 36px rgba(0,0,0,.26);
+        }
+
+        .tabs-zone { flex: 1; background: var(--bg); display: flex; flex-direction: column; min-height: 0; }
+        .segmented {
+            align-self: center; margin: 12px 0 4px; display: flex;
+            background: rgba(0,0,0,.07); border-radius: 8px; padding: 2px;
+        }
+        .seg {
+            border: none; background: none; padding: 5px 20px; font-size: 12.5px;
+            font-weight: 500; color: rgba(0,0,0,.6); border-radius: 6px; cursor: pointer;
+        }
+        .seg.active { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.16); font-weight: 600; }
+
+        .lib-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 22px 4px; font-size: 13px; font-weight: 700;
+        }
+        .sync { display: flex; align-items: center; gap: 7px; font-weight: 400; color: var(--sub); font-size: 12px; }
+        .spinner {
+            width: 13px; height: 13px; border-radius: 50%;
+            border: 2px solid rgba(0,0,0,.15); border-top-color: #555;
+            animation: spin .8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .grid-wrap { flex: 1; overflow: hidden; padding: 10px 24px 12px; }
+        .tiles {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 150px);
+            gap: 22px 20px;
+            align-content: start;
+            height: 100%;
+        }
+        .tile {
+            width: 150px; height: 200px; border-radius: 8px; overflow: hidden;
+            position: relative; box-shadow: 0 6px 14px rgba(0,0,0,.14); cursor: pointer;
+        }
+        .tile.selected { outline: 3px solid var(--accent); outline-offset: 1px; }
+        .tile-cover {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 18px; font-weight: 700; text-align: center; padding: 12px;
+        }
+        .tile-foot {
+            position: absolute; left: 0; right: 0; bottom: 0;
+            padding: 16px 9px 7px; font-size: 11px; color: #fff;
+            background: linear-gradient(transparent, rgba(0,0,0,.6));
+        }
+        .ribbon {
+            position: absolute; top: 7px; left: 7px;
+            background: rgba(255,255,255,.92); color: var(--ink);
+            font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 5px;
+        }
+
+        .c1 { background: linear-gradient(150deg,#141e3a,#3a2e6b); }
+        .c2 { background: linear-gradient(150deg,#b5651d,#e0a458); }
+        .c3 { background: linear-gradient(150deg,#a67c2e,#d9b86c); }
+        .c4 { background: linear-gradient(150deg,#6a1b4d,#c05299); }
+        .c5 { background: linear-gradient(150deg,#8c2f1d,#c75b39); }
+        .c6 { background: linear-gradient(150deg,#7a1f2b,#b33a4d); }
+        .c7 { background: linear-gradient(150deg,#1f5f5b,#4a9188); }
+        .c8 { background: linear-gradient(150deg,#23395d,#5378b0); }
+        .c9 { background: linear-gradient(150deg,#c2703d,#e8a87c); }
+        .c10 { background: linear-gradient(150deg,#334155,#64748b); }
+
+        .status-strip { height: 42px; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="titlebar">
+            <div class="traffic"><i class="tl-r"></i><i class="tl-y"></i><i class="tl-g"></i></div>
+            <button class="scene-pill" data-prototype-link="07-scene-switcher" data-prototype-label="切换场景">
+                <svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
+                有声书
+            </button>
+            <div class="tb-actions">
+                <button class="icon-btn">
+                    <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </button>
+                <button class="icon-btn">
+                    <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4C2.9 4 2 4.9 2 6v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="player">
+            <div class="player-left">
+                <div class="song-title">第 21 集 · 面壁者</div>
+                <div class="song-artist">刘慈欣 · 三体</div>
+                <div class="progress">
+                    <div class="pbar"><i></i></div>
+                    <div class="ptime"><span>9:12</span><span>19:36</span></div>
+                </div>
+                <div class="controls">
+                    <button class="cbtn">
+                        <svg width="22" height="22" viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                    </button>
+                    <button class="cbtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                    </button>
+                    <button class="cbtn play">
+                        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </button>
+                    <button class="cbtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg>
+                    </button>
+                    <button class="cbtn">
+                        <svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="player-right">
+                <div class="album-sm c1">
+                    <svg viewBox="0 0 224 224" style="position:absolute;inset:0;width:100%;height:100%">
+                        <g fill="#ffffff">
+                            <circle cx="40" cy="38" r="1.4" opacity=".9"/>
+                            <circle cx="86" cy="62" r="1" opacity=".6"/>
+                            <circle cx="160" cy="34" r="1.6" opacity=".9"/>
+                            <circle cx="190" cy="88" r="1.1" opacity=".7"/>
+                            <circle cx="60" cy="120" r="1" opacity=".5"/>
+                            <circle cx="132" cy="150" r="1.4" opacity=".8"/>
+                            <circle cx="34" cy="180" r="1.2" opacity=".7"/>
+                            <circle cx="178" cy="176" r="1" opacity=".6"/>
+                        </g>
+                        <circle cx="158" cy="92" r="26" fill="none" stroke="#9d8cf0" stroke-width="3" opacity=".8"/>
+                        <circle cx="158" cy="92" r="14" fill="#6f5fd0" opacity=".7"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs-zone">
+            <div class="segmented">
+                <button class="seg active">有声书仓库</button>
+                <button class="seg" data-prototype-link="05-settings" data-prototype-label="设置">设置</button>
+            </div>
+
+            <div class="lib-header">
+                <span>共 10 本</span>
+                <span class="sync"><span class="spinner"></span>正在读取仓库</span>
+            </div>
+
+            <div class="grid-wrap">
+                <div class="tiles">
+                    <div class="tile selected">
+                        <div class="tile-cover c1">三体</div>
+                        <div class="ribbon">上次播放 · 第 21 集</div>
+                        <div class="tile-foot">共 86 集</div>
+                    </div>
+                    <div class="tile">
+                        <div class="tile-cover c2">活着</div>
+                        <div class="tile-foot">共 12 集</div>
+                    </div>
+                    <div class="tile">
+                        <div class="tile-cover c3">人类简史</div>
+                        <div class="tile-foot">共 45 集</div>
+                    </div>
+                    <div class="tile">
+                        <div class="tile-cover c4">百年孤独</div>
+                        <div class="tile-foot">共 32 集</div>
+                    </div>
+                    <div class="tile">
+                        <div class="tile-cover c5">明朝那些事儿</div>
+                        <div class="tile-foot">共 158 集</div>
+                    </div>
+                    <div class="tile">
+                        <div class="tile-cover c6">红楼梦</div>
+                        <div class="tile-foot">共 120 集</div>
+                    </div>
+                    <div class="tile">
+                        <div class="tile-cover c7">围城</div>
+                        <div class="tile-foot">共 18 集</div>
+                    </div>
+                    <div class="tile">
+                        <div class="tile-cover c8">月亮与六便士</div>
+                        <div class="tile-foot">共 28 集</div>
+                    </div>
+                    <div class="tile">
+                        <div class="tile-cover c9">追风筝的人</div>
+                        <div class="tile-foot">共 24 集</div>
+                    </div>
+                    <div class="tile">
+                        <div class="tile-cover c10">白夜行</div>
+                        <div class="tile-foot">共 36 集</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-strip"></div>
+    </div>
+</body>
+</html>

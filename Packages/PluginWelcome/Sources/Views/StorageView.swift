@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 public struct StorageView: View {
@@ -51,6 +52,7 @@ public struct StorageView: View {
                 }
                 .opacity(isICloudAvailable ? 1 : 0.5)
                 .disabled(!isICloudAvailable)
+                .accessibilityIdentifier("cisum.welcome.storage.option.icloud")
 
                 if !isICloudAvailable {
                     HStack(spacing: 4) {
@@ -82,6 +84,7 @@ public struct StorageView: View {
                         }
                     }
                 }
+                .accessibilityIdentifier("cisum.welcome.storage.option.local")
             }
             .onAppear(perform: onAppear)
             .onDisappear(perform: onDisappear)
