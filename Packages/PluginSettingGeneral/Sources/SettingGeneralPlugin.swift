@@ -53,7 +53,10 @@ public final class SettingGeneralPlugin: AsyncSuperPlugin, SuperLog {
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             if let view = self.addSettingView() { contrib.addSettingView(ownerPluginID: id, view) }
-            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
+        }
+        if let settings = kernel.resolveProvider((any SettingViewProviding).self),
+           let entry = makeSettingEntry() {
+            settings.addEntries([entry])
         }
         self.kernel = kernel
     }

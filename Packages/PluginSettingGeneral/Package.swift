@@ -47,6 +47,7 @@ let package = Package(
                 "PluginSettingGeneral",
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "ProviderSettingView", package: "LumiSettings"),
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
             ],
