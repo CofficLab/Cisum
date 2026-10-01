@@ -94,7 +94,7 @@ public struct DefaultPluginFactory: PluginFactory {
         #endif
 
         plugins.append(contentsOf: [
-            PluginSettingView(),
+            PluginSettingView(id: "com.coffic.cisum.plugin.setting-view"),
             PluginPlayBack.shared,
             ScenePlugin.shared,
             LikeButtonPlugin.shared,
