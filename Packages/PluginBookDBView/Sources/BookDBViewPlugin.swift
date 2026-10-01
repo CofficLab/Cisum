@@ -49,7 +49,10 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             contrib.addTabView(ownerPluginID: id) { reason, demoMode in self.addTabView(reason: reason, demoMode: demoMode) }
-            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
+        }
+        if let settings = kernel.resolveProvider((any SettingViewProviding).self),
+           let entry = makeSettingEntry() {
+            settings.addEntries([entry])
         }
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }

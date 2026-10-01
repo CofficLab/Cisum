@@ -59,6 +59,7 @@ let package = Package(
                 .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "ProviderBookData", package: "ProviderBook"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
+                .product(name: "ProviderSettingView", package: "LumiSettings"),
             ],
             path: "Tests"
         ),
