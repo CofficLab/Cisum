@@ -223,8 +223,10 @@ struct AudioList: View, SuperLog {
     private var audioListView: some View {
         List {
             Section(header: HStack {
-                Text("Total \(viewModel.totalCount.description)", bundle: .module)
-                    .accessibilityIdentifier("cisum.audio-library.count")
+                if viewModel.totalCount > 0 {
+                    Text("Total \(viewModel.totalCount.description)", bundle: .module)
+                        .accessibilityIdentifier("cisum.audio-library.count")
+                }
                 Spacer()
                 if viewModel.isSyncing {
                     HStack(spacing: 6) {

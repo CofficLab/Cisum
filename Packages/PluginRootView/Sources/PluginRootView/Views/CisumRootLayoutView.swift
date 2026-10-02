@@ -3,6 +3,9 @@ import KernelCore
 import LumiUI
 import ProviderPlugin
 import SwiftUI
+import os
+
+private let cisumDebugLogger = Logger(subsystem: "com.coffic.cisum", category: "root-layout-debug")
 
 @MainActor
 struct CisumRootLayoutView: View {
@@ -45,8 +48,8 @@ struct CisumRootLayoutView: View {
 
                     statusArea
                 }
-                .frame(width: layoutWidth(for: geometry), height: geometry.size.height)
-                .offset(x: -horizontalOverflow(for: geometry))
+                .frame(width: layoutWidth(for: geometry), height: layoutHeight(for: geometry))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
             .environment(\.playbackHeroVisibility, $isPlaybackHeroVisible)
             .onAppear { handleOnAppear() }
@@ -150,9 +153,21 @@ struct CisumRootLayoutView: View {
 #if os(macOS)
         let window = contentWindow()
         guard let window else { return geometry.size.width }
-        return min(geometry.size.width, max(0, window.frame.width))
+        let w = min(geometry.size.width, max(0, window.frame.width))
+        cisumDebugLogger.error("LAYOUT-DEBUG geomW=\(geometry.size.width) geomH=\(geometry.size.height) winFrameW=\(window.frame.width) winContentW=\(window.contentLayoutRect.width) winContentH=\(window.contentLayoutRect.height) layoutW=\(w) overflow=\(self.horizontalOverflow(for: geometry)) screenW=\(window.screen?.frame.width ?? -1)")
+        return w
 #else
         geometry.size.width
+#endif
+    }
+
+    private func layoutHeight(for geometry: GeometryProxy) -> CGFloat {
+#if os(macOS)
+        let window = contentWindow()
+        guard let window else { return geometry.size.height }
+        return min(geometry.size.height, max(0, window.contentLayoutRect.height))
+#else
+        geometry.size.height
 #endif
     }
 

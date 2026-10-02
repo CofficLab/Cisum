@@ -1,933 +1,936 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "": {},
-    "Audiobooks": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Audiobooks"
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    "Audiobooks" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audiobooks"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有声书"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有声书"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有聲書"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有聲書"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書"
           }
         }
       }
     },
-    "Available Scenes": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Available Scenes"
+    "Available Scenes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Available Scenes"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "可用场景"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用场景"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "可用場景"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用場景"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "可用場景"
-          }
-        }
-      }
-    },
-    "Browse and play the audiobooks": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Browse and play the audiobooks"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "浏览并播放有声书"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "瀏覽並播放有聲書"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "瀏覽並播放有聲書"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用場景"
           }
         }
       }
     },
-    "Browse and play the music library": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Browse and play the music library"
+    "Basic Operations" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basic Operations"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "浏览并播放音乐库"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "瀏覽並播放音樂庫"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "瀏覽並播放音樂庫"
-          }
-        }
-      }
-    },
-    "Current": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Current"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "當前"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "當前"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
           }
         }
       }
     },
-    "Current Scene": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Current Scene"
+    "Browse and play the audiobooks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Browse and play the audiobooks"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前场景"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浏览并播放有声书"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "當前場景"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "瀏覽並播放有聲書"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "當前場景"
-          }
-        }
-      }
-    },
-    "Enter Scene": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enter Scene"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "进入场景"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "進入場景"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "進入場景"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "瀏覽並播放有聲書"
           }
         }
       }
     },
-    "Manages the current scene": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manages the current scene"
+    "Browse and play the music library" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Browse and play the music library"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理当前场景"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浏览并播放音乐库"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理當前場景"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "瀏覽並播放音樂庫"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理當前場景"
-          }
-        }
-      }
-    },
-    "Music Library": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Music Library"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "音乐库"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "音樂庫"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "音樂庫"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "瀏覽並播放音樂庫"
           }
         }
       }
     },
-    "No built-in scenes are available": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No built-in scenes are available"
+    "Choose the target scene in the scene switcher." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the target scene in the scene switcher."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "没有可用的内置场景"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在场景切换器中选择目标场景。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "沒有可用的內建場景"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在場景切換器中選擇目標場景。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "沒有可用的內建場景"
-          }
-        }
-      }
-    },
-    "No scene selected": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No scene selected"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未选择场景"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未選擇場景"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未選擇場景"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在場景切換器中選擇目標場景。"
           }
         }
       }
     },
-    "No scenes available": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No scenes available"
+    "Core Capabilities" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Capabilities"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "没有可用场景"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "沒有可用場景"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "沒有可用場景"
-          }
-        }
-      }
-    },
-    "Scene": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scene"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "场景"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "場景"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "場景"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
           }
         }
       }
     },
-    "Switch to this scene": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Switch to this scene"
+    "Current" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切换到此场景"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切換到此場景"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當前"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切換到此場景"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當前"
           }
         }
       }
     },
-    "The scene currently shown in the main window": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The scene currently shown in the main window"
+    "Current Scene" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current Scene"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "主窗口当前显示的场景"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前场景"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "主窗口當前顯示的場景"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當前場景"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "主視窗當前顯示的場景"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當前場景"
           }
         }
       }
     },
-    "Manages app scene switching and state (Music Library / Audiobooks)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manages app scene switching and state (Music Library / Audiobooks)"
+    "Enter Scene" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter Scene"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理应用场景（音乐库 / 有声书）的切换与状态。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "进入场景"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理應用程式場景（音樂庫 / 有聲書）的切換與狀態。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "進入場景"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理應用程式場景（音樂庫 / 有聲書）的切換與狀態。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "進入場景"
           }
         }
       }
     },
-    "Scene Management": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scene Management"
+    "Maintains the current scene state." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maintains the current scene state."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "场景管理"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "维护当前场景状态。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "場景管理"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "維護目前場景狀態。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "場景管理"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "維護目前場景狀態。"
           }
         }
       }
     },
-    "Version": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Version"
+    "Manages app scene switching and state (Music Library / Audiobooks)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manages app scene switching and state (Music Library / Audiobooks)"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理应用场景（音乐库 / 有声书）的切换与状态。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理應用程式場景（音樂庫 / 有聲書）的切換與狀態。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理應用程式場景（音樂庫 / 有聲書）的切換與狀態。"
           }
         }
       }
     },
-    "Type": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Type"
+    "Manages the current scene" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manages the current scene"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "类型"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理当前场景"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "類型"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理當前場景"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "類型"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理當前場景"
           }
         }
       }
     },
-    "Plugin": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plugin"
+    "Music Library" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music Library"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "插件"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音乐库"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外掛程式"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂庫"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外掛程式"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂庫"
           }
         }
       }
     },
-    "Core Capabilities": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Core Capabilities"
+    "No built-in scenes are available" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No built-in scenes are available"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核心能力"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可用的内置场景"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核心能力"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有可用的內建場景"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核心能力"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有可用的內建場景"
           }
         }
       }
     },
-    "Switches between the music library and audiobooks.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Switches between the music library and audiobooks."
+    "No scene selected" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No scene selected"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在音乐库与有声书之间切换。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未选择场景"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在音樂庫與有聲書之間切換。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未選擇場景"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在音樂庫與有聲書之間切換。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未選擇場景"
           }
         }
       }
     },
-    "Scene Switching": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scene Switching"
+    "No scenes available" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No scenes available"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "场景切换"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可用场景"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "場景切換"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有可用場景"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "場景切換"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有可用場景"
           }
         }
       }
     },
-    "Maintains the current scene state.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Maintains the current scene state."
+    "Notes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "维护当前场景状态。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说明"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "維護目前場景狀態。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "維護目前場景狀態。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
           }
         }
       }
     },
-    "State Management": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "State Management"
+    "Overview" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overview"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "状态管理"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "狀態管理"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "狀態管理"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
           }
         }
       }
     },
-    "Overview": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overview"
+    "Plugin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plugin"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概述"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "插件"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概述"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概述"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式"
           }
         }
       }
     },
-    "Scene Switching: switches between the music library and audiobooks.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scene Switching: switches between the music library and audiobooks."
+    "Scene" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scene"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "场景切换：在音乐库与有声书之间切换。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "场景"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "場景切換：在音樂庫與有聲書之間切換。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "場景"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "場景切換：在音樂庫與有聲書之間切換。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "場景"
           }
         }
       }
     },
-    "State Management: maintains the current scene state.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "State Management: maintains the current scene state."
+    "Scene Management" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scene Management"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "状态管理：维护当前场景状态。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "场景管理"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "狀態管理：維護目前場景狀態。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "場景管理"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "狀態管理：維護目前場景狀態。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "場景管理"
           }
         }
       }
     },
-    "Basic Operations": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Basic Operations"
+    "Scene Switching" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scene Switching"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基本操作"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "场景切换"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基本操作"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "場景切換"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基本操作"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "場景切換"
           }
         }
       }
     },
-    "Choose the target scene in the scene switcher.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose the target scene in the scene switcher."
+    "Scene Switching: switches between the music library and audiobooks." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scene Switching: switches between the music library and audiobooks."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在场景切换器中选择目标场景。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "场景切换：在音乐库与有声书之间切换。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在場景切換器中選擇目標場景。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "場景切換：在音樂庫與有聲書之間切換。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在場景切換器中選擇目標場景。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "場景切換：在音樂庫與有聲書之間切換。"
           }
         }
       }
     },
-    "The app switches to the corresponding scene interface.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The app switches to the corresponding scene interface."
+    "Scenes are built into the app and fixed as the music library and audiobooks." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scenes are built into the app and fixed as the music library and audiobooks."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "应用切换到对应场景界面。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "场景由应用内置，固定为音乐库与有声书。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "應用程式切換到對應的場景介面。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "場景由應用程式內建，固定為音樂庫與有聲書。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "應用程式切換到對應的場景介面。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "場景由應用程式內建，固定為音樂庫與有聲書。"
           }
         }
       }
     },
-    "Notes": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notes"
+    "State Management" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "State Management"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "说明"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状态管理"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "說明"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "狀態管理"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "說明"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "狀態管理"
           }
         }
       }
     },
-    "Scenes are built into the app and fixed as the music library and audiobooks.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scenes are built into the app and fixed as the music library and audiobooks."
+    "State Management: maintains the current scene state." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "State Management: maintains the current scene state."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "场景由应用内置，固定为音乐库与有声书。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状态管理：维护当前场景状态。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "場景由應用程式內建，固定為音樂庫與有聲書。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "狀態管理：維護目前場景狀態。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "場景由應用程式內建，固定為音樂庫與有聲書。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "狀態管理：維護目前場景狀態。"
+          }
+        }
+      }
+    },
+    "Switch to this scene" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch to this scene"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换到此场景"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換到此場景"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換到此場景"
+          }
+        }
+      }
+    },
+    "Switches between the music library and audiobooks." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switches between the music library and audiobooks."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在音乐库与有声书之间切换。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在音樂庫與有聲書之間切換。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在音樂庫與有聲書之間切換。"
+          }
+        }
+      }
+    },
+    "The app switches to the corresponding scene interface." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The app switches to the corresponding scene interface."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用切换到对应场景界面。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "應用程式切換到對應的場景介面。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "應用程式切換到對應的場景介面。"
+          }
+        }
+      }
+    },
+    "The scene currently shown in the main window" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The scene currently shown in the main window"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主窗口当前显示的场景"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主窗口當前顯示的場景"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主視窗當前顯示的場景"
+          }
+        }
+      }
+    },
+    "Type" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "类型"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "類型"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "類型"
+          }
+        }
+      }
+    },
+    "Version" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

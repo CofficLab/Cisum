@@ -59,11 +59,6 @@ struct ControlView: View {
             .padding(.horizontal, 0)
             .frame(maxHeight: .infinity)
         }
-        #if os(macOS)
-            .ignoresSafeArea(edges: .horizontal)
-        #else
-            .ignoresSafeArea()
-        #endif
         .frame(minHeight: heroVisibility.wrappedValue
             ? CisumPlayerLayout.controlMinimumHeight
             : CisumPlayerLayout.emptyPlayerControlHeight)

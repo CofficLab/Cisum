@@ -67,11 +67,6 @@ struct PlaybackHeroView: View {
                 heroVisibility.wrappedValue = isVisible
             }
         }
-        #if os(macOS)
-            .ignoresSafeArea(edges: .horizontal)
-        #else
-            .ignoresSafeArea()
-        #endif
     }
 
     private func shouldShowAlbum(in geometry: GeometryProxy) -> Bool {

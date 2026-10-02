@@ -1,1490 +1,1491 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "Plugin Manager": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plugin Manager"
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%lld enabled" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld enabled"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "插件管理"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 个已启用"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外掛程式管理"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個已啟用"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外掛程式管理"
-          }
-        }
-      }
-    },
-    "Manages all registered plugins.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manages all registered plugins."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理所有已注册插件。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理所有已註冊外掛程式。"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理所有已註冊外掛程式。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個已啟用"
           }
         }
       }
     },
-    "No Description Available": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No Description Available"
+    "%lld plugins" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld plugins"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂无详细说明"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 个插件"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暫無詳細說明"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個外掛程式"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暫無詳細說明"
-          }
-        }
-      }
-    },
-    "Version": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Version"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個外掛程式"
           }
         }
       }
     },
-    "Strategy": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Strategy"
+    "All" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "策略"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "策略"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "策略"
-          }
-        }
-      }
-    },
-    "Core Capabilities": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Core Capabilities"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核心能力"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核心能力"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核心能力"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部"
           }
         }
       }
     },
-    "Category": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Category"
+    "Always Enabled" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always Enabled"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "分类"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "始终启用"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "分類"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "始終啟用"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "分類"
-          }
-        }
-      }
-    },
-    "Stage": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stage"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "阶段"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "階段"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "階段"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "始終啟用"
           }
         }
       }
     },
-    "Identifier": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Identifier"
+    "Always-on / disabled plugins are not configurable and do not appear in the list." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always-on / disabled plugins are not configurable and do not appear in the list."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "标识符"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "始终启用 / 已停用的插件不可配置，不显示在列表中。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "識別碼"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "始終啟用 / 已停用的外掛程式不可設定，不會顯示在清單中。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "識別碼"
-          }
-        }
-      }
-    },
-    "Not Set": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not Set"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未设置"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未設定"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未設定"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "始終啟用 / 已停用的外掛程式不可設定，不會顯示在清單中。"
           }
         }
       }
     },
-    "Permissions": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Permissions"
+    "Basic Operations" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basic Operations"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "权限"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "權限"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "權限"
-          }
-        }
-      }
-    },
-    "Always Enabled": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Always Enabled"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "始终启用"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "始終啟用"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "始終啟用"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
           }
         }
       }
     },
-    "Disable Permanently": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Disable Permanently"
+    "Category" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Category"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "永久停用"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分类"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "永久停用"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分類"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "永久停用"
-          }
-        }
-      }
-    },
-    "Disabled": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Disabled"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已停用"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已停用"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已停用"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分類"
           }
         }
       }
     },
-    "Enabled": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enabled"
+    "Category Filter" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Category Filter"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已启用"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分类筛选"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已啟用"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分類篩選"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已啟用"
-          }
-        }
-      }
-    },
-    "Overview": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overview"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概述"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概述"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概述"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分類篩選"
           }
         }
       }
     },
-    "This manual introduces the Plugin Manager page of Cisum: how to view registered plugins, search and filter by category, and enable or disable a plugin.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This manual introduces the Plugin Manager page of Cisum: how to view registered plugins, search and filter by category, and enable or disable a plugin."
+    "Click a category chip (e.g. Music Library, Theme) to switch filters; click All again to clear." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click a category chip (e.g. Music Library, Theme) to switch filters; click All again to clear."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本说明书介绍 Cisum 的「插件管理」页面：如何查看已注册插件、搜索与分类筛选，以及如何启用或停用某个插件。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点击分类胶囊（如「媒体库」「主题」）切换筛选；再次点击「全部」清除筛选。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本說明書介紹 Cisum 的「外掛程式管理」頁面：如何檢視已註冊外掛程式、搜尋與分類篩選，以及如何啟用或停用某個外掛程式。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按一下分類膠囊（如「媒體庫」「主題」）切換篩選；再按一下「全部」清除篩選。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本說明書介紹 Cisum 的「外掛程式管理」頁面：如何檢視已註冊外掛程式、搜尋與分類篩選，以及如何啟用或停用某個外掛程式。"
-          }
-        }
-      }
-    },
-    "Interface": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Interface"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "界面"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "介面"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "介面"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按一下分類膠囊（如「媒體庫」「主題」）切換篩選；再按一下「全部」清除篩選。"
           }
         }
       }
     },
-    "Header stats: shows the total number of configurable plugins and how many are enabled.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Header stats: shows the total number of configurable plugins and how many are enabled."
+    "Click a plugin in the list to show its About page on the right." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click a plugin in the list to show its About page on the right."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "顶部统计：显示当前可配置插件总数与已启用数量。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点击列表中的插件，右侧显示其关于页。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "頂部統計：顯示目前可設定外掛程式總數與已啟用數量。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按一下清單中的外掛程式，右側會顯示其關於頁。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "頂部統計：顯示目前可設定外掛程式總數與已啟用數量。"
-          }
-        }
-      }
-    },
-    "Left list: searchable (name / identifier / description) and filterable by category.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Left list: searchable (name / identifier / description) and filterable by category."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "左侧列表：可搜索（名称 / 标识符 / 描述），并可按分类筛选。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "左側清單：可搜尋（名稱 / 識別碼 / 描述），並可按分類篩選。"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "左側清單：可搜尋（名稱 / 識別碼 / 描述），並可按分類篩選。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按一下清單中的外掛程式，右側會顯示其關於頁。"
           }
         }
       }
     },
-    "Right detail: shows the selected plugin's About page, including name, description, stage, and enable switch.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Right detail: shows the selected plugin's About page, including name, description, stage, and enable switch."
+    "Configurable Plugins" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurable Plugins"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "右侧详情：展示选中插件的关于页，包含名称、描述、阶段与启用开关。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可配置插件"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "右側詳情：顯示所選外掛程式的關於頁，包含名稱、描述、階段與啟用開關。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可設定外掛程式"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "右側詳情：顯示所選外掛程式的關於頁，包含名稱、描述、階段與啟用開關。"
-          }
-        }
-      }
-    },
-    "Basic Operations": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Basic Operations"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基本操作"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基本操作"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基本操作"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可設定外掛程式"
           }
         }
       }
     },
-    "Type a keyword in the search field and the list filters instantly.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Type a keyword in the search field and the list filters instantly."
+    "Core Capabilities" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Capabilities"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在搜索框输入关键字，列表即时过滤。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在搜尋框輸入關鍵字，清單即時篩選。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在搜尋框輸入關鍵字，清單即時篩選。"
-          }
-        }
-      }
-    },
-    "Click a category chip (e.g. Music Library, Theme) to switch filters; click All again to clear.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Click a category chip (e.g. Music Library, Theme) to switch filters; click All again to clear."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "点击分类胶囊（如「媒体库」「主题」）切换筛选；再次点击「全部」清除筛选。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按一下分類膠囊（如「媒體庫」「主題」）切換篩選；再按一下「全部」清除篩選。"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按一下分類膠囊（如「媒體庫」「主題」）切換篩選；再按一下「全部」清除篩選。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
           }
         }
       }
     },
-    "Click a plugin in the list to show its About page on the right.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Click a plugin in the list to show its About page on the right."
+    "Disable Permanently" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disable Permanently"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "点击列表中的插件，右侧显示其关于页。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "永久停用"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按一下清單中的外掛程式，右側會顯示其關於頁。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "永久停用"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按一下清單中的外掛程式，右側會顯示其關於頁。"
-          }
-        }
-      }
-    },
-    "Toggle the Enable switch in the top-right corner to enable or disable the plugin instantly.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toggle the Enable switch in the top-right corner to enable or disable the plugin instantly."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切换右上角的「启用」开关，即时启用或停用该插件。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切換右上角的「啟用」開關，即時啟用或停用該外掛程式。"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切換右上角的「啟用」開關，即時啟用或停用該外掛程式。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "永久停用"
           }
         }
       }
     },
-    "Notes": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notes"
+    "Disabled" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disabled"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "说明"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已停用"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "說明"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已停用"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "說明"
-          }
-        }
-      }
-    },
-    "Always-on / disabled plugins are not configurable and do not appear in the list.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Always-on / disabled plugins are not configurable and do not appear in the list."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "始终启用 / 已停用的插件不可配置，不显示在列表中。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "始終啟用 / 已停用的外掛程式不可設定，不會顯示在清單中。"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "始終啟用 / 已停用的外掛程式不可設定，不會顯示在清單中。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已停用"
           }
         }
       }
     },
-    "Every plugin has an About page; plugins without a custom one show a default page based on metadata.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Every plugin has an About page; plugins without a custom one show a default page based on metadata."
+    "Enable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "每个插件都有关于页；未单独设计的插件会显示基于元数据的默认关于页。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "每個外掛程式都有關於頁；未單獨設計的外掛程式會顯示基於中繼資料的預設關於頁。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "每個外掛程式都有關於頁；未單獨設計的外掛程式會顯示基於中繼資料的預設關於頁。"
-          }
-        }
-      }
-    },
-    "Enable": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enable"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "启用"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "啟用"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "啟用"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用"
           }
         }
       }
     },
-    "Manage all registered plugins: view, search, filter by category, and enable or disable.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manage all registered plugins: view, search, filter by category, and enable or disable."
+    "Enable Management" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable Management"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理所有已注册插件：查看、搜索、分类筛选并启停。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启停管理"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理所有已註冊外掛程式：檢視、搜尋、分類篩選並啟停。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟停管理"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理所有已註冊外掛程式：檢視、搜尋、分類篩選並啟停。"
-          }
-        }
-      }
-    },
-    "Category Filter": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Category Filter"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "分类筛选"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "分類篩選"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "分類篩選"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟停管理"
           }
         }
       }
     },
-    "Search Plugins": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search Plugins"
+    "Enabled" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enabled"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜索插件"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已启用"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜尋外掛程式"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已啟用"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜尋外掛程式"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已啟用"
           }
         }
       }
     },
-    "Configurable Plugins": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Configurable Plugins"
+    "Enables or disables plugins at runtime and persists user overrides." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enables or disables plugins at runtime and persists user overrides."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "可配置插件"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行时启停插件并持久化用户覆盖设置。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "可設定外掛程式"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在執行階段啟停外掛程式並持久化使用者覆寫設定。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "可設定外掛程式"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在執行階段啟停外掛程式並持久化使用者覆寫設定。"
           }
         }
       }
     },
-    "All": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "All"
+    "Every plugin has an About page; plugins without a custom one show a default page based on metadata." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every plugin has an About page; plugins without a custom one show a default page based on metadata."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "全部"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每个插件都有关于页；未单独设计的插件会显示基于元数据的默认关于页。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "全部"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每個外掛程式都有關於頁；未單獨設計的外掛程式會顯示基於中繼資料的預設關於頁。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "全部"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每個外掛程式都有關於頁；未單獨設計的外掛程式會顯示基於中繼資料的預設關於頁。"
           }
         }
       }
     },
-    "Plugin Catalog": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plugin Catalog"
+    "Filter the list by category such as Music Library, Playback, and Theme." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filter the list by category such as Music Library, Playback, and Theme."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "插件目录"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按媒体库 / 播放 / 主题等分类筛选列表。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外掛程式目錄"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按媒體庫 / 播放 / 主題等分類篩選清單。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外掛程式目錄"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按媒體庫 / 播放 / 主題等分類篩選清單。"
           }
         }
       }
     },
-    "Shows all user-configurable plugins, visually distinguished by enable state.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Shows all user-configurable plugins, visually distinguished by enable state."
+    "Header stats: shows the total number of configurable plugins and how many are enabled." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Header stats: shows the total number of configurable plugins and how many are enabled."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "展示所有用户可配置的插件，按启用状态直观区分。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顶部统计：显示当前可配置插件总数与已启用数量。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "顯示所有使用者可設定的外掛程式，並按啟用狀態直觀區分。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "頂部統計：顯示目前可設定外掛程式總數與已啟用數量。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "顯示所有使用者可設定的外掛程式，並按啟用狀態直觀區分。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "頂部統計：顯示目前可設定外掛程式總數與已啟用數量。"
           }
         }
       }
     },
-    "Search & Filter": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search & Filter"
+    "Identifier" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Identifier"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜索过滤"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标识符"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜尋與篩選"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "識別碼"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜尋與篩選"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "識別碼"
           }
         }
       }
     },
-    "Quickly locate plugins by name, identifier, or description keyword.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quickly locate plugins by name, identifier, or description keyword."
+    "Interface" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interface"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按名称、标识符或描述关键字快速定位插件。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "界面"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按名稱、識別碼或描述關鍵字快速定位外掛程式。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "介面"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按名稱、識別碼或描述關鍵字快速定位外掛程式。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "介面"
           }
         }
       }
     },
-    "Filter the list by category such as Music Library, Playback, and Theme.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Filter the list by category such as Music Library, Playback, and Theme."
+    "Left list: searchable (name / identifier / description) and filterable by category." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Left list: searchable (name / identifier / description) and filterable by category."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按媒体库 / 播放 / 主题等分类筛选列表。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "左侧列表：可搜索（名称 / 标识符 / 描述），并可按分类筛选。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按媒體庫 / 播放 / 主題等分類篩選清單。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "左側清單：可搜尋（名稱 / 識別碼 / 描述），並可按分類篩選。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按媒體庫 / 播放 / 主題等分類篩選清單。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "左側清單：可搜尋（名稱 / 識別碼 / 描述），並可按分類篩選。"
           }
         }
       }
     },
-    "Plugin Details": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plugin Details"
+    "Manage all registered plugins: view, search, filter by category, and enable or disable." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage all registered plugins: view, search, filter by category, and enable or disable."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "插件详情"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理所有已注册插件：查看、搜索、分类筛选并启停。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外掛程式詳情"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理所有已註冊外掛程式：檢視、搜尋、分類篩選並啟停。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外掛程式詳情"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理所有已註冊外掛程式：檢視、搜尋、分類篩選並啟停。"
           }
         }
       }
     },
-    "Shows each plugin's About page and enable-state control.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Shows each plugin's About page and enable-state control."
+    "Manages all registered plugins." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manages all registered plugins."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "展示每个插件的关于页与启用状态控件。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理所有已注册插件。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "顯示每個外掛程式的關於頁與啟用狀態控制項。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理所有已註冊外掛程式。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "顯示每個外掛程式的關於頁與啟用狀態控制項。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理所有已註冊外掛程式。"
           }
         }
       }
     },
-    "Enable Management": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enable Management"
+    "Manual" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manual"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "启停管理"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说明书"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "啟停管理"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明書"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "啟停管理"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明書"
           }
         }
       }
     },
-    "Enables or disables plugins at runtime and persists user overrides.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enables or disables plugins at runtime and persists user overrides."
+    "No Description Available" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Description Available"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "运行时启停插件并持久化用户覆盖设置。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无详细说明"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在執行階段啟停外掛程式並持久化使用者覆寫設定。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暫無詳細說明"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在執行階段啟停外掛程式並持久化使用者覆寫設定。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暫無詳細說明"
           }
         }
       }
     },
-    "Where to Find It": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Where to Find It"
+    "No Plugins Found" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Plugins Found"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "入口位置"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到插件"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "入口位置"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到外掛程式"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "入口位置"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到外掛程式"
           }
         }
       }
     },
-    "Opens in the Plugin Manager navigation item of the main Settings window.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Opens in the Plugin Manager navigation item of the main Settings window."
+    "Not Set" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not Set"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在主设置窗口的「插件管理」导航项中打开。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未设置"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在主設定視窗的「外掛程式管理」導覽項目中開啟。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未設定"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在主設定視窗的「外掛程式管理」導覽項目中開啟。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未設定"
           }
         }
       }
     },
-    "Settings → Plugin Manager": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Settings → Plugin Manager"
+    "Notes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设置 → 插件管理"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说明"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "設定 → 外掛程式管理"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "設定 → 外掛程式管理"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
           }
         }
       }
     },
-    "You can read this manual in Settings → General → Manuals.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You can read this manual in Settings → General → Manuals."
+    "Opens in the Plugin Manager navigation item of the main Settings window." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens in the Plugin Manager navigation item of the main Settings window."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "可在 设置 → 通用 → 说明书 中阅读本页面的使用手册。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在主设置窗口的「插件管理」导航项中打开。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "可在 設定 → 一般 → 說明書 中閱讀本頁面的使用手冊。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在主設定視窗的「外掛程式管理」導覽項目中開啟。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "可在 設定 → 一般 → 說明書 中閱讀本頁面的使用手冊。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在主設定視窗的「外掛程式管理」導覽項目中開啟。"
           }
         }
       }
     },
-    "Manual": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manual"
+    "Overview" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overview"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "说明书"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "說明書"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "說明書"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
           }
         }
       }
     },
-    "No Plugins Found": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No Plugins Found"
+    "Permissions" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permissions"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未找到插件"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "权限"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "找不到外掛程式"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "權限"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "找不到外掛程式"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "權限"
           }
         }
       }
     },
-    "Select a Plugin": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Select a Plugin"
+    "Plugin Catalog" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plugin Catalog"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "选择一个插件"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "插件目录"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "選擇一個外掛程式"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式目錄"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "選擇一個外掛程式"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式目錄"
           }
         }
       }
     },
-    "%lld enabled": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld enabled"
+    "Plugin Details" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plugin Details"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld 个已启用"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "插件详情"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld 個已啟用"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式詳情"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld 個已啟用"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式詳情"
           }
         }
       }
     },
-    "%lld plugins": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld plugins"
+    "Plugin Manager" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plugin Manager"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld 个插件"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "插件管理"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld 個外掛程式"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式管理"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld 個外掛程式"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式管理"
+          }
+        }
+      }
+    },
+    "Quickly locate plugins by name, identifier, or description keyword." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quickly locate plugins by name, identifier, or description keyword."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按名称、标识符或描述关键字快速定位插件。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按名稱、識別碼或描述關鍵字快速定位外掛程式。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按名稱、識別碼或描述關鍵字快速定位外掛程式。"
+          }
+        }
+      }
+    },
+    "Right detail: shows the selected plugin's About page, including name, description, stage, and enable switch." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Right detail: shows the selected plugin's About page, including name, description, stage, and enable switch."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "右侧详情：展示选中插件的关于页，包含名称、描述、阶段与启用开关。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "右側詳情：顯示所選外掛程式的關於頁，包含名稱、描述、階段與啟用開關。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "右側詳情：顯示所選外掛程式的關於頁，包含名稱、描述、階段與啟用開關。"
+          }
+        }
+      }
+    },
+    "Search & Filter" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search & Filter"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索过滤"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋與篩選"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋與篩選"
+          }
+        }
+      }
+    },
+    "Search Plugins" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search Plugins"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索插件"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋外掛程式"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋外掛程式"
+          }
+        }
+      }
+    },
+    "Select a Plugin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select a Plugin"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择一个插件"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇一個外掛程式"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇一個外掛程式"
+          }
+        }
+      }
+    },
+    "Settings → Plugin Manager" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings → Plugin Manager"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置 → 插件管理"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定 → 外掛程式管理"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定 → 外掛程式管理"
+          }
+        }
+      }
+    },
+    "Shows all user-configurable plugins, visually distinguished by enable state." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows all user-configurable plugins, visually distinguished by enable state."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展示所有用户可配置的插件，按启用状态直观区分。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示所有使用者可設定的外掛程式，並按啟用狀態直觀區分。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示所有使用者可設定的外掛程式，並按啟用狀態直觀區分。"
+          }
+        }
+      }
+    },
+    "Shows each plugin's About page and enable-state control." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows each plugin's About page and enable-state control."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展示每个插件的关于页与启用状态控件。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示每個外掛程式的關於頁與啟用狀態控制項。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示每個外掛程式的關於頁與啟用狀態控制項。"
+          }
+        }
+      }
+    },
+    "Stage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stage"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "阶段"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "階段"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "階段"
+          }
+        }
+      }
+    },
+    "Strategy" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strategy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "策略"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "策略"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "策略"
+          }
+        }
+      }
+    },
+    "This manual introduces the Plugin Manager page of Cisum: how to view registered plugins, search and filter by category, and enable or disable a plugin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This manual introduces the Plugin Manager page of Cisum: how to view registered plugins, search and filter by category, and enable or disable a plugin."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本说明书介绍 Cisum 的「插件管理」页面：如何查看已注册插件、搜索与分类筛选，以及如何启用或停用某个插件。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本說明書介紹 Cisum 的「外掛程式管理」頁面：如何檢視已註冊外掛程式、搜尋與分類篩選，以及如何啟用或停用某個外掛程式。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本說明書介紹 Cisum 的「外掛程式管理」頁面：如何檢視已註冊外掛程式、搜尋與分類篩選，以及如何啟用或停用某個外掛程式。"
+          }
+        }
+      }
+    },
+    "Toggle the Enable switch in the top-right corner to enable or disable the plugin instantly." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toggle the Enable switch in the top-right corner to enable or disable the plugin instantly."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换右上角的「启用」开关，即时启用或停用该插件。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換右上角的「啟用」開關，即時啟用或停用該外掛程式。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換右上角的「啟用」開關，即時啟用或停用該外掛程式。"
+          }
+        }
+      }
+    },
+    "Type a keyword in the search field and the list filters instantly." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type a keyword in the search field and the list filters instantly."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在搜索框输入关键字，列表即时过滤。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在搜尋框輸入關鍵字，清單即時篩選。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在搜尋框輸入關鍵字，清單即時篩選。"
+          }
+        }
+      }
+    },
+    "Version" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        }
+      }
+    },
+    "Where to Find It" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Where to Find It"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "入口位置"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "入口位置"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "入口位置"
+          }
+        }
+      }
+    },
+    "You can read this manual in Settings → General → Manuals." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can read this manual in Settings → General → Manuals."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可在 设置 → 通用 → 说明书 中阅读本页面的使用手册。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可在 設定 → 一般 → 說明書 中閱讀本頁面的使用手冊。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可在 設定 → 一般 → 說明書 中閱讀本頁面的使用手冊。"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

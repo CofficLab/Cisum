@@ -1,1238 +1,1239 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "Play": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Play"
+  "sourceLanguage" : "en",
+  "strings" : {
+    "A unified playback engine with playback-state management." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A unified playback engine with playback-state management."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "统一播放引擎与播放状态管理。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "統一的播放引擎與播放狀態管理。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放"
-          }
-        }
-      }
-    },
-    "Playback engine and playback-state management.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Playback engine and playback-state management."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放引擎与播放状态管理。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放引擎與播放狀態管理。"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放引擎與播放狀態管理。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "統一的播放引擎與播放狀態管理。"
           }
         }
       }
     },
-    "Current File": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Current File"
+    "After relaunch, automatically restores the last played file (loaded but not auto-played)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After relaunch, automatically restores the last played file (loaded but not auto-played)."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前文件"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用重启后，自动恢复上次播放的文件（仅加载，不自动播放）。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目前檔案"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新啟動後，自動恢復上次播放的檔案（僅載入，不自動播放）。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目前檔案"
-          }
-        }
-      }
-    },
-    "Playback Engine": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Playback Engine"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放引擎"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放引擎"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放引擎"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新啟動後，自動恢復上次播放的檔案（僅載入，不自動播放）。"
           }
         }
       }
     },
-    "Overview": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overview"
+    "Automatically used whenever music or audiobook content is played." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatically used whenever music or audiobook content is played."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概述"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放任意音乐或有声书内容时，自动使用本引擎。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概述"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放任何音樂或有聲書內容時，會自動使用本引擎。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概述"
-          }
-        }
-      }
-    },
-    "Provides a unified playback engine that controls audio playback and restores the last played file after relaunch.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Provides a unified playback engine that controls audio playback and restores the last played file after relaunch."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "提供统一的播放引擎，负责音频文件的播放控制，并在重启后恢复上次播放的文件。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "提供統一的播放引擎，負責音訊檔案的播放控制，並在重新啟動後恢復上次播放的檔案。"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "提供統一的播放引擎，負責音訊檔案的播放控制，並在重新啟動後恢復上次播放的檔案。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放任何音樂或有聲書內容時，會自動使用本引擎。"
           }
         }
       }
     },
-    "Core Capabilities": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Core Capabilities"
+    "Basic Operations" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basic Operations"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核心能力"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核心能力"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核心能力"
-          }
-        }
-      }
-    },
-    "Playback Engine: drives audio decoding and playback control.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Playback Engine: drives audio decoding and playback control."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放引擎：驱动音频解码与播放控制。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放引擎：驅動音訊解碼與播放控制。"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放引擎：驅動音訊解碼與播放控制。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
           }
         }
       }
     },
-    "State record: writes the current playing file to disk.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "State record: writes the current playing file to disk."
+    "Core Capabilities" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Capabilities"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "状态记录：将当前播放文件写入磁盘。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "狀態記錄：將目前播放的檔案寫入磁碟。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "狀態記錄：將目前播放的檔案寫入磁碟。"
-          }
-        }
-      }
-    },
-    "Relaunch Resume: restores the last played file after relaunch.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Relaunch Resume: restores the last played file after relaunch."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "启动恢复：重启后恢复上次播放的文件。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "啟動恢復：重新啟動後恢復上次播放的檔案。"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "啟動恢復：重新啟動後恢復上次播放的檔案。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
           }
         }
       }
     },
-    "Basic Operations": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Basic Operations"
+    "Current" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基本操作"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基本操作"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基本操作"
-          }
-        }
-      }
-    },
-    "Automatically used whenever music or audiobook content is played.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Automatically used whenever music or audiobook content is played."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放任意音乐或有声书内容时，自动使用本引擎。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放任何音樂或有聲書內容時，會自動使用本引擎。"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放任何音樂或有聲書內容時，會自動使用本引擎。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前"
           }
         }
       }
     },
-    "After relaunch, automatically restores the last played file (loaded but not auto-played).": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "After relaunch, automatically restores the last played file (loaded but not auto-played)."
+    "Current File" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current File"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "应用重启后，自动恢复上次播放的文件（仅加载，不自动播放）。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前文件"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新啟動後，自動恢復上次播放的檔案（僅載入，不自動播放）。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前檔案"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新啟動後，自動恢復上次播放的檔案（僅載入，不自動播放）。"
-          }
-        }
-      }
-    },
-    "When the playing file changes, the engine records the latest file for the next resume.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "When the playing file changes, the engine records the latest file for the next resume."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切换播放文件时，引擎自动记录最新文件用于下次恢复。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切換播放檔案時，引擎會自動記錄最新檔案以利下次恢復。"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切換播放檔案時，引擎會自動記錄最新檔案以利下次恢復。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前檔案"
           }
         }
       }
     },
-    "Notes": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notes"
+    "Drives audio decoding and playback control." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drives audio decoding and playback control."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "说明"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "驱动音频解码与播放控制。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "說明"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "驅動音訊解碼與播放控制。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "說明"
-          }
-        }
-      }
-    },
-    "This plugin is a system-level capability that is always enabled and cannot be disabled.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This plugin is a system-level capability that is always enabled and cannot be disabled."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本插件为系统级能力，始终启用，不可停用。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此外掛程式為系統層級能力，始終啟用，不可停用。"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此外掛程式為系統層級能力，始終啟用，不可停用。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "驅動音訊解碼與播放控制。"
           }
         }
       }
     },
-    "Paused": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Paused"
+    "Duration" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duration"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已暂停"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时长"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已暫停"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "時長"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已暫停"
-          }
-        }
-      }
-    },
-    "Playing": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Playing"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放中"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放中"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放中"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "時長"
           }
         }
       }
     },
-    "Recent Playback by Scene": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recent Playback by Scene"
+    "Failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "各场景最近播放"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "失败"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "各場景最近播放"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "失敗"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "各場景最近播放"
-          }
-        }
-      }
-    },
-    "Current": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Current"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目前"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目前"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "失敗"
           }
         }
       }
     },
-    "No Record": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No Record"
+    "File Name" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File Name"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无记录"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件名"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "無記錄"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檔案名稱"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "無記錄"
-          }
-        }
-      }
-    },
-    "Playback Details": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Playback Details"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放详情"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放詳情"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放詳情"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檔案名稱"
           }
         }
       }
     },
-    "File Name": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "File Name"
+    "Idle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idle"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "文件名"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空闲"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "檔案名稱"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "閒置"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "檔案名稱"
-          }
-        }
-      }
-    },
-    "Path": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Path"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "路径"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "路徑"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "路徑"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "閒置"
           }
         }
       }
     },
-    "Size": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Size"
+    "Loading" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "大小"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加载中"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "大小"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "載入中"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "大小"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "載入中"
           }
         }
       }
     },
-    "Duration": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Duration"
+    "No file is currently playing" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No file is currently playing"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "时长"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前没有播放文件"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "時長"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前沒有播放中的檔案"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "時長"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前沒有播放中的檔案"
           }
         }
       }
     },
-    "Played": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Played"
+    "No Record" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Record"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已播放"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无记录"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已播放"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無記錄"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已播放"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無記錄"
           }
         }
       }
     },
-    "Status": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Status"
+    "Notes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "状态"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说明"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "狀態"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "狀態"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
           }
         }
       }
     },
-    "No file is currently playing": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No file is currently playing"
+    "Overview" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overview"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前没有播放文件"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目前沒有播放中的檔案"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目前沒有播放中的檔案"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
           }
         }
       }
     },
-    "Idle": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Idle"
+    "Path" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Path"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "空闲"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "路径"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "閒置"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "路徑"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "閒置"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "路徑"
           }
         }
       }
     },
-    "Loading": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Loading"
+    "Paused" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "加载中"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已暂停"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "載入中"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已暫停"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "載入中"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已暫停"
           }
         }
       }
     },
-    "Ready to Play": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ready to Play"
+    "Play" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "准备播放"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "準備播放"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "準備播放"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放"
           }
         }
       }
     },
-    "Stopped": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stopped"
+    "Playback Details" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playback Details"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已停止"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放详情"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已停止"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放詳情"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已停止"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放詳情"
           }
         }
       }
     },
-    "Failed": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Failed"
+    "Playback Engine" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playback Engine"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "失败"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放引擎"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "失敗"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放引擎"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "失敗"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放引擎"
           }
         }
       }
     },
-    "Unknown": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unknown"
+    "Playback engine and playback-state management." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playback engine and playback-state management."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未知"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放引擎与播放状态管理。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未知"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放引擎與播放狀態管理。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未知"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放引擎與播放狀態管理。"
           }
         }
       }
     },
-    "A unified playback engine with playback-state management.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A unified playback engine with playback-state management."
+    "Playback Engine: drives audio decoding and playback control." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playback Engine: drives audio decoding and playback control."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "统一播放引擎与播放状态管理。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放引擎：驱动音频解码与播放控制。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "統一的播放引擎與播放狀態管理。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放引擎：驅動音訊解碼與播放控制。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "統一的播放引擎與播放狀態管理。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放引擎：驅動音訊解碼與播放控制。"
           }
         }
       }
     },
-    "Version": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Version"
+    "Played" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Played"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已播放"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已播放"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已播放"
           }
         }
       }
     },
-    "Type": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Type"
+    "Playing" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playing"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "类型"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放中"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "類型"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放中"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "類型"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放中"
           }
         }
       }
     },
-    "Plugin": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plugin"
+    "Plugin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plugin"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "插件"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "插件"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外掛程式"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外掛程式"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式"
           }
         }
       }
     },
-    "Drives audio decoding and playback control.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Drives audio decoding and playback control."
+    "Provides a unified playback engine that controls audio playback and restores the last played file after relaunch." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provides a unified playback engine that controls audio playback and restores the last played file after relaunch."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "驱动音频解码与播放控制。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供统一的播放引擎，负责音频文件的播放控制，并在重启后恢复上次播放的文件。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "驅動音訊解碼與播放控制。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供統一的播放引擎，負責音訊檔案的播放控制，並在重新啟動後恢復上次播放的檔案。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "驅動音訊解碼與播放控制。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供統一的播放引擎，負責音訊檔案的播放控制，並在重新啟動後恢復上次播放的檔案。"
           }
         }
       }
     },
-    "Restores the last played file after relaunch.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Restores the last played file after relaunch."
+    "Ready to Play" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready to Play"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重启后恢复上次播放的文件。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "准备播放"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新啟動後恢復上次播放的檔案。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "準備播放"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新啟動後恢復上次播放的檔案。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "準備播放"
           }
         }
       }
     },
-    "Relaunch Resume": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Relaunch Resume"
+    "Recent Playback by Scene" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recent Playback by Scene"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "启动恢复"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "各场景最近播放"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "啟動恢復"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "各場景最近播放"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "啟動恢復"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "各場景最近播放"
           }
         }
       }
     },
-    "Records the current playing file to disk.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Records the current playing file to disk."
+    "Records the current playing file to disk." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Records the current playing file to disk."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "记录当前播放文件到磁盘。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "记录当前播放文件到磁盘。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "將目前播放的檔案記錄到磁碟。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將目前播放的檔案記錄到磁碟。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "將目前播放的檔案記錄到磁碟。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將目前播放的檔案記錄到磁碟。"
           }
         }
       }
     },
-    "State Persistence": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "State Persistence"
+    "Relaunch Resume" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relaunch Resume"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "状态持久化"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启动恢复"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "狀態持久化"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟動恢復"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "狀態持久化"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟動恢復"
+          }
+        }
+      }
+    },
+    "Relaunch Resume: restores the last played file after relaunch." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relaunch Resume: restores the last played file after relaunch."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启动恢复：重启后恢复上次播放的文件。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟動恢復：重新啟動後恢復上次播放的檔案。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟動恢復：重新啟動後恢復上次播放的檔案。"
+          }
+        }
+      }
+    },
+    "Restores the last played file after relaunch." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restores the last played file after relaunch."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重启后恢复上次播放的文件。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新啟動後恢復上次播放的檔案。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新啟動後恢復上次播放的檔案。"
+          }
+        }
+      }
+    },
+    "Size" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Size"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大小"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大小"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大小"
+          }
+        }
+      }
+    },
+    "State Persistence" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "State Persistence"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状态持久化"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "狀態持久化"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "狀態持久化"
+          }
+        }
+      }
+    },
+    "State record: writes the current playing file to disk." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "State record: writes the current playing file to disk."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状态记录：将当前播放文件写入磁盘。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "狀態記錄：將目前播放的檔案寫入磁碟。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "狀態記錄：將目前播放的檔案寫入磁碟。"
+          }
+        }
+      }
+    },
+    "Status" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Status"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状态"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "狀態"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "狀態"
+          }
+        }
+      }
+    },
+    "Stopped" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stopped"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已停止"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已停止"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已停止"
+          }
+        }
+      }
+    },
+    "This plugin is a system-level capability that is always enabled and cannot be disabled." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This plugin is a system-level capability that is always enabled and cannot be disabled."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本插件为系统级能力，始终启用，不可停用。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此外掛程式為系統層級能力，始終啟用，不可停用。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此外掛程式為系統層級能力，始終啟用，不可停用。"
+          }
+        }
+      }
+    },
+    "Type" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "类型"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "類型"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "類型"
+          }
+        }
+      }
+    },
+    "Unknown" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知"
+          }
+        }
+      }
+    },
+    "Version" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        }
+      }
+    },
+    "When the playing file changes, the engine records the latest file for the next resume." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When the playing file changes, the engine records the latest file for the next resume."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换播放文件时，引擎自动记录最新文件用于下次恢复。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換播放檔案時，引擎會自動記錄最新檔案以利下次恢復。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換播放檔案時，引擎會自動記錄最新檔案以利下次恢復。"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }
