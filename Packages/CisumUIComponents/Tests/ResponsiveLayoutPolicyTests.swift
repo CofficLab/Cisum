@@ -5,7 +5,7 @@ import Testing
 struct ResponsiveLayoutPolicyTests {
     @Test
     func playerLayoutMetricsRespectSizingThresholds() {
-        #expect(CisumPlayerLayout.defaultWindowSize == CGSize(width: 400, height: 360))
+        #expect(CisumPlayerLayout.defaultWindowSize == CGSize(width: 400, height: 600))
         #expect(CisumPlayerLayout.stateHeight(for: 250) == 24)
         #expect(CisumPlayerLayout.stateHeight(for: 251) == 36)
         #expect(CisumPlayerLayout.stateHeight(for: 450) == 36)

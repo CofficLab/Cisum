@@ -10,7 +10,7 @@ public enum CisumPlayerLayout {
     /// 12pt gap, content padding, and the scroll bar still fit comfortably.
     public static let minimumWindowWidth: CGFloat = 400
     public static let minimumWindowHeight: CGFloat = 250
-    public static let defaultWindowSize = CGSize(width: minimumWindowWidth, height: 360)
+    public static let defaultWindowSize = CGSize(width: minimumWindowWidth, height: 600)
 
     public static let controlMinimumHeight: CGFloat = 250
     /// Compact player height used while there is no current track to present.
