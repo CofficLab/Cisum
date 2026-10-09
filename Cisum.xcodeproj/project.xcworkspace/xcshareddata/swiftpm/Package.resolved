@@ -1,105 +1,105 @@
 {
-  "originHash" : "28e96e4d6995b1fe8ffc23b68ab2d39477191eec1d55539823f3ad0c5c9b648f",
-  "pins" : [
+  "originHash": "28e96e4d6995b1fe8ffc23b68ab2d39477191eec1d55539823f3ad0c5c9b648f",
+  "pins": [
     {
-      "identity" : "id3tageditor",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/chicio/ID3TagEditor",
-      "state" : {
-        "revision" : "3ccc31eafae0ded1fea8c9acd5e7ef7dfdbf1e8e",
-        "version" : "4.6.0"
+      "identity": "id3tageditor",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/chicio/ID3TagEditor",
+      "state": {
+        "revision": "3ccc31eafae0ded1fea8c9acd5e7ef7dfdbf1e8e",
+        "version": "4.6.0"
       }
     },
     {
-      "identity" : "lumikernel",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CofficLab/LumiKernel.git",
-      "state" : {
-        "revision" : "4a30c5f4d6e3b24be61e87a036b14720ef0f1654",
-        "version" : "1.0.0"
+      "identity": "lumikernel",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/CofficLab/LumiKernel.git",
+      "state": {
+        "revision": "4a30c5f4d6e3b24be61e87a036b14720ef0f1654",
+        "version": "1.0.0"
       }
     },
     {
-      "identity" : "lumilocalization",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CofficLab/LumiLocalization.git",
-      "state" : {
-        "revision" : "2a65f2ea3626936a559458352b8ae694f2f6f74a",
-        "version" : "1.0.0"
+      "identity": "lumilocalization",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/CofficLab/LumiLocalization.git",
+      "state": {
+        "revision": "2a65f2ea3626936a559458352b8ae694f2f6f74a",
+        "version": "1.0.0"
       }
     },
     {
-      "identity" : "lumilogging",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CofficLab/LumiLogging.git",
-      "state" : {
-        "revision" : "8c00bb13b76a21f88bee186a68ca20568550f65e",
-        "version" : "1.0.1"
+      "identity": "lumilogging",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/CofficLab/LumiLogging.git",
+      "state": {
+        "revision": "8c00bb13b76a21f88bee186a68ca20568550f65e",
+        "version": "1.0.1"
       }
     },
     {
-      "identity" : "lumipluginsettingview",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CofficLab/LumiPluginSettingView.git",
-      "state" : {
-        "revision" : "a722ad47a768145169ddc54c4a7bad7fd4b3b0b2",
-        "version" : "1.0.2"
+      "identity": "lumipluginsettingview",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/CofficLab/LumiPluginSettingView.git",
+      "state": {
+        "revision": "a722ad47a768145169ddc54c4a7bad7fd4b3b0b2",
+        "version": "1.0.2"
       }
     },
     {
-      "identity" : "lumiplugintoast",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CofficLab/LumiPluginToast.git",
-      "state" : {
-        "revision" : "d89d6899e2f02d55ba1db93010e7ef3e8d8a7ba5",
-        "version" : "1.1.0"
+      "identity": "lumiplugintoast",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/CofficLab/LumiPluginToast.git",
+      "state": {
+        "revision": "d89d6899e2f02d55ba1db93010e7ef3e8d8a7ba5",
+        "version": "1.1.0"
       }
     },
     {
-      "identity" : "lumiproviders",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CofficLab/LumiProviders.git",
-      "state" : {
-        "revision" : "178fcc9c4ae353941c36fc95d35b2d0745d278df",
-        "version" : "1.3.4"
+      "identity": "lumiproviders",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/CofficLab/LumiProviders.git",
+      "state": {
+        "revision": "178fcc9c4ae353941c36fc95d35b2d0745d278df",
+        "version": "1.3.4"
       }
     },
     {
-      "identity" : "lumisettings",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CofficLab/LumiSettings.git",
-      "state" : {
-        "revision" : "59af093194b98154bba8e9ac61669b253d66e2ba",
-        "version" : "1.0.1"
+      "identity": "lumisettings",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/CofficLab/LumiSettings.git",
+      "state": {
+        "revision": "59af093194b98154bba8e9ac61669b253d66e2ba",
+        "version": "1.0.1"
       }
     },
     {
-      "identity" : "lumithemepack",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CofficLab/LumiThemePack.git",
-      "state" : {
-        "revision" : "6fc7265e927d2a35106c48dec71e83a688f2e303",
-        "version" : "1.0.4"
+      "identity": "lumithemepack",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/CofficLab/LumiThemePack.git",
+      "state": {
+        "revision": "53b356c73565c2d5bcec3d83573236dc71e91f3f",
+        "version": "1.0.6"
       }
     },
     {
-      "identity" : "lumiui",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CofficLab/LumiUI",
-      "state" : {
-        "revision" : "e54783a431c018a6f4b64797274dbe0118f490d4",
-        "version" : "1.7.0"
+      "identity": "lumiui",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/CofficLab/LumiUI",
+      "state": {
+        "revision": "e54783a431c018a6f4b64797274dbe0118f490d4",
+        "version": "1.7.0"
       }
     },
     {
-      "identity" : "zipfoundation",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/weichsel/ZIPFoundation.git",
-      "state" : {
-        "revision" : "22787ffb59de99e5dc1fbfe80b19c97a904ad48d",
-        "version" : "0.9.20"
+      "identity": "zipfoundation",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/weichsel/ZIPFoundation.git",
+      "state": {
+        "revision": "22787ffb59de99e5dc1fbfe80b19c97a904ad48d",
+        "version": "0.9.20"
       }
     }
   ],
-  "version" : 3
+  "version": 3
 }
