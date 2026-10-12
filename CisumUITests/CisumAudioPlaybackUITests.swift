@@ -48,7 +48,7 @@ final class CisumAudioPlaybackUITests: CisumUITestBase {
             stalePlaybackErrorCloseButton.click()
             XCTAssertTrue(stalePlaybackErrorDetails.waitForNonExistence(timeout: 3), "旧播放错误面板没有关闭")
         }
-        deleteImportedFixtureIfPresent()
+        deleteImportedFixtureIfPresent(fixtureName: fixtureName)
 
         let importButton = element(anyLabelOf: ["Add", "添加"])
         XCTAssertTrue(importButton.waitForExistence(timeout: 10), "音乐仓库没有音频导入入口")
@@ -116,15 +116,112 @@ final class CisumAudioPlaybackUITests: CisumUITestBase {
         pauseButton.click()
         XCTAssertTrue(playButton.waitForExistence(timeout: 10), "第二次暂停后播放器状态不正确")
 
-        deleteImportedFixtureIfPresent()
+        deleteImportedFixtureIfPresent(fixtureName: fixtureName)
         XCTAssertTrue(track.waitForNonExistence(timeout: 15), "测试音频未从音乐仓库清理")
         #else
         throw XCTSkip("音频仓库文件夹播放回归当前仅在 macOS UI 测试中覆盖")
         #endif
     }
 
+    /// 切歌后进度归零：播放歌曲1 → 进度推进 → 切换到歌曲2 → 进度必须归零。
+    /// 注意：此测试依赖系统文件选择器自动化，macOS 27+ 可能跳过。
+    func testSwitchingTracksResetsProgressToZero() throws {
+        #if os(macOS)
+        let version = ProcessInfo.processInfo.operatingSystemVersion
+        if version.majorVersion >= 27 {
+            throw XCTSkip("macOS 27 的系统文件选择器无法稳定完成跨进程 UI 自动化导入")
+        }
+        try ensureMusicScene()
+
+        // 清理旧的导入
+        deleteImportedFixtureIfPresent(fixtureName: fixtureName)
+        deleteImportedFixtureIfPresent(fixtureName: fixtureName2)
+
+        // 导入歌曲1
+        importFixtureViaFilePicker(fixtureURL: try XCTUnwrap(fixtureURL))
+        let track1 = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", fixtureName)).firstMatch
+        XCTAssertTrue(track1.waitForExistence(timeout: 30), "歌曲1未出现在音乐仓库")
+
+        // 导入歌曲2（使用同一文件的不同副本）
+        let fixtureURL2 = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/\(fixtureName2).wav")
+        importFixtureViaFilePicker(fixtureURL: fixtureURL2)
+        let track2 = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", fixtureName2)).firstMatch
+        XCTAssertTrue(track2.waitForExistence(timeout: 30), "歌曲2未出现在音乐仓库")
+
+        // 播放歌曲1
+        track1.click()
+        let pauseButton = app.buttons.matching(NSPredicate(format: "label == %@", "Pause")).firstMatch
+        XCTAssertTrue(pauseButton.waitForExistence(timeout: 15), "歌曲1未开始播放")
+
+        // 等待进度推进（> 0）
+        let progress = element(identifier: "cisum.player.progress")
+        XCTAssertTrue(progress.waitForExistence(timeout: 10), "进度条未出现")
+        let progressAdvances = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value > 0.05"), object: progress)
+        XCTAssertEqual(XCTWaiter.wait(for: [progressAdvances], timeout: 10), .completed, "歌曲1进度未推进")
+
+        // 切换到歌曲2
+        track2.click()
+        XCTAssertTrue(pauseButton.waitForExistence(timeout: 15), "歌曲2未开始播放")
+
+        // 进度必须归零（允许小延迟，但应在 2 秒内归零）
+        let progressResets = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value < 0.01"), object: progress)
+        XCTAssertEqual(XCTWaiter.wait(for: [progressResets], timeout: 5), .completed, "切歌后进度未归零，实际值: \(progress.value ?? "nil")")
+
+        // 等待 1 秒，确保不会死灰复燃
+        Thread.sleep(forTimeInterval: 1.0)
+        let currentValue = (progress.value as? Double) ?? 0
+        XCTAssertLessThan(currentValue, 0.01, "切歌后进度不得死灰复燃，实际值: \(currentValue)")
+
+        // 清理
+        deleteImportedFixtureIfPresent(fixtureName: fixtureName)
+        deleteImportedFixtureIfPresent(fixtureName: fixtureName2)
+        #else
+        throw XCTSkip("切歌归零回归当前仅在 macOS UI 测试中覆盖")
+        #endif
+    }
+
     #if os(macOS)
-    private func deleteImportedFixtureIfPresent() {
+    private func importFixtureViaFilePicker(fixtureURL: URL) {
+        let importButton = element(anyLabelOf: ["Add", "添加"])
+        XCTAssertTrue(importButton.waitForExistence(timeout: 10), "音乐仓库没有音频导入入口")
+        importButton.click()
+
+        let panelService = XCUIApplication(bundleIdentifier: "com.apple.appkit.xpc.openAndSavePanelService")
+        let servicePanel = panelService.windows.firstMatch
+        let appPanel = app.dialogs.firstMatch
+        let appSheet = app.sheets.firstMatch
+        let servicePanelAppeared = servicePanel.waitForExistence(timeout: 5)
+        let panelAppeared = servicePanelAppeared
+            || appPanel.waitForExistence(timeout: 1)
+            || appSheet.waitForExistence(timeout: 1)
+        XCTAssertTrue(panelAppeared, "点击导入后系统文件选择器没有出现")
+        let pickerApp: XCUIApplication = servicePanelAppeared ? panelService : app
+
+        pickerApp.typeKey("g", modifierFlags: [.command, .shift])
+        let goToFolderField = pickerApp.textFields["PathTextField"]
+        XCTAssertTrue(goToFolderField.waitForExistence(timeout: 5), "文件选择器没有显示路径输入框")
+        goToFolderField.click()
+        goToFolderField.typeKey("a", modifierFlags: .command)
+        let fixtureFolderPath = fixtureURL.deletingLastPathComponent().path
+        goToFolderField.typeText(fixtureFolderPath)
+        pickerApp.typeKey(.return, modifierFlags: [])
+        pickerApp.typeKey(.return, modifierFlags: [])
+
+        let fixtureName = fixtureURL.deletingPathExtension().lastPathComponent
+        let fixtureRow = element(containing: String(fixtureName.prefix(18)))
+        XCTAssertTrue(fixtureRow.waitForExistence(timeout: 10), "文件选择器未定位到测试音频: \(fixtureName)")
+        fixtureRow.doubleClick()
+
+        XCTAssertTrue(
+            pickerApp.windows.firstMatch.waitForNonExistence(timeout: 15)
+                || app.dialogs.firstMatch.waitForNonExistence(timeout: 1),
+            "文件选择器关闭前未完成测试音频导入"
+        )
+    }
+
+    private func deleteImportedFixtureIfPresent(fixtureName: String) {
         let track = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", fixtureName)).firstMatch
         guard track.exists else { return }
 
@@ -133,10 +230,15 @@ final class CisumAudioPlaybackUITests: CisumUITestBase {
         XCTAssertTrue(deleteMenuItem.waitForExistence(timeout: 5), "曲目上下文菜单中没有删除命令")
         deleteMenuItem.click()
 
-        let confirmDelete = app.buttons.matching(NSPredicate(format: "label IN %@", ["Delete", "删除"])).firstMatch
+        let confirmDelete = app.buttons.matching(identifier: "Delete").firstMatch
+            .exists
+            ? app.buttons.matching(identifier: "Delete").firstMatch
+            : app.buttons.matching(identifier: "删除").firstMatch
         XCTAssertTrue(confirmDelete.waitForExistence(timeout: 5), "删除确认没有出现")
         confirmDelete.click()
-        XCTAssertTrue(track.waitForNonExistence(timeout: 15), "测试音频未从音乐仓库清理")
+        XCTAssertTrue(track.waitForNonExistence(timeout: 15), "测试音频未从音乐仓库清理: \(fixtureName)")
     }
+
+    private let fixtureName2 = "Cisum-Playback-Test-Tone-2"
     #endif
 }
