@@ -51,8 +51,8 @@
       "kind": "remoteSourceControl",
       "location": "https://github.com/CofficLab/LumiPluginToast.git",
       "state": {
-        "revision": "6633a5cf2ade24d0044a54c149ffc2f43ae5f345",
-        "version": "1.2.0"
+        "revision": "72b6380e3076c077f162258935979bcc218ba6db",
+        "version": "1.2.1"
       }
     },
     {
