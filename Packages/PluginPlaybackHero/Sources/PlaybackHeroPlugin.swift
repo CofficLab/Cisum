@@ -81,6 +81,7 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
                 viewModel: viewModel,
                 isDemoMode: kernel?.resolveProvider((any AppStateProviding).self)?.isDemoMode ?? false
             )
+            .appDebugBadge("Playback Cover", alignment: .bottomLeading)
         )
     }
 
@@ -89,7 +90,10 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
     public func addRightAlbumView() -> AnyView? {
         installState(kernel: kernel)
         guard let viewModel else { return nil }
-        return AnyView(PlaybackHeroRightAlbumView(viewModel: viewModel))
+        return AnyView(
+            PlaybackHeroRightAlbumView(viewModel: viewModel)
+                .appDebugBadge("Right Album", alignment: .bottomLeading)
+        )
     }
 
     @MainActor
