@@ -51,7 +51,11 @@ struct CisumRootLayoutView: View {
                 .frame(width: layoutWidth(for: geometry), height: layoutHeight(for: geometry))
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
-            .environment(\.playbackHeroVisibility, $isPlaybackHeroVisible)
+            .onPreferenceChange(PlaybackHeroVisibilityKey.self) { isVisible in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isPlaybackHeroVisible = isVisible
+                }
+            }
             .onAppear { handleOnAppear() }
             .onChange(of: provider.isContentViewHidden) { _, hidden in
                 handleContentViewVisibilityChange(!hidden, geometry: geometry)

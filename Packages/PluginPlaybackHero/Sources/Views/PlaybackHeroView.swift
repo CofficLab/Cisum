@@ -8,7 +8,6 @@ import SwiftUI
 /// 高度不足时只显示标题，否则显示主封面与标题。
 struct PlaybackHeroView: View {
     @ObservedObject private var viewModel: PlaybackHeroViewModel
-    @Environment(\.playbackHeroVisibility) private var heroVisibility
     @LumiTheme private var appTheme
     @LumiMotionPreferenceReader private var motionPreference
 
@@ -59,14 +58,7 @@ struct PlaybackHeroView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .onAppear {
-            heroVisibility.wrappedValue = viewModel.isHeroVisible
-        }
-        .onChange(of: viewModel.isHeroVisible) { _, isVisible in
-            withAnimation(.easeInOut(duration: 0.2)) {
-                heroVisibility.wrappedValue = isVisible
-            }
-        }
+        .preference(key: PlaybackHeroVisibilityKey.self, value: viewModel.isHeroVisible)
     }
 
     private func shouldShowAlbum(in geometry: GeometryProxy) -> Bool {

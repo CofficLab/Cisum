@@ -17,7 +17,7 @@ struct ControlView: View {
     var progressView: AnyView? = nil
     var controlButtonsView: AnyView? = nil
     var rightAlbumView: AnyView? = nil
-    @Environment(\.playbackHeroVisibility) private var heroVisibility
+    @State private var isHeroVisible = PlaybackHeroVisibilityKey.defaultValue
 
     var body: some View {
         GeometryReader { geometry in
@@ -26,7 +26,7 @@ struct ControlView: View {
                     if heroView != nil {
                         heroArea(for: geometry)
                             .frame(maxWidth: .infinity)
-                            .frame(height: heroVisibility.wrappedValue ? heroHeight(for: geometry) : 0, alignment: .top)
+                            .frame(height: isHeroVisible ? heroHeight(for: geometry) : 0, alignment: .top)
                     }
 
                     stateArea
@@ -59,9 +59,14 @@ struct ControlView: View {
             .padding(.horizontal, 0)
             .frame(maxHeight: .infinity)
         }
-        .frame(minHeight: heroVisibility.wrappedValue
+        .frame(minHeight: isHeroVisible
             ? CisumPlayerLayout.controlMinimumHeight
             : CisumPlayerLayout.emptyPlayerControlHeight)
+        .onPreferenceChange(PlaybackHeroVisibilityKey.self) { isVisible in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isHeroVisible = isVisible
+            }
+        }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cisum.player.controls")
     }
