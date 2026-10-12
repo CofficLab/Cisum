@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/chicio/ID3TagEditor",
       "state" : {
-        "revision" : "3ccc31eafae0ded1fea8c9acd5e7ef7dfdbf1e8e",
-        "version" : "4.6.0"
+        "revision" : "e08dd0118d4418900ac3b8f621a6b3d24ae5416f",
+        "version" : "5.5.0"
       }
     },
     {
