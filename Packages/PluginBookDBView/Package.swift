@@ -19,14 +19,14 @@ let package = Package(
         .package(name: "KitMagic", path: "../MagicKit"),
         .package(name: "KitUIComponents", path: "../CisumUIComponents"),
         .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.0.1"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.8.0"),
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
         .package(path: "../ProviderBook"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(path: "../ProviderScene"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.3.4"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.6.0"),
     ],
     targets: [
         .target(
