@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 /// 小组件控制 关于视图 —— Landing 落地页。

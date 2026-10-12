@@ -1,8 +1,14 @@
+import MagicKit
 import CisumUIComponents
+import LumiUI
 import OSLog
-import PluginBook
-import SwiftData
+import ProviderBook
 import SwiftUI
+#if os(macOS)
+import AppKit
+#elseif os(iOS)
+import UIKit
+#endif
 
 struct BookTileLoadIdentity: Equatable {
     let bookURL: URL
@@ -56,8 +62,8 @@ struct BookTile: View, SuperThread, SuperLog, Equatable {
         lhs.url == rhs.url
     }
 
-    @EnvironmentObject var viewModel: BookGridViewModel
-    @Environment(\.bookDBViewDependencies) private var dependencies
+    @ObservedObject var viewModel: BookGridViewModel
+    let dependencies: BookDBViewDependencies
     @Environment(\.colorScheme) private var colorScheme
 
     @State private var lastPlayedTitle: String? = nil
@@ -73,6 +79,20 @@ struct BookTile: View, SuperThread, SuperLog, Equatable {
     var url: URL
     var title: String
     var childCount: Int
+
+    init(
+        url: URL,
+        title: String,
+        childCount: Int,
+        viewModel: BookGridViewModel,
+        dependencies: BookDBViewDependencies
+    ) {
+        self.url = url
+        self.title = title
+        self.childCount = childCount
+        self._viewModel = ObservedObject(wrappedValue: viewModel)
+        self.dependencies = dependencies
+    }
 
     var body: some View {
         ZStack {
@@ -150,50 +170,38 @@ extension BookTile {
         cover = nil
         lastPlayedTitle = nil
 
-        guard let repo = await dependencies.bookRepo() else { return }
+        guard let bookProvider = dependencies.bookProvider else { return }
 
         let bookURL = url
         let bookTitle = title
-        let thumbnailSize = tileSize
-        let dbRoot = dependencies.dbRoot
         let logPrefix = t
 
         if verbose {
             os_log("\(logPrefix)Loading cover art for \(bookTitle)")
         }
 
-        async let loadedCover = repo.getCover(for: bookURL, thumbnailSize: thumbnailSize)
-        async let loadedLastPlayedTitle = Self.lastPlayedTitle(for: bookURL, dbRoot: dbRoot, logPrefix: logPrefix, verbose: verbose)
-        let (newCover, newLastPlayedTitle) = await (loadedCover, loadedLastPlayedTitle)
+        let coverData = await bookProvider.coverData(for: bookURL)
+        let playbackState = await bookProvider.playbackState(for: bookURL)
 
         guard !Task.isCancelled else {
             return
         }
 
-        cover = newCover
-        lastPlayedTitle = newLastPlayedTitle
+        cover = Self.image(from: coverData)
+        lastPlayedTitle = playbackState?.currentURL?.lastPathComponent
     }
 
-    nonisolated private static func lastPlayedTitle(
-        for bookURL: URL,
-        dbRoot: URL,
-        logPrefix: String,
-        verbose: Bool
-    ) async -> String? {
-        await Task.detached(priority: .background) {
-            do {
-                let container = try BookConfig.getContainer(dbRootURL: dbRoot)
-                let context = ModelContext(container)
-                let state = try BookDBViewBookStateLookup.findBookState(for: bookURL, in: context)
-                return state?.currentURL?.lastPathComponent
-            } catch {
-                if verbose {
-                    os_log(.error, "\(logPrefix)Failed to read book playback state: \(error.localizedDescription)")
-                }
-
-                return nil
-            }
-        }.value
+    private static func image(from data: Data?) -> Image? {
+        guard let data else { return nil }
+#if os(macOS)
+        guard let image = NSImage(data: data) else { return nil }
+        return Image(nsImage: image)
+#elseif os(iOS)
+        guard let image = UIImage(data: data) else { return nil }
+        return Image(uiImage: image)
+#else
+        return nil
+#endif
     }
 }
 

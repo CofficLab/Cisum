@@ -1,5 +1,6 @@
 import CisumUIComponents
-import PluginBook
+import LumiUI
+import ProviderBook
 import SwiftUI
 
 /// 有声书仓库设置页：以两种方式展示仓库内容。
@@ -15,13 +16,23 @@ import SwiftUI
 /// `AppSettingSection` / `AppSettingRow` / `AppButton` / `AppEmptyState` /
 /// `AppSegmentedControl`）。
 struct BookDBSettingView: View {
-    @EnvironmentObject var viewModel: BookListViewModel
-    @EnvironmentObject var treeViewModel: BookTreeViewModel
-    @Environment(\.bookDBDependencies) private var deps
+    @ObservedObject var viewModel: BookListViewModel
+    @ObservedObject var treeViewModel: BookTreeViewModel
+    let deps: BookDBDependencies
     @LumiTheme private var theme
 
     /// 展示模式：0 = 书籍列表（方式一，默认），1 = 目录树（方式二）。
     @State private var displayMode = 0
+
+    init(
+        viewModel: BookListViewModel,
+        treeViewModel: BookTreeViewModel,
+        dependencies: BookDBDependencies
+    ) {
+        self._viewModel = ObservedObject(wrappedValue: viewModel)
+        self._treeViewModel = ObservedObject(wrappedValue: treeViewModel)
+        self.deps = dependencies
+    }
 
     var body: some View {
         AppSettingsContentScaffold(scrollsContent: false, maxContentWidth: nil) {
@@ -71,7 +82,7 @@ struct BookDBSettingView: View {
         if displayMode == 0 {
             list
         } else {
-            BookTreeView()
+            BookTreeView(viewModel: treeViewModel)
         }
     }
 
@@ -167,7 +178,7 @@ struct BookDBSettingView: View {
 
     private func row(book: BookDTO) -> some View {
         HStack(spacing: 10) {
-            Image(systemName: BookDBPluginInfo.iconName)
+            Image(systemName: BookDBViewPluginInfo.iconName)
                 .foregroundStyle(theme.primary)
                 .frame(width: 18)
             Text(book.bookTitle)

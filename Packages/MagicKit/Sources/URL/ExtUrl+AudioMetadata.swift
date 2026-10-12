@@ -60,7 +60,7 @@ extension URL {
                             return artworkImage
                         }
                     } catch {
-                        os_log(.error, "Failed to load artwork for key \(key.rawValue): \(error.localizedDescription)")
+                        if verbose { os_log(.error, "Failed to load artwork for key \(key.rawValue): \(error.localizedDescription)") }
                         continue
                     }
                 }
@@ -70,7 +70,7 @@ extension URL {
 
             return nil
         } catch {
-            os_log(.error, "\(self.t)<\(self.title)>无法从音频文件的元数据中获取封面图片: \(error.localizedDescription)")
+            if verbose { os_log(.error, "\(self.t)<\(self.title)>无法从音频文件的元数据中获取封面图片: \(error.localizedDescription)") }
 
             throw error
         }

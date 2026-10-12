@@ -2,8 +2,10 @@ import CoreFoundation
 import Darwin
 import Foundation
 import CisumUIComponents
+import LumiUI
 import MagicPlayMan
 import OSLog
+import ProviderPlayback
 import SwiftUI
 
 public typealias AudioWidgetAdjacentAssetProvider = @MainActor (_ current: URL?, _ verbose: Bool) async throws -> URL?
@@ -51,7 +53,7 @@ enum AudioWidgetPlaybackRequestPolicy {
         max(0, commandCount(from: storedValue, maximum: 1_000_000) - consumedCount)
     }
 
-    static func playPauseAction(currentState: PlaybackState, commandCount: Int) -> AudioWidgetPlayPauseAction? {
+    static func playPauseAction(currentState: PlaybackStatus, commandCount: Int) -> AudioWidgetPlayPauseAction? {
         guard commandCount > 0, commandCount.isMultiple(of: 2) == false else {
             return nil
         }
@@ -72,7 +74,14 @@ enum AudioWidgetPlaybackRequestPolicy {
 }
 
 enum AudioWidgetCommandStore {
-    static let suiteName = "group.com.yueyi.cisum"
+    /// App 与 Widget 从各自 Info.plist 读取同一值；这样 Debug 不会访问正式版的共享容器。
+    static var suiteName: String {
+        let configured = Bundle.main.object(forInfoDictionaryKey: "CisumAppGroupIdentifier") as? String
+        if let configured, !configured.isEmpty {
+            return configured
+        }
+        return "group.com.yueyi.cisum"
+    }
 
     static func withLock<T>(_ operation: () throws -> T) rethrows -> T {
         guard let lockURL = FileManager.default

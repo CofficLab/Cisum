@@ -7,18 +7,18 @@ Cisum 当前通过 MagicAlert 的全局单例直接渲染消息。这样业务�
 ## 设计
 
 - `ProviderToast`：定义 `CisumToast`、`CisumErrorNotice`、`CisumLoadingNotice`、`CisumToastStyle` 和 `ToastProviding`。
-- `DefaultToastProviding`：内核启动前注册的 no-op 实现，保证插件可以安全调用提示能力。
-- `PluginToast`：实现 `ToastCenter`，将短消息、加载状态、持久错误集中到一个主线程状态机；错误保留完整文本并支持复制/关闭。
+- `DefaultToastProvider`：内核启动前注册的 no-op 实现，保证插件可以安全调用提示能力。
+- `PluginToast`：实现 `ToastProvider`，将短消息、加载状态、持久错误集中到一个主线程状态机；错误保留完整文本并支持复制/关闭。
 - `ProviderRootView`：增加有序 `RootOverlayItem`，由插件在启动阶段把 Toast 渲染器挂到根视图。
-- `FactoryCisum`：在插件启动前注册视图 Provider，在默认插件清单中加入始终启用的 Toast 插件；设置窗口复用同一个 `ToastCenter`。
+- `FactoryCisum`：在插件启动前注册视图 Provider，在默认插件清单中加入始终启用的 Toast 插件；设置窗口复用同一个 `ToastProvider`。
 - `MagicKit`：保留旧 `alert_*` 函数作为兼容层，但实现改为转发到当前 `ToastProviding`，避免现有插件遗漏迁移。
 
 ## 生命周期
 
-1. Factory 注册 `DefaultToastProviding` 和 `RootViewProviding`。
-2. `ToastPlugin.onBoot` 用 `ToastCenter` 替换默认 Provider，并注册根覆盖层。
+1. Factory 注册 `DefaultToastProvider` 和 `RootViewProviding`。
+2. `ToastPlugin.onBoot` 用 `ToastProvider` 替换默认 Provider，并注册根覆盖层。
 3. 业务代码调用 `ToastProviding`（或兼容层 `alert_*`）只改变状态，不关心 UI。
-4. 主窗口根布局和设置窗口观察同一个 `ToastCenter`。
+4. 主窗口根布局和设置窗口观察同一个 `ToastProvider`。
 5. Kernel 销毁时 Toast 插件撤销覆盖层并清空状态。
 
 ## 行为约定

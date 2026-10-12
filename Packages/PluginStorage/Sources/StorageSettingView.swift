@@ -1,13 +1,16 @@
+import MagicKit
 import CisumUIComponents
+import LumiUI
 import OSLog
 import SwiftUI
+import CisumProviderStorage
 
 public struct StorageSettingView: View, SuperLog {
     public nonisolated static let emoji: String = "🍴"
 
     @ObservedObject var viewModel: StorageSettingsViewModel
     @State private var showMigrationProgress = false
-    @State private var targetLocation: StoragePluginLocation
+    @State private var targetLocation: StorageLocation
     @State private var hasChanges = false
 
     init(viewModel: StorageSettingsViewModel) {
@@ -16,7 +19,7 @@ public struct StorageSettingView: View, SuperLog {
     }
 
     public var body: some View {
-        AppSettingsContentScaffold {
+        AppSettingsContentScaffold(maxContentWidth: nil) {
             AppSettingSection(title: String(localized: "Media Storage Location", bundle: .module)) {
                 VStack(spacing: 0) {
                     AppSettingRow(
@@ -38,6 +41,7 @@ public struct StorageSettingView: View, SuperLog {
                         }
                     }
                     .opacity(viewModel.isICloudAvailable ? 1 : 0.5)
+                    .accessibilityIdentifier("cisum.settings.storage.icloud")
 
                     AppSettingRow(
                         title: String(localized: "Local", bundle: .module),
@@ -58,6 +62,7 @@ public struct StorageSettingView: View, SuperLog {
                         }
                     }
                     .opacity(viewModel.isLocalStorageAvailable ? 1 : 0.5)
+                    .accessibilityIdentifier("cisum.settings.storage.local")
 
                     Divider()
 
@@ -74,18 +79,12 @@ public struct StorageSettingView: View, SuperLog {
                     .opacity(viewModel.storageRoot == nil ? 0.5 : 1)
                 }
             }
+            .accessibilityIdentifier("cisum.settings.storage.location")
+            .accessibilityElement(children: .contain)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .sheet(isPresented: $showMigrationProgress) {
-            MigrationProgressView(
-                sourceLocation: viewModel.location,
-                targetLocation: targetLocation,
-                sourceURL: viewModel.storageRoot,
-                targetURL: viewModel.storageRoot(for: targetLocation),
-                onDismiss: {
-                    showMigrationProgress = false
-                    self.hasChanges = targetLocation != viewModel.location
-                }
-            )
+            migrationProgressSheet
         }
         .onAppear {
             applyStorageLocationUpdate(viewModel.location)
@@ -103,7 +102,7 @@ public struct StorageSettingView: View, SuperLog {
         }
     }
 
-    private func applyStorageLocationUpdate(_ storageLocation: StoragePluginLocation?) {
+    private func applyStorageLocationUpdate(_ storageLocation: StorageLocation?) {
         let state = Self.stateAfterStorageUpdate(
             currentTarget: targetLocation,
             storageLocation: storageLocation
@@ -112,12 +111,31 @@ public struct StorageSettingView: View, SuperLog {
         hasChanges = state.hasChanges
     }
 
-    private func beginMigration(to newLocation: StoragePluginLocation) {
+    private func beginMigration(to newLocation: StorageLocation) {
         guard newLocation != viewModel.location else { return }
         guard viewModel.storageRoot(for: newLocation) != nil else { return }
 
         targetLocation = newLocation
         showMigrationProgress = true
+    }
+
+    @ViewBuilder
+    private var migrationProgressSheet: some View {
+        if let storageProvider = viewModel.resolvedStorageProvider {
+            MigrationProgressView(
+                sourceLocation: viewModel.location,
+                targetLocation: targetLocation,
+                sourceURL: viewModel.storageRoot,
+                targetURL: viewModel.storageRoot(for: targetLocation),
+                onDismiss: {
+                    showMigrationProgress = false
+                    self.hasChanges = targetLocation != viewModel.location
+                },
+                storageProvider: storageProvider
+            )
+        } else {
+            ProgressView()
+        }
     }
 
     /// 在 Finder 中打开当前媒体仓库（当前存储位置的根目录）。
@@ -126,16 +144,16 @@ public struct StorageSettingView: View, SuperLog {
     }
 
     nonisolated static func targetLocationAfterStorageUpdate(
-        currentTarget: StoragePluginLocation,
-        storageLocation: StoragePluginLocation?
-    ) -> StoragePluginLocation {
+        currentTarget: StorageLocation,
+        storageLocation: StorageLocation?
+    ) -> StorageLocation {
         storageLocation ?? currentTarget
     }
 
     nonisolated static func stateAfterStorageUpdate(
-        currentTarget: StoragePluginLocation,
-        storageLocation: StoragePluginLocation?
-    ) -> (targetLocation: StoragePluginLocation, hasChanges: Bool) {
+        currentTarget: StorageLocation,
+        storageLocation: StorageLocation?
+    ) -> (targetLocation: StorageLocation, hasChanges: Bool) {
         let targetLocation = targetLocationAfterStorageUpdate(
             currentTarget: currentTarget,
             storageLocation: storageLocation
@@ -150,8 +168,8 @@ public struct StorageSettingView: View, SuperLog {
     }
 
     nonisolated static func hasSelectionChanges(
-        targetLocation: StoragePluginLocation,
-        storageLocation: StoragePluginLocation?
+        targetLocation: StorageLocation,
+        storageLocation: StorageLocation?
     ) -> Bool {
         storageLocation.map { targetLocation != $0 } ?? false
     }

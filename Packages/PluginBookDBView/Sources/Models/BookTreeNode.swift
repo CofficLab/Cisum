@@ -1,5 +1,5 @@
 import Foundation
-import PluginBook
+import ProviderBook
 
 /// 有声书仓库目录树节点（设置页「目录树」模式专用）。
 ///

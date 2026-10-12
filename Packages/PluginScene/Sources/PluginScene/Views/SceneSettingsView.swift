@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 /// 场景设置页：展示当前场景，并通过 `SceneSettingsViewModel` 切换场景。
@@ -9,7 +10,7 @@ struct SceneSettingsView: View {
     @ObservedObject var model: SceneSettingsViewModel
 
     var body: some View {
-        AppSettingsContentScaffold {
+        AppSettingsContentScaffold(maxContentWidth: nil) {
             VStack(alignment: .leading, spacing: 16) {
                 AppSettingSection(
                     title: String(localized: "Current Scene", bundle: .module)
@@ -65,6 +66,7 @@ struct SceneSettingsView: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }

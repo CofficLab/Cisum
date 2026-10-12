@@ -1,29 +1,39 @@
-import KernelCore
-import ProviderDocsView
-import ProviderAudioNavigation
-import PluginAudio
-import ProviderPlayback
+import ProviderAppState
+import ProviderAudioLibrary
 import ProviderScene
-import ProviderStorage
+import ProviderDocsView
+import ProviderPlayback
+import CisumProviderStorage
+import ProviderToast
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
+import ProviderSettingView
 import SwiftUI
 import MagicKit
 import OSLog
 
-public actor AudioDBPlugin: SuperPlugin, SuperLog {
+@MainActor
+public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: AudioDBViewPlugin.self)
+
     nonisolated static let verbose = false
 
-    public static let shared = AudioDBPlugin()
-    public static let metadata = PluginMetadata(
-        displayName: String(localized: String.LocalizationValue(AudioDBPluginInfo.titleKey), bundle: .module),
-        description: String(localized: String.LocalizationValue(AudioDBPluginInfo.descriptionKey), bundle: .module),
-        iconName: "externaldrive",
-        order: 1,
+    public static let shared = AudioDBViewPlugin()
+    public let order = 1
+    public let iconName = "externaldrive"
+    public let metadata = PluginMetadata(
+        id: String(describing: AudioDBViewPlugin.self),
+        name: String(localized: String.LocalizationValue(AudioDBPluginInfo.titleKey), bundle: .module),
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
         policy: .alwaysOn,
-        category: .library,
+        permissions: []
     )
 
     nonisolated(unsafe) private let sceneBox = SceneBox()
-    nonisolated(unsafe) private weak var kernel: CisumKernel?
+    nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var listViewModel: AudioListViewModel?
     nonisolated(unsafe) private var rootViewModel: AudioDBRootViewModel?
     nonisolated(unsafe) private var dbViewModel: AudioDBViewModel?
@@ -32,54 +42,59 @@ public actor AudioDBPlugin: SuperPlugin, SuperLog {
     nonisolated(unsafe) private var settingPlaybackObserver: AudioDBPlaybackObserver?
     nonisolated(unsafe) private var sceneState: AudioDBSceneState?
     nonisolated(unsafe) private var sceneObserver: AudioDBSceneObserver?
-    nonisolated(unsafe) private var navigationProvider: (any AudioTrackNavigationProviding)?
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { AudioDBPluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { AudioDBPluginManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { AudioDBPluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { AudioDBPluginManualView() })
         }
     }
 
     @MainActor
-    public func onBoot(kernel: CisumKernel) async throws {
-        self.kernel = kernel
-        guard let scene = kernel.resolveProvider((any SceneProviding).self) else {
-            throw CisumKernelError.serviceNotAvailable(service: "SceneProviding")
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            contrib.addTabView(ownerPluginID: id) { reason, demoMode in self.addTabView(reason: reason, demoMode: demoMode) }
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
-        sceneBox.scene = scene
-        installNavigationProvider(kernel: kernel)
+        self.kernel = kernel
+        // 跨插件 Provider（Scene / Playback）一律在 onReady 中解析，不假设其他插件
+        // 已完成 Provider 注册（对齐 `BookDBViewPlugin`）。
+        //
+        // 尤其不能在 onBoot 捕获 `SceneProviding`：`ScenePlugin`（order -1000）会在
+        // 自己的 onReady 里用带持久化的新实例替换 onBoot 阶段注册的临时实例
+        // （见 `ScenePlugin.onReady`）。onBoot 捕获到的旧实例随后失去唯一强引用被
+        // 释放，`sceneBox.scene`（weak）变成 nil，`addTabView` 的场景守卫将恒为
+        // false，音乐库内容区会退化成「当前场景暂无可用内容」。
     }
 
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
     ///
     /// `PluginPlayBack` 同样在 onBoot 注册 PlaybackProviding，因此 AudioDB 不能
-    /// 在自己的 onBoot 中假设播放服务已经存在。
+    /// 在自己的 onBoot 中假设播放服务已经存在；`SceneProviding` 则因为实例会在
+    /// `ScenePlugin.onReady` 被替换，必须在此处（onReady）解析。
     @MainActor
-    public func onReady(kernel: CisumKernel) async throws {
-        installNavigationProvider(kernel: kernel)
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onEnable(kernel: CisumKernel) async throws {
+    public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
-        installNavigationProvider(kernel: kernel)
         installState(kernel: kernel)
     }
 
     @MainActor
-    public func onDisable(kernel: CisumKernel) async throws {
+    public func onDisable(kernel: KernelCoreContainer) async throws {
         teardownState()
-        removeNavigationProvider(from: kernel)
     }
 
     @MainActor
-    public func onShutdown(kernel: CisumKernel) async throws {
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["audiodb"])
         sceneBox.scene = nil
         teardownState()
-        removeNavigationProvider(from: kernel)
     }
 
     @MainActor
@@ -91,9 +106,15 @@ public actor AudioDBPlugin: SuperPlugin, SuperLog {
                 rootViewModel: root,
                 dbViewModel: db,
                 sceneState: resolveSceneState(),
-                audioRepo: audioRepoProvider,
+                audioLibrary: audioLibraryProvider,
                 audioDisk: audioDiskProvider,
                 audioDiagnostics: audioDiagnosticsProvider,
+                isDemoMode: kernel?.resolveProvider((any AppStateProviding).self)?.isDemoMode ?? false,
+                isImporting: Binding(
+                    get: { self.kernel?.resolveProvider((any AppStateProviding).self)?.isImporting ?? false },
+                    set: { self.kernel?.resolveProvider((any AppStateProviding).self)?.setImporting($0) }
+                ),
+                showDBView: { self.kernel?.resolveProvider((any AppStateProviding).self)?.showDBView() },
                 content: content
             )
         )
@@ -110,9 +131,14 @@ public actor AudioDBPlugin: SuperPlugin, SuperLog {
                 listViewModel: list,
                 rootViewModel: root,
                 dbViewModel: db,
-                audioRepo: audioRepoProvider,
+                audioLibrary: audioLibraryProvider,
                 audioDisk: audioDiskProvider,
                 audioDiagnostics: audioDiagnosticsProvider,
+                isImporting: Binding(
+                    get: { self.kernel?.resolveProvider((any AppStateProviding).self)?.isImporting ?? false },
+                    set: { self.kernel?.resolveProvider((any AppStateProviding).self)?.setImporting($0) }
+                ),
+                showDBView: { self.kernel?.resolveProvider((any AppStateProviding).self)?.showDBView() },
                 demoMode: demoMode
             )),
             String(localized: "Music Repository", bundle: .module)
@@ -121,43 +147,46 @@ public actor AudioDBPlugin: SuperPlugin, SuperLog {
 
     /// 设置窗口入口：展示音频库文件列表（方式一）与目录树（方式二）。
     @MainActor
-    public func addSettingNavigationItem() -> PluginSettingNavigationItem? {
+    public func makeSettingEntry() -> SettingEntryItem? {
         // 设置页使用独立的 AudioListViewModel，避免与主窗口内容区（AudioList）
         // 共享同一实例——否则设置页 onAppear 触发 handleOnAppear() 重载时，
         // 共享状态变化会传播到主窗口 contentview，导致其闪动。
-        let playback = kernel?.playback
+        let playback = self.kernel?.resolveProvider((any PlaybackProviding).self)
         let settingList = AudioListViewModel(
-            audioRepo: audioRepoProvider,
-            playbackCapability: makePlaybackCapability(from: playback)
+            audioLibrary: audioLibraryProvider,
+            playbackProvider: playback,
+            toastProvider: self.kernel?.resolveProvider((any ToastProviding).self)
         )
         let settingTree = AudioTreeViewModel(disk: audioDiskProvider)
         settingPlaybackObserver = AudioDBPlaybackObserver(playback: playback, viewModel: settingList)
-        return PluginSettingNavigationItem(
+        return SettingEntryItem(
             id: "audiodb",
             title: String(localized: String.LocalizationValue(AudioDBPluginInfo.titleKey), bundle: .module),
-            description: Self.metadata.description,
-            iconName: Self.metadata.iconName,
-            order: Self.metadata.order,
-            destination: AnyView(
-                AudioDBSettingView()
-                    .environmentObject(settingList)
-                    .environmentObject(settingTree)
-                    .environment(\.audioDBDependencies, settingDependencies)
-            )
+            systemImage: iconName,
+            // 设置入口排序不使用 order（1 是启动优先级），
+            // 使用独立值确保「通用」（order=1）排在最前。
+            order: 10,
+            detail: {
+            AudioDBSettingView(
+                                viewModel: settingList,
+                                treeViewModel: settingTree,
+                                dependencies: self.settingDependencies
+                            )
+        }
         )
     }
 
-    /// 设置页依赖：仓库路径 / 仓库 / 诊断均由本插件自持（不依赖 AudioPlugin）。
+    /// 设置页依赖：仓库路径 / 仓库 / 诊断由数据层 Provider 提供。
     @MainActor
     private var settingDependencies: AudioDBDependencies {
         AudioDBDependencies(
-            audioRepo: audioRepoProvider,
+                audioLibrary: audioLibraryProvider,
             audioDisk: audioDiskProvider,
             audioDiagnostics: audioDiagnosticsProvider,
             supportedExtensions: AudioPluginInfo.supportedExtensions,
             isDesktop: Self.isDesktop,
             isNotDesktop: !Self.isDesktop,
-            showDBView: { self.kernel?.appState?.showDBView() ?? () },
+            showDBView: { self.kernel?.resolveProvider((any AppStateProviding).self)?.showDBView() ?? () },
             isImporting: .constant(false)
         )
     }
@@ -170,101 +199,62 @@ public actor AudioDBPlugin: SuperPlugin, SuperLog {
         #endif
     }
 
+    // MARK: - Data Provider bridge
+
+    /// 音频仓库闭包：从数据层 Provider 获取。
+    @MainActor
+    private var audioLibraryProvider: @MainActor @Sendable () -> (any AudioLibraryProviding)? {
+        { @MainActor [weak self] in
+            self?.kernel?.resolveProvider((any AudioLibraryProviding).self)
+        }
+    }
+
+    /// 音频磁盘目录闭包：从数据层 Provider 获取。
+    @MainActor
+    private var audioDiskProvider: @MainActor @Sendable () -> URL? {
+        { @MainActor [weak self] in
+            self?.kernel?.resolveProvider((any AudioLibraryProviding).self)?.audioDisk
+        }
+    }
+
+    /// 仓库路径解析诊断（错误视图展示）。
+    @MainActor
+    private var audioDiagnosticsProvider: @MainActor @Sendable () -> AudioStorageDiagnostics {
+        { @MainActor [weak self] in
+            AudioStorageDiagnosticsFactory.make(storage: self?.kernel?.resolveProvider((any StorageProviding).self))
+        }
+    }
+
     // MARK: - State assembly
-
-    /// 注册本插件提供的音频曲目导航服务。
-    ///
-    /// Provider 由插件定义文件组装；消费插件只依赖协议，不依赖
-    /// `AudioRepo` 或本插件的具体实现。
-    @MainActor
-    private func installNavigationProvider(kernel: CisumKernel) {
-        guard navigationProvider == nil else { return }
-        let repoProvider = audioRepoProvider
-        let provider = AudioTrackNavigationProvider(
-            nextURL: { current, verbose in
-                guard let repo = await repoProvider() else {
-                    os_log(.error, "\(Self.t)❌ Cannot find next audio: repository is unavailable")
-                    throw AudioPluginError.hostNotConfigured
-                }
-                do {
-                    let result = try await repo.getNextOf(current, verbose: verbose)
-                    if result == nil {
-                        os_log("\(Self.t)ℹ️ No next audio for current item: \(current?.lastPathComponent ?? "<none>")")
-                    }
-                    return result
-                } catch {
-                    os_log(.error, "\(Self.t)❌ Failed to resolve next audio: \(error.localizedDescription)")
-                    throw error
-                }
-            },
-            previousURL: { current, verbose in
-                guard let repo = await repoProvider() else {
-                    os_log(.error, "\(Self.t)❌ Cannot find previous audio: repository is unavailable")
-                    throw AudioPluginError.hostNotConfigured
-                }
-                do {
-                    let result = try await repo.getPrevOf(current, verbose: verbose)
-                    if result == nil {
-                        os_log("\(Self.t)ℹ️ No previous audio for current item: \(current?.lastPathComponent ?? "<none>")")
-                    }
-                    return result
-                } catch {
-                    os_log(.error, "\(Self.t)❌ Failed to resolve previous audio: \(error.localizedDescription)")
-                    throw error
-                }
-            },
-            firstURL: {
-                guard let repo = await repoProvider() else {
-                    os_log(.error, "\(Self.t)❌ Cannot find first audio: repository is unavailable")
-                    throw AudioPluginError.hostNotConfigured
-                }
-                do {
-                    return try await repo.getFirst()
-                } catch {
-                    os_log(.error, "\(Self.t)❌ Failed to resolve first audio: \(error.localizedDescription)")
-                    throw error
-                }
-            },
-            lastURL: {
-                guard let repo = await repoProvider() else {
-                    os_log(.error, "\(Self.t)❌ Cannot find last audio: repository is unavailable")
-                    throw AudioPluginError.hostNotConfigured
-                }
-                do {
-                    return try await repo.getLast()
-                } catch {
-                    os_log(.error, "\(Self.t)❌ Failed to resolve last audio: \(error.localizedDescription)")
-                    throw error
-                }
-            }
-        )
-        navigationProvider = provider
-        kernel.registerAudioTrackNavigation(provider)
-    }
-
-    @MainActor
-    private func removeNavigationProvider(from kernel: CisumKernel) {
-        guard navigationProvider != nil else { return }
-        kernel.unregisterProvider((any AudioTrackNavigationProviding).self)
-        navigationProvider = nil
-    }
 
     /// 创建并持有音频数据库的 ViewModel 与数据库观察者（幂等）。
     @MainActor
-    private func installState(kernel: CisumKernel) {
+    private func installState(kernel: KernelCoreContainer) {
+        // 场景 Provider 必须在 onReady（或运行期 enable）之后解析：此时
+        // `ScenePlugin` 已把带持久化的实例注册进内核并恢复了上次场景，得到的
+        // 引用才是长期存活、且 `currentScene` 有效的那个。
+        // 放在幂等 guard 之前，保证 `onEnable` 重新装配时也会刷新引用。
+        sceneBox.scene = kernel.resolveProvider((any SceneProviding).self)
+
         guard listViewModel == nil else { return }
 
-        guard let playback = kernel.playback else { return }
+        guard let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
         let list = AudioListViewModel(
-            audioRepo: audioRepoProvider,
-            playbackCapability: makePlaybackCapability(from: playback)
+            audioLibrary: audioLibraryProvider,
+            playbackProvider: playback,
+            toastProvider: kernel.resolveProvider((any ToastProviding).self)
         )
         let root = AudioDBRootViewModel(
-            audioRepo: audioRepoProvider,
-            showDBView: { kernel.appState?.showDBView() ?? () }
+            audioLibrary: audioLibraryProvider,
+            showDBView: { kernel.resolveProvider((any AppStateProviding).self)?.showDBView() ?? () }
         )
         let db = AudioDBViewModel()
-        let observer = AudioDatabaseObserver(list: list, root: root, db: db)
+        let observer = AudioDatabaseObserver(
+            list: list,
+            root: root,
+            db: db,
+            library: kernel.resolveProvider((any AudioLibraryProviding).self)
+        )
         let playbackObserver = AudioDBPlaybackObserver(playback: playback, viewModel: list)
 
         listViewModel = list
@@ -292,62 +282,6 @@ public actor AudioDBPlugin: SuperPlugin, SuperLog {
         dbViewModel = nil
     }
 
-    // MARK: - 仓库路径自持（不依赖 AudioPlugin actor）
-
-    /// 音频仓库磁盘目录：`storageRoot` + `dbDirName`。
-    ///
-    /// 由本插件直接从内核存储服务解析，不再经由 `AudioPlugin` 的静态入口，
-    /// 因此 `AudioPlugin` 的启用状态不影响仓库可用性。
-    @MainActor
-    private static func makeAudioDisk(from storage: any StorageProviding) -> URL? {
-        guard let root = storage.storageRoot else { return nil }
-        return try? root
-            .appendingPathComponent(AudioPluginInfo.effectiveDBDirName, isDirectory: true)
-            .ensureDirectory()
-    }
-
-    /// 构建音频仓库：磁盘目录 + SwiftData 容器 + `AudioRepo`。
-    @MainActor
-    private static func makeAudioRepo(from storage: any StorageProviding) async -> AudioRepo? {
-        guard let disk = Self.makeAudioDisk(from: storage) else { return nil }
-        guard let databaseURL = try? storage.databaseFile(name: "audio") else { return nil }
-        guard let container = try? AudioConfigRepo.getContainer(databaseURL: databaseURL) else { return nil }
-        return try? AudioRepo(container: container, disk: disk, reason: "AudioDBPlugin")
-    }
-
-    /// 将内核能力收窄后注入 ViewModel；ViewModel 不持有 Kernel。
-    @MainActor
-    private func makePlaybackCapability(
-        from playback: (any PlaybackProviding)?
-    ) -> (any AudioPlaybackCapability)? {
-        guard let playback else { return nil }
-        return AudioPlaybackCapabilityAdapter(playback: playback)
-    }
-
-    /// 仓库路径解析诊断（错误视图展示）。
-    @MainActor
-    private var audioDiagnosticsProvider: @MainActor @Sendable () -> AudioStorageDiagnostics {
-        { @MainActor [weak self] in
-            AudioStorageDiagnostics.make(storage: self?.kernel?.storage)
-        }
-    }
-
-    @MainActor
-    private var audioDiskProvider: @MainActor @Sendable () -> URL? {
-        { @MainActor [weak self] in
-            guard let storage = self?.kernel?.storage else { return nil }
-            return Self.makeAudioDisk(from: storage)
-        }
-    }
-
-    @MainActor
-    private var audioRepoProvider: @MainActor @Sendable () async -> AudioRepo? {
-        { @MainActor [weak self] in
-            guard let storage = self?.kernel?.storage else { return nil }
-            return await Self.makeAudioRepo(from: storage)
-        }
-    }
-
     /// 返回当前持有的 ViewModel；若尚未安装（启动前或插件被禁用），
     /// 提供临时空实例保证 View 贡献可用。
     @MainActor
@@ -356,10 +290,11 @@ public actor AudioDBPlugin: SuperPlugin, SuperLog {
             return (listViewModel, rootViewModel, dbViewModel)
         }
         let list = AudioListViewModel(
-            audioRepo: audioRepoProvider,
-            playbackCapability: makePlaybackCapability(from: kernel?.playback)
+            audioLibrary: audioLibraryProvider,
+            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
+            toastProvider: kernel?.resolveProvider((any ToastProviding).self)
         )
-        let root = AudioDBRootViewModel(audioRepo: audioRepoProvider, showDBView: {})
+        let root = AudioDBRootViewModel(audioLibrary: audioLibraryProvider, showDBView: {})
         let db = AudioDBViewModel()
         listViewModel = list
         rootViewModel = root
@@ -371,9 +306,12 @@ public actor AudioDBPlugin: SuperPlugin, SuperLog {
     @MainActor
     private func resolveSceneState() -> AudioDBSceneState {
         if let sceneState { return sceneState }
-        let state = AudioDBSceneState(isMusicScene: sceneBox.scene?.currentScene == .music)
+        // `sceneBox` 为空（onReady 之前被请求）时回落到内核当前场景，避免把一个
+        // 永远收不到事件、且初始值恒为 false 的失效状态缓存下来。
+        let scene = sceneBox.scene ?? kernel?.resolveProvider((any SceneProviding).self)
+        let state = AudioDBSceneState(isMusicScene: scene?.currentScene == .music)
         sceneState = state
-        sceneObserver = AudioDBSceneObserver(scene: sceneBox.scene, sceneState: state)
+        sceneObserver = AudioDBSceneObserver(scene: scene, sceneState: state)
         return state
     }
 

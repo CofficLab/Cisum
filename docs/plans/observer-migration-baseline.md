@@ -17,8 +17,8 @@
 | Provider | 语义事件 | 默认 no-op | 实现发送真实事件 | 备注 |
 |---|---|---|---|---|
 | `ThemeProviding` | `themesChanged` / `selectionChanged` | 是 | 是（`ThemeService`） | 已落实 |
-| `StorageProviding` | `locationChanged` / `storageAvailabilityChanged` | 是 | 是（`StorageService`） | 已落实；仍桥接旧通知 |
-| `SceneProviding` | `selectionChanged(scene:)` | 是 | 是（`SceneService`） | 已落实 |
+| `StorageProviding` | `locationChanged` / `storageAvailabilityChanged` | 是 | 是（`StorageProvider`） | 已落实；仍桥接旧通知 |
+| `SceneProviding` | `selectionChanged(scene:)` | 是 | 是（`SceneProvider`） | 已落实 |
 | `PlaybackProviding` | `stateChanged` / `assetChanged` / `timeChanged` / `durationChanged` / `playModeChanged` / `likedAssetsChanged` | 是 | 待核实（`MagicPlayMan+PlaybackProviding`） | 见 Phase 2 |
 | `AudioLibraryProviding` | `libraryChanged(totalCount:)` | 是 | 待核实 | 见 Phase 2 |
 | `CloudProviding` | `availabilityChanged` | 是 | 待核实（`FactoryCisum/CloudService`） | Phase 4 |
@@ -35,7 +35,7 @@
 
 - 入口：`ScenePlugin`（actor）
   - `onRegister`：注册 docs
-  - `onBoot`：`registerSceneService(SceneService())`
+  - `onBoot`：`registerSceneService(SceneProvider())`
   - `onReady`：`kernel.scene?.restoreCurrentScene()`
   - `onShutdown`：`unregisterProvider(SceneProviding.self)`
   - `addSettingNavigationItem`：`SceneSettingsView()`（未注入 ViewModel）
@@ -51,8 +51,8 @@
 #### 2.2 PluginStorage（`storage`）
 
 - 入口：`StoragePlugin`（actor）
-  - `onBoot`：`registerStorage(StorageService())`，设置 `StorageService.current`
-  - `onShutdown`：清空 `StorageService.current`
+  - `onBoot`：`registerStorage(StorageProvider())`，设置 `StorageProvider.current`
+  - `onShutdown`：清空 `StorageProvider.current`
   - `addSettingNavigationItem`：`StorageSettingView(storage:)` + `.pluginStorageDependencies(...)`
 - 外部输入：
   - `StorageSettingView`：`@Environment(\.pluginStorageDependencies)`；`@StateObject` 创建 ViewModel；`@State` location/targetLocation/hasChanges；`.onChange(of: targetLocation)`；`.onChange(of: viewModel.location)`；`.onStoragePluginLocationChanged`（`NotificationCenter` 桥接）；`.onAppear`。
@@ -162,7 +162,7 @@
 | `PluginPluginManager` | `PluginManagementView`：`.onChange(filteredPlugins)`（派生 UI，保留）+ `.onReceive(.cisumEnabledPluginsDidChange)` | `PluginManagementObserver` + ViewModel，观察 `PluginProviding.pluginsChanged` |
 | `PluginDevice` | `BtnDelDevice`：`@Environment(\.modelContext)`（本地数据上下文，保留） | 入口持有设备 ViewModel；`DeviceMetricsObserver`（采样/系统通知，如涉及） |
 | `PluginStore` | `StoreSetting`：`.task` + `.onReceive(.storeTransactionUpdated / .Restored)`；`ProductCell` `.onChange` | Store observers + Store ViewModel |
-| `PluginAudioJob` / `PluginAudioCopy` | 文件系统任务 / 迁移进度回调（`CopyEvents` 通知） | Observer/Coordinator，View 只读任务状态 |
+| `PluginAudioDBData` / `PluginAudioCopy` | 音频目录文件系统同步 / 迁移进度回调（`CopyEvents` 通知） | 数据一致性协调器 / Observer，View 只读任务状态 |
 | `PluginStorage` 迁移/文件页 | `FileInfo` / `Migrate` 系列 | 文件/迁移任务状态集中到 Observer/Coordinator |
 | `PluginAudioWidgetControl` | `AudioWidgetControlRootView`：`.onReceive(.audioWidgetCommandReceived)` | Widget 命令 Observer |
 | `PluginOpenButton` | `OpenCurrentButtonView`：`@EnvironmentObject man`（播放器操作） | 判断：一次性动作，无持续外部状态，可不建 Observer |

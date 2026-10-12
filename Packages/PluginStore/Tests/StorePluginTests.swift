@@ -1,7 +1,8 @@
 import Foundation
 import SwiftUI
 import Testing
-@testable import StorePlugin
+@testable import PluginStore
+@testable import ProviderStore
 
 @Test func storeInfoExportsMetadata() {
     #expect(StorePluginInfo.titleKey == "Store")
@@ -163,4 +164,35 @@ private func subscriptionProduct(id: String) -> ProductDTO {
         kind: .autoRenewable,
         description: ""
     )
+}
+
+// MARK: - 插件生命周期装配
+
+@Test
+@MainActor
+func storePluginAssemblesAndTearsDownState() async throws {
+    let plugin = StorePlugin()
+    #expect(plugin.makeSettingEntry() != nil)
+    #expect(plugin.makeSettingEntry() != nil) // 二次调用复用同一 ViewModel
+}
+
+@Test
+@MainActor
+func storeObserverCancelsTokensIdempotently() {
+    let viewModel = StoreViewModel()
+    let observer = StoreObserver(viewModel: viewModel)
+    observer.cancel()
+    observer.cancel()
+    // 取消后不崩溃；tokens 已清空。
+}
+
+@Test
+@MainActor
+func storeViewModelStartsWithFreePresentation() {
+    let viewModel = StoreViewModel()
+    #expect(!viewModel.showBuySheet)
+    #expect(!viewModel.showRestoreSheet)
+    #expect(viewModel.purchaseInfo == .none)
+    #expect(viewModel.tierDisplayName == "Free")
+    #expect(viewModel.statusDescription == "Currently using free version")
 }

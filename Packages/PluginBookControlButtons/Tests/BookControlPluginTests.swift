@@ -1,13 +1,16 @@
+import ProviderToast
+import ProviderPlayback
+import MagicPlayMan
 import Testing
 import SwiftUI
 @testable import PluginBookControlButtons
 
-@Test func pluginInfoExportsRegistrationMetadata() {
-    #expect(BookControlButtonsPlugin.iconName == "playpause")
-    #expect(BookControlButtonsPlugin.order == 8)
+@Test @MainActor func pluginInfoExportsRegistrationMetadata() {
+    #expect(BookControlButtonsPlugin().iconName == "playpause")
+    #expect(BookControlButtonsPlugin().order == 8)
 }
 
-@Test func repeatAllWrapsBookChapterNavigation() {
+@Test @MainActor func repeatAllWrapsBookChapterNavigation() {
     let chapters = [
         URL(fileURLWithPath: "/tmp/book/001.m4b"),
         URL(fileURLWithPath: "/tmp/book/002.m4b"),
@@ -38,7 +41,7 @@ import SwiftUI
     #expect(sequenceNext == nil)
 }
 
-@Test func chapterNavigationMatchesSymlinkedCurrentChapter() throws {
+@Test @MainActor func chapterNavigationMatchesSymlinkedCurrentChapter() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
     let realBook = root.appendingPathComponent("RealBook", isDirectory: true)
@@ -65,7 +68,7 @@ import SwiftUI
     #expect(next == linkedBook.appendingPathComponent("002.m4b"))
 }
 
-@Test func shuffledChapterCandidatesExcludeSymlinkedCurrentChapter() throws {
+@Test @MainActor func shuffledChapterCandidatesExcludeSymlinkedCurrentChapter() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
     let realBook = root.appendingPathComponent("RealBook", isDirectory: true)
@@ -90,7 +93,7 @@ import SwiftUI
     #expect(candidates == [linkedNextChapter])
 }
 
-@Test func shuffledChapterCandidatesKeepDistinctDanglingSymlinkedChapters() throws {
+@Test @MainActor func shuffledChapterCandidatesKeepDistinctDanglingSymlinkedChapters() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
     let missingBook = root.appendingPathComponent("MissingBook", isDirectory: true)
@@ -114,7 +117,7 @@ import SwiftUI
     #expect(candidates == [secondChapter])
 }
 
-@Test func navigationResultOnlyAppliesToUnchangedCurrentChapter() {
+@Test @MainActor func navigationResultOnlyAppliesToUnchangedCurrentChapter() {
     let requested = URL(fileURLWithPath: "/tmp/book/001.m4b")
     let switched = URL(fileURLWithPath: "/tmp/book/002.m4b")
 
@@ -140,7 +143,7 @@ import SwiftUI
     ))
 }
 
-@Test func navigationResultAppliesToSymlinkedCurrentChapter() throws {
+@Test @MainActor func navigationResultAppliesToSymlinkedCurrentChapter() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
     let realBook = root.appendingPathComponent("RealBook", isDirectory: true)
@@ -162,7 +165,7 @@ import SwiftUI
     ))
 }
 
-@Test func navigationResultDoesNotApplyToDistinctDanglingSymlinkedChapters() throws {
+@Test @MainActor func navigationResultDoesNotApplyToDistinctDanglingSymlinkedChapters() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
     let missingBook = root.appendingPathComponent("MissingBook", isDirectory: true)
@@ -183,7 +186,7 @@ import SwiftUI
     ))
 }
 
-@Test func staleNavigationDoesNotApplyAfterSceneReactivation() {
+@Test @MainActor func staleNavigationDoesNotApplyAfterSceneReactivation() {
     let requested = URL(fileURLWithPath: "/tmp/book/001.m4b")
     let generation = BookControlPlaybackRequestPolicy.generationAfterDeactivation(2)
 
@@ -203,7 +206,7 @@ import SwiftUI
     ))
 }
 
-@Test func navigationRejectsCurrentAudioOutsideConfiguredBookDisk() throws {
+@Test @MainActor func navigationRejectsCurrentAudioOutsideConfiguredBookDisk() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
     let bookDisk = root.appendingPathComponent("books", isDirectory: true)
@@ -232,7 +235,7 @@ import SwiftUI
     #expect(BookControlPlaybackRequestPolicy.shouldNavigateBookAsset(outsideAudio, bookDisk: nil))
 }
 
-@Test func deletionAffectsCurrentChapterInsideDeletedBook() {
+@Test @MainActor func deletionAffectsCurrentChapterInsideDeletedBook() {
     let deletedBook = URL(fileURLWithPath: "/tmp/books/Novel", isDirectory: true)
     let currentChapter = deletedBook.appendingPathComponent("Chapter 01.m4b")
     let otherChapter = URL(fileURLWithPath: "/tmp/books/Other/Chapter 01.m4b")
@@ -251,7 +254,7 @@ import SwiftUI
     ))
 }
 
-@Test func deletionAffectsCurrentChapterThroughSymlinkedBook() throws {
+@Test @MainActor func deletionAffectsCurrentChapterThroughSymlinkedBook() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
     let realBook = root.appendingPathComponent("RealBook", isDirectory: true)
@@ -271,7 +274,7 @@ import SwiftUI
     ))
 }
 
-@Test func deletionAffectsCurrentChapterUnderDanglingSymlinkedBook() throws {
+@Test @MainActor func deletionAffectsCurrentChapterUnderDanglingSymlinkedBook() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
     let missingBook = root.appendingPathComponent("MissingBook", isDirectory: true)
@@ -290,7 +293,7 @@ import SwiftUI
     ))
 }
 
-@Test func deletionDoesNotAffectDistinctDanglingSymlinkedBook() throws {
+@Test @MainActor func deletionDoesNotAffectDistinctDanglingSymlinkedBook() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
     let missingBook = root.appendingPathComponent("MissingBook", isDirectory: true)
@@ -367,7 +370,7 @@ import SwiftUI
     #expect(BookControlChapterCache.cachedChapters(in: root) == nil)
 }
 
-@Test func staleDeletionResetDoesNotApplyAfterSceneReactivation() {
+@Test @MainActor func staleDeletionResetDoesNotApplyAfterSceneReactivation() {
     let deletedBook = URL(fileURLWithPath: "/tmp/books/Novel", isDirectory: true)
     let currentChapter = deletedBook.appendingPathComponent("Chapter 01.m4b")
     let generation = BookControlPlaybackRequestPolicy.generationAfterDeactivation(2)
@@ -386,12 +389,12 @@ import SwiftUI
     ))
 }
 
-@Test func storageResetOnlyAppliesInActiveBookScene() {
+@Test @MainActor func storageResetOnlyAppliesInActiveBookScene() {
     #expect(BookControlPlaybackRequestPolicy.shouldResetForStorageLocationChange(isSceneActive: true))
     #expect(!BookControlPlaybackRequestPolicy.shouldResetForStorageLocationChange(isSceneActive: false))
 }
 
-@Test func staleBookStorageResetDoesNotApplyAfterDeactivation() {
+@Test @MainActor func staleBookStorageResetDoesNotApplyAfterDeactivation() {
     let generation = BookControlPlaybackRequestPolicy.generationAfterDeactivation(2)
 
     #expect(generation == 3)
@@ -412,7 +415,7 @@ import SwiftUI
     ))
 }
 
-@Test func bookRootUsesStandaloneBookAtDiskRoot() {
+@Test @MainActor func bookRootUsesStandaloneBookAtDiskRoot() {
     let disk = URL(fileURLWithPath: "/tmp/cisum-books", isDirectory: true)
     let book = disk.appendingPathComponent("Standalone.m4b")
 
@@ -421,7 +424,7 @@ import SwiftUI
     #expect(root == book.standardizedFileURL)
 }
 
-@Test func bookRootUsesTopLevelFolderForChapterBooks() {
+@Test @MainActor func bookRootUsesTopLevelFolderForChapterBooks() {
     let disk = URL(fileURLWithPath: "/tmp/cisum-books", isDirectory: true)
     let book = disk.appendingPathComponent("Novel", isDirectory: true)
     let chapter = book
@@ -433,7 +436,7 @@ import SwiftUI
     #expect(root == book.standardizedFileURL)
 }
 
-@Test func bookRootFallsBackToParentOutsideBookDisk() {
+@Test @MainActor func bookRootFallsBackToParentOutsideBookDisk() {
     let disk = URL(fileURLWithPath: "/tmp/cisum-books", isDirectory: true)
     let chapter = URL(fileURLWithPath: "/tmp/other-books/Novel/Chapter 01.m4b")
 
@@ -442,7 +445,7 @@ import SwiftUI
     #expect(root == chapter.deletingLastPathComponent().standardizedFileURL)
 }
 
-@Test func bookRootMapsSymlinkedBookDiskToConfiguredRoot() throws {
+@Test @MainActor func bookRootMapsSymlinkedBookDiskToConfiguredRoot() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
     let realDisk = root.appendingPathComponent("real-books", isDirectory: true)
@@ -462,7 +465,7 @@ import SwiftUI
     #expect(resolved == linkedDisk.appendingPathComponent("Novel", isDirectory: true).standardizedFileURL)
 }
 
-@Test func chapterLoaderReturnsPlayableChaptersInRelativeOrder() throws {
+@Test @MainActor func chapterLoaderReturnsPlayableChaptersInRelativeOrder() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
     defer {
@@ -543,9 +546,160 @@ import SwiftUI
     #expect(BookControlChapterCache.cachedChapters(in: linkedBook) == [chapter])
 }
 
-@Test func chapterLoaderRejectsSiblingPrefixPaths() {
+@Test @MainActor func chapterLoaderRejectsSiblingPrefixPaths() {
     let root = URL(fileURLWithPath: "/tmp/cisum-books/Book", isDirectory: true)
     let sibling = URL(fileURLWithPath: "/tmp/cisum-books/Book Backup/01.m4b")
 
     #expect(BookControlChapterLoader.relativePath(sibling, in: root) == "01.m4b")
+}
+
+// MARK: - ViewModel 集成
+
+@MainActor
+private final class BookControlPlaybackProbe: PlaybackProviding {
+    var currentURL: URL?
+    var state: PlaybackStatus = .paused
+    var currentTime: TimeInterval = 0
+    var duration: TimeInterval = 0
+    var progress: Double = 0
+    var likedAssets: Set<URL> = []
+    var isPlaying: Bool { state.isPlaying }
+    var hasAsset: Bool { currentURL != nil }
+    var playMode: PlaybackMode = .sequence
+    var toggleCount = 0
+    var togglePlayModeCount = 0
+    var resetCount = 0
+
+    func toggle() { toggleCount += 1 }
+    func togglePlayMode() { togglePlayModeCount += 1 }
+    func play(_ url: URL) async { currentURL = url }
+    func pause() {}
+    func seek(toProgress progress: Double) {}
+    func seek(toTime time: TimeInterval) {}
+    func next() {}
+    func previous() {}
+    func setPlayMode(_ mode: PlaybackMode) { playMode = mode }
+    func toggleCurrentLike() {}
+    func reset() async { resetCount += 1 }
+    func addObserver(_ callback: @escaping (PlaybackProvidingEvent) -> Void) -> any PlaybackProvidingObserverHandle {
+        NoopPlaybackProvidingObserverHandle()
+    }
+}
+
+@MainActor
+private final class BookToastProbe: ToastProviding {
+    var errors: [(title: String, message: String, sourceWindowID: String?)] = []
+
+    func show(_ toast: CisumToast) {}
+    func presentError(title: String, message: String, sourceWindowID: String?) {
+        errors.append((title, message, sourceWindowID))
+    }
+    func dismissError() {}
+    func showLoading(title: String, detail: String?) {}
+    func dismissLoading() {}
+    func dismissAll() {}
+}
+
+@MainActor
+struct BookControlViewModelTests {
+    @Test
+    func initReflectsPlaybackState() {
+        let playback = BookControlPlaybackProbe()
+        playback.state = .playing
+        playback.playMode = .shuffle
+        let viewModel = BookControlViewModel(
+            targetScene: .audiobooks,
+            playbackProvider: playback
+        )
+        viewModel.handleSceneChange(.audiobooks)
+        #expect(viewModel.isPlaying)
+        #expect(viewModel.playMode == .shuffle)
+        #expect(viewModel.shouldActivateControl)
+    }
+
+    @Test
+    func toggleWithoutCapabilityReportsUnavailable() {
+        let toast = BookToastProbe()
+        let viewModel = BookControlViewModel(
+            targetScene: .audiobooks,
+            playbackProvider: nil,
+            toastProvider: toast
+        )
+        viewModel.toggle()
+        #expect(!toast.errors.isEmpty)
+    }
+
+    @Test
+    func previousWithoutCurrentChapterReportsUnavailable() {
+        let toast = BookToastProbe()
+        let viewModel = BookControlViewModel(
+            targetScene: .audiobooks,
+            playbackProvider: BookControlPlaybackProbe(),
+            toastProvider: toast
+        )
+        viewModel.previous()
+        #expect(!toast.errors.isEmpty)
+    }
+
+    @Test
+    func storageLocationResetResetsPlaybackInActiveScene() async throws {
+        let playback = BookControlPlaybackProbe()
+        let viewModel = BookControlViewModel(
+            targetScene: .audiobooks,
+            playbackProvider: playback
+        )
+        viewModel.handleSceneChange(.audiobooks)
+        viewModel.handleStorageLocationDidReset()
+
+        for _ in 0..<50 where playback.resetCount == 0 {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(playback.resetCount == 1)
+    }
+
+    @Test
+    func storageLocationResetIgnoredWhenSceneInactive() async throws {
+        let playback = BookControlPlaybackProbe()
+        let viewModel = BookControlViewModel(
+            targetScene: .audiobooks,
+            playbackProvider: playback
+        )
+        viewModel.handleSceneChange(.music)
+        viewModel.handleStorageLocationDidReset()
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(playback.resetCount == 0)
+    }
+
+    @Test
+    func deletionOfCurrentChapterResetsPlayback() async throws {
+        let playback = BookControlPlaybackProbe()
+        playback.currentURL = URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")
+        let viewModel = BookControlViewModel(
+            targetScene: .audiobooks,
+            playbackProvider: playback
+        )
+        viewModel.handleSceneChange(.audiobooks)
+        viewModel.handleBookDBDeleted(deletedURLs: [URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")])
+
+        for _ in 0..<50 where playback.resetCount == 0 {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(playback.resetCount == 1)
+    }
+
+    @Test
+    func sceneChangeInvalidatesPendingDeletionReset() async throws {
+        let playback = BookControlPlaybackProbe()
+        playback.currentURL = URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")
+        let viewModel = BookControlViewModel(
+            targetScene: .audiobooks,
+            playbackProvider: playback
+        )
+        viewModel.handleSceneChange(.audiobooks)
+        viewModel.handleBookDBDeleted(deletedURLs: [URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")])
+        viewModel.handleSceneChange(.music)
+
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(playback.resetCount == 0)
+    }
 }

@@ -1,4 +1,6 @@
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import SwiftUI
 
 struct MediaPickerButton: View {
@@ -29,7 +31,7 @@ struct MediaPickerButton: View {
             }
         } label: {
             HStack {
-                Image(systemName: .iconPlay)
+                Image(systemName: PlaybackSymbol.play)
                 Text(selectedName ?? loc.selectMedia)
                 Image(systemName: "chevron.down")
             }

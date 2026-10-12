@@ -1,10 +1,12 @@
-import OSLog
-import ProviderPlayback
 import ProviderScene
+import ProviderPlayback
+import OSLog
+import MagicPlayMan
 import MagicKit
 
 @MainActor
 final class BookPlayModeObserver: SuperLog {
+    nonisolated static let emoji = "🔁"
     nonisolated static let verbose = false
 
     private weak var viewModel: BookPlayModeViewModel?

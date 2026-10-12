@@ -2,6 +2,8 @@ import AVFoundation
 import Combine
 import Foundation
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import MediaPlayer
 import OSLog
 import SwiftUI
@@ -127,6 +129,12 @@ internal extension MagicPlayMan {
 
                         // 如果是下载状态，无需更新状态
                         if self.state.isDownloading {
+                            return
+                        }
+
+                        // 加载失败时清空 item 同样会触发 .paused，此时不能把 .failed
+                        // 覆盖成 .stopped，否则调用方会丢失失败原因（表现为「点了没反应也没有报错」）。
+                        if self.state.isFailed {
                             return
                         }
 

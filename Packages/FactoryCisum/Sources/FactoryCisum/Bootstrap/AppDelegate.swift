@@ -1,6 +1,7 @@
 #if os(macOS)
     import AppKit
     import CisumUIComponents
+import LumiUI
     import SwiftUI
 
     /// macOS 应用代理（对齐 Lumi 的 `MacAgent`，由 App target 通过

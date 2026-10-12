@@ -1,5 +1,5 @@
 import CisumUIComponents
-import PluginAudio
+import LumiUI
 import SwiftUI
 
 struct AudioSettingsPluginView: View {
@@ -10,8 +10,6 @@ struct AudioSettingsPluginView: View {
     }
 
     var body: some View {
-        AudioSettingsView(refreshToken: viewModel.refreshToken) {
-            AudioPlugin.getAudioDisk()
-        }
+        AudioSettingsView(viewModel: viewModel)
     }
 }

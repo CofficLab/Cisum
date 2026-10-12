@@ -1,8 +1,8 @@
+import MagicKit
 import CisumUIComponents
+import LumiUI
 import OSLog
-import PluginAudio
-import PluginBook
-import SwiftData
+import ProviderBook
 import SwiftUI
 
 enum BookGridUpdatePolicy {
@@ -102,26 +102,14 @@ enum BookGridPlayableChildrenLoader {
     }
 }
 
-enum BookDBViewBookStateLookup {
-    static func findBookState(for bookURL: URL, in context: ModelContext) throws -> BookState? {
-        let descriptor = BookState.descriptorOf(bookURL)
-        if let state = try context.fetch(descriptor).first {
-            return state
-        }
-
-        return try context.fetch(BookState.descriptorAll).first { state in
-            BookState.representsSameBookURL(state.url, as: bookURL)
-        }
-    }
-}
-
 struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
     @LumiTheme private var appTheme
     nonisolated static let emoji = "📖"
     nonisolated static let verbose = false
 
-    @Environment(\.bookDBViewDependencies) private var dependencies
-    @EnvironmentObject var viewModel: BookGridViewModel
+    @ObservedObject var viewModel: BookGridViewModel
+    let dependencies: BookDBViewDependencies
+    let requestImport: @MainActor @Sendable () -> Void
 
     /// Total book count.
     var total: Int { viewModel.books.count }
@@ -131,12 +119,22 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
         false
     }
 
+    init(
+        viewModel: BookGridViewModel,
+        dependencies: BookDBViewDependencies,
+        requestImport: @escaping @MainActor @Sendable () -> Void
+    ) {
+        self._viewModel = ObservedObject(wrappedValue: viewModel)
+        self.dependencies = dependencies
+        self.requestImport = requestImport
+    }
+
     var body: some View {
         Group {
             if viewModel.isLoading {
-                BookDBTips(variant: .loading)
+                BookDBTips(dependencies: dependencies, requestImport: requestImport, variant: .loading)
             } else if total == 0 {
-                BookDBTips(variant: .empty)
+                BookDBTips(dependencies: dependencies, requestImport: requestImport, variant: .empty)
             } else {
                 VStack(spacing: 0) {
                     HStack {
@@ -165,7 +163,13 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
                                     selectedURL: viewModel.selectedBookURL
                                 )
 
-                                BookTile(url: item.url, title: item.bookTitle, childCount: item.childCount)
+                                BookTile(
+                                    url: item.url,
+                                    title: item.bookTitle,
+                                    childCount: item.childCount,
+                                    viewModel: viewModel,
+                                    dependencies: dependencies
+                                )
                                     .overlay(
                                         Rectangle()
                                             .stroke(
@@ -192,9 +196,10 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
             }
         }
         .onAppear {
+            if Self.verbose { os_log("\(Self.t)📖 BookGrid onAppear") }
             Task { @MainActor in
-                let repo = await dependencies.bookRepo()
-                viewModel.bind(repo: repo, dbRoot: dependencies.dbRoot, bookDisk: dependencies.bookDisk)
+                if Self.verbose { os_log("\(Self.t)📖 BookGrid provider: \(dependencies.bookProvider == nil ? "nil" : "available")") }
+                viewModel.bind(provider: dependencies.bookProvider)
                 viewModel.handleOnAppear()
             }
         }

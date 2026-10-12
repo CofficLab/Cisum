@@ -72,6 +72,11 @@ PluginProvider
 
 **Location**: `Core/Providers/`
 
+Provider contracts live in `Provider*` packages. Concrete implementations in
+plugin packages use the `*Provider` suffix and are kept under that plugin's
+`Providers/` directory; observers and capabilities remain in their own
+directories.
+
 ### Event System
 
 Decoupled communication via NotificationCenter:
@@ -134,7 +139,7 @@ protocol SuperPlugin: Actor {
 
 ### Plugin Categories
 
-#### 1. Audio Plugins (11 plugins)
+#### 1. Audio Plugins (10 plugins)
 **Execution Order**: 0-9999
 
 | Plugin | Order | Responsibility |
@@ -147,7 +152,7 @@ protocol SuperPlugin: Actor {
 | AudioLikePlugin | - | Like/favorite management |
 | AudioPlayModePlugin | - | Play mode controls |
 | AudioDownloadPlugin | - | Download management |
-| AudioJobPlugin | - | Background jobs |
+| AudioDBDataPlugin | 1 | Database implementation and filesystem synchronization |
 | AudioSettingsPlugin | - | Settings integration |
 
 #### 2. Book Plugins (9 plugins)
@@ -156,7 +161,7 @@ protocol SuperPlugin: Actor {
 |--------|-------|----------------|
 | BookScenePlugin | - | Provides "书籍库" scene |
 | BookPlugin | - | Core book functionality |
-| BookDBPlugin | - | Database view integration |
+| BookDBViewPlugin | - | Database view integration |
 | BookProgressPlugin | - | Reading progress |
 | BookPosterPlugin | - | Poster view |
 | BookLikePlugin | - | Like/favorite management |
@@ -227,7 +232,9 @@ Plugin1(
 ### Repository Pattern
 
 ```
-AudioRepo      → Audio data access
+ProviderAudioLibrary → audio catalog contract/events
+PluginAudioDBData    → AudioModel/AudioDB/AudioRepo implementation
+PluginAudioLike      → like persistence implementation
 BookRepo       → Book data access
 UIRepo         → UI state persistence
 PluginRepo     → Plugin configuration

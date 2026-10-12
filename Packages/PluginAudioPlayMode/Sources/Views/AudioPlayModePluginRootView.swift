@@ -1,5 +1,6 @@
 import CisumUIComponents
-import PluginAudio
+import LumiUI
+import ProviderAudioLibrary
 import SwiftUI
 
 struct AudioPlayModePluginRootView<Content>: View where Content: View {

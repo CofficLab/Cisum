@@ -2,16 +2,16 @@ import Combine
 import Foundation
 import MagicKit
 import OSLog
-import PluginAudio
-import PluginBook
-import SwiftData
+import ProviderBook
+import ProviderPlayback
+import ProviderToast
 import SwiftUI
 
 /// 书籍网格视图的集中状态容器（迁移 Phase 3）。
 ///
 /// 持有书籍列表、加载/同步状态、选中高亮、播放代际与防抖任务，
 /// 统一处理数据库事件与播放资产变化；取代原 `BookGrid` 内的全部
-/// `@State` 与事件 handler。由 `BookDBPlugin` 入口持有并注入
+/// `@State` 与事件 handler。由 `BookDBViewPlugin` 入口持有并注入
 /// `BookDatabaseObserver`；View 只展示与转发意图。
 @MainActor
 final class BookGridViewModel: ObservableObject, SuperLog {
@@ -20,37 +20,34 @@ final class BookGridViewModel: ObservableObject, SuperLog {
     @Published private(set) var isLoading = true
     @Published private(set) var isSyncing = false
     @Published var selectedBookURL: URL?
-    @Published var selection: AudioModel?
     @Published var syncingTotal = 0
     @Published var syncingCurrent = 0
     /// 最近一次播放状态更新的书籍 URL，供 `BookTile` 观察并重载封面。
     @Published var lastStateUpdatedURL: URL?
 
     private var currentAsset: URL?
-    /// 书籍/章节点击所需的最小播放能力。
-    private let playbackCapability: (any BookDBPlaybackCapability)?
-    private weak var repo: BookRepo?
-    private var dbRoot: URL?
-    private var bookDisk: URL?
+    private let playbackProvider: (any PlaybackProviding)?
+    private let toastProvider: (any ToastProviding)?
+    private var bookProvider: (any BookDatabaseProviding)?
     private var updateBooksGeneration = 0
     private var playBookGeneration = 0
     private var updateBooksDebounceTask: Task<Void, Never>?
 
     private static let verbose = false
 
-    init(playbackCapability: (any BookDBPlaybackCapability)? = nil) {
-        self.playbackCapability = playbackCapability
+    init(playbackProvider: (any PlaybackProviding)? = nil, toastProvider: (any ToastProviding)? = nil) {
+        self.playbackProvider = playbackProvider
+        self.toastProvider = toastProvider
     }
 
-    func bind(repo: BookRepo?, dbRoot: URL?, bookDisk: URL?) {
-        self.repo = repo
-        self.dbRoot = dbRoot
-        self.bookDisk = bookDisk
+    func bind(provider: (any BookDatabaseProviding)?) {
+        self.bookProvider = provider
     }
 
     // MARK: - View lifecycle
 
     func handleOnAppear() {
+        if Self.verbose { os_log("\(Self.t)📋 handleOnAppear, provider: \(self.bookProvider == nil ? "nil" : "available")") }
         isLoading = true
         scheduleUpdateBooksDebounced()
         if let currentAsset {
@@ -91,22 +88,15 @@ final class BookGridViewModel: ObservableObject, SuperLog {
 
     func handleBookDBDeleted() {
         BookGridPlayableChildrenLoader.invalidateCache()
-        BookCoverRepo.clearCache()
         playBookGeneration = BookGridPlaybackRequestPolicy.generationAfterInvalidatingPendingPlayback(playBookGeneration)
         scheduleUpdateBooksDebounced()
     }
 
     func handleBookDBSynced() {
         BookGridPlayableChildrenLoader.invalidateCache()
-        BookCoverRepo.clearCache()
         playBookGeneration = BookGridPlaybackRequestPolicy.generationAfterInvalidatingPendingPlayback(playBookGeneration)
         scheduleUpdateBooksDebounced()
         isSyncing = false
-    }
-
-    func handleBookDBSortDone() {
-        playBookGeneration = BookGridPlaybackRequestPolicy.generationAfterInvalidatingPendingPlayback(playBookGeneration)
-        scheduleUpdateBooksDebounced()
     }
 
     func handleBookDBUpdated() {
@@ -125,15 +115,19 @@ final class BookGridViewModel: ObservableObject, SuperLog {
     // MARK: - Data loading
 
     private func updateBooks(generation: Int) {
-        guard let currentRepo = repo else { return }
-
-        Task.detached(priority: .background) { [weak self] in
-            let books = await currentRepo.getAll(reason: "BookGridViewModel")
-            await self?.setBooks(books, generation: generation)
+        guard let bookProvider else {
+            if Self.verbose { os_log("\(Self.t)⚠️ updateBooks: provider is nil") }
+            return
+        }
+        if Self.verbose { os_log("\(Self.t)🔄 updateBooks gen=\(generation)") }
+        Task { @MainActor [weak self] in
+            let books = await bookProvider.books(reason: "BookGridViewModel")
+            self?.setBooks(books, generation: generation)
         }
     }
 
     private func scheduleUpdateBooksDebounced(delay seconds: Double = 0.25) {
+        if Self.verbose { os_log("\(Self.t)📅 scheduleUpdateBooksDebounced") }
         updateBooksDebounceTask?.cancel()
         updateBooksGeneration = BookGridUpdatePolicy.nextGeneration(after: updateBooksGeneration)
         let generation = updateBooksGeneration
@@ -149,9 +143,11 @@ final class BookGridViewModel: ObservableObject, SuperLog {
             currentGeneration: updateBooksGeneration,
             resultGeneration: generation
         ) else {
+            if Self.verbose { os_log("\(Self.t)⚠️ setBooks: generation mismatch, skipped") }
             return
         }
 
+        if Self.verbose { os_log("\(Self.t)✅ setBooks: \(newValue.count) books loaded") }
         books = newValue
 
         var index: [URL: BookDTO] = [:]
@@ -210,33 +206,23 @@ final class BookGridViewModel: ObservableObject, SuperLog {
         }
 
         if Self.verbose { os_log("\(Self.t)▶️ 播放(\(reason)): \(url.lastPathComponent) @ \(time.map { "\($0)s" } ?? "开头")") }
-        await playbackCapability?.play(url, startTime: time)
+        await playbackProvider?.play(url, startTime: time)
     }
 
     private func playBook(_ book: BookDTO, generation: Int) async {
         let playableChildren = await BookGridPlayableChildrenLoader.load(for: book.url)
         let reason = "BookGridViewModel"
 
-        do {
-            guard let dbRoot else { throw BookPluginError.initialization(reason: "dbRoot unavailable") }
-            let container = try await Task.detached(priority: .utility) {
-                try BookConfig.getContainer(dbRootURL: dbRoot)
-            }.value
-            if let bookState = await findBookState(book.url, in: container),
-               let savedURL = bookState.currentURL,
-               let savedTime = bookState.time,
-               isPlayableSavedURL(savedURL, in: book, playableChildren: playableChildren) {
-                await play(savedURL, in: book, at: savedTime, generation: generation, reason: reason)
-                return
-            }
-        } catch {
-            if Self.verbose {
-                os_log("⚠️ Unable to access book database: \(error.localizedDescription)")
-            }
+        if let bookState = await bookProvider?.playbackState(for: book.url),
+           let savedURL = bookState.currentURL,
+           let savedTime = bookState.time,
+           isPlayableSavedURL(savedURL, in: book, playableChildren: playableChildren) {
+            await play(savedURL, in: book, at: savedTime, generation: generation, reason: reason)
+            return
         }
 
-        if let savedURL = BookSettingRepo.getCurrent(),
-           let savedTime = BookSettingRepo.getCurrentTime(),
+        if let savedURL = bookProvider?.currentBookURL(),
+           let savedTime = bookProvider?.currentBookTime(),
            isPlayableSavedURL(savedURL, in: book, playableChildren: playableChildren) {
             await play(savedURL, in: book, at: savedTime, generation: generation, reason: reason)
             return
@@ -252,7 +238,7 @@ final class BookGridViewModel: ObservableObject, SuperLog {
             ) else {
                 return
             }
-            await playbackCapability?.play(first, startTime: nil)
+            await playbackProvider?.play(first, startTime: nil)
         } else {
             guard BookGridPlaybackRequestPolicy.shouldReportNoPlayableChapters(
                 currentGeneration: playBookGeneration,
@@ -266,29 +252,12 @@ final class BookGridViewModel: ObservableObject, SuperLog {
 
             guard FileManager.default.fileExists(atPath: book.url.path),
                   BookPluginInfo.supportedExtensions.contains(book.url.pathExtension.lowercased()) else {
-                alert_error(String(localized: "No playable chapters found", bundle: .module))
+                toastProvider?.error(String(localized: "No playable chapters found", bundle: .module))
                 return
             }
 
-            await playbackCapability?.play(book.url, startTime: nil)
+            await playbackProvider?.play(book.url, startTime: nil)
         }
     }
 
-    private func findBookState(_ bookURL: URL, in container: ModelContainer) async -> (currentURL: URL?, time: TimeInterval?)? {
-        let verbose = Self.verbose
-        return await Task.detached(priority: .utility) { () -> (currentURL: URL?, time: TimeInterval?)? in
-            let context = ModelContext(container)
-            do {
-                guard let state = try BookDBViewBookStateLookup.findBookState(for: bookURL, in: context) else {
-                    return nil
-                }
-                return (state.currentURL, state.time)
-            } catch {
-                if verbose {
-                    os_log("⚠️ Failed to query book state: \(error.localizedDescription)")
-                }
-                return nil
-            }
-        }.value
-    }
 }

@@ -1,6 +1,7 @@
+import ProviderPlayback
 import MagicPlayMan
 import Testing
-@testable import BookPlayModePlugin
+@testable import PluginBookPlayMode
 
 @Test func pluginInfoExportsRegistrationMetadata() {
     #expect(BookPlayModePluginInfo.iconName == "repeat")
@@ -10,7 +11,7 @@ import Testing
 @Test func bookPlayModeFallsBackToCloudWhenLocalValueIsInvalid() {
     #expect(BookPlayModeStore.resolvedPlayMode(
         localRawValue: "invalid",
-        cloudRawValue: MagicPlayMode.loop.rawValue
+        cloudRawValue: PlaybackMode.loop.rawValue
     ) == .loop)
 }
 

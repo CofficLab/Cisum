@@ -1,5 +1,6 @@
 import CisumUIComponents
-import MagicPlayMan
+import LumiUI
+import ProviderPlayback
 import ProviderScene
 import SwiftUI
 
@@ -163,7 +164,7 @@ struct PluginPlayBackSettingView: View {
     }
 }
 
-private extension PlaybackState {
+private extension PlaybackStatus {
     /// 播放状态的中文展示名。
     var description: String {
         switch self {

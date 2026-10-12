@@ -15,24 +15,40 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../MagicKit"),
-        .package(path: "../CisumUIComponents"),
-        .package(path: "../KernelCore"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
-        .package(path: "../PluginAudio"),
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.0.1"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
+        .package(path: "../ProviderStore"),
+        .package(path: "../ProviderAudioLibrary"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
+        .package(path: "../KitAppEvents"),
+        .package(path: "../ProviderPlugin"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.3.4"),
     ],
     targets: [
         .target(
             name: "PluginStore",
             dependencies: [
-                .product(name: "MagicKit", package: "MagicKit"),
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
-                .product(name: "KernelCore", package: "KernelCore"),
-                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
-                .product(name: "PluginAudio", package: "PluginAudio"),
+                .product(name: "ProviderStore", package: "ProviderStore"),
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
+                .product(name: "ProviderSettingView", package: "LumiSettings"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
+                .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+                .product(name: "ProviderToast", package: "LumiProviders"),
             ],
             path: ".",
-            sources: ["Sources"],
+            sources: [
+                "Sources/StorePlugin.swift",
+                "Sources/Observers",
+                "Sources/ViewModels",
+                "Sources/Views"
+            ],
             resources: [
                 .process("Resources/Localizable.xcstrings"),
                 .process("Resources/Products.storekit")
@@ -40,7 +56,10 @@ let package = Package(
         ),
         .testTarget(
             name: "StorePluginTests",
-            dependencies: ["PluginStore"],
+            dependencies: [
+                "PluginStore",
+                .product(name: "ProviderStore", package: "ProviderStore")
+            ],
             path: "Tests"
         )
     ]

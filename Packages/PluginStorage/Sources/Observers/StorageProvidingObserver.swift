@@ -1,8 +1,9 @@
-import ProviderStorage
+import CisumProviderStorage
 import MagicKit
 
 @MainActor
 final class StorageProvidingObserver: SuperLog {
+    nonisolated static let emoji = "📦"
     nonisolated static let verbose = false
 
     private weak var viewModel: StorageSettingsViewModel?

@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 /// 插件管理页头部统计（对齐 Lumi `PluginPluginManager.PluginManagementHeader`）：

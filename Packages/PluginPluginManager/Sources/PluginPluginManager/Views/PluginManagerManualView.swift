@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 /// 插件管理器说明书 —— 章节式文档（对齐 Lumi `PluginManagerManualView`）。

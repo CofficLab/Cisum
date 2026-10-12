@@ -1,5 +1,7 @@
+import MagicKit
 #if os(macOS)
 import CisumUIComponents
+import LumiUI
 import OSLog
 import SwiftData
 import SwiftUI
@@ -74,6 +76,7 @@ struct CopyStateView: View, SuperLog, SuperThread {
                     .accessibilityLabel(CopyStatePresentation.detailsButtonLabel(isShowing: viewModel.showCopying))
                     .help(CopyStatePresentation.detailsButtonLabel(isShowing: viewModel.showCopying))
                 }
+                .accessibilityIdentifier("cisum.copy.state")
                 .font(.callout)
                 .foregroundStyle(appTheme.textPrimary)
                 .padding(.horizontal, 16)

@@ -1,4 +1,6 @@
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import SwiftUI
 
 /// 上一曲按钮视图
@@ -41,7 +43,7 @@ struct PreviousButtonView: View {
 
     var body: some View {
         Button(action: man.previous) {
-            Image(systemName: .iconBackwardEndFill)
+        Image(systemName: PlaybackSymbol.backwardEndFill)
                 .frame(width: size, height: size)
         }
         .disabled(disabledReason != nil)

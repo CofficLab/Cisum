@@ -1,9 +1,10 @@
 import AVFoundation
 import Foundation
 import CisumUIComponents
+import LumiUI
 import OSLog
-import PluginAudio
-import PluginAudioLike
+import ProviderAudioLibrary
+import ProviderAudioLike
 import SwiftData
 import SwiftUI
 import UniformTypeIdentifiers

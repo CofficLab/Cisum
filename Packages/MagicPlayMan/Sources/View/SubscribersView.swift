@@ -1,4 +1,6 @@
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import SwiftUI
 
 public extension MagicPlayMan {
@@ -16,7 +18,7 @@ public extension MagicPlayMan {
                 if subscribers.isEmpty {
                     ContentUnavailableView(
                         loc.noSubscribers,
-                        systemImage: .iconPersonGroupSlash,
+                        systemImage: PlaybackSymbol.personGroupSlash,
                         description: Text(loc.noSubscribersRegistered)
                     )
                 } else {

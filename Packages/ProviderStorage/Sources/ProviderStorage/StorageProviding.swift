@@ -1,4 +1,5 @@
 import Foundation
+import KitEventObservation
 
 @MainActor
 public enum StorageProvidingEvent {
@@ -14,17 +15,16 @@ public protocol StorageProvidingObserverHandle: AnyObject {
 /// 存储服务能力协议。
 ///
 /// 统一管理应用的持久化存储位置（iCloud / 本地 / 自定义），吸收了旧版
-/// `Config` 的存储位置逻辑，以及 `StoragePluginHost` / `AudioPluginHost` /
-/// `BookPluginHost` / `WelcomePluginHost` 中所有存储相关的桥接面。
+/// `Config` 的存储位置逻辑，以及旧版音频、书籍、欢迎流程 Host 中的存储桥接面。
 ///
 /// Kernel 只持有此协议，不依赖任何具体实现或旧版 Host。
 ///
 /// ## 使用示例
 ///
 /// ```swift
-/// let root = kernel.storage?.storageRoot
-/// try let db = kernel.storage?.databaseFile(name: "audio")
-/// kernel.storage?.setStorageLocation(.icloud)
+/// let root = kernel.resolveProvider((any StorageProviding).self)?.storageRoot
+/// try let db = kernel.resolveProvider((any StorageProviding).self)?.databaseFile(name: "audio")
+/// kernel.resolveProvider((any StorageProviding).self)?.setStorageLocation(.icloud)
 /// ```
 @MainActor
 public protocol StorageProviding: AnyObject, ObservableObject {
@@ -82,3 +82,5 @@ public final class NoopStorageProvidingObserverHandle: StorageProvidingObserverH
     public init() {}
     public func cancel() {}
 }
+
+extension EventObserverHandle: StorageProvidingObserverHandle {}

@@ -22,11 +22,20 @@ jobs:
       - name: 读取版本号
         id: version
         run: |
-          # 读取配置文件路径
-          projectFile=$(find $(pwd) -type f -name "*.pbxproj" | head -n 1)
+          source .github/scripts/xcode-project.sh
+
+          # 查找 Xcode 项目文件（project.xcproj 或 project.pbxproj）
+          projectFile=$(xcode_project_file "$(pwd)")
+          echo "📁 Project file: $projectFile"
 
           # 读取文件中的版本号
-          version=$(grep -o 'MARKETING_VERSION = [^"]*' "$projectFile" | head -n 1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+          version=$(xcode_project_setting "$projectFile" MARKETING_VERSION \
+            | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+
+          if [ -z "$version" ]; then
+            echo "Error: 无法从项目文件读取版本号" >&2
+            exit 1
+          fi
 
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "📦 Current Version: $version"

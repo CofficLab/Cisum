@@ -1,5 +1,5 @@
 import Testing
-@testable import ResetPlugin
+@testable import PluginReset
 
 @Test func pluginInfoExportsRegistrationMetadata() {
     #expect(ResetPluginInfo.iconName == "gearshape")

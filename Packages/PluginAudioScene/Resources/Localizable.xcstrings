@@ -85,35 +85,6 @@
         }
       }
     },
-    "Enter Music Library" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enter Music Library"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "进入音乐库"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "進入音樂庫"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "進入音樂庫"
-          }
-        }
-      }
-    },
     "Enter Music Repository" : {
       "localizations" : {
         "en" : {

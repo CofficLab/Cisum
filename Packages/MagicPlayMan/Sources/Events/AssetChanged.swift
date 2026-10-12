@@ -2,6 +2,8 @@ import Combine
 import Foundation
 import SwiftUI
 import CisumUIComponents
+import LumiUI
+import MagicKit
 
 /// 播放资源变更事件
 /// 当播放的资源发生变化时触发

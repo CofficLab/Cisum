@@ -1,7 +1,10 @@
+import MagicKit
 import CisumUIComponents
+import LumiUI
 import Foundation
 import OSLog
 import SwiftUI
+import ProviderToast
 
 enum AudioItemFileSizeLoadPolicy {
     static func shouldApplySize(currentURL: URL, requestedURL: URL) -> Bool {
@@ -125,7 +128,8 @@ struct AudioItemView: View, Equatable, SuperLog {
     nonisolated static let emoji = "🎵"
     nonisolated static let verbose = false
 
-    @EnvironmentObject var listViewModel: AudioListViewModel
+    @ObservedObject var listViewModel: AudioListViewModel
+    @Environment(\.toastProviding) private var toastProvider
     @LumiTheme private var appTheme
 
     let url: URL
@@ -140,8 +144,9 @@ struct AudioItemView: View, Equatable, SuperLog {
         lhs.url == rhs.url
     }
 
-    init(_ url: URL) {
+    init(_ url: URL, listViewModel: AudioListViewModel) {
         self.url = url
+        self._listViewModel = ObservedObject(wrappedValue: listViewModel)
     }
 }
 
@@ -301,12 +306,12 @@ extension AudioItemView {
                 if Self.verbose {
                     os_log("\(Self.t)✅ File exported to: \(finalDestinationURL.path)")
                 }
-                alert_info(String(localized: "File copied to Downloads", bundle: .module))
+                toastProvider?.info(String(localized: "File copied to Downloads", bundle: .module))
             } catch {
                 if Self.verbose {
                     os_log("\(Self.t)❌ Failed to export file: \(error.localizedDescription)")
                 }
-                alert_error(String(localized: "Export failed: \(error.localizedDescription)", bundle: .module))
+                toastProvider?.error(String(localized: "Export failed: \(error.localizedDescription)", bundle: .module))
             }
         }
     }
@@ -359,10 +364,10 @@ extension AudioItemView {
 
     /// 播放音频
     private func playAudio() {
-        os_log("\(Self.t)🖱️ Row action fired: \(url.lastPathComponent)")
+        if Self.verbose { os_log("\(Self.t)🖱️ Row action fired: \(url.lastPathComponent)") }
         Task {
             listViewModel.userSelected(url)
-            os_log("\(Self.t)✅ Row action forwarded to AudioListViewModel: \(url.lastPathComponent)")
+            if Self.verbose { os_log("\(Self.t)✅ Row action forwarded to AudioListViewModel: \(url.lastPathComponent)") }
         }
     }
 

@@ -3,7 +3,7 @@ import SwiftData
 import SwiftUI
 import Testing
 import UniformTypeIdentifiers
-@testable import AudioCopyPlugin
+@testable import PluginAudioCopy
 
 @Test func audioCopyInfoExportsMetadata() {
     #expect(AudioCopyPluginInfo.iconName == "music.note")
@@ -401,3 +401,115 @@ private final class TestNotificationValue<Value>: @unchecked Sendable {
     }
 }
 #endif
+
+// MARK: - CopyDB 行为
+
+@Test func copyDBNewTaskDeduplicatesByBookmark() async throws {
+    let schema = Schema([CopyTask.self])
+    let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+    let container = try ModelContainer(for: schema, configurations: [configuration])
+    let db = CopyDB(container, reason: "CopyDBDedupe", verbose: false)
+    let bookmark = Data([7, 8])
+
+    await db.newCopyTask(bookmark: bookmark, destination: URL(fileURLWithPath: "/tmp/copy-db", isDirectory: true), originalFilename: "a.mp3")
+    await db.newCopyTask(bookmark: bookmark, destination: URL(fileURLWithPath: "/tmp/copy-db", isDirectory: true), originalFilename: "b.mp3")
+
+    let tasks = await db.allCopyTaskDTOs()
+    #expect(tasks.count == 1)
+    #expect(tasks.first?.originalFilename == "a.mp3")
+}
+
+@Test func copyDBFindAndHasTaskMatchByBookmark() async throws {
+    let schema = Schema([CopyTask.self])
+    let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+    let container = try ModelContainer(for: schema, configurations: [configuration])
+    let db = CopyDB(container, reason: "CopyDBFind", verbose: false)
+    let bookmark = Data([1, 2, 3])
+
+    #expect(await !db.hasCopyTask(bookmark: bookmark))
+
+    await db.newCopyTask(bookmark: bookmark, destination: URL(fileURLWithPath: "/tmp/copy-db", isDirectory: true), originalFilename: "song.mp3")
+
+    #expect(await db.hasCopyTask(bookmark: bookmark))
+    #expect((await db.allCopyTaskDTOs()).first?.originalFilename == "song.mp3")
+}
+
+@Test func copyDBSetRunningAndErrorStatesPersist() async throws {
+    let schema = Schema([CopyTask.self])
+    let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+    let container = try ModelContainer(for: schema, configurations: [configuration])
+    let db = CopyDB(container, reason: "CopyDBStates", verbose: false)
+    let bookmark = Data([9])
+    let destination = URL(fileURLWithPath: "/tmp/copy-db", isDirectory: true)
+
+    await db.newCopyTask(bookmark: bookmark, destination: destination, originalFilename: "clip.m4a")
+    try await db.setTasksRunning(bookmarks: [bookmark])
+
+    #expect(await db.hasCopyTask(bookmark: bookmark))
+
+    await db.setTaskError(bookmark: bookmark, error: "disk full")
+    let stored = await db.allCopyTaskDTOs()
+    #expect(stored.first?.error == "disk full")
+
+    await db.setTaskError(bookmark: bookmark, error: "missing source")
+    #expect((await db.allCopyTaskDTOs()).first?.error == "missing source")
+}
+
+@Test func copyDBDeleteByBookmarksAndById() async throws {
+    let schema = Schema([CopyTask.self])
+    let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+    let container = try ModelContainer(for: schema, configurations: [configuration])
+    let db = CopyDB(container, reason: "CopyDBDelete", verbose: false)
+    let keepBookmark = Data([11])
+    let dropBookmark = Data([12])
+    let destination = URL(fileURLWithPath: "/tmp/copy-db", isDirectory: true)
+
+    await db.newCopyTask(bookmark: keepBookmark, destination: destination, originalFilename: "keep.mp3")
+    await db.newCopyTask(bookmark: dropBookmark, destination: destination, originalFilename: "drop.mp3")
+
+    try await db.deleteCopyTasks(bookmarks: [dropBookmark])
+    #expect(await db.hasCopyTask(bookmark: keepBookmark))
+    #expect(await !db.hasCopyTask(bookmark: dropBookmark))
+
+    let toDelete = CopyDB.getAllTasks(from: container).first { $0.bookmark == keepBookmark }!
+    await db.deleteCopyTask(toDelete.id)
+    #expect(await !db.hasCopyTask(bookmark: keepBookmark))
+}
+
+@Test func copyDBDTOsExposePersistedState() async throws {
+    let schema = Schema([CopyTask.self])
+    let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+    let container = try ModelContainer(for: schema, configurations: [configuration])
+    let db = CopyDB(container, reason: "CopyDBDTO", verbose: false)
+    let bookmark = Data([21])
+
+    await db.newCopyTask(bookmark: bookmark, destination: URL(fileURLWithPath: "/tmp/copy-db", isDirectory: true), originalFilename: "podcast.m4a")
+    await db.setTaskError(bookmark: bookmark, error: "failed")
+
+    let dtos = await db.allCopyTaskDTOs()
+    #expect(dtos.count == 1)
+    #expect(dtos.first?.originalFilename == "podcast.m4a")
+    #expect(dtos.first?.error == "failed")
+    #expect(dtos.first?.destination == URL(fileURLWithPath: "/tmp/copy-db", isDirectory: true))
+}
+
+// MARK: - CopyWorker 静态分支
+
+@Test func copyWorkerSourceAccessHonorsScopeAndReadability() throws {
+    #expect(CopyWorker.hasCopySourceAccess(URL(fileURLWithPath: "/missing"), securityScopeGranted: true))
+    #expect(CopyWorker.hasCopySourceAccess(URL(fileURLWithPath: "/missing"), securityScopeGranted: false) == (FileManager.default.isReadableFile(atPath: "/missing") && FileManager.default.fileExists(atPath: "/missing")))
+}
+
+@Test func copyWorkerReservesUniqueNamesAcrossSameFolderTasks() {
+    let folder = URL(fileURLWithPath: "/tmp/copy-unique", isDirectory: true)
+    let tasks = [
+        CopyTaskDTO(bookmark: Data([1]), destination: folder, originalFilename: "track.mp3"),
+        CopyTaskDTO(bookmark: Data([2]), destination: folder, originalFilename: "track.mp3"),
+        CopyTaskDTO(bookmark: Data([3]), destination: folder, originalFilename: "track.mp3")
+    ]
+
+    let urls = CopyWorker.makeUniqueDestinationURLs(for: tasks, fileExists: { _ in false })
+    #expect(urls[0].lastPathComponent == "track.mp3")
+    #expect(urls[1].lastPathComponent == "track 2.mp3")
+    #expect(urls[2].lastPathComponent == "track 3.mp3")
+}

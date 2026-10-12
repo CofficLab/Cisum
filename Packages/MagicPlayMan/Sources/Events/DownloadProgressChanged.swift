@@ -2,6 +2,8 @@ import Combine
 import Foundation
 import SwiftUI
 import CisumUIComponents
+import LumiUI
+import MagicKit
 
 /// 下载进度变更事件
 /// 当媒体下载进度发生变化时触发

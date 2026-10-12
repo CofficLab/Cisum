@@ -1,6 +1,7 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
-import PluginAudio
+import ProviderAudioLibrary
 
 struct AudioDBTips: View {
     enum Variant {
@@ -9,10 +10,20 @@ struct AudioDBTips: View {
         case sorting
     }
 
-    @Environment(\.audioDBDependencies) private var dependencies
     @LumiTheme private var appTheme
+    let dependencies: AudioDBDependencies
     var variant: Variant = .empty
     var sortingMessage: String?
+
+    init(
+        dependencies: AudioDBDependencies,
+        variant: Variant = .empty,
+        sortingMessage: String? = nil
+    ) {
+        self.dependencies = dependencies
+        self.variant = variant
+        self.sortingMessage = sortingMessage
+    }
 
     var supportedFormats: String {
         dependencies.supportedExtensions.joined(separator: ",")
@@ -48,7 +59,8 @@ struct AudioDBTips: View {
                     }
                 #endif
 
-                BtnAdd().buttonStyle(.bordered).cisumIf(dependencies.isNotDesktop)
+                BtnAdd(dependencies: dependencies)
+                    .buttonStyle(.bordered)
 
             case .loading:
                 AppLoadingOverlay(message: LocalizedStringKey(String(localized: "Reading repository", bundle: .module)), size: .large)
@@ -73,6 +85,7 @@ struct AudioDBTips: View {
         .background(appTheme.background.opacity(0.5))
         .cisumRoundedMedium()
         .cisumShadowXl()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

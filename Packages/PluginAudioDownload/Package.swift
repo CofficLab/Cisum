@@ -15,25 +15,32 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../MagicKit"),
-        .package(path: "../CisumUIComponents"),
-        .package(path: "../MagicPlayMan"),
-        .package(path: "../KernelCore"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
+        .package(name: "KitPlayback", path: "../MagicPlayMan"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
+        .package(path: "../KitAppEvents"),
+        .package(path: "../ProviderPlugin"),
         .package(path: "../ProviderScene"),
-        .package(path: "../ProviderPlayback")
+        .package(path: "../ProviderPlayback"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.3.4")
     ],
     targets: [
         .target(
             name: "PluginAudioDownload",
             dependencies: [
-                .product(name: "MagicKit", package: "MagicKit"),
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
-                .product(name: "MagicPlayMan", package: "MagicPlayMan"),
-                .product(name: "KernelCore", package: "KernelCore"),
-                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
+                .product(name: "MagicPlayMan", package: "KitPlayback"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
-                .product(name: "ProviderPlayback", package: "ProviderPlayback")
+                .product(name: "ProviderPlayback", package: "ProviderPlayback"),
+                .product(name: "ProviderToast", package: "LumiProviders")
             ],
             path: ".",
             sources: ["Sources"],

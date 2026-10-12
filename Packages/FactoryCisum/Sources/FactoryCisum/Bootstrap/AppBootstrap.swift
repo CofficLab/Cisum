@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import Foundation
 
 /// 应用启动常量。

@@ -1,5 +1,8 @@
 import SwiftUI
+import ProviderPlayback
 import CisumUIComponents
+import LumiUI
+import MagicKit
 
 /// 音频播放模式枚举
 ///
@@ -12,16 +15,7 @@ import CisumUIComponents
 /// // 切换到下一个播放模式
 /// player.playMode = player.playMode.next
 /// ```
-public enum MagicPlayMode: String, CaseIterable, Sendable {
-    /// 顺序播放模式 - 按顺序播放所有曲目，播放完毕后停止
-    case sequence
-    /// 单曲循环模式 - 重复播放当前曲目
-    case loop
-    /// 随机播放模式 - 随机顺序播放所有曲目
-    case shuffle
-    /// 全部循环模式 - 按顺序播放所有曲目，播放完毕后从头开始
-    case repeatAll
-    
+public extension PlaybackMode {
     // MARK: - Display Properties
     
     /// 播放模式的完整显示名称
@@ -33,7 +27,7 @@ public enum MagicPlayMode: String, CaseIterable, Sendable {
     /// - .loop: "Single Track Loop"
     /// - .shuffle: "Shuffle Play"
     /// - .repeatAll: "Repeat All"
-    public var displayName: String {
+    var displayName: String {
         switch self {
         case .sequence: return "Sequential Play"
         case .loop: return "Single Track Loop"
@@ -51,7 +45,7 @@ public enum MagicPlayMode: String, CaseIterable, Sendable {
     /// - .loop: "Loop One"
     /// - .shuffle: "Shuffle"
     /// - .repeatAll: "Repeat All"
-    public var shortName: String {
+    var shortName: String {
         switch self {
         case .sequence: return "Sequential"
         case .loop: return "Loop One"
@@ -69,19 +63,19 @@ public enum MagicPlayMode: String, CaseIterable, Sendable {
     /// - .loop: ".iconRepeat1"
     /// - .shuffle: ".iconShuffle"
     /// - .repeatAll: ".iconRepeatAll"
-    public var iconName: String {
+    var iconName: String {
         switch self {
-        case .sequence: return .iconMusicNoteList
-        case .loop: return .iconRepeat1
-        case .shuffle: return .iconShuffle
-        case .repeatAll: return .iconRepeatAll
+        case .sequence: return PlaybackSymbol.musicNoteList
+        case .loop: return PlaybackSymbol.repeatOne
+        case .shuffle: return PlaybackSymbol.shuffle
+        case .repeatAll: return PlaybackSymbol.repeatAll
         }
     }
     
     /// 播放模式的图标快捷访问属性
     ///
     /// 提供对iconName的便捷访问，功能与iconName相同。
-    public var icon: String { iconName }
+    var icon: String { iconName }
     
     /// 获取下一个播放模式
     ///
@@ -91,10 +85,10 @@ public enum MagicPlayMode: String, CaseIterable, Sendable {
     /// ## 使用示例:
     /// ```swift
     /// // 当前模式为.sequence
-    /// let currentMode = MagicPlayMode.sequence
+    /// let currentMode = PlaybackMode.sequence
     /// let nextMode = currentMode.next // 结果为.loop
     /// ```
-    public var next: MagicPlayMode {
+    var next: PlaybackMode {
         switch self {
         case .sequence: return .loop
         case .loop: return .shuffle
@@ -115,7 +109,7 @@ public enum MagicPlayMode: String, CaseIterable, Sendable {
     /// ## 使用示例:
     /// ```swift
     /// struct PlayerControls: View {
-    ///     @State private var playMode: MagicPlayMode = .sequence
+    ///     @State private var playMode: PlaybackMode = .sequence
     ///     
     ///     var body: some View {
     ///         playMode.button {
@@ -124,8 +118,8 @@ public enum MagicPlayMode: String, CaseIterable, Sendable {
     ///     }
     /// }
     /// ```
-    public func button(action: @escaping () -> Void) -> some View {
-        MagicPlayModeButton(mode: self, action: action)
+    func button(action: @escaping () -> Void) -> some View {
+        PlaybackModeButton(mode: self, action: action)
     }
     
     /// 创建播放模式指示器视图
@@ -137,7 +131,7 @@ public enum MagicPlayMode: String, CaseIterable, Sendable {
     /// ## 使用示例:
     /// ```swift
     /// struct PlayerStatusBar: View {
-    ///     let playMode: MagicPlayMode
+    ///     let playMode: PlaybackMode
     ///     
     ///     var body: some View {
     ///         HStack {
@@ -148,7 +142,7 @@ public enum MagicPlayMode: String, CaseIterable, Sendable {
     ///     }
     /// }
     /// ```
-    public var indicator: some View {
+    var indicator: some View {
         PlayModeIndicator(mode: self)
     }
     
@@ -161,11 +155,11 @@ public enum MagicPlayMode: String, CaseIterable, Sendable {
     /// ## 使用示例:
     /// ```swift
     /// struct PlayModeSelector: View {
-    ///     @Binding var selectedMode: MagicPlayMode
+    ///     @Binding var selectedMode: PlaybackMode
     ///     
     ///     var body: some View {
     ///         Menu {
-    ///             ForEach(MagicPlayMode.allCases, id: \.self) { mode in
+    ///             ForEach(PlaybackMode.allCases, id: \.self) { mode in
     ///                 Button {
     ///                     selectedMode = mode
     ///                 } label: {
@@ -178,7 +172,7 @@ public enum MagicPlayMode: String, CaseIterable, Sendable {
     ///     }
     /// }
     /// ```
-    public var label: some View {
+    var label: some View {
         Label(shortName, systemImage: iconName)
     }
     
@@ -195,7 +189,7 @@ public enum MagicPlayMode: String, CaseIterable, Sendable {
     ///     showToast(message: message, icon: icon)
     /// }
     /// ```
-    public var toastMessage: (message: String, icon: String) {
+    var toastMessage: (message: String, icon: String) {
         (displayName, iconName)
     }
 }
@@ -210,7 +204,7 @@ public enum MagicPlayMode: String, CaseIterable, Sendable {
 /// ## 使用示例:
 /// ```swift
 /// struct PlayerView: View {
-///     let currentMode: MagicPlayMode = .shuffle
+///     let currentMode: PlaybackMode = .shuffle
 ///     
 ///     var body: some View {
 ///         VStack {
@@ -221,7 +215,7 @@ public enum MagicPlayMode: String, CaseIterable, Sendable {
 /// }
 /// ```
 public struct PlayModeIndicator: View {
-    let mode: MagicPlayMode
+    let mode: PlaybackMode
     
     public var body: some View {
         mode.label
@@ -241,7 +235,7 @@ public struct PlayModeIndicator: View {
 /// ## 使用示例:
 /// ```swift
 /// struct PlayerControls: View {
-///     @State private var playMode: MagicPlayMode = .sequence
+///     @State private var playMode: PlaybackMode = .sequence
 ///     
 ///     var body: some View {
 ///         HStack {
@@ -254,7 +248,7 @@ public struct PlayModeIndicator: View {
 /// }
 /// ```
 public struct PlayModeButton: View {
-    let mode: MagicPlayMode
+    let mode: PlaybackMode
     let action: () -> Void
     
     public var body: some View {
@@ -274,21 +268,21 @@ public struct PlayModeButton: View {
     VStack(spacing: 30) {
         // 指示器预览
         HStack(spacing: 20) {
-            ForEach(MagicPlayMode.allCases, id: \.self) { mode in
+            ForEach(PlaybackMode.allCases, id: \.self) { mode in
                 mode.indicator
             }
         }
         
         // 按钮预览
         HStack(spacing: 20) {
-            ForEach(MagicPlayMode.allCases, id: \.self) { mode in
+            ForEach(PlaybackMode.allCases, id: \.self) { mode in
                 mode.button {}
             }
         }
         
         // 标签预览
         VStack(alignment: .leading, spacing: 10) {
-            ForEach(MagicPlayMode.allCases, id: \.self) { mode in
+            ForEach(PlaybackMode.allCases, id: \.self) { mode in
                 mode.label
             }
         }

@@ -184,7 +184,7 @@ User-Visible App =
 
 **Key Views**:
 - `Plugins/Book/Views/` (if present)
-- Integrated via `BookDBPlugin`
+- Integrated via `BookDBViewPlugin`
 
 ### Storage Plugin UI
 

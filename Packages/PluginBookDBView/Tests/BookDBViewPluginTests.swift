@@ -1,12 +1,15 @@
 import Testing
 @testable import PluginBookDBView
 import Foundation
-import PluginBook
+import KernelCore
+import ProviderBook
+import ProviderBookData
+import ProviderSettingView
 import SwiftData
 import UniformTypeIdentifiers
 
 @Test func bookDBInfoExportsMetadata() {
-    #expect(BookDBPluginInfo.iconName == "books.vertical")
+    #expect(BookDBViewPluginInfo.iconName == "books.vertical")
 }
 
 @Test func bookTilePlaceholderColorIsStableAndTitleDependent() {
@@ -780,15 +783,23 @@ import UniformTypeIdentifiers
 }
 
 @MainActor
-@Test func bookDBPluginProvidesSettingsNavigationItem() {
-    let item = BookDBPlugin.shared.addSettingNavigationItem()
+@Test func bookDBPluginContributesSettingsEntryThroughContract() async throws {
+    let kernel = KernelCoreContainer()
+    let settings = DefaultSettingViewProviding()
+    try kernel.registerProvider((any SettingViewProviding).self, settings)
 
-    #expect(item != nil)
-    #expect(item?.id == "bookdb")
-    #expect(item?.title == BookDBPluginInfo.titleKey)
-    #expect(item?.description == BookDBPlugin.metadata.description)
-    #expect(item?.iconName == BookDBPluginInfo.iconName)
-    #expect(item?.order == BookDBPlugin.metadata.order)
+    let plugin = BookDBViewPlugin()
+    try await plugin.onBootAsync(kernel: kernel)
+
+    // 入口经 SettingViewProviding 契约注入，宿主侧即可读到。
+    let entry = try #require(settings.entries.first { $0.id == "bookdb" })
+    #expect(entry.title == BookDBViewPluginInfo.titleKey)
+    #expect(entry.systemImage == BookDBViewPluginInfo.iconName)
+    #expect(entry.order == plugin.order)
+
+    // 卸载后入口必须被完整撤回（卸载完整性）。
+    try await plugin.onShutdownAsync(kernel: kernel)
+    #expect(settings.entries.isEmpty)
 }
 
 // MARK: - Book tree builder
@@ -856,4 +867,3 @@ import UniformTypeIdentifiers
 
     #expect(BookTreeBuilder.buildRootChildren(from: root).isEmpty)
 }
-

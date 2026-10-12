@@ -9,5 +9,6 @@ struct KernelLoadingView: View {
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityIdentifier("cisum.kernel.loading")
     }
 }

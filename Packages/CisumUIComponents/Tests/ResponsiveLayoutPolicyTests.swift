@@ -1,0 +1,31 @@
+import Foundation
+import Testing
+@testable import CisumUIComponents
+
+struct ResponsiveLayoutPolicyTests {
+    @Test
+    func playerLayoutMetricsRespectSizingThresholds() {
+        #expect(CisumPlayerLayout.defaultWindowSize == CGSize(width: 400, height: 600))
+        #expect(CisumPlayerLayout.stateHeight(for: 250) == 24)
+        #expect(CisumPlayerLayout.stateHeight(for: 251) == 36)
+        #expect(CisumPlayerLayout.stateHeight(for: 450) == 36)
+        #expect(CisumPlayerLayout.stateHeight(for: 451) == 48)
+        #expect(CisumPlayerLayout.controlButtonHeight(width: 500, height: 400) == 100)
+        #expect(CisumPlayerLayout.controlButtonHeight(width: 400, height: 150) == 64)
+        #expect(CisumPlayerLayout.controlButtonHeight(width: 400, height: 250) == 64)
+        #expect(CisumPlayerLayout.controlButtonSize(width: 400, areaHeight: 64) == 44)
+        #expect(CisumPlayerLayout.controlButtonSize(width: 500, areaHeight: 100) == 72)
+        #expect(abs(CisumPlayerLayout.controlButtonHeight(width: 100, height: 100) - 30.4) < 0.001)
+        #expect(abs(CisumPlayerLayout.controlButtonSize(width: 100, areaHeight: 30.4) - 10.4) < 0.001)
+        #expect(CisumPlayerLayout.controlButtonHeight(width: -1, height: 100) == 0)
+        #expect(!CisumPlayerLayout.shouldShowRightAlbum(width: 768))
+        #expect(CisumPlayerLayout.shouldShowRightAlbum(width: 768.1))
+        #expect(CisumPlayerLayout.needsExpandedWindow(for: 450))
+        #expect(!CisumPlayerLayout.needsExpandedWindow(for: 451))
+        #expect(CisumPlayerLayout.horizontalCenteringOffset(proposedWidth: 600, visibleWidth: 400) == 100)
+        #expect(CisumPlayerLayout.horizontalCenteringOffset(proposedWidth: 400, visibleWidth: 400) == 0)
+        #expect(CisumPlayerLayout.horizontalCenteringOffset(proposedWidth: 900, visibleWidth: 900) == 0)
+        #expect(CisumPlayerLayout.horizontalCenteringOffset(proposedWidth: 900, visibleWidth: 700) == 100)
+    }
+
+}

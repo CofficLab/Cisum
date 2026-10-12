@@ -1,5 +1,8 @@
 import SwiftUI
+import ProviderPlayback
 import CisumUIComponents
+import LumiUI
+import MagicKit
 
 /// 播放模式按钮视图组件
 ///
@@ -9,18 +12,18 @@ import CisumUIComponents
 /// ## 使用示例:
 /// ```swift
 /// struct PlayerControls: View {
-///     @State private var playMode: MagicPlayMode = .sequence
+///     @State private var playMode: PlaybackMode = .sequence
 ///     
 ///     var body: some View {
-///         MagicPlayModeButton(mode: playMode) {
+///         PlaybackModeButton(mode: playMode) {
 ///             playMode = playMode.next
 ///         }
 ///     }
 /// }
 /// ```
-struct MagicPlayModeButton: View {
+struct PlaybackModeButton: View {
     /// 当前显示的播放模式
-    let mode: MagicPlayMode
+    let mode: PlaybackMode
     /// 按钮点击时执行的操作
     let action: () -> Void
 
@@ -35,7 +38,7 @@ struct MagicPlayModeButton: View {
     /// - Parameters:
     ///   - mode: 要显示的播放模式
     ///   - action: 按钮点击时执行的闭包
-    init(mode: MagicPlayMode, action: @escaping () -> Void) {
+    init(mode: PlaybackMode, action: @escaping () -> Void) {
         self.mode = mode
         self.action = action
     }
@@ -98,9 +101,9 @@ struct MagicPlayModeButton: View {
     }
 }
 
-#Preview("MagicPlayModeButton") {
+#Preview("PlaybackModeButton") {
     struct PreviewWrapper: View {
-        @State private var mode: MagicPlayMode = .sequence
+        @State private var mode: PlaybackMode = .sequence
         @Environment(\.localization) private var loc
 
         var body: some View {
@@ -110,12 +113,12 @@ struct MagicPlayModeButton: View {
                         .font(.headline)
 
                     ForEach([
-                        MagicPlayMode.sequence,
+                        PlaybackMode.sequence,
                         .loop,
                         .shuffle,
                         .repeatAll
                     ], id: \.self) { mode in
-                        MagicPlayModeButton(mode: mode) {
+                        PlaybackModeButton(mode: mode) {
                             print("Toggle mode: \(mode)")
                         }
                     }
@@ -129,12 +132,12 @@ struct MagicPlayModeButton: View {
                         .font(.headline)
 
                     ForEach([
-                        MagicPlayMode.sequence,
+                        PlaybackMode.sequence,
                         .loop,
                         .shuffle,
                         .repeatAll
                     ], id: \.self) { mode in
-                        MagicPlayModeButton(mode: mode) {
+                        PlaybackModeButton(mode: mode) {
                             print("Toggle mode: \(mode)")
                         }
                     }

@@ -1,4 +1,7 @@
+import ProviderToast
 import Foundation
+import ProviderAudioNavigation
+import ProviderPlayback
 import Testing
 @testable import PluginAudioControlButtons
 
@@ -48,4 +51,317 @@ import Testing
         currentGeneration: generation,
         requestGeneration: 2
     ))
+}
+
+// MARK: - ViewModel 集成
+
+@MainActor
+private final class PlaybackProbe: PlaybackProviding {
+    var currentURL: URL?
+    var state: PlaybackStatus = .paused
+    var currentTime: TimeInterval = 0
+    var duration: TimeInterval = 0
+    var progress: Double = 0
+    var playMode: PlaybackMode = .sequence
+    var likedAssets: Set<URL> = []
+    var isPlaying: Bool { state.isPlaying }
+    var hasAsset: Bool { currentURL != nil }
+    var toggleCount = 0
+    var togglePlayModeCount = 0
+    var playedURLs: [URL] = []
+    var resetCount = 0
+
+    func toggle() { toggleCount += 1 }
+    func togglePlayMode() { togglePlayModeCount += 1 }
+    func play(_ url: URL) async { playedURLs.append(url); currentURL = url }
+    func reset() async { resetCount += 1 }
+    func pause() {}
+    func seek(toProgress progress: Double) {}
+    func seek(toTime time: TimeInterval) {}
+    func next() {}
+    func previous() {}
+    func setPlayMode(_ mode: PlaybackMode) { playMode = mode }
+    func toggleCurrentLike() {}
+    func addObserver(_ callback: @escaping (PlaybackProvidingEvent) -> Void) -> any PlaybackProvidingObserverHandle {
+        NoopPlaybackProvidingObserverHandle()
+    }
+}
+
+@MainActor
+private final class NavigationProbe: AudioTrackNavigationProviding {
+    var nextResult: Result<URL?, Error> = .success(nil)
+    var previousResult: Result<URL?, Error> = .success(nil)
+    var firstURLValue: URL?
+    var lastURLValue: URL?
+
+    func nextURL(after current: URL?, verbose: Bool) async throws -> URL? { try nextResult.get() }
+    func previousURL(before current: URL?, verbose: Bool) async throws -> URL? { try previousResult.get() }
+    func firstURL() async throws -> URL? { firstURLValue }
+    func lastURL() async throws -> URL? { lastURLValue }
+}
+
+@MainActor
+private final class ToastProbe: ToastProviding {
+    var errors: [(title: String, message: String, sourceWindowID: String?)] = []
+    var infos: [String] = []
+
+    func show(_ toast: CisumToast) { infos.append(toast.title) }
+    func presentError(title: String, message: String, sourceWindowID: String?) {
+        errors.append((title, message, sourceWindowID))
+    }
+    func dismissError() {}
+    func showLoading(title: String, detail: String?) {}
+    func dismissLoading() {}
+    func dismissAll() {}
+}
+
+@MainActor
+struct ControlButtonsViewModelTests {
+    @Test
+    func initReflectsPlaybackState() {
+        let playback = PlaybackProbe()
+        playback.state = .playing
+        playback.playMode = .shuffle
+        let viewModel = ControlButtonsViewModel(
+            playbackProvider: playback,
+            targetScene: .music,
+            currentScene: .music
+        )
+        #expect(viewModel.isPlaying)
+        #expect(viewModel.playMode == .shuffle)
+        #expect(viewModel.shouldActivateControl)
+    }
+
+    @Test
+    func sceneMismatchDeactivatesControl() {
+        let viewModel = ControlButtonsViewModel(
+            playbackProvider: nil,
+            targetScene: .music,
+            currentScene: .audiobooks
+        )
+        #expect(!viewModel.shouldActivateControl)
+    }
+
+    @Test
+    func applyStateChangedTracksPlaying() {
+        let viewModel = ControlButtonsViewModel(playbackProvider: nil, targetScene: .music)
+        viewModel.applyStateChanged(.playing)
+        #expect(viewModel.isPlaying)
+        viewModel.applyStateChanged(.paused)
+        #expect(!viewModel.isPlaying)
+        viewModel.applyStateChanged(.idle)
+        #expect(!viewModel.isPlaying)
+    }
+
+    @Test
+    func failureStatePresentsErrorOnce() {
+        let toast = ToastProbe()
+        let viewModel = ControlButtonsViewModel(
+            playbackProvider: nil,
+            toastProvider: toast,
+            targetScene: .music
+        )
+
+        viewModel.applyStateChanged(.failed(.invalidAsset))
+        #expect(toast.errors.count == 1)
+
+        // 相同失败不重复弹窗。
+        viewModel.applyStateChanged(.failed(.invalidAsset))
+        #expect(toast.errors.count == 1)
+
+        // 不同失败再次弹窗。
+        viewModel.applyStateChanged(.failed(.noAsset))
+        #expect(toast.errors.count == 2)
+
+        // 恢复后同失败可再次弹窗。
+        viewModel.applyStateChanged(.playing)
+        viewModel.applyStateChanged(.failed(.invalidAsset))
+        #expect(toast.errors.count == 3)
+    }
+
+    @Test
+    func sceneChangeInvalidatesPendingNavigation() async throws {
+        let playback = PlaybackProbe()
+        let current = URL(fileURLWithPath: "/tmp/current.mp3")
+        let next = URL(fileURLWithPath: "/tmp/next.mp3")
+        playback.currentURL = current
+        let navigation = NavigationProbe()
+        navigation.nextResult = .success(next)
+
+        let viewModel = ControlButtonsViewModel(
+            playbackProvider: playback,
+            navigationProvider: navigation,
+            targetScene: .music,
+            currentScene: .music
+        )
+        viewModel.handleNextRequested(current)
+        // 导航尚未完成时切走场景 → 代际失效。
+        viewModel.handleSceneChange(.audiobooks)
+
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(playback.playedURLs.isEmpty)
+    }
+
+    @Test
+    func nextNavigatesAndPlays() async throws {
+        let playback = PlaybackProbe()
+        let current = URL(fileURLWithPath: "/tmp/current.mp3")
+        let next = URL(fileURLWithPath: "/tmp/next.mp3")
+        playback.currentURL = current
+        let navigation = NavigationProbe()
+        navigation.nextResult = .success(next)
+
+        let viewModel = ControlButtonsViewModel(
+            playbackProvider: playback,
+            navigationProvider: navigation,
+            targetScene: .music,
+            currentScene: .music
+        )
+        viewModel.handleNextRequested(current)
+
+        for _ in 0..<50 where playback.playedURLs.isEmpty {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(playback.playedURLs == [next])
+    }
+
+    @Test
+    func nextAtEndWithoutRepeatAllPresentsError() async throws {
+        let playback = PlaybackProbe()
+        let current = URL(fileURLWithPath: "/tmp/current.mp3")
+        playback.currentURL = current
+        playback.playMode = .sequence
+        let navigation = NavigationProbe()
+        navigation.nextResult = .success(nil)
+        let toast = ToastProbe()
+
+        let viewModel = ControlButtonsViewModel(
+            playbackProvider: playback,
+            navigationProvider: navigation,
+            toastProvider: toast,
+            targetScene: .music,
+            currentScene: .music
+        )
+        viewModel.handleNextRequested(current)
+
+        for _ in 0..<50 where toast.errors.isEmpty {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(!toast.errors.isEmpty)
+        #expect(playback.playedURLs.isEmpty)
+    }
+
+    @Test
+    func previousAtStartWithoutRepeatAllPresentsError() async throws {
+        let playback = PlaybackProbe()
+        let current = URL(fileURLWithPath: "/tmp/current.mp3")
+        playback.currentURL = current
+        let navigation = NavigationProbe()
+        navigation.previousResult = .success(nil)
+        let toast = ToastProbe()
+
+        let viewModel = ControlButtonsViewModel(
+            playbackProvider: playback,
+            navigationProvider: navigation,
+            toastProvider: toast,
+            targetScene: .music,
+            currentScene: .music
+        )
+        viewModel.handlePreviousRequested(current)
+
+        for _ in 0..<50 where toast.errors.isEmpty {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(!toast.errors.isEmpty)
+        #expect(playback.playedURLs.isEmpty)
+    }
+
+    @Test
+    func nextWithRepeatAllFallsBackToFirst() async throws {
+        let playback = PlaybackProbe()
+        let current = URL(fileURLWithPath: "/tmp/current.mp3")
+        let first = URL(fileURLWithPath: "/tmp/first.mp3")
+        playback.currentURL = current
+        playback.playMode = .repeatAll
+        let navigation = NavigationProbe()
+        navigation.nextResult = .success(nil)
+        navigation.firstURLValue = first
+
+        let viewModel = ControlButtonsViewModel(
+            playbackProvider: playback,
+            navigationProvider: navigation,
+            targetScene: .music,
+            currentScene: .music
+        )
+        viewModel.handleNextRequested(current)
+
+        for _ in 0..<50 where playback.playedURLs.isEmpty {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(playback.playedURLs == [first])
+    }
+
+    @Test
+    func previousWithoutCapabilityReportsUnavailable() {
+        let toast = ToastProbe()
+        let viewModel = ControlButtonsViewModel(
+            playbackProvider: nil,
+            navigationProvider: nil,
+            toastProvider: toast,
+            targetScene: .music,
+            currentScene: .music
+        )
+        viewModel.previous()
+        #expect(!toast.errors.isEmpty)
+    }
+
+    @Test
+    func toggleWithoutCapabilityReportsUnavailable() {
+        let toast = ToastProbe()
+        let viewModel = ControlButtonsViewModel(
+            playbackProvider: nil,
+            toastProvider: toast,
+            targetScene: .music,
+            currentScene: .music
+        )
+        viewModel.toggle()
+        #expect(!toast.errors.isEmpty)
+    }
+
+    @Test
+    func deletionOfCurrentAssetResetsPlayback() async throws {
+        let playback = PlaybackProbe()
+        let current = URL(fileURLWithPath: "/tmp/deleted.mp3")
+        playback.currentURL = current
+
+        let viewModel = ControlButtonsViewModel(
+            playbackProvider: playback,
+            navigationProvider: nil,
+            targetScene: .music,
+            currentScene: .music
+        )
+        viewModel.handleDBDeleted(urlsToDelete: [current])
+
+        for _ in 0..<50 where playback.resetCount == 0 {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(playback.resetCount == 1)
+    }
+
+    @Test
+    func deletionOfUnrelatedAssetIsIgnored() async throws {
+        let playback = PlaybackProbe()
+        playback.currentURL = URL(fileURLWithPath: "/tmp/kept.mp3")
+
+        let viewModel = ControlButtonsViewModel(
+            playbackProvider: playback,
+            navigationProvider: nil,
+            targetScene: .music,
+            currentScene: .music
+        )
+        viewModel.handleDBDeleted(urlsToDelete: [URL(fileURLWithPath: "/tmp/other.mp3")])
+
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(playback.resetCount == 0)
+    }
 }

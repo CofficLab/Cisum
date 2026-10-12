@@ -1,6 +1,6 @@
-import Foundation
-import ProviderPlayback
 import ProviderScene
+import ProviderPlayback
+import Foundation
 import MagicKit
 
 /// 音频喜欢状态通知的集中观察者（迁移 Phase 2）。
@@ -9,6 +9,7 @@ import MagicKit
 /// 刷新喜欢列表；取代 `AudioLikeSettingsView` 直接 `.onReceive` 订阅。
 @MainActor
 final class AudioLikeObserver: SuperLog {
+    nonisolated static let emoji = "❤️"
     nonisolated static let verbose = false
 
     private weak var viewModel: AudioLikeViewModel?

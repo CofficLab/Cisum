@@ -7,24 +7,35 @@
 # 2. Finding the last beta tag for this version
 # 3. Incrementing the iteration number
 #
+# Supports both the legacy project.pbxproj property list and Xcode 27's
+# JSON project.xcproj format.
+#
 # Usage: ./scripts/calculate-beta-version.sh
 # Output: <version>-beta.<iteration> (e.g., 3.1.6-beta.2)
+#
 
 set -euo pipefail
 
-# Find the Xcode project file
-PROJECT_FILE=$(find $(pwd) -type f -name "*.pbxproj" | head -n 1)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=.github/scripts/xcode-project.sh
+source "$SCRIPT_DIR/xcode-project.sh"
 
-if [ -z "$PROJECT_FILE" ]; then
-  echo "Error: Cannot find .pbxproj file" >&2
+# Find the Xcode project file
+PROJECT_FILE=$(xcode_project_file "$(pwd)") || {
+  echo "Error: Cannot find Xcode project file (project.xcproj or project.pbxproj)" >&2
   exit 1
-fi
+}
 
 # Get current version from MARKETING_VERSION
-CURRENT_VERSION=$(grep -o 'MARKETING_VERSION = [^"]*' "$PROJECT_FILE" | head -n 1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+CURRENT_VERSION=$(xcode_project_setting "$PROJECT_FILE" MARKETING_VERSION) || {
+  echo "Error: Cannot find MARKETING_VERSION in project file" >&2
+  exit 1
+}
+
+CURRENT_VERSION=$(echo "$CURRENT_VERSION" | grep -o '[0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?' || true)
 
 if [ -z "$CURRENT_VERSION" ]; then
-  echo "Error: Cannot find MARKETING_VERSION in project file" >&2
+  echo "Error: MARKETING_VERSION in project file is not a semantic version" >&2
   exit 1
 fi
 

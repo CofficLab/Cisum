@@ -1,4 +1,6 @@
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import SwiftUI
 
 /// 播放/暂停按钮视图
@@ -36,7 +38,7 @@ struct PlayPauseButtonView: View, SuperLog {
         Button(action: {
             man.toggle(reason: self.className)
         }) {
-            Image(systemName: man.state == .playing ? .iconPauseFill : .iconPlayFill)
+            Image(systemName: man.state == .playing ? PlaybackSymbol.pauseFill : PlaybackSymbol.playFill)
                 .frame(width: size, height: size)
         }
         .disabled(disabledReason != nil)

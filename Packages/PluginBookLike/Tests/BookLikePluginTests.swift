@@ -1,10 +1,7 @@
 @testable import PluginBookLike
 import Testing
 import Foundation
-
-private final class NotificationObserverToken: @unchecked Sendable {
-    var value: NSObjectProtocol?
-}
+import ProviderPlayback
 
 @Test func pluginInfoExportsRegistrationMetadata() {
     #expect(BookLikePluginInfo.iconName == "heart")
@@ -15,7 +12,7 @@ private final class NotificationObserverToken: @unchecked Sendable {
 @MainActor
 func pluginExposesSettingsNavigationItem() {
     let view = BookLikePlugin.shared.addSettingView()
-    let item = BookLikePlugin.shared.addSettingNavigationItem()
+    let item = BookLikePlugin.shared.makeSettingEntry()
 
     #expect(view == nil)
     #expect(item != nil)
@@ -25,31 +22,6 @@ func pluginExposesSettingsNavigationItem() {
 
 @Test func bookLikeSettingsUsesLocalizedLoadingText() {
     #expect(BookLikeSettingsView.loadingTextKey == "Loading...")
-}
-
-@Test func bookLikeStatusNotificationIsDeliveredOnMainThread() async {
-    let url = URL(fileURLWithPath: "/tmp/Cisum Books/Main Thread Book")
-
-    let deliveredOnMainThread = await withCheckedContinuation { continuation in
-        let token = NotificationObserverToken()
-        token.value = NotificationCenter.default.addObserver(
-            forName: .BookLikeStatusChanged,
-            object: nil,
-            queue: nil
-        ) { _ in
-            if let observer = token.value {
-                NotificationCenter.default.removeObserver(observer)
-                token.value = nil
-            }
-            continuation.resume(returning: Thread.isMainThread)
-        }
-
-        Task.detached {
-            NotificationCenter.postBookLikeStatusChanged(url: url, liked: true)
-        }
-    }
-
-    #expect(deliveredOnMainThread)
 }
 
 @Test func bookLikeStorePersistsRealLikedBooks() throws {
@@ -150,4 +122,106 @@ func pluginExposesSettingsNavigationItem() {
     let likedBooks = BookLikeStore.likedBooks(defaults: defaults)
 
     #expect(likedBooks.map(\.title) == ["Legacy Book", "Legacy Spaced Book", "Spaced Book", "Valid Book"])
+}
+
+// MARK: - ViewModel 集成
+
+@MainActor
+private final class BookLikePlaybackProbe: PlaybackProviding {
+    var state: PlaybackStatus = .idle
+    var currentURL: URL?
+    var currentTime: TimeInterval = 0
+    var duration: TimeInterval = 0
+    var progress: Double = 0
+    var playMode: PlaybackMode = .sequence
+    var likedAssets: Set<URL> = []
+    var isPlaying = false
+    var hasAsset: Bool { currentURL != nil }
+    func play(_ url: URL) async {}
+    func pause() {}
+    func toggle() {}
+    func seek(toProgress progress: Double) {}
+    func seek(toTime time: TimeInterval) {}
+    func next() {}
+    func previous() {}
+    func setPlayMode(_ mode: PlaybackMode) {}
+    func toggleCurrentLike() {}
+    func togglePlayMode() {}
+    func addObserver(_ callback: @escaping (PlaybackProvidingEvent) -> Void) -> any PlaybackProvidingObserverHandle {
+        NoopPlaybackProvidingObserverHandle()
+    }
+}
+
+@MainActor
+struct BookLikeViewModelTests {
+    @Test
+    func reloadLoadsLikedBooks() {
+        let items = [BookLikeItem(url: URL(fileURLWithPath: "/tmp/book-a"), title: "A")]
+        let viewModel = BookLikeViewModel(
+            playbackProvider: BookLikePlaybackProbe(),
+            loadLikedBooks: { items },
+            saveLikeStatus: { _, _ in }
+        )
+
+        viewModel.handleAppear()
+
+        #expect(viewModel.likedBooks == items)
+        #expect(viewModel.isLoading == false)
+    }
+
+    @Test
+    func likeSaveRequiresActiveScene() {
+        var saved: [(Bool, URL)] = []
+        let viewModel = BookLikeViewModel(
+            playbackProvider: BookLikePlaybackProbe(),
+            loadLikedBooks: { [] },
+            saveLikeStatus: { liked, url in saved.append((liked, url)) }
+        )
+
+        let asset = URL(fileURLWithPath: "/tmp/book-a/chapter.mp3")
+        viewModel.handleLikeStatusChanged(asset: asset, liked: true)
+        #expect(saved.isEmpty)
+
+        viewModel.handleSceneChange(.audiobooks)
+        viewModel.handleLikeStatusChanged(asset: asset, liked: true)
+        #expect(saved.count == 1)
+        #expect(saved.first?.0 == true)
+        #expect(saved.first?.1 == asset)
+
+        viewModel.handleSceneChange(.music)
+        viewModel.handleLikeStatusChanged(asset: asset, liked: false)
+        #expect(saved.count == 1)
+    }
+
+    @Test
+    func activationRequiresPlaybackProvider() {
+        var saved: [(Bool, URL)] = []
+        let viewModel = BookLikeViewModel(
+            playbackProvider: nil,
+            loadLikedBooks: { [] },
+            saveLikeStatus: { liked, url in saved.append((liked, url)) }
+        )
+
+        viewModel.handleSceneChange(.audiobooks)
+        viewModel.handleLikeStatusChanged(asset: URL(fileURLWithPath: "/tmp/book-a/chapter.mp3"), liked: true)
+        #expect(saved.isEmpty)
+    }
+
+    @Test
+    func likeStatusChangeReloadsList() {
+        var loadCount = 0
+        let viewModel = BookLikeViewModel(
+            playbackProvider: BookLikePlaybackProbe(),
+            loadLikedBooks: {
+                loadCount += 1
+                return []
+            },
+            saveLikeStatus: { _, _ in }
+        )
+
+        viewModel.handleSceneChange(.audiobooks)
+        viewModel.handleLikeStatusChanged(asset: URL(fileURLWithPath: "/tmp/book-a/chapter.mp3"), liked: true)
+
+        #expect(loadCount >= 1)
+    }
 }

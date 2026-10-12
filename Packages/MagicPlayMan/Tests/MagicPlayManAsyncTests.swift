@@ -1,5 +1,6 @@
 import AVFoundation
 import Combine
+import ProviderPlayback
 @testable import MagicPlayMan
 import XCTest
 
@@ -702,7 +703,7 @@ final class MagicPlayManAsyncTests: XCTestCase {
 
     func testPlayModeChangeNotification() async throws {
         let man = MagicPlayMan()
-        var modes: [MagicPlayMode] = []
+        var modes: [PlaybackMode] = []
         let id = man.subscribe(name: "test", onPlayModeChanged: { mode in
             modes.append(mode)
         })

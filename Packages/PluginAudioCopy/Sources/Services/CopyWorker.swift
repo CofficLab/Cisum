@@ -1,3 +1,4 @@
+import MagicKit
 #if os(macOS)
     import Foundation
     import MagicKit

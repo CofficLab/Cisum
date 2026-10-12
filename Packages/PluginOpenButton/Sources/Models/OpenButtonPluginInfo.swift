@@ -1,5 +1,6 @@
 import Foundation
 import CisumUIComponents
+import LumiUI
 
 public enum OpenButtonPluginInfo {
     public static let description = String(localized: "Open Current Button", bundle: .module)

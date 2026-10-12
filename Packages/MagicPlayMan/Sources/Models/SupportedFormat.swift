@@ -1,5 +1,7 @@
 import Foundation
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import SwiftUI
 
 /// 支持的媒体格式

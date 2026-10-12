@@ -1,29 +1,56 @@
-import CisumUIComponents
-import KernelCore
+import ProviderAudioLibrary
 import ProviderDocsView
-import PluginAudio
+import CisumUIComponents
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
+import ProviderToast
 import SwiftUI
 import MagicKit
 
 #if os(macOS)
-    public actor CopyPlugin: SuperPlugin, SuperLog {
+    @MainActor
+public final class CopyPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = String(describing: CopyPlugin.self)
+
     nonisolated static let verbose = false
 
         public static let shared = CopyPlugin()
-        public static let metadata = PluginMetadata(
-            displayName: String(localized: "Copy", bundle: .module),
-            description: String(localized: String.LocalizationValue(AudioCopyPluginInfo.descriptionKey), bundle: .module),
-            iconName: AudioCopyPluginInfo.iconName,
-            order: 0,
-        category: .tool,
-        )
+        public let order = 0
+    public let iconName = AudioCopyPluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: String(describing: CopyPlugin.self),
+        name: String(localized: "Copy", bundle: .module),
+        description: String(localized: String.LocalizationValue(AudioCopyPluginInfo.descriptionKey), bundle: .module),
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
+        policy: .disabled,
+        permissions: []
+    )
+
+        nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
 
 
     @MainActor
-    public func onRegister(kernel: CisumKernel) async throws {
-        if let docs = kernel.docs {
-            docs.addAbout(DocsEntry(id: self.id, name: Self.metadata.displayName) { CopyPluginAboutView() })
-            docs.addManual(DocsEntry(id: self.id, name: Self.metadata.displayName) { CopyPluginManualView() })
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        self.kernel = kernel
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { CopyPluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { CopyPluginManualView() })
+        }
+    }
+
+    @MainActor
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+    }
+
+    @MainActor
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            if let view = self.addStateView() { contrib.addStateView(ownerPluginID: id, view) }
         }
     }
 
@@ -43,14 +70,15 @@ import MagicKit
         private func configureService() {
             AudioCopyService.configure(
                 audioDiskProvider: {
-                    AudioPlugin.getAudioDisk()
+                    self.kernel?.resolveProvider((any AudioLibraryProviding).self)?.audioDisk
                 },
                 audioCountProvider: {
-                    guard let repo = await AudioPlugin.getAudioRepoAsync() else {
+                    guard let library = self.kernel?.resolveProvider((any AudioLibraryProviding).self) else {
                         return 0
                     }
-                    return await repo.getTotalCount()
-                }
+                    return await library.totalCount()
+                },
+                toastProvider: self.kernel?.resolveProvider((any ToastProviding).self)
             )
         }
     }

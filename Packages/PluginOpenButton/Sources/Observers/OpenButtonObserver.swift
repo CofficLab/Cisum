@@ -1,9 +1,10 @@
-import Foundation
 import ProviderPlayback
+import Foundation
 import MagicKit
 
 @MainActor
 final class OpenButtonObserver: SuperLog {
+    nonisolated static let emoji = "📂"
     nonisolated static let verbose = false
 
     private weak var viewModel: OpenButtonViewModel?

@@ -1,9 +1,10 @@
-import ProviderPlayback
 import ProviderScene
+import ProviderPlayback
 import MagicKit
 
 @MainActor
 final class AudioDownloadObserver: SuperLog {
+    nonisolated static let emoji = "📥"
     nonisolated static let verbose = false
 
     private weak var viewModel: AudioDownloadViewModel?

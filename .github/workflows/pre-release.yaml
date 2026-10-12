@@ -19,11 +19,20 @@ jobs:
       - name: 读取版本号
         id: version
         run: |
-          # 查找 Xcode 项目文件
-          projectFile=$(find $(pwd) -type f -name "*.pbxproj" | head -n 1)
+          source .github/scripts/xcode-project.sh
+
+          # 查找 Xcode 项目文件（project.xcproj 或 project.pbxproj）
+          projectFile=$(xcode_project_file "$(pwd)")
+          echo "📁 Project file: $projectFile"
 
           # 从 Xcode 配置文件读取版本号
-          VERSION=$(grep -o 'MARKETING_VERSION = [^"]*' "$projectFile" | head -n 1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+          VERSION=$(xcode_project_setting "$projectFile" MARKETING_VERSION \
+            | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+
+          if [ -z "$VERSION" ]; then
+            echo "Error: 无法从项目文件读取版本号" >&2
+            exit 1
+          fi
 
           # 添加 p 前缀作为标签名
           TAG_NAME="p${VERSION}"

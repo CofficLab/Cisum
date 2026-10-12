@@ -1,6 +1,8 @@
 import Foundation
 import SwiftUI
 import CisumUIComponents
+import LumiUI
+import MagicKit
 
 public enum PlaybackState: Equatable {
     case idle
@@ -144,6 +146,14 @@ public enum PlaybackState: Equatable {
 
     public var isPlaying: Bool {
         if case .playing = self {
+            return true
+        }
+        return false
+    }
+
+    /// 是否是失败状态
+    public var isFailed: Bool {
+        if case .failed = self {
             return true
         }
         return false

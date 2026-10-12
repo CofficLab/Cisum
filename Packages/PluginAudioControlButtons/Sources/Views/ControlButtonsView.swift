@@ -1,9 +1,12 @@
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import SwiftUI
 
 /// 播放器底部控制按钮组：更多 / 上一曲 / 播放暂停 / 下一曲 / 播放模式。
 struct ControlButtonsView: View {
     @ObservedObject private var viewModel: ControlButtonsViewModel
+    @Environment(\.toastWindowID) private var windowID
     let toggleDBView: @MainActor () -> Void
 
     init(viewModel: ControlButtonsViewModel, toggleDBView: @escaping @MainActor () -> Void) {
@@ -13,9 +16,12 @@ struct ControlButtonsView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let buttonSize = buttonSize(for: geometry.size)
+            let buttonSize = CisumPlayerLayout.controlButtonSize(
+                width: geometry.size.width,
+                areaHeight: geometry.size.height
+            )
 
-            HStack(spacing: buttonSpacing) {
+            HStack(spacing: CisumPlayerLayout.controlButtonSpacing) {
                 AppCircularIconButton(
                     systemImage: "ellipsis",
                     accessibilityLabel: "More",
@@ -42,7 +48,7 @@ struct ControlButtonsView: View {
                     action: viewModel.next
                 )
                 AppCircularIconButton(
-                    systemImage: viewModel.playMode.iconName,
+                    systemImage: playModeIconName,
                     accessibilityLabel: "Playback mode",
                     size: buttonSize,
                     isActive: viewModel.playMode != .sequence,
@@ -53,16 +59,20 @@ struct ControlButtonsView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .buttonStyle(.plain)
+        .onAppear { viewModel.setSourceWindowID(windowID) }
+        .onChange(of: windowID) { _, newValue in
+            viewModel.setSourceWindowID(newValue)
+        }
     }
 
-    private let buttonCount: CGFloat = 5
-    private let buttonMaximumSize: CGFloat = 72
-    private let buttonSpacing: CGFloat = 12
-    private let bottomPadding: CGFloat = 20
+    private let bottomPadding = CisumPlayerLayout.controlButtonBottomPadding
 
-    private func buttonSize(for size: CGSize) -> CGFloat {
-        let availableWidth = size.width - buttonSpacing * (buttonCount - 1)
-        let availableHeight = size.height - bottomPadding
-        return max(0, min(buttonMaximumSize, availableWidth / buttonCount, availableHeight))
+    private var playModeIconName: String {
+        switch viewModel.playMode {
+        case .sequence: "music.note.list"
+        case .loop: "repeat.1"
+        case .shuffle: "shuffle"
+        case .repeatAll: "repeat"
+        }
     }
 }

@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import OSLog
 import MagicKit
+import ProviderStore
 
 /// 商店设置视图的状态容器（迁移 Phase 4）。
 ///

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cisum - 欢迎</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --sunset: linear-gradient(135deg, #ff5c33 0%, #ffa354 46%, #57adff 100%);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background: var(--sunset);
+            color: #ffffff;
+        }
+
+        .stage {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .sparkles {
+            width: 56px;
+            height: 56px;
+            margin-bottom: 22px;
+            filter: drop-shadow(0 6px 14px rgba(0,0,0,.18));
+        }
+
+        h1 {
+            font-size: 38px;
+            font-weight: 700;
+            letter-spacing: .3px;
+        }
+
+        .subtitle {
+            margin-top: 10px;
+            font-size: 17px;
+            font-weight: 400;
+            color: rgba(255,255,255,.9);
+        }
+
+        .card {
+            margin-top: 34px;
+            width: 580px;
+            background: rgba(255,255,255,.2);
+            border: 1px solid rgba(255,255,255,.32);
+            border-radius: 18px;
+            backdrop-filter: blur(26px);
+            -webkit-backdrop-filter: blur(26px);
+            padding: 22px 24px;
+            box-shadow: 0 18px 50px rgba(0,0,0,.18);
+        }
+
+        .card-title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: .2px;
+            margin-bottom: 14px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 6px;
+            cursor: pointer;
+            border-radius: 12px;
+        }
+
+        .option:hover { background: rgba(255,255,255,.12); }
+
+        .opt-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .opt-icon svg { width: 20px; height: 20px; fill: #fff; }
+
+        .opt-text { flex: 1; min-width: 0; }
+
+        .opt-title { font-size: 14.5px; font-weight: 600; }
+
+        .opt-desc {
+            margin-top: 3px;
+            font-size: 11.5px;
+            line-height: 1.5;
+            color: rgba(255,255,255,.82);
+        }
+
+        .opt-tail { flex-shrink: 0; display: flex; align-items: center; }
+
+        .recommended {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(255,255,255,.28);
+        }
+
+        .check svg { width: 20px; height: 20px; fill: #fff; }
+
+        .divider { height: 1px; background: rgba(255,255,255,.3); margin: 4px 2px; }
+
+        .get-started {
+            position: absolute;
+            right: 34px;
+            bottom: 30px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 26px rgba(0,0,0,.24);
+            transition: transform .18s ease;
+        }
+
+        .get-started:hover { transform: scale(1.06); }
+
+        .get-started svg { width: 24px; height: 24px; fill: #ff5c33; }
+    </style>
+</head>
+<body>
+    <div class="stage">
+        <svg class="sparkles" viewBox="0 0 24 24">
+            <path fill="#ffffff" d="M12 2l1.9 5.8L20 8l-4.9 3.6L17 18l-5-3.2L7 18l1.9-6.4L4 8l6.1-.2L12 2z"/>
+        </svg>
+        <h1>好音乐即将开始</h1>
+        <div class="subtitle">准备探索你的音乐世界</div>
+
+        <div class="card">
+            <div class="card-title">媒体存储位置</div>
+
+            <div class="option">
+                <div class="opt-icon">
+                    <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
+                </div>
+                <div class="opt-text">
+                    <div class="opt-title">iCloud 云盘</div>
+                    <div class="opt-desc">文件存放在 iCloud 云盘，可在其他设备访问。请确保 iCloud 空间充足。</div>
+                </div>
+                <div class="opt-tail check">
+                    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="option">
+                <div class="opt-icon">
+                    <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                </div>
+                <div class="opt-text">
+                    <div class="opt-title">应用本地存储</div>
+                    <div class="opt-desc">存储在应用内部，删除应用后数据将丢失。</div>
+                </div>
+                <div class="opt-tail">
+                    <span class="recommended">备选</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="get-started" data-prototype-link="02-player" data-prototype-label="开始使用">
+        <svg viewBox="0 0 24 24"><path d="M12 4l-1.4 1.4L15.2 10H4v2h11.2l-4.6 4.6L12 18l8-8z"/></svg>
+    </button>
+</body>
+</html>

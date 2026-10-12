@@ -11,10 +11,20 @@ let package = Package(
     products: [
         .library(name: "ProviderCloud", targets: ["ProviderCloud"]),
     ],
+    dependencies: [
+        .package(path: "../KitEventObservation"),
+    ],
     targets: [
-        .target(name: "ProviderCloud", path: ".",
+        .target(name: "ProviderCloud", dependencies: [
+            .product(name: "KitEventObservation", package: "KitEventObservation"),
+        ], path: ".", exclude: ["README.md", "Tests"],
             sources: ["Sources/ProviderCloud"],
             resources: [.process("Resources")]),
+        .testTarget(
+            name: "ProviderCloudTests",
+            dependencies: ["ProviderCloud"],
+            path: "Tests"
+        ),
     ],
     swiftLanguageModes: [.v5]
 )

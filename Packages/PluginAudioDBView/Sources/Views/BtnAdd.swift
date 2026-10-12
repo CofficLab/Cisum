@@ -1,8 +1,9 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 struct BtnAdd: View {
-    @Environment(\.audioDBDependencies) private var dependencies
+    let dependencies: AudioDBDependencies
 
     var body: some View {
         Button(

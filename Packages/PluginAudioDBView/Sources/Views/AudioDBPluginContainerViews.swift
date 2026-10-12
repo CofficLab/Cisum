@@ -1,18 +1,18 @@
-import PluginAudio
+import ProviderAudioLibrary
 import SwiftUI
 
 struct AudioDBPluginRootView<Content>: View where Content: View {
-    @Environment(\.demoMode) private var isDemoMode
-    @Environment(\.appIsImporting) private var isImporting
-    @Environment(\.showAudioDBViewAction) private var showDBView
     let listViewModel: AudioListViewModel
     let rootViewModel: AudioDBRootViewModel
     let dbViewModel: AudioDBViewModel
     @ObservedObject var sceneState: AudioDBSceneState
 
-    private let audioRepo: @MainActor @Sendable () async -> AudioRepo?
+    private let audioLibrary: @MainActor @Sendable () -> (any AudioLibraryProviding)?
     private let audioDisk: @MainActor @Sendable () -> URL?
     private let audioDiagnostics: @MainActor @Sendable () -> AudioStorageDiagnostics
+    private let isDemoMode: Bool
+    private let isImporting: Binding<Bool>
+    private let showDBView: @MainActor @Sendable () -> Void
 
     private let content: Content
 
@@ -21,30 +21,32 @@ struct AudioDBPluginRootView<Content>: View where Content: View {
         rootViewModel: AudioDBRootViewModel,
         dbViewModel: AudioDBViewModel,
         sceneState: AudioDBSceneState,
-        audioRepo: @escaping @MainActor @Sendable () async -> AudioRepo?,
+        audioLibrary: @escaping @MainActor @Sendable () -> (any AudioLibraryProviding)?,
         audioDisk: @escaping @MainActor @Sendable () -> URL?,
         audioDiagnostics: @escaping @MainActor @Sendable () -> AudioStorageDiagnostics,
+        isDemoMode: Bool,
+        isImporting: Binding<Bool>,
+        showDBView: @escaping @MainActor @Sendable () -> Void,
         @ViewBuilder content: () -> Content
     ) {
         self.listViewModel = listViewModel
         self.rootViewModel = rootViewModel
         self.dbViewModel = dbViewModel
         self.sceneState = sceneState
-        self.audioRepo = audioRepo
+        self.audioLibrary = audioLibrary
         self.audioDisk = audioDisk
         self.audioDiagnostics = audioDiagnostics
+        self.isDemoMode = isDemoMode
+        self.isImporting = isImporting
+        self.showDBView = showDBView
         self.content = content()
     }
 
     var body: some View {
         if sceneState.isMusicScene {
-            AudioDBRootView(isDemoMode: isDemoMode) {
+            AudioDBRootView(isDemoMode: isDemoMode, rootViewModel: rootViewModel) {
                 content
             }
-            .environment(\.audioDBDependencies, dependencies)
-            .environmentObject(listViewModel)
-            .environmentObject(rootViewModel)
-            .environmentObject(dbViewModel)
         } else {
             // 场景不是音乐库：下掉 AudioDB root view 外壳，直接透传内容区。
             content
@@ -53,7 +55,7 @@ struct AudioDBPluginRootView<Content>: View where Content: View {
 
     private var dependencies: AudioDBDependencies {
         AudioDBDependencies(
-            audioRepo: audioRepo,
+            audioLibrary: audioLibrary,
             audioDisk: audioDisk,
             audioDiagnostics: audioDiagnostics,
             supportedExtensions: AudioPluginInfo.supportedExtensions,
@@ -74,15 +76,15 @@ struct AudioDBPluginRootView<Content>: View where Content: View {
 }
 
 struct AudioDBPluginTabView: View {
-    @Environment(\.appIsImporting) private var isImporting
-    @Environment(\.showAudioDBViewAction) private var showDBView
     let listViewModel: AudioListViewModel
     let rootViewModel: AudioDBRootViewModel
     let dbViewModel: AudioDBViewModel
 
-    private let audioRepo: @MainActor @Sendable () async -> AudioRepo?
+    private let audioLibrary: @MainActor @Sendable () -> (any AudioLibraryProviding)?
     private let audioDisk: @MainActor @Sendable () -> URL?
     private let audioDiagnostics: @MainActor @Sendable () -> AudioStorageDiagnostics
+    private let isImporting: Binding<Bool>
+    private let showDBView: @MainActor @Sendable () -> Void
 
     let demoMode: Bool
 
@@ -90,31 +92,37 @@ struct AudioDBPluginTabView: View {
         listViewModel: AudioListViewModel,
         rootViewModel: AudioDBRootViewModel,
         dbViewModel: AudioDBViewModel,
-        audioRepo: @escaping @MainActor @Sendable () async -> AudioRepo?,
+        audioLibrary: @escaping @MainActor @Sendable () -> (any AudioLibraryProviding)?,
         audioDisk: @escaping @MainActor @Sendable () -> URL?,
         audioDiagnostics: @escaping @MainActor @Sendable () -> AudioStorageDiagnostics,
+        isImporting: Binding<Bool>,
+        showDBView: @escaping @MainActor @Sendable () -> Void,
         demoMode: Bool
     ) {
         self.listViewModel = listViewModel
         self.rootViewModel = rootViewModel
         self.dbViewModel = dbViewModel
-        self.audioRepo = audioRepo
+        self.audioLibrary = audioLibrary
         self.audioDisk = audioDisk
         self.audioDiagnostics = audioDiagnostics
+        self.isImporting = isImporting
+        self.showDBView = showDBView
         self.demoMode = demoMode
     }
 
     var body: some View {
-        AudioDBView(isDemoMode: demoMode)
-            .environment(\.audioDBDependencies, dependencies)
-            .environmentObject(listViewModel)
-            .environmentObject(rootViewModel)
-            .environmentObject(dbViewModel)
+        AudioDBView(
+            isDemoMode: demoMode,
+            listViewModel: listViewModel,
+            dbViewModel: dbViewModel,
+            dependencies: dependencies
+        )
+        .accessibilityIdentifier("cisum.scene.music")
     }
 
     private var dependencies: AudioDBDependencies {
         AudioDBDependencies(
-            audioRepo: audioRepo,
+            audioLibrary: audioLibrary,
             audioDisk: audioDisk,
             audioDiagnostics: audioDiagnostics,
             supportedExtensions: AudioPluginInfo.supportedExtensions,

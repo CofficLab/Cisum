@@ -16,6 +16,7 @@ jobs:
     runs-on: macos-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      semver: ${{ steps.version.outputs.semver }}
       increment: ${{ steps.version.outputs.increment }}
     steps:
       - uses: actions/checkout@v3
@@ -33,6 +34,7 @@ jobs:
         run: |
           chmod +x .github/scripts/bump-version.sh
           chmod +x .github/scripts/calculate-version.sh
+          chmod +x .github/scripts/xcode-project.sh
 
           # 计算版本增量类型（major/minor/patch）
           INCREMENT=$(./.github/scripts/bump-version.sh)
@@ -44,6 +46,7 @@ jobs:
           TAG_VERSION="p${VERSION}"
 
           echo "version=$TAG_VERSION" >> $GITHUB_OUTPUT
+          echo "semver=$VERSION" >> $GITHUB_OUTPUT
           echo "increment=$INCREMENT" >> $GITHUB_OUTPUT
           echo "📦 Version Increment: $INCREMENT"
           echo "🏷️  New Version: $VERSION"
@@ -60,45 +63,74 @@ jobs:
           git log $(git describe --tags --abbrev=0 --match 'p*' 2>/dev/null || git describe --tags --abbrev=0 2>/dev/null || echo "p0.0.0")..HEAD --pretty=format:'- %s' | head -20 >> $GITHUB_STEP_SUMMARY
 
       - name: 验证版本更新
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.semver }}
         run: |
-          projectFile=$(find $(pwd) -type f -name "*.pbxproj" | head -n 1)
-          updatedVersion=$(grep -o 'MARKETING_VERSION = [^"]*' $projectFile | head -n 1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+          source .github/scripts/xcode-project.sh
+
+          projectFile=$(xcode_project_file "$(pwd)")
+          echo "📁 Project file: $projectFile"
+
+          updatedVersion=$(xcode_project_setting "$projectFile" MARKETING_VERSION)
           echo "✅ 验证版本号: $updatedVersion"
+
+          if [ "$updatedVersion" != "$EXPECTED_VERSION" ]; then
+            echo "Error: 项目版本号未更新到 $EXPECTED_VERSION" >&2
+            exit 1
+          fi
+
           git status
+
+      # agvtool (and actions built on it) only understands project.pbxproj and
+      # fails on the JSON project.xcproj, so the build number is bumped here.
       - name: 更新构建号
-        uses: yanamura/ios-bump-version@v1
-      - name: 生成标签
         run: |
-          BETA_VERSION=${{ steps.version.outputs.version }}
-          BUILD=$(agvtool what-version -terse)
+          chmod +x .github/scripts/bump-build-number.sh
+          ./.github/scripts/bump-build-number.sh
+
+      - name: 生成标签
+        env:
+          BETA_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          source .github/scripts/xcode-project.sh
+
+          projectFile=$(xcode_project_file "$(pwd)")
+          BUILD=$(xcode_project_setting "$projectFile" CURRENT_PROJECT_VERSION)
+
           echo "🏷️  Tag: $BETA_VERSION"
           echo "🔢 Build: $BUILD"
-          echo "tag=$BETA_VERSION" >> $GITHUB_ENV
+          echo "build=$BUILD" >> $GITHUB_ENV
+
       - name: 打标签并推送到仓库
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "ci: bump a new beta version"
           commit_user_name: GitHub Action
-      - name: 创建并推送标签
-        run: |
-          # 配置 Git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # 获取最新提交
+      - name: 创建并推送标签
+        env:
+          BETA_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # 获取最新提交（auto-commit 已推送到 pre）
           git fetch origin pre
           git checkout pre
-          git pull origin pre
+          git pull --ff-only origin pre
 
           # 创建标签（p 前缀）
-          TAG=${{ steps.version.outputs.version }}
+          TAG="$BETA_VERSION"
           echo "🏷️  Creating tag: $TAG"
-          git tag -a "$TAG" -m "Release $TAG"
+
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "Tag $TAG already exists, skipping creation" >&2
+          else
+            git tag -a "$TAG" -m "Release $TAG"
+          fi
 
           # 推送标签
-          git push origin "$TAG"
+          git push origin "refs/tags/$TAG"
 
           echo "✅ Tag pushed: $TAG"
+
   rebase:
     needs:
       - bump

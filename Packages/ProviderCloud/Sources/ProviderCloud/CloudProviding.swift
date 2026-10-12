@@ -1,4 +1,5 @@
 import Foundation
+import KitEventObservation
 
 @MainActor
 public enum CloudProvidingEvent {
@@ -42,3 +43,5 @@ public final class NoopCloudProvidingObserverHandle: CloudProvidingObserverHandl
     public init() {}
     public func cancel() {}
 }
+
+extension EventObserverHandle: CloudProvidingObserverHandle {}

@@ -1,22 +1,23 @@
-import MagicPlayMan
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 /// 播放控制区域：封面、标题、状态、进度条和底部操作按钮。
 ///
-/// 通过 `@EnvironmentObject` 读取内核注册的真实 `MagicPlayMan`。
 /// 各区块（封面 / 状态 / 进度 / 操作按钮 / 右侧封面）可分别注入自定义视图，
-/// 未注入时回退到内置默认实现。封面区、进度条与操作按钮组由插件注入
+/// 未注入时不渲染播放相关区块。封面区、进度条、操作按钮组和右侧专辑区由插件注入
 /// （`setHeroView` / `setProgressView` / `setControlButtonsView`），
 /// 未注入时不渲染该区块。
 struct ControlView: View {
     let stateViews: @MainActor () -> [AnyView]
     let stateMessage: @MainActor () -> String
+    let isDemoMode: Bool
     var heroView: AnyView? = nil
     var stateView: AnyView? = nil
     var progressView: AnyView? = nil
     var controlButtonsView: AnyView? = nil
     var rightAlbumView: AnyView? = nil
+    @State private var isHeroVisible = PlaybackHeroVisibilityKey.defaultValue
 
     var body: some View {
         GeometryReader { geometry in
@@ -25,7 +26,7 @@ struct ControlView: View {
                     if heroView != nil {
                         heroArea(for: geometry)
                             .frame(maxWidth: .infinity)
-                            .frame(height: heroHeight(for: geometry), alignment: .top)
+                            .frame(height: isHeroVisible ? heroHeight(for: geometry) : 0, alignment: .top)
                     }
 
                     stateArea
@@ -58,21 +59,22 @@ struct ControlView: View {
             .padding(.horizontal, 0)
             .frame(maxHeight: .infinity)
         }
-        #if os(macOS)
-            .ignoresSafeArea(edges: .horizontal)
-        #else
-            .ignoresSafeArea()
-        #endif
-        .frame(minHeight: CisumPlayerLayout.controlMinimumHeight)
+        .frame(minHeight: isHeroVisible
+            ? CisumPlayerLayout.controlMinimumHeight
+            : CisumPlayerLayout.emptyPlayerControlHeight)
+        .onPreferenceChange(PlaybackHeroVisibilityKey.self) { isVisible in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isHeroVisible = isVisible
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("cisum.player.controls")
     }
 
     @ViewBuilder
     private func heroArea(for geometry: GeometryProxy) -> some View {
         if let heroView {
-            heroView.environment(
-                \.rightAlbumVisible,
-                shouldShowRightAlbum(geometry)
-            )
+            heroView
         }
     }
 
@@ -81,7 +83,7 @@ struct ControlView: View {
         if let stateView {
             stateView
         } else {
-            StateView(stateViews: stateViews, stateMessage: stateMessage)
+            StateView(isDemoMode: isDemoMode, stateViews: stateViews, stateMessage: stateMessage)
         }
     }
 
@@ -103,8 +105,6 @@ struct ControlView: View {
     private var rightAlbumArea: some View {
         if let rightAlbumView {
             rightAlbumView
-        } else {
-            DefaultRightAlbumView()
         }
     }
 
@@ -129,16 +129,5 @@ struct ControlView: View {
 
     private func shouldShowRightAlbum(_ geometry: GeometryProxy) -> Bool {
         CisumPlayerLayout.shouldShowRightAlbum(width: geometry.size.width)
-    }
-}
-
-/// Keeps the fallback album's playback observation local to the right column.
-/// The parent control layout should not be invalidated by every playback-time
-/// tick when it only needs to react to geometry changes.
-private struct DefaultRightAlbumView: View {
-    @EnvironmentObject private var man: MagicPlayMan
-
-    var body: some View {
-        man.makeHeroView()
     }
 }

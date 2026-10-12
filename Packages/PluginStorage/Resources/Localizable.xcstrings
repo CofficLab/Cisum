@@ -253,35 +253,6 @@
         }
       }
     },
-    "Are you sure you want to cancel the migration?" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Are you sure you want to cancel the migration?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "确定要取消迁移吗？"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "確定要取消遷移嗎？"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "確定要取消遷移嗎？"
-          }
-        }
-      }
-    },
     "Basic Operations" : {
       "localizations" : {
         "en" : {
@@ -474,64 +445,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "確定要取消遷移嗎？"
-          }
-        }
-      }
-    },
-    "Cancel Operation" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cancel Operation"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "取消操作"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "取消操作"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "取消操作"
-          }
-        }
-      }
-    },
-    "Canceling migration may cause incomplete data; it is recommended to wait for it to finish" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Canceling migration may cause incomplete data; it is recommended to wait for it to finish"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "取消迁移可能会导致数据不完整，建议等待迁移完成。"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "取消遷移可能會導致資料不完整，建議等待遷移完成。"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "取消遷移可能會導致資料不完整，建議等待遷移完成。"
           }
         }
       }
@@ -816,35 +729,6 @@
         }
       }
     },
-    "Discard" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Discard"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "放弃"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "放棄"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "放棄"
-          }
-        }
-      }
-    },
     "Done" : {
       "localizations" : {
         "en" : {
@@ -925,35 +809,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在下載 %@"
-          }
-        }
-      }
-    },
-    "Downloading %lld%%" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Downloading %lld%%"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下载中 %lld%"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下載中 %lld%"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下載中 %lld%"
           }
         }
       }
@@ -1211,35 +1066,6 @@
         }
       }
     },
-    "Keep in original location" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep in original location"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保持原位置不变"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保持原位置不變"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保持原位置不變"
-          }
-        }
-      }
-    },
     "Keep the original location unchanged" : {
       "localizations" : {
         "en" : {
@@ -1492,35 +1318,6 @@
         }
       }
     },
-    "Migrate existing data to a new location" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Migrate existing data to a new location"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "将现有数据迁移到新位置"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "將現有資料遷移到新位置"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "將現有資料遷移到新位置"
-          }
-        }
-      }
-    },
     "Migrate: moves data between storage locations." : {
       "localizations" : {
         "en" : {
@@ -1573,35 +1370,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "遷移中..."
-          }
-        }
-      }
-    },
-    "Migration canceled" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Migration canceled"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "迁移已取消"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "遷移已取消"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "遷移已取消"
           }
         }
       }
@@ -1686,35 +1454,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "遷移出現問題: %@"
-          }
-        }
-      }
-    },
-    "Migration problem: %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Migration problem: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "迁移出现问题: %@"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "遷移出現問題：%@"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "遷移出現問題：%@"
           }
         }
       }
@@ -2644,35 +2383,6 @@
         }
       }
     },
-    "Use directly" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use directly"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "直接使用"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "直接使用"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "直接使用"
-          }
-        }
-      }
-    },
     "Use Directly" : {
       "localizations" : {
         "en" : {
@@ -2719,35 +2429,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "直接使用新位置，原有數據保持不變"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "直接使用新位置，原有資料保持不變"
-          }
-        }
-      }
-    },
-    "Use the new location directly; existing data remains unchanged" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use the new location directly; existing data remains unchanged"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "直接使用新位置，原有数据保持不变"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "直接使用新位置，原有資料保持不變"
           }
         },
         "zh-Hant-TW" : {

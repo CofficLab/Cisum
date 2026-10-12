@@ -1,820 +1,762 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "Audio Like": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Audio Like"
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Audio Like" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio Like"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "音频喜欢管理"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频喜欢管理"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "音頻喜歡管理"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音頻喜歡管理"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "音訊喜歡管理"
-          }
-        }
-      }
-    },
-    "AudioLike database path is not configured": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AudioLike database path is not configured"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AudioLike 数据库路径未配置"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AudioLike 數據庫路徑未配置"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AudioLike 資料庫路徑未配置"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音訊喜歡管理"
           }
         }
       }
     },
-    "Data container is unavailable": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Data container is unavailable"
+    "AudioLike database path is not configured" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AudioLike database path is not configured"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "数据容器不可用"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AudioLike 数据库路径未配置"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "數據容器不可用"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AudioLike 數據庫路徑未配置"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "資料容器不可用"
-          }
-        }
-      }
-    },
-    "Failed to save like status: %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Failed to save like status: %@"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保存喜欢状态失败: %@"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保存喜歡狀態失敗: %@"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "儲存喜歡狀態失敗: %@"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AudioLike 資料庫路徑未配置"
           }
         }
       }
     },
-    "Favorite and mark music you like": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Favorite and mark music you like"
+    "Basic Operations" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basic Operations"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "收藏与标记喜欢的音乐。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "收藏與標記喜歡的音樂。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "收藏與標記喜歡的音樂。"
-          }
-        }
-      }
-    },
-    "Favorite audio": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Favorite audio"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "喜欢的音频"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "喜歡的音訊"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "喜歡的音訊"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
           }
         }
       }
     },
-    "Liked audio": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Liked audio"
+    "Centrally browses all liked music." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Centrally browses all liked music."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "喜欢的音频"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "集中浏览所有喜欢的音乐。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "喜歡的音頻"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "集中瀏覽所有喜歡的音樂。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "喜歡的音訊"
-          }
-        }
-      }
-    },
-    "Loading...": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Loading..."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "加载中..."
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在載入..."
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在載入..."
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "集中瀏覽所有喜歡的音樂。"
           }
         }
       }
     },
-    "Manage and store audio like status": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manage and store audio like status"
+    "Click the heart button on the player page to like." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click the heart button on the player page to like."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "负责音频喜欢状态的独立管理和存储"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在播放页点击心形按钮标记喜欢。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "負責音頻喜歡狀態的獨立管理和存儲"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在播放頁按一下愛心按鈕標記喜歡。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "負責音訊喜歡狀態的獨立管理和儲存"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在播放頁按一下愛心按鈕標記喜歡。"
           }
         }
       }
     },
-    "No favorite audio yet": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No favorite audio yet"
+    "Core Capabilities" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Capabilities"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "还没有喜欢的音频"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "還沒有喜歡的音訊"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "還沒有喜歡的音訊"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
           }
         }
       }
     },
-    "No liked audio yet": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No liked audio yet"
+    "Data container is unavailable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data container is unavailable"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "还没有喜欢的音频"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数据容器不可用"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "還沒有喜歡的音頻"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "數據容器不可用"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "還沒有喜歡的音訊"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "資料容器不可用"
           }
         }
       }
     },
-    "Unknown audio": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unknown audio"
+    "Disabled by default; you can enable it in the Plugin Manager." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disabled by default; you can enable it in the Plugin Manager."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未知音频"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认不启用，可在插件管理中开启。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未知音訊"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預設不啟用，可在外掛程式管理中開啟。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未知音訊"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預設不啟用，可在外掛程式管理中開啟。"
           }
         }
       }
     },
-    "Music Likes": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Music Likes"
+    "Failed to save like status: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to save like status: %@"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "音乐喜欢"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存喜欢状态失败: %@"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "音樂喜歡"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存喜歡狀態失敗: %@"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "音樂喜歡"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存喜歡狀態失敗: %@"
           }
         }
       }
     },
-    "Version": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Version"
+    "Favorite and mark music you like" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorite and mark music you like"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收藏与标记喜欢的音乐。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收藏與標記喜歡的音樂。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收藏與標記喜歡的音樂。"
           }
         }
       }
     },
-    "Type": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Type"
+    "Favorites the current music with one click." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorites the current music with one click."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "类型"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一键收藏当前音乐。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "類型"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一鍵收藏目前的音樂。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "類型"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一鍵收藏目前的音樂。"
           }
         }
       }
     },
-    "Plugin": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plugin"
+    "Like: favorites the current music with one click." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Like: favorites the current music with one click."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "插件"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标记喜欢：一键收藏当前音乐。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外掛程式"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標記喜歡：一鍵收藏目前的音樂。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外掛程式"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標記喜歡：一鍵收藏目前的音樂。"
           }
         }
       }
     },
-    "Core Capabilities": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Core Capabilities"
+    "Liked audio" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liked audio"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核心能力"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喜欢的音频"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核心能力"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喜歡的音頻"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核心能力"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喜歡的音訊"
           }
         }
       }
     },
-    "Favorites the current music with one click.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Favorites the current music with one click."
+    "Liked List" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liked List"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "一键收藏当前音乐。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喜欢列表"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "一鍵收藏目前的音樂。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喜歡清單"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "一鍵收藏目前的音樂。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喜歡清單"
           }
         }
       }
     },
-    "Mark as Liked": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mark as Liked"
+    "Liked List: centrally browse all liked music." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liked List: centrally browse all liked music."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "标记喜欢"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喜欢列表：集中浏览所有喜欢的音乐。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "標記喜歡"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喜歡清單：集中瀏覽所有喜歡的音樂。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "標記喜歡"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喜歡清單：集中瀏覽所有喜歡的音樂。"
           }
         }
       }
     },
-    "Centrally browses all liked music.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Centrally browses all liked music."
+    "Loading..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading..."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "集中浏览所有喜欢的音乐。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加载中..."
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "集中瀏覽所有喜歡的音樂。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在載入..."
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "集中瀏覽所有喜歡的音樂。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在載入..."
           }
         }
       }
     },
-    "Liked List": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Liked List"
+    "Manage and store audio like status" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage and store audio like status"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "喜欢列表"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "负责音频喜欢状态的独立管理和存储"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "喜歡清單"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "負責音頻喜歡狀態的獨立管理和存儲"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "喜歡清單"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "負責音訊喜歡狀態的獨立管理和儲存"
           }
         }
       }
     },
-    "Overview": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overview"
+    "Mark as Liked" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark as Liked"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概述"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标记喜欢"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概述"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標記喜歡"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概述"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標記喜歡"
           }
         }
       }
     },
-    "Like: favorites the current music with one click.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Like: favorites the current music with one click."
+    "Music Likes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music Likes"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "标记喜欢：一键收藏当前音乐。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音乐喜欢"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "標記喜歡：一鍵收藏目前的音樂。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂喜歡"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "標記喜歡：一鍵收藏目前的音樂。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂喜歡"
           }
         }
       }
     },
-    "Liked List: centrally browse all liked music.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Liked List: centrally browse all liked music."
+    "No liked audio yet" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No liked audio yet"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "喜欢列表：集中浏览所有喜欢的音乐。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还没有喜欢的音频"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "喜歡清單：集中瀏覽所有喜歡的音樂。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還沒有喜歡的音頻"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "喜歡清單：集中瀏覽所有喜歡的音樂。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還沒有喜歡的音訊"
           }
         }
       }
     },
-    "Basic Operations": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Basic Operations"
+    "Notes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基本操作"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说明"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基本操作"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基本操作"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
           }
         }
       }
     },
-    "Click the heart button on the player page to like.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Click the heart button on the player page to like."
+    "Overview" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overview"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在播放页点击心形按钮标记喜欢。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在播放頁按一下愛心按鈕標記喜歡。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在播放頁按一下愛心按鈕標記喜歡。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
           }
         }
       }
     },
-    "View all favorites in the liked list.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "View all favorites in the liked list."
+    "Plugin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plugin"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在喜欢列表查看全部收藏。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "插件"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在喜歡清單檢視全部收藏。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在喜歡清單檢視全部收藏。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式"
           }
         }
       }
     },
-    "Notes": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notes"
+    "Type" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "说明"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "类型"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "說明"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "類型"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "說明"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "類型"
           }
         }
       }
     },
-    "Disabled by default; you can enable it in the Plugin Manager.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Disabled by default; you can enable it in the Plugin Manager."
+    "Unknown audio" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown audio"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "默认不启用，可在插件管理中开启。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知音频"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "預設不啟用，可在外掛程式管理中開啟。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知音訊"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "預設不啟用，可在外掛程式管理中開啟。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知音訊"
+          }
+        }
+      }
+    },
+    "Version" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        }
+      }
+    },
+    "View all favorites in the liked list." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View all favorites in the liked list."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在喜欢列表查看全部收藏。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在喜歡清單檢視全部收藏。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在喜歡清單檢視全部收藏。"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

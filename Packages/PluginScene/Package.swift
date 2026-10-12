@@ -16,23 +16,32 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../MagicKit"),
-        .package(name: "KernelCore", path: "../KernelCore"),
-        .package(name: "ProviderDocsView", path: "../ProviderDocsView"),
-        .package(name: "CisumUIComponents", path: "../CisumUIComponents"),
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.0.1"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
+        .package(path: "../ProviderPlugin"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(name: "KitAppEvents", path: "../KitAppEvents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.3.4"),
     ],
     targets: [
         .target(
             name: "PluginScene",
             dependencies: [
-                .product(name: "MagicKit", package: "MagicKit"),
-                .product(name: "KernelCore", package: "KernelCore"),
-                .product(name: "ProviderDocsView", package: "ProviderDocsView"),
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "ProviderSettingView", package: "LumiSettings"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
+                .product(name: "ProviderStorage", package: "LumiProviders"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources/PluginScene"],
             resources: [
                 .process("Resources"),
@@ -40,7 +49,10 @@ let package = Package(
         ),
         .testTarget(
             name: "PluginSceneTests",
-            dependencies: ["PluginScene"],
+            dependencies: [
+                "PluginScene",
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
+            ],
             path: "Tests/PluginSceneTests"
         ),
     ],

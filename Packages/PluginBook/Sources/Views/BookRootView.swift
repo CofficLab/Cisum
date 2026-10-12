@@ -1,6 +1,7 @@
+import MagicKit
 import Foundation
 import CisumUIComponents
-import SwiftData
+import LumiUI
 import SwiftUI
 
 public struct BookRootView<Content>: View, SuperLog where Content: View {
@@ -23,14 +24,8 @@ public struct BookRootView<Content>: View, SuperLog where Content: View {
                 ProgressView {
                     Text("Initializing...", bundle: .module)
                 }
-            } else if let container = viewModel.container, let repo = viewModel.repo {
-                ZStack {
-                    content
-                }
-                .modelContainer(container)
-                .environmentObject(repo)
             } else {
-                Text("Initialization Failed", bundle: .module)
+                content
             }
         }
         .onAppear {

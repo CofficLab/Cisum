@@ -1,3 +1,4 @@
+import ProviderPlayback
 import MagicPlayMan
 import Testing
 @testable import PluginAudioPlayMode
@@ -11,7 +12,7 @@ import Testing
 @Test func audioPlayModeFallsBackToCloudWhenLocalValueIsInvalid() {
     #expect(AudioPlayModeStore.resolvedPlayMode(
         localRawValue: "invalid",
-        cloudRawValue: MagicPlayMode.shuffle.rawValue
+        cloudRawValue: PlaybackMode.shuffle.rawValue
     ) == .shuffle)
 }
 

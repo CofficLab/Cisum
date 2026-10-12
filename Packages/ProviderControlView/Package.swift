@@ -12,21 +12,25 @@ let package = Package(
         .library(name: "ProviderControlView", targets: ["ProviderControlView"]),
     ],
     dependencies: [
-        .package(name: "CisumUIComponents", path: "../CisumUIComponents"),
-        .package(name: "MagicPlayMan", path: "../MagicPlayMan"),
-        .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
+        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
     ],
     targets: [
         .target(
             name: "ProviderControlView",
             dependencies: [
-                .product(name: "CisumUIComponents", package: "CisumUIComponents"),
-                .product(name: "MagicPlayMan", package: "MagicPlayMan"),
-                .product(name: "ProviderPlayback", package: "ProviderPlayback"),
+                .product(name: "CisumUIComponents", package: "KitUIComponents"),
+                .product(name: "LumiUI", package: "LumiUI"),
             ],
             path: ".",
+            exclude: ["README.md", "Tests"],
             sources: ["Sources/ProviderControlView"],
             resources: [.process("Resources")]
+        ),
+        .testTarget(
+            name: "ProviderControlViewTests",
+            dependencies: ["ProviderControlView"],
+            path: "Tests"
         ),
     ],
     swiftLanguageModes: [.v5]

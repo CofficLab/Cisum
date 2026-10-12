@@ -9,6 +9,7 @@ import MagicKit
 /// 的 `.onCopyTask*` 直接订阅。
 @MainActor
 final class CopyTaskObserver: SuperLog {
+    nonisolated static let emoji = "📋"
     nonisolated static let verbose = false
 
     private weak var viewModel: CopyViewModel?

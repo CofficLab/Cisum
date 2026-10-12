@@ -1,6 +1,8 @@
 import Combine
 import Foundation
 import KernelCore
+import ProviderPlugin
+import ProviderPluginManaging
 import MagicKit
 
 /// 插件管理视图的状态容器（迁移 Phase 4）。
@@ -14,25 +16,25 @@ final class PluginManagementViewModel: ObservableObject, SuperLog {
     /// 插件启停变化版本号：递增时强制列表重建。
     @Published private(set) var revision = 0
 
-    private let capability: (any PluginManagementCapability)?
+    private weak var manager: (any PluginManaging)?
 
-    init(capability: (any PluginManagementCapability)? = nil) {
-        self.capability = capability
+    init(manager: (any PluginManaging)? = nil) {
+        self.manager = manager
     }
 
     var plugins: [any SuperPlugin] {
-        capability?.configurablePlugins ?? []
+        manager?.configurablePlugins ?? []
     }
 
     func isEnabled(id: String) -> Bool {
-        capability?.isEnabled(id: id) ?? false
+        manager?.isEnabled(id: id) ?? false
     }
 
     func setEnabled(_ enabled: Bool, for pluginID: String) async -> Bool {
         if enabled {
-            return await capability?.enablePlugin(id: pluginID) ?? false
+            return await manager?.enablePlugin(id: pluginID) ?? false
         }
-        return await capability?.disablePlugin(id: pluginID) ?? false
+        return await manager?.disablePlugin(id: pluginID) ?? false
     }
 
     func incrementRevision() {

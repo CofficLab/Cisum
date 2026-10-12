@@ -19,7 +19,7 @@ public final class PlaybackStateStore {
 
     private let fileURL: URL
 
-    /// - Parameter rootDirectory: 数据库根目录（`kernel.storage?.databaseRoot`）。
+    /// - Parameter rootDirectory: Lumi 存储协议提供的数据根目录。
     public init(rootDirectory: URL) {
         self.fileURL = rootDirectory
             .appendingPathComponent(Self.subdirectory, isDirectory: true)
@@ -29,6 +29,9 @@ public final class PlaybackStateStore {
     /// 保存指定场景的当前播放文件；传 `nil` 表示清除该场景的记录。
     public func saveCurrentFile(_ url: URL?, for scene: AppScene) {
         var dict = loadDictionary() ?? [:]
+        // Once a scene-specific write occurs, the legacy global value must not
+        // be inherited by another scene on its first read.
+        dict.removeValue(forKey: Self.legacyURLKey)
         if let url {
             dict[scene.rawValue] = url.absoluteString
         } else {
@@ -50,7 +53,11 @@ public final class PlaybackStateStore {
         guard var dict = loadDictionary() else { return nil }
 
         if let urlString = dict[scene.rawValue] {
-            return URL(string: urlString)
+            let url = URL(string: urlString)
+            if dict.removeValue(forKey: Self.legacyURLKey) != nil {
+                write(dict)
+            }
+            return url
         }
 
         if let legacy = dict[Self.legacyURLKey], let url = URL(string: legacy) {

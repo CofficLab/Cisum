@@ -2,6 +2,8 @@ import AVFoundation
 import SwiftUI
 import Foundation
 import CisumUIComponents
+import LumiUI
+import MagicKit
 
 public extension MagicPlayMan {
     /// Returns the current playback error, if any.

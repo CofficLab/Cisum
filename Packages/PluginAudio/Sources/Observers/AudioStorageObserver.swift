@@ -1,4 +1,4 @@
-import ProviderStorage
+import CisumProviderStorage
 import MagicKit
 
 /// 音频根视图的存储变化观察者（迁移 Phase 2）。
@@ -7,6 +7,7 @@ import MagicKit
 /// 重建容器并产生 toast 信号；取代 `AudioRootView` 直接订阅存储通知的做法。
 @MainActor
 final class AudioStorageObserver: SuperLog {
+    nonisolated static let emoji = "📦"
     nonisolated static let verbose = false
 
     private weak var viewModel: AudioRootViewModel?

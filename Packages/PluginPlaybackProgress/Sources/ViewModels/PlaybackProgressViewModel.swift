@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import MagicKit
+import ProviderPlayback
 
 /// 播放进度的显示状态；外部播放变化只通过 Observer 写入。
 @MainActor
@@ -10,10 +11,10 @@ final class PlaybackProgressViewModel: ObservableObject, SuperLog {
     @Published private(set) var currentTime: TimeInterval = 0
     @Published private(set) var duration: TimeInterval = 0
 
-    private let playbackCapability: (any PlaybackProgressCapability)?
+    private weak var playbackProvider: (any PlaybackProviding)?
 
-    init(playbackCapability: (any PlaybackProgressCapability)?) {
-        self.playbackCapability = playbackCapability
+    init(playbackProvider: (any PlaybackProviding)?) {
+        self.playbackProvider = playbackProvider
         sync()
     }
 
@@ -32,11 +33,11 @@ final class PlaybackProgressViewModel: ObservableObject, SuperLog {
     func seek(to time: TimeInterval) {
         let normalized = max(time.isFinite ? time : 0, 0)
         currentTime = normalized
-        playbackCapability?.seek(toTime: normalized)
+        playbackProvider?.seek(toTime: normalized)
     }
 
     private func sync() {
-        currentTime = playbackCapability?.currentTime ?? 0
-        duration = playbackCapability?.duration ?? 0
+        currentTime = playbackProvider?.currentTime ?? 0
+        duration = playbackProvider?.duration ?? 0
     }
 }

@@ -1,4 +1,6 @@
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import OSLog
 import SwiftUI
 
@@ -44,7 +46,7 @@ struct HeroView: View, SuperLog {
             }
             .frame(width: size, height: size)
             .id(url) // 关键：强制在 URL 改变时重建视图
-            .magicCentered()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         }
     }
 }

@@ -11,10 +11,22 @@ let package = Package(
     products: [
         .library(name: "ProviderAudioLibrary", targets: ["ProviderAudioLibrary"]),
     ],
+    dependencies: [
+        .package(path: "../KitEventObservation"),
+    ],
     targets: [
-        .target(name: "ProviderAudioLibrary", path: ".",
-            sources: ["Sources/ProviderAudioLibrary"],
-            resources: [.process("Resources")]),
+        .target(
+            name: "ProviderAudioLibrary",
+            dependencies: [
+                .product(name: "KitEventObservation", package: "KitEventObservation"),
+            ],
+            path: "Sources/ProviderAudioLibrary"
+        ),
+        .testTarget(
+            name: "ProviderAudioLibraryTests",
+            dependencies: ["ProviderAudioLibrary"],
+            path: "Tests"
+        ),
     ],
     swiftLanguageModes: [.v5]
 )

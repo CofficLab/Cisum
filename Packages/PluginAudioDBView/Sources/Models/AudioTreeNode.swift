@@ -1,5 +1,5 @@
 import Foundation
-import PluginAudio
+import ProviderAudioLibrary
 
 /// 音频仓库目录树节点（设置页「目录树」模式专用）。
 ///

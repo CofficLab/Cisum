@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 /// 插件管理器关于视图 —— Landing 落地页（对齐 Lumi `PluginManagerAboutView`）。

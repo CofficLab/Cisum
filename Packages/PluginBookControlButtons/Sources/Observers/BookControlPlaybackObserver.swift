@@ -1,12 +1,14 @@
+import ProviderPlayback
 import Foundation
 import OSLog
-import ProviderPlayback
+import MagicPlayMan
 import MagicKit
 
 /// 播放观察者：订阅 `PlaybackProviding` 的播放事件，转发到
 /// `BookControlViewModel`（状态 / 播放模式 / 上下章节请求）。
 @MainActor
 final class BookControlPlaybackObserver: SuperLog {
+    nonisolated static let emoji = "🎧"
     nonisolated static let verbose = false
 
     private weak var viewModel: BookControlViewModel?

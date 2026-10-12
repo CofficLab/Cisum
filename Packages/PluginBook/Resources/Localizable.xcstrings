@@ -1,1183 +1,650 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "An error occurred while initializing the plugin.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "An error occurred while initializing the plugin."
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Audiobook Library" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audiobook Library"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "插件初始化过程中发生错误"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有声书库"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "插件初始化過程中發生錯誤"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書庫"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外掛初始化過程中發生錯誤"
-          }
-        }
-      }
-    },
-    "Audiobook": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Audiobook"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有声书"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有聲書"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有聲書"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書庫"
           }
         }
       }
     },
-    "Audiobook playback": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Audiobook playback"
+    "Audiobook Library: manages local audiobook files." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audiobook Library: manages local audiobook files."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有声书播放功能"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有声书库：管理本地有声书文件。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有聲書播放功能"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書庫：管理本機有聲書檔案。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有聲書播放功能"
-          }
-        }
-      }
-    },
-    "Book plugin host configuration is incomplete": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Book plugin host configuration is incomplete"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有声书插件宿主配置未完成"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有聲書插件宿主配置未完成"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有聲書外掛宿主配置未完成"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書庫：管理本機有聲書檔案。"
           }
         }
       }
     },
-    "Check disk permissions and path settings.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Check disk permissions and path settings."
+    "Basic Operations" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basic Operations"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请检查磁盘权限与路径设置"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請檢查磁盤權限與路徑設置"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請檢查磁碟許可權與路徑設定"
-          }
-        }
-      }
-    },
-    "Check the app startup flow.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Check the app startup flow."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请检查应用启动流程"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請檢查應用啓動流程"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請檢查應用啟動流程"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
           }
         }
       }
     },
-    "Check the playback order or choose another item.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Check the playback order or choose another item."
+    "Click any audiobook to start playing." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click any audiobook to start playing."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请检查播放顺序或选择其他条目"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点击任意有声书开始播放。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請檢查播放順序或選擇其他條目"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按一下任何有聲書即可開始播放。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請檢查播放順序或選擇其他條目"
-          }
-        }
-      }
-    },
-    "Disk not found": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Disk not found"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "磁盘未找到"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "磁盤未找到"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "磁碟未找到"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按一下任何有聲書即可開始播放。"
           }
         }
       }
     },
-    "Initialization failed": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Initialization failed"
+    "Core Capabilities" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Capabilities"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "初始化失败"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "初始化失敗"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "初始化失敗"
-          }
-        }
-      }
-    },
-    "Initialization Failed": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Initialization Failed"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "初始化失败"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "初始化失敗"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "初始化失敗"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
           }
         }
       }
     },
-    "Initialization failed: %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Initialization failed: %@"
+    "Disk not found" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disk not found"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "初始化失败: %@"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "磁盘未找到"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "初始化失敗: %@"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "磁盤未找到"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "初始化失敗: %@"
-          }
-        }
-      }
-    },
-    "Initializing...": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Initializing..."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在初始化..."
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在初始化..."
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在初始化..."
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "磁碟未找到"
           }
         }
       }
     },
-    "Manage, browse, and play local audiobooks": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manage, browse, and play local audiobooks"
+    "Initializing..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Initializing..."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理、浏览与播放本地有声书。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在初始化..."
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理、瀏覽與播放本機有聲書。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在初始化..."
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理、瀏覽與播放本機有聲書。"
-          }
-        }
-      }
-    },
-    "No next chapter or file": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No next chapter or file"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "没有下一个章节/文件"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "沒有下一個章節/文件"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "沒有下一個章節/檔案"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在初始化..."
           }
         }
       }
     },
-    "No previous chapter or file": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No previous chapter or file"
+    "Manage, browse, and play local audiobooks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage, browse, and play local audiobooks"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "没有上一个章节/文件"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理、浏览与播放本地有声书。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "沒有上一個章節/文件"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理、瀏覽與播放本機有聲書。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "沒有上一個章節/檔案"
-          }
-        }
-      }
-    },
-    "The app has not injected database and storage path configuration.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The app has not injected database and storage path configuration."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "应用尚未注入数据库和存储路径配置"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "應用尚未注入數據庫和存儲路徑配置"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "應用尚未注入資料庫和儲存路徑配置"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理、瀏覽與播放本機有聲書。"
           }
         }
       }
     },
-    "The current item is already the first item.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The current item is already the first item."
+    "Manages local audiobook files." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manages local audiobook files."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前已是第一个条目"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理本地有声书文件。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "當前已是第一個條目"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理本機有聲書檔案。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "當前已是第一個條目"
-          }
-        }
-      }
-    },
-    "The current item is already the last item.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The current item is already the last item."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前已是最后一个条目"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "當前已是最後一個條目"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "當前已是最後一個條目"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理本機有聲書檔案。"
           }
         }
       }
     },
-    "The specified disk path does not exist or cannot be accessed.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The specified disk path does not exist or cannot be accessed."
+    "Notes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "指定的磁盘路径不存在或无法访问"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说明"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "指定的磁盤路徑不存在或無法訪問"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "指定的磁碟路徑不存在或無法訪問"
-          }
-        }
-      }
-    },
-    "Try restarting the app or checking settings.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Try restarting the app or checking settings."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请尝试重启应用或检查设置"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請嘗試重啓應用或檢查設置"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請嘗試重啟應用或檢查設定"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
           }
         }
       }
     },
-    "Unable to access disk": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unable to access disk"
+    "Opens the audiobook scene to browse all audiobooks." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the audiobook scene to browse all audiobooks."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法访问磁盘"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开有声书场景，浏览全部有声书。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "無法訪問磁盤"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟有聲書場景，瀏覽全部有聲書。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "無法訪問磁碟"
-          }
-        }
-      }
-    },
-    "None": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "None"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "無"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "無"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟有聲書場景，瀏覽全部有聲書。"
           }
         }
       }
     },
-    "Audiobook Library": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Audiobook Library"
+    "Overview" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overview"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有声书库"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有聲書庫"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有聲書庫"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
           }
         }
       }
     },
-    "Overview": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overview"
+    "Play" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概述"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概述"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "概述"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放"
           }
         }
       }
     },
-    "Core Capabilities": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Core Capabilities"
+    "Play: starts playback from the audiobook library." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play: starts playback from the audiobook library."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核心能力"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放：从书库发起播放。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核心能力"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放：從書庫開始播放。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核心能力"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放：從書庫開始播放。"
           }
         }
       }
     },
-    "Audiobook Library: manages local audiobook files.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Audiobook Library: manages local audiobook files."
+    "Plugin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plugin"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有声书库：管理本地有声书文件。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "插件"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有聲書庫：管理本機有聲書檔案。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有聲書庫：管理本機有聲書檔案。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式"
           }
         }
       }
     },
-    "Search: quickly find audiobooks by name.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search: quickly find audiobooks by name."
+    "Quickly locate audiobooks by name." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quickly locate audiobooks by name."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜索：按名称快速定位有声书。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按名称快速定位有声书。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜尋：按名稱快速定位有聲書。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依名稱快速定位有聲書。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜尋：按名稱快速定位有聲書。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依名稱快速定位有聲書。"
           }
         }
       }
     },
-    "Play: starts playback from the audiobook library.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Play: starts playback from the audiobook library."
+    "Search" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放：从书库发起播放。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放：從書庫開始播放。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放：從書庫開始播放。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋"
           }
         }
       }
     },
-    "Basic Operations": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Basic Operations"
+    "Search: quickly find audiobooks by name." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search: quickly find audiobooks by name."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基本操作"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索：按名称快速定位有声书。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基本操作"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋：按名稱快速定位有聲書。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "基本操作"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋：按名稱快速定位有聲書。"
           }
         }
       }
     },
-    "Opens the audiobook scene to browse all audiobooks.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Opens the audiobook scene to browse all audiobooks."
+    "Starts playback from the audiobook library." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starts playback from the audiobook library."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "打开有声书场景，浏览全部有声书。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从书库发起播放。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "開啟有聲書場景，瀏覽全部有聲書。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從書庫開始播放。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "開啟有聲書場景，瀏覽全部有聲書。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從書庫開始播放。"
           }
         }
       }
     },
-    "Use the search field to filter audiobooks by name.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Use the search field to filter audiobooks by name."
+    "The audiobook library depends on a local storage location." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The audiobook library depends on a local storage location."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "使用搜索框按名称过滤有声书。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有声书库依赖本地存储位置。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "使用搜尋框依名稱篩選有聲書。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書庫依賴本機儲存位置。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "使用搜尋框依名稱篩選有聲書。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書庫依賴本機儲存位置。"
           }
         }
       }
     },
-    "Click any audiobook to start playing.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Click any audiobook to start playing."
+    "Type" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "点击任意有声书开始播放。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "类型"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按一下任何有聲書即可開始播放。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "類型"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按一下任何有聲書即可開始播放。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "類型"
           }
         }
       }
     },
-    "Notes": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notes"
+    "Use the search field to filter audiobooks by name." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use the search field to filter audiobooks by name."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "说明"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用搜索框按名称过滤有声书。"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "說明"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用搜尋框依名稱篩選有聲書。"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "說明"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用搜尋框依名稱篩選有聲書。"
           }
         }
       }
     },
-    "The audiobook library depends on a local storage location.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The audiobook library depends on a local storage location."
+    "Version" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有声书库依赖本地存储位置。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
           }
         },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有聲書庫依賴本機儲存位置。"
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有聲書庫依賴本機儲存位置。"
-          }
-        }
-      }
-    },
-    "Version": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Version"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本"
-          }
-        }
-      }
-    },
-    "Type": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Type"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "类型"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "類型"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "類型"
-          }
-        }
-      }
-    },
-    "Plugin": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plugin"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "插件"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外掛程式"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外掛程式"
-          }
-        }
-      }
-    },
-    "Manages local audiobook files.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manages local audiobook files."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理本地有声书文件。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理本機有聲書檔案。"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理本機有聲書檔案。"
-          }
-        }
-      }
-    },
-    "Quickly locate audiobooks by name.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quickly locate audiobooks by name."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按名称快速定位有声书。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "依名稱快速定位有聲書。"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "依名稱快速定位有聲書。"
-          }
-        }
-      }
-    },
-    "Search": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜索"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜尋"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜尋"
-          }
-        }
-      }
-    },
-    "Starts playback from the audiobook library.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Starts playback from the audiobook library."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "从书库发起播放。"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "從書庫開始播放。"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "從書庫開始播放。"
-          }
-        }
-      }
-    },
-    "Play": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Play"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

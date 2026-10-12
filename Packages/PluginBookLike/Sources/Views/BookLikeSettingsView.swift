@@ -1,4 +1,6 @@
+import MagicKit
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 public struct BookLikeSettingsView: View, SuperLog {

@@ -1,9 +1,10 @@
-import Foundation
 import ProviderPlayback
+import Foundation
 import MagicKit
 
 @MainActor
 final class LikeButtonObserver: SuperLog {
+    nonisolated static let emoji = "👍"
     nonisolated static let verbose = false
 
     private weak var viewModel: LikeButtonViewModel?
@@ -18,7 +19,7 @@ final class LikeButtonObserver: SuperLog {
             case .likeStatusChanged(_, let liked):
                 self?.viewModel?.handleLikeStatusChanged(liked)
             case .likedAssetsChanged(let assets):
-                self?.viewModel?.handleLikedAssetsChanged(Array(assets))
+                self?.viewModel?.handleLikedAssetsChanged(assets)
             default:
                 break
             }

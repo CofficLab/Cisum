@@ -1,10 +1,12 @@
+import ProviderToast
 import Foundation
 import MagicKit
 import MagicPlayMan
 import OSLog
-import PluginBook
+import ProviderBook
+import ProviderPlayback
+import ProviderPlayback
 import ProviderScene
-import ProviderToast
 import SwiftUI
 
 /// 书籍播放控制的集中状态容器（迁移 Phase 5）。
@@ -13,34 +15,43 @@ import SwiftUI
 /// 删除恢复、章节缓存失效与存储重置；取代原 `BookControlRootView`
 /// 内的全部 `@State` 与事件 handler。由 `BookControlButtonsPlugin` 入口持有。
 ///
-/// ViewModel 不直接持有 Kernel 或具体 Provider：外部播放状态由
-/// `BookControlObserver` 通过 `apply...` 方法回写，外部播放操作通过
-/// `BookControlPlaybackCapability` 执行。
+/// ViewModel 不直接持有 Kernel：外部播放状态由 `BookControlObserver` 回写，
+/// 播放操作直接调用 `PlaybackProviding`。
 @MainActor
 final class BookControlViewModel: ObservableObject, SuperLog {
     nonisolated static let verbose = false
     private static let log = Logger(subsystem: "com.yueyi.cisum", category: "BookControl")
     private static let tag = "⏭️"
 
-    private let playbackCapability: (any BookControlPlaybackCapability)?
+    private let playbackProvider: (any PlaybackProviding)?
+    private let bookDisk: @MainActor () -> URL?
     @Published private(set) var isPlaying = false
-    @Published private(set) var playMode: MagicPlayMode = .sequence
+    @Published private(set) var playMode: PlaybackMode = .sequence
     private let toastProvider: (any ToastProviding)?
     private var controlGeneration = 0
     private var currentScene: AppScene?
     private let targetScene: AppScene
+    /// 本 VM 所在窗口标识，错误面板据此只在来源窗口显示。
+    private var sourceWindowID: String?
+
+    /// 由视图层根据窗口环境更新来源窗口标识。
+    func setSourceWindowID(_ windowID: String?) {
+        sourceWindowID = windowID
+    }
 
     init(
         targetScene: AppScene,
-        playbackCapability: (any BookControlPlaybackCapability)?,
-        toastProvider: (any ToastProviding)? = nil
+        playbackProvider: (any PlaybackProviding)?,
+        toastProvider: (any ToastProviding)? = nil,
+        bookDisk: @escaping @MainActor () -> URL? = { nil }
     ) {
         self.targetScene = targetScene
-        self.playbackCapability = playbackCapability
+        self.playbackProvider = playbackProvider
         self.toastProvider = toastProvider
-        if let playbackCapability {
-            isPlaying = playbackCapability.isPlaying
-            playMode = playbackCapability.playMode
+        self.bookDisk = bookDisk
+        if let playbackProvider {
+            isPlaying = playbackProvider.isPlaying
+            playMode = playbackProvider.playMode
         }
     }
 
@@ -59,28 +70,28 @@ final class BookControlViewModel: ObservableObject, SuperLog {
         }
     }
 
-    func applyStateChanged(_ state: PlaybackState) {
+    func applyStateChanged(_ state: PlaybackStatus) {
         isPlaying = state == .playing
     }
 
-    func applyPlayModeChanged(_ mode: MagicPlayMode) {
+    func applyPlayModeChanged(_ mode: PlaybackMode) {
         playMode = mode
     }
 
     func toggle() {
-        guard let playbackCapability else {
+        guard let playbackProvider else {
             reportUnavailable(operation: "toggle playback")
             return
         }
-        playbackCapability.toggle()
+        playbackProvider.toggle()
     }
 
     func previous() {
         if Self.verbose {
             Self.log.debug("\(Self.tag)⏮️ Previous chapter button tapped")
         }
-        guard let asset = playbackCapability?.currentURL else {
-            reportUnavailable(operation: "play previous chapter", message: "There is no current audiobook chapter.")
+        guard let asset = playbackProvider?.currentURL else {
+            reportUnavailable(operation: "play previous chapter", message: String(localized: "There is no current audiobook chapter.", bundle: .module))
             return
         }
         handlePreviousRequested(asset)
@@ -90,19 +101,19 @@ final class BookControlViewModel: ObservableObject, SuperLog {
         if Self.verbose {
             Self.log.debug("\(Self.tag)⏭️ Next chapter button tapped")
         }
-        guard let asset = playbackCapability?.currentURL else {
-            reportUnavailable(operation: "play next chapter", message: "There is no current audiobook chapter.")
+        guard let asset = playbackProvider?.currentURL else {
+            reportUnavailable(operation: "play next chapter", message: String(localized: "There is no current audiobook chapter.", bundle: .module))
             return
         }
         handleNextRequested(asset)
     }
 
     func togglePlayMode() {
-        guard let playbackCapability else {
+        guard let playbackProvider else {
             reportUnavailable(operation: "change playback mode")
             return
         }
-        playbackCapability.togglePlayMode()
+        playbackProvider.togglePlayMode()
     }
 
     private func activateControl() {
@@ -113,7 +124,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
             return
         }
 
-        guard playbackCapability != nil else { return }
+        guard playbackProvider != nil else { return }
     }
 
     private func deactivateControl() {
@@ -124,13 +135,13 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     // MARK: - Navigation
 
     func handlePreviousRequested(_ asset: URL) {
-        guard shouldActivateControl, let playback = playbackCapability else { return }
+        guard shouldActivateControl, let playback = playbackProvider else { return }
 
         if Self.verbose {
             Self.log.debug("\(Self.tag)⏮️ Previous chapter requested")
         }
 
-        let bookDisk = BookPlugin.getBookDisk()
+        let bookDisk = bookDisk()
         guard BookControlPlaybackRequestPolicy.shouldNavigateBookAsset(asset, bookDisk: bookDisk) else {
             return
         }
@@ -154,25 +165,25 @@ final class BookControlViewModel: ObservableObject, SuperLog {
                     currentGeneration: controlGeneration,
                     requestGeneration: generation
                 ) else { return }
-                await playback.play(prev, reason: "handlePreviousRequested")
+                await playback.play(prev)
                 if Self.verbose {
                     Self.log.debug("\(Self.tag)✅ Playing previous chapter: \(prev.lastPathComponent)")
                 }
             } else {
                 Self.log.error("\(Self.tag) No previous chapter")
-                presentError(title: "Cannot play previous chapter", message: "No previous chapter is available.")
+                presentError(title: String(localized: "Cannot play previous chapter", bundle: .module), message: String(localized: "No previous chapter is available.", bundle: .module))
             }
         }
     }
 
     func handleNextRequested(_ asset: URL) {
-        guard shouldActivateControl, let playback = playbackCapability else { return }
+        guard shouldActivateControl, let playback = playbackProvider else { return }
 
         if Self.verbose {
             Self.log.debug("\(Self.tag)⏭️ Next chapter requested")
         }
 
-        let bookDisk = BookPlugin.getBookDisk()
+        let bookDisk = bookDisk()
         guard BookControlPlaybackRequestPolicy.shouldNavigateBookAsset(asset, bookDisk: bookDisk) else {
             return
         }
@@ -196,13 +207,13 @@ final class BookControlViewModel: ObservableObject, SuperLog {
                     currentGeneration: controlGeneration,
                     requestGeneration: generation
                 ) else { return }
-                await playback.play(next, reason: "handleNextRequested")
+                await playback.play(next)
                 if Self.verbose {
                     Self.log.debug("\(Self.tag)✅ Playing next chapter: \(next.lastPathComponent)")
                 }
             } else {
                 Self.log.error("\(Self.tag) No next chapter")
-                presentError(title: "Cannot play next chapter", message: "No next chapter is available.")
+                presentError(title: String(localized: "Cannot play next chapter", bundle: .module), message: String(localized: "No next chapter is available.", bundle: .module))
             }
         }
     }
@@ -211,7 +222,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
         in root: URL,
         current asset: URL,
         offset: Int,
-        playMode: MagicPlayMode
+        playMode: PlaybackMode
     ) async -> URL? {
         if let chapters = BookControlChapterCache.cachedChapters(in: root) {
             return BookControlChapterLoader.adjacentAsset(
@@ -238,7 +249,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     // MARK: - DB & storage events
 
     func handleBookDBDeleted(deletedURLs: [URL]) {
-        guard let playback = playbackCapability else { return }
+        guard let playback = playbackProvider else { return }
 
         if BookControlPlaybackRequestPolicy.shouldInvalidateChapterCacheAfterDeletion(deletedURLs: deletedURLs) {
             BookControlChapterCache.removeAll()
@@ -257,7 +268,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
                 currentGeneration: controlGeneration,
                 requestGeneration: generation
             ) else { return }
-            await playback.reset(reason: "BookControlViewModel.deletedCurrentAsset")
+            await playback.reset()
         }
     }
 
@@ -269,7 +280,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     }
 
     func handleStorageLocationDidReset() {
-        guard let playback = playbackCapability else { return }
+        guard let playback = playbackProvider else { return }
         guard BookControlPlaybackRequestPolicy.shouldResetForStorageLocationChange(isSceneActive: shouldActivateControl) else {
             return
         }
@@ -284,17 +295,21 @@ final class BookControlViewModel: ObservableObject, SuperLog {
                 isSceneActive: shouldActivateControl
             ) else { return }
 
-            await playback.reset(reason: "BookControlViewModel.storageLocationDidReset")
+            await playback.reset()
         }
     }
 
     private func reportUnavailable(operation: String, message: String? = nil) {
-        let message = message ?? "The playback service is unavailable."
+        let message = message ?? String(localized: "The playback service is unavailable.", bundle: .module)
         Self.log.error("\(Self.tag) Cannot \(operation): \(message)")
-        presentError(title: "Audiobook controls unavailable", message: message)
+        presentError(title: String(localized: "Audiobook controls unavailable", bundle: .module), message: message)
     }
 
     private func presentError(title: String, message: String) {
-        toastProvider?.presentError(title: title, message: message)
+        toastProvider?.presentError(
+            title: title,
+            message: message,
+            sourceWindowID: sourceWindowID
+        )
     }
 }

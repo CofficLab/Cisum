@@ -39,7 +39,7 @@ extension ThumbnailGenerator {
             if verbose { os_log("\(url.t)<\(url.title)>音频元数据中没有封面图片") }
             return nil
         } catch {
-            os_log(.error, "\(url.t)<\(url.title)>从音频元数据中获取封面失败: \(error.localizedDescription)")
+            if verbose { os_log(.error, "\(url.t)<\(url.title)>从音频元数据中获取封面失败: \(error.localizedDescription)") }
             throw error
         }
     }

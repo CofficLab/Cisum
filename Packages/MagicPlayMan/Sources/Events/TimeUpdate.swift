@@ -2,6 +2,8 @@ import Combine
 import Foundation
 import SwiftUI
 import CisumUIComponents
+import LumiUI
+import MagicKit
 
 /// 播放时间更新事件
 /// 当播放进度发生变化时触发

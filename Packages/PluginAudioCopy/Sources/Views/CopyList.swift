@@ -1,5 +1,7 @@
+import MagicKit
 #if os(macOS)
 import CisumUIComponents
+import LumiUI
 import OSLog
 import SwiftData
 import SwiftUI

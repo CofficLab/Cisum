@@ -1,4 +1,6 @@
 import CisumUIComponents
+import LumiUI
+import MagicKit
 import SwiftUI
 
 /// 快退按钮视图
@@ -37,7 +39,7 @@ struct RewindButtonView: View {
 
     var body: some View {
         Button(action: { man.skipBackward() }) {
-            Image(systemName: .iconGobackward10)
+        Image(systemName: PlaybackSymbol.goBackwardTen)
                 .frame(width: size, height: size)
         }
         .disabled(disabledReason != nil)

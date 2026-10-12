@@ -1,4 +1,5 @@
 import CisumUIComponents
+import LumiUI
 import SwiftUI
 
 /// 播放器控制区封面/标题视图。
@@ -7,15 +8,15 @@ import SwiftUI
 /// 高度不足时只显示标题，否则显示主封面与标题。
 struct PlaybackHeroView: View {
     @ObservedObject private var viewModel: PlaybackHeroViewModel
-    @Environment(\.demoMode) private var isDemoMode
-    @Environment(\.rightAlbumVisible) private var isRightAlbumVisible
     @LumiTheme private var appTheme
     @LumiMotionPreferenceReader private var motionPreference
 
     private let titleViewHeight: CGFloat = 60
+    private let isDemoMode: Bool
 
-    init(viewModel: PlaybackHeroViewModel) {
+    init(viewModel: PlaybackHeroViewModel, isDemoMode: Bool) {
         self.viewModel = viewModel
+        self.isDemoMode = isDemoMode
     }
 
     private var title: String {
@@ -25,7 +26,7 @@ struct PlaybackHeroView: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                if shouldShowAlbum(in: geometry) {
+                if viewModel.isHeroVisible, shouldShowAlbum(in: geometry) {
                     if viewModel.state.isDownloading {
                         downloadingAlbumView
                             .frame(maxWidth: .infinity)
@@ -42,28 +43,26 @@ struct PlaybackHeroView: View {
                     }
                 }
 
-                Text(title)
-                    .font(.system(size: 24))
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.3)
-                    .multilineTextAlignment(.center)
-                    .frame(width: max(0, geometry.size.width - 32))
-                    .frame(height: titleViewHeight)
-                    .foregroundStyle(appTheme.textPrimary)
-                    .shadow(color: appTheme.background.opacity(0.18), radius: 8, y: 2)
+                if viewModel.isHeroVisible {
+                    Text(title)
+                        .font(.system(size: 24))
+                        .accessibilityIdentifier("cisum.player.title")
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.3)
+                        .multilineTextAlignment(.center)
+                        .frame(width: max(0, geometry.size.width - 32))
+                        .frame(height: titleViewHeight)
+                        .foregroundStyle(appTheme.textPrimary)
+                        .shadow(color: appTheme.background.opacity(0.18), radius: 8, y: 2)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        #if os(macOS)
-            .ignoresSafeArea(edges: .horizontal)
-        #else
-            .ignoresSafeArea()
-        #endif
+        .preference(key: PlaybackHeroVisibilityKey.self, value: viewModel.isHeroVisible)
     }
 
     private func shouldShowAlbum(in geometry: GeometryProxy) -> Bool {
-        !isRightAlbumVisible
-            && !CisumPlayerLayout.shouldShowRightAlbum(width: geometry.size.width)
+        !CisumPlayerLayout.shouldShowRightAlbum(width: geometry.size.width)
             && geometry.size.height > CisumPlayerLayout.albumMinimumHeight
     }
 

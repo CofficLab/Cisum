@@ -1,11 +1,13 @@
 import CisumUIComponents
+import LumiUI
+import PluginSettingView
 import KernelCore
 import PluginAudio
 import PluginAudioCopy
+import PluginAudioDBData
 import PluginAudioDBView
 import PluginAudioDemo
 import PluginAudioDownload
-import PluginAudioJob
 import PluginAudioLike
 import PluginAudioPlayMode
 import PluginAudioProgress
@@ -15,6 +17,7 @@ import PluginAudioWidgetControl
 import PluginBook
 import PluginBookControlButtons
 import PluginBookDBView
+import PluginBookDBData
 import PluginBookLike
 import PluginBookPlayMode
 import PluginBookProgress
@@ -35,20 +38,8 @@ import PluginSettingGeneral
 import PluginSettingsButton
 import PluginStorage
 import PluginStore
-import PluginThemeAurora
-import PluginThemeCisum
-import PluginThemeDaylightSilver
-import PluginThemeForest
-import PluginThemeGraphiteBlack
-import PluginThemeMidnight
-import PluginThemeMono
-import PluginThemeNebula
-import PluginThemeOcean
-import PluginThemePaper
-import PluginThemeSettings
-import PluginThemeStudioBlue
-import PluginThemeSunset
 import PluginWelcome
+import ProviderRootView
 
 /// 产出各种插件的工厂协议（对齐 Lumi `FactoryLumi/PluginFactory.swift`）。
 ///
@@ -74,10 +65,10 @@ public struct DefaultPluginFactory: PluginFactory {
 
     public func makePlugins() -> [any SuperPlugin] {
         var plugins: [any SuperPlugin] = [
-            AudioDBPlugin.shared,
+            AudioDBDataPlugin.shared,
+            AudioDBViewPlugin.shared,
             AudioDemoPlugin.shared,
             AudioDownloadPlugin.shared,
-            AudioJobPlugin.shared,
             AudioLikePlugin.shared,
             AudioPlayModePlugin.shared,
             AudioPlugin.shared,
@@ -86,7 +77,8 @@ public struct DefaultPluginFactory: PluginFactory {
             AudioSettingsPlugin.shared,
             AudioWidgetControlPlugin.shared,
             BookControlButtonsPlugin.shared,
-            BookDBPlugin.shared,
+            BookDBDataPlugin.shared,
+            BookDBViewPlugin.shared,
             BookLikePlugin.shared,
             BookPlayModePlugin.shared,
             BookPlugin.shared,
@@ -102,11 +94,24 @@ public struct DefaultPluginFactory: PluginFactory {
         #endif
 
         plugins.append(contentsOf: [
+            PluginSettingView(id: "com.coffic.cisum.plugin.setting-view"),
             PluginPlayBack.shared,
             ScenePlugin.shared,
             LikeButtonPlugin.shared,
             OpenButtonPlugin.shared,
-            ToastPlugin.shared,
+            ToastSuperPlugin(
+                overlayInstaller: { kernel, center in
+                    kernel.resolveProvider((any RootViewProviding).self)?.addOverlays([
+                        RootOverlayItem(id: ToastSuperPlugin.overlayID, order: 10_000) { content in
+                            ToastOverlay(content: content, center: center)
+                        }
+                    ])
+                },
+                overlayUninstaller: { kernel in
+                    kernel.resolveProvider((any RootViewProviding).self)?
+                        .removeOverlays(ids: [ToastSuperPlugin.overlayID])
+                }
+            ),
             PluginPluginManager.shared,
             StoragePlugin.shared,
             StorePlugin.shared,
@@ -115,19 +120,6 @@ public struct DefaultPluginFactory: PluginFactory {
             PlaybackHeroPlugin.shared,
             AudioControlButtonsPlugin.shared,
             PlaybackProgressPlugin.shared,
-            ThemeAuroraPlugin.shared,
-            ThemeCisumPlugin.shared,
-            ThemeDaylightSilverPlugin.shared,
-            ThemeForestPlugin.shared,
-            ThemeGraphiteBlackPlugin.shared,
-            ThemeMidnightPlugin.shared,
-            ThemeMonoPlugin.shared,
-            ThemeNebulaPlugin.shared,
-            ThemeOceanPlugin.shared,
-            ThemePaperPlugin.shared,
-            ThemeSettingsPlugin.shared,
-            ThemeStudioBluePlugin.shared,
-            ThemeSunsetPlugin.shared,
             WelcomePlugin.shared,
         ] as [any SuperPlugin])
 

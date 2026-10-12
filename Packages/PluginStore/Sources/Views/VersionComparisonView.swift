@@ -1,5 +1,6 @@
 import CisumUIComponents
-import PluginAudio
+import LumiUI
+import ProviderAudioLibrary
 import SwiftUI
 
 /// 版本对比视图：展示免费版与专业版的区别

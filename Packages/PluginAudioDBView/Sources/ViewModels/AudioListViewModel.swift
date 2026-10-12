@@ -1,9 +1,11 @@
+import ProviderAudioLibrary
 import Combine
 import Foundation
 import OSLog
-import PluginAudio
 import SwiftUI
 import MagicKit
+import ProviderToast
+import ProviderPlayback
 
 /// 音频库列表的加载状态容器（迁移 Phase 2）。
 ///
@@ -28,27 +30,34 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     @Published private(set) var pageSize = 50
     @Published private(set) var isSyncing = false
     @Published private(set) var totalCount = 0
+    @Published private(set) var hasSuccessfullyLoadedRepository = false
+
+    var isConfirmedRepositoryEmpty: Bool {
+        hasSuccessfullyLoadedRepository && !isLoading && totalCount == 0 && urls.isEmpty
+    }
 
     private var loadGeneration = 0
     private var selectionGeneration = 0
 
-    private let audioRepoProvider: @MainActor () async -> AudioRepo?
-    /// AudioDB 所需的最小播放能力；不让 ViewModel 反向访问 Kernel。
-    private let playbackCapability: (any AudioPlaybackCapability)?
+    private let audioLibraryProvider: @MainActor () -> (any AudioLibraryProviding)?
+    private let playbackProvider: (any PlaybackProviding)?
     private var currentAsset: URL?
     private let reasonTag: String
     private let isDesktop: Bool
+    private let toastProvider: (any ToastProviding)?
 
     init(
-        audioRepo: @escaping @MainActor () async -> AudioRepo?,
-        playbackCapability: (any AudioPlaybackCapability)? = nil,
+        audioLibrary: @escaping @MainActor () -> (any AudioLibraryProviding)?,
+        playbackProvider: (any PlaybackProviding)? = nil,
         reasonTag: String = "AudioListViewModel",
-        isDesktop: Bool? = nil
+        isDesktop: Bool? = nil,
+        toastProvider: (any ToastProviding)? = nil
     ) {
-        self.audioRepoProvider = audioRepo
-        self.playbackCapability = playbackCapability
+        self.audioLibraryProvider = audioLibrary
+        self.playbackProvider = playbackProvider
         self.reasonTag = reasonTag
         self.isDesktop = isDesktop ?? Self.defaultIsDesktop
+        self.toastProvider = toastProvider
     }
 
     /// 非桌面平台（用于显示「添加」按钮等布局差异）。
@@ -142,17 +151,17 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                 return
             }
 
-            guard let playbackCapability = self.playbackCapability else {
-                os_log(.error, "\(Self.t)4/5 Playback capability is missing; cannot play: \(url.path)")
+            guard let playbackProvider = self.playbackProvider else {
+                os_log(.error, "\(Self.t)4/5 Playback provider is missing; cannot play: \(url.path)")
                 return
             }
 
             if Self.verbose {
-                os_log("\(Self.t)4/5 Calling AudioPlaybackCapability.play: \(url.path)")
+                os_log("\(Self.t)4/5 Calling PlaybackProviding.play: \(url.path)")
             }
-            await playbackCapability.play(url)
+            await playbackProvider.play(url)
             if Self.verbose {
-                os_log("\(Self.t)5/5 AudioPlaybackCapability.play returned: \(url.lastPathComponent)")
+                os_log("\(Self.t)5/5 PlaybackProviding.play returned: \(url.lastPathComponent)")
             }
         }
     }
@@ -186,27 +195,27 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     /// 用户从列表删除条目（滑动删除）。
     func deleteItems(at offsets: IndexSet) {
         guard let urlsToDelete = Self.urlsToDelete(from: offsets, in: urls) else {
-            alert_error(String(localized: "Delete failed: the audio list changed. Please try again.", bundle: .module))
+            toastProvider?.error(String(localized: "Delete failed: the audio list changed. Please try again.", bundle: .module))
             return
         }
 
         Task { @MainActor in
-            guard let repo = await audioRepoProvider() else {
-                alert_error(String(localized: "Delete failed: audio repository is unavailable", bundle: .module))
+            guard let library = audioLibraryProvider() else {
+                toastProvider?.error(String(localized: "Delete failed: audio repository is unavailable", bundle: .module))
                 return
             }
-            await deleteFiles(urlsToDelete, in: repo)
+            await deleteFiles(urlsToDelete, in: library)
         }
     }
 
     /// 删除单个文件（列表项上下文菜单）。
     func deleteFile(_ url: URL) {
         Task { @MainActor in
-            guard let repo = await audioRepoProvider() else {
-                alert_error(String(localized: "Delete failed: audio repository is unavailable", bundle: .module))
+            guard let library = audioLibraryProvider() else {
+                toastProvider?.error(String(localized: "Delete failed: audio repository is unavailable", bundle: .module))
                 return
             }
-            await deleteFiles([url], in: repo)
+            await deleteFiles([url], in: library)
         }
     }
 
@@ -265,6 +274,12 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         refresh(reason: "handleDBSortDone")
     }
 
+    /// Storage configuration changed; re-open the repository instead of leaving
+    /// the first-run unavailable state cached in the list.
+    func handleRepositoryAvailabilityChanged() {
+        refresh(reason: "Repository availability changed")
+    }
+
     // MARK: - Loading
 
     /// 加载首页。
@@ -274,18 +289,28 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         loadGeneration += 1
         let generation = loadGeneration
         isLoading = true
+        hasSuccessfullyLoadedRepository = false
 
         Task { @MainActor in
-            guard let repo = await audioRepoProvider() else {
+            guard let library = audioLibraryProvider() else {
                 isLoading = false
-                alert_error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
+                hasSuccessfullyLoadedRepository = false
+                toastProvider?.error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
+                return
+            }
+            guard library.isAvailable else {
+                // During first-run onboarding there is intentionally no storage
+                // root yet. The welcome gate explains the required action; a
+                // generic repository error toast would obscure that guidance.
+                isLoading = false
+                hasSuccessfullyLoadedRepository = false
                 return
             }
 
             let pageSize = self.pageSize
             Task.detached(priority: .background) {
-                let count = await repo.getTotalCount()
-                let urls = await repo.get(
+                let count = await library.totalCount()
+                let urls = await library.urls(
                     offset: 0,
                     limit: pageSize,
                     reason: self.reasonTag
@@ -300,6 +325,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                     }
                     self.urls = urls
                     self.totalCount = count
+                    self.hasSuccessfullyLoadedRepository = true
                     self.currentPage = 1
                     self.hasMore = urls.count == pageSize
                     self.isLoading = false
@@ -316,9 +342,9 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         let generation = loadGeneration
 
         Task { @MainActor in
-            guard let repo = await audioRepoProvider() else {
+            guard let library = audioLibraryProvider() else {
                 isLoadingMore = false
-                alert_error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
+                toastProvider?.error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
                 return
             }
 
@@ -332,7 +358,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
             )
 
             Task.detached(priority: .background) {
-                let newUrls = await repo.get(
+                let newUrls = await library.urls(
                     offset: offset,
                     limit: pageSize,
                     reason: self.reasonTag
@@ -395,17 +421,29 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         let loadingState = AudioListLoadPolicy.loadingStateWhenStartingCurrentPageRefresh(displayedCount: urls.count)
         isLoading = loadingState.isLoading
         isLoadingMore = loadingState.isLoadingMore
+        if urls.isEmpty {
+            hasSuccessfullyLoadedRepository = false
+        }
 
         Task { @MainActor in
-            guard let repo = await audioRepoProvider() else {
-                alert_error(String(localized: "Refresh failed: audio repository is unavailable", bundle: .module))
+            guard let library = audioLibraryProvider() else {
+                isLoading = false
+                isLoadingMore = false
+                hasSuccessfullyLoadedRepository = false
+                toastProvider?.error(String(localized: "Refresh failed: audio repository is unavailable", bundle: .module))
+                return
+            }
+            guard library.isAvailable else {
+                isLoading = false
+                isLoadingMore = false
+                hasSuccessfullyLoadedRepository = false
                 return
             }
 
             Task.detached(priority: .background) {
                 let currentCount = await self.urls.count
                 let currentTotalCount = await self.totalCount
-                let newTotalCount = await repo.getTotalCount()
+                let newTotalCount = await library.totalCount()
 
                 await MainActor.run {
                     guard AudioListLoadPolicy.shouldApplyResult(
@@ -427,7 +465,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                         let currentCount = currentCount
                         let newTotalCount = newTotalCount
                         Task.detached(priority: .background) {
-                            let refreshedUrls = await repo.get(
+                            let refreshedUrls = await library.urls(
                                 offset: 0,
                                 limit: currentCount,
                                 reason: self.reasonTag
@@ -440,12 +478,14 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                                 ) else { return }
                                 self.urls = refreshedUrls
                                 self.totalCount = newTotalCount
+                                self.hasSuccessfullyLoadedRepository = true
                                 self.isLoading = false
                                 self.isLoadingMore = false
                             }
                         }
                     } else {
                         self.totalCount = newTotalCount
+                        self.hasSuccessfullyLoadedRepository = true
                         self.isLoading = false
                         self.isLoadingMore = false
                     }
@@ -460,21 +500,24 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         selection = newValue
     }
 
-    private func deleteFiles(_ urlsToDelete: [URL], in repo: AudioRepo) async {
+    private func deleteFiles(
+        _ urlsToDelete: [URL],
+        in library: any AudioLibraryProviding
+    ) async {
         do {
-            try await repo.deleteAudios(urlsToDelete)
+            try await library.delete(urls: urlsToDelete, verbose: false)
             if AudioDeletePlaybackPolicy.shouldResetDirectlyAfterDelete(
                 currentURL: currentAsset,
                 deletedURLs: urlsToDelete,
                 isPlaybackControllerHandlingDeletion: true
             ) {
-                await playbackCapability?.reset()
+                await playbackProvider?.reset()
             }
             for url in urlsToDelete {
-                alert_info(String(localized: "Deleted \(url.title)", bundle: .module))
+                toastProvider?.info(String(localized: "Deleted \(url.title)", bundle: .module))
             }
         } catch {
-            alert_error(String(localized: "Delete failed: \(error.localizedDescription)", bundle: .module))
+            toastProvider?.error(String(localized: "Delete failed: \(error.localizedDescription)", bundle: .module))
         }
     }
 

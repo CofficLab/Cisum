@@ -29,6 +29,9 @@
         }
       }
     },
+    "Audiobook controls unavailable" : {
+
+    },
     "Basic Operations" : {
       "localizations" : {
         "en" : {
@@ -112,6 +115,12 @@
           }
         }
       }
+    },
+    "Cannot play next chapter" : {
+
+    },
+    "Cannot play previous chapter" : {
+
     },
     "Click Previous Chapter / Next Chapter to switch chapters." : {
       "localizations" : {
@@ -280,6 +289,12 @@
           }
         }
       }
+    },
+    "No next chapter is available." : {
+
+    },
+    "No previous chapter is available." : {
+
     },
     "Notes" : {
       "localizations" : {
@@ -588,6 +603,12 @@
           }
         }
       }
+    },
+    "The playback service is unavailable." : {
+
+    },
+    "There is no current audiobook chapter." : {
+
     },
     "Type" : {
       "localizations" : {

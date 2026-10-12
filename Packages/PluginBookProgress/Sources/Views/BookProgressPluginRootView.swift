@@ -1,7 +1,7 @@
 import CisumUIComponents
+import LumiUI
 import OSLog
-import PluginBook
-import SwiftData
+import ProviderBook
 import SwiftUI
 
 struct BookProgressPluginRootView<Content>: View where Content: View {

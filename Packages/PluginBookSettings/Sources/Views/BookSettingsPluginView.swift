@@ -1,5 +1,6 @@
 import CisumUIComponents
-import PluginBook
+import LumiUI
+import ProviderBook
 import SwiftUI
 
 struct BookSettingsPluginView: View {
@@ -10,8 +11,6 @@ struct BookSettingsPluginView: View {
     }
 
     var body: some View {
-        BookSettingsView(refreshToken: viewModel.refreshToken) {
-            BookPlugin.getBookDisk()
-        }
+        BookSettingsView(viewModel: viewModel)
     }
 }

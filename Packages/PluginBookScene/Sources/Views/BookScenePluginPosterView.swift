@@ -1,13 +1,18 @@
 import CisumUIComponents
+import LumiUI
 import ProviderScene
 import SwiftUI
 
 struct BookScenePluginPosterView: View {
-    @Environment(\.posterDismissAction) private var dismissAction
     private let setCurrentScene: @MainActor (AppScene) -> Void
+    private let dismissPoster: @MainActor () -> Void
 
-    init(setCurrentScene: @escaping @MainActor (AppScene) -> Void) {
+    init(
+        setCurrentScene: @escaping @MainActor (AppScene) -> Void,
+        dismissPoster: @escaping @MainActor () -> Void = {}
+    ) {
         self.setCurrentScene = setCurrentScene
+        self.dismissPoster = dismissPoster
     }
 
     var body: some View {
@@ -15,9 +20,7 @@ struct BookScenePluginPosterView: View {
             enterScene: {
                 setCurrentScene(.audiobooks)
             },
-            dismissPoster: {
-                dismissAction()
-            }
+            dismissPoster: dismissPoster
         )
     }
 }

@@ -1,8 +1,11 @@
 import Combine
 import Foundation
+import ProviderPlayback
 import OSLog
 import SwiftUI
 import CisumUIComponents
+import LumiUI
+import MagicKit
 
 extension MagicPlayMan {
     /// 播放事件发布者
@@ -52,7 +55,7 @@ extension MagicPlayMan {
         public let onNextRequested = PassthroughSubject<URL, Never>()
         public let onNavigationFailed = PassthroughSubject<NavigationFailure, Never>()
         public let onLikeStatusChanged = PassthroughSubject<(asset: URL, isLiked: Bool), Never>()
-        public let onPlayModeChanged = PassthroughSubject<MagicPlayMode, Never>()
+        public let onPlayModeChanged = PassthroughSubject<PlaybackMode, Never>()
         public let onCurrentURLChanged = PassthroughSubject<URL?, Never>()
 
         func addSubscriber(
@@ -106,7 +109,7 @@ extension MagicPlayMan {
         onPreviousRequested: ((URL) -> Void)? = nil,
         onNextRequested: ((URL) -> Void)? = nil,
         onLikeStatusChanged: ((URL, Bool) -> Void)? = nil,
-        onPlayModeChanged: ((MagicPlayMode) -> Void)? = nil,
+        onPlayModeChanged: ((PlaybackMode) -> Void)? = nil,
         onCurrentURLChanged: ((URL?) -> Void)? = nil
     ) -> UUID {
         let hasNavigationHandler = onPreviousRequested != nil || onNextRequested != nil
