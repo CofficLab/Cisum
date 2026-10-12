@@ -71,7 +71,7 @@ enum CisumThemeBridge {
             kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([
                 SettingEntryItem(
                     id: "appearance",
-                    title: "Appearance",
+                    title: String(localized: "Appearance", bundle: .module),
                     systemImage: "paintpalette",
                     order: 2
                 ) {
