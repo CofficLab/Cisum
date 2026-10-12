@@ -43,24 +43,22 @@ public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
-        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            contrib.addToolBarButtons(ownerPluginID: id, self.addToolBarButtons())
-        }
         self.kernel = kernel
-        // 跨插件 Provider（Playback）在 onReady 中解析，
-        // 不假设其他插件已完成 Provider 注册。
+        // onBoot 时 viewModel 尚未就绪，延迟到 onReady 注册工具栏按钮。
     }
 
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
     @MainActor
     public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         installState(kernel: kernel)
+        registerToolBarButtonsIfNeeded()
     }
 
     @MainActor
     public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         installState(kernel: kernel)
+        registerToolBarButtonsIfNeeded()
     }
 
     @MainActor
@@ -78,6 +76,13 @@ public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
     public func addToolBarButtons() -> [(id: String, view: AnyView)] {
         guard let viewModel else { return [] }
         return [(id: LikeButtonPluginInfo.toolbarItemId, view: AnyView(LikeToggleButtonView(viewModel: viewModel)))]
+    }
+
+    @MainActor
+    private func registerToolBarButtonsIfNeeded() {
+        guard let kernel else { return }
+        guard let contrib = kernel.resolveProvider((any PluginContributionProviding).self) else { return }
+        contrib.addToolBarButtons(ownerPluginID: id, addToolBarButtons())
     }
 
     // MARK: - State assembly
