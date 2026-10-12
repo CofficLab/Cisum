@@ -105,6 +105,7 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
                 guard let kernel = self?.kernel else { return }
                 kernel.resolveProvider((any RootViewProviding).self)?.toggleContentView()
             }
+            .appDebugBadge("Book Controls", alignment: .bottomLeading)
         )
     }
 

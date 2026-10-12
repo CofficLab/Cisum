@@ -75,7 +75,10 @@ public final class AudioScenePlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     public func addPosterView() -> AnyView? {
-        AnyView(AudioScenePluginPosterView(setCurrentScene: setSceneAction ?? { _ in }))
+        AnyView(
+            AudioScenePluginPosterView(setCurrentScene: setSceneAction ?? { _ in })
+                .appDebugBadge("Music Library", alignment: .bottomLeading)
+        )
     }
 
     // MARK: - State assembly

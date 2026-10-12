@@ -78,7 +78,10 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
     public func addProgressView() -> AnyView? {
         installState(kernel: kernel)
         guard let viewModel else { return nil }
-        return AnyView(PlaybackProgressView(viewModel: viewModel))
+        return AnyView(
+            PlaybackProgressView(viewModel: viewModel)
+                .appDebugBadge("Progress Bar", alignment: .bottomLeading)
+        )
     }
 
     @MainActor

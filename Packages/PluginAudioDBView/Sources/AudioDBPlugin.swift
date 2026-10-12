@@ -9,6 +9,7 @@ import KernelCore
 import ProviderPlugin
 import KitAppEvents
 import ProviderSettingView
+import LumiUI
 import SwiftUI
 import MagicKit
 import OSLog
@@ -127,20 +128,23 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
 
         let (list, root, db) = resolveViewModels()
         return (
-            AnyView(AudioDBPluginTabView(
-                listViewModel: list,
-                rootViewModel: root,
-                dbViewModel: db,
-                audioLibrary: audioLibraryProvider,
-                audioDisk: audioDiskProvider,
-                audioDiagnostics: audioDiagnosticsProvider,
-                isImporting: Binding(
-                    get: { self.kernel?.resolveProvider((any AppStateProviding).self)?.isImporting ?? false },
-                    set: { self.kernel?.resolveProvider((any AppStateProviding).self)?.setImporting($0) }
-                ),
-                showDBView: { self.kernel?.resolveProvider((any AppStateProviding).self)?.showDBView() },
-                demoMode: demoMode
-            )),
+            AnyView(
+                AudioDBPluginTabView(
+                    listViewModel: list,
+                    rootViewModel: root,
+                    dbViewModel: db,
+                    audioLibrary: audioLibraryProvider,
+                    audioDisk: audioDiskProvider,
+                    audioDiagnostics: audioDiagnosticsProvider,
+                    isImporting: Binding(
+                        get: { self.kernel?.resolveProvider((any AppStateProviding).self)?.isImporting ?? false },
+                        set: { self.kernel?.resolveProvider((any AppStateProviding).self)?.setImporting($0) }
+                    ),
+                    showDBView: { self.kernel?.resolveProvider((any AppStateProviding).self)?.showDBView() },
+                    demoMode: demoMode
+                )
+                .appDebugBadge("Music Repository", alignment: .bottomLeading)
+            ),
             String(localized: "Music Repository", bundle: .module)
         )
     }
