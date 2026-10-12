@@ -26,6 +26,13 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
     private var controlGeneration = 0
     /// 最近一次已提示过的失败，用于去重，避免状态抖动反复弹窗。
     private var lastPresentedFailure: PlaybackFailure?
+    /// 本 VM 所在窗口标识，错误面板据此只在来源窗口显示。
+    private var sourceWindowID: String?
+
+    /// 由视图层根据窗口环境更新来源窗口标识。
+    func setSourceWindowID(_ windowID: String?) {
+        sourceWindowID = windowID
+    }
 
     init(
         playbackProvider: (any PlaybackProviding)?,
@@ -350,6 +357,10 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
     }
 
     private func presentError(title: String, message: String) {
-        toastProvider?.presentError(title: title, message: message)
+        toastProvider?.presentError(
+            title: title,
+            message: message,
+            sourceWindowID: sourceWindowID
+        )
     }
 }

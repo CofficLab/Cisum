@@ -31,6 +31,13 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     private var controlGeneration = 0
     private var currentScene: AppScene?
     private let targetScene: AppScene
+    /// 本 VM 所在窗口标识，错误面板据此只在来源窗口显示。
+    private var sourceWindowID: String?
+
+    /// 由视图层根据窗口环境更新来源窗口标识。
+    func setSourceWindowID(_ windowID: String?) {
+        sourceWindowID = windowID
+    }
 
     init(
         targetScene: AppScene,
@@ -299,6 +306,10 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     }
 
     private func presentError(title: String, message: String) {
-        toastProvider?.presentError(title: title, message: message)
+        toastProvider?.presentError(
+            title: title,
+            message: message,
+            sourceWindowID: sourceWindowID
+        )
     }
 }

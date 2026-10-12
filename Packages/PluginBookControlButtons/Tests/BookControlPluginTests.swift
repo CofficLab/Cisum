@@ -588,10 +588,12 @@ private final class BookControlPlaybackProbe: PlaybackProviding {
 
 @MainActor
 private final class BookToastProbe: ToastProviding {
-    var errors: [(title: String, message: String)] = []
+    var errors: [(title: String, message: String, sourceWindowID: String?)] = []
 
     func show(_ toast: CisumToast) {}
-    func presentError(title: String, message: String) { errors.append((title, message)) }
+    func presentError(title: String, message: String, sourceWindowID: String?) {
+        errors.append((title, message, sourceWindowID))
+    }
     func dismissError() {}
     func showLoading(title: String, detail: String?) {}
     func dismissLoading() {}

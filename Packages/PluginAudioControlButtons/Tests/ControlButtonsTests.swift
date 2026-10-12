@@ -102,11 +102,13 @@ private final class NavigationProbe: AudioTrackNavigationProviding {
 
 @MainActor
 private final class ToastProbe: ToastProviding {
-    var errors: [(title: String, message: String)] = []
+    var errors: [(title: String, message: String, sourceWindowID: String?)] = []
     var infos: [String] = []
 
     func show(_ toast: CisumToast) { infos.append(toast.title) }
-    func presentError(title: String, message: String) { errors.append((title, message)) }
+    func presentError(title: String, message: String, sourceWindowID: String?) {
+        errors.append((title, message, sourceWindowID))
+    }
     func dismissError() {}
     func showLoading(title: String, detail: String?) {}
     func dismissLoading() {}

@@ -31,6 +31,7 @@ public struct WindowMain: View {
             }
         }
         .appThemedAppearance()
+        .environment(\.toastWindowID, AppBootstrap.mainWindowID)
 #if os(macOS)
         .overlay {
             ThemeWindowAppearanceBridge().allowsHitTesting(false)

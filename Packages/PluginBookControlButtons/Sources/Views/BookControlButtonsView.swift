@@ -5,6 +5,7 @@ import SwiftUI
 /// 有声书场景的播放控制按钮组。
 struct BookControlButtonsView: View {
     @ObservedObject private var viewModel: BookControlViewModel
+    @Environment(\.toastWindowID) private var windowID
     let toggleDBView: @MainActor () -> Void
 
     init(
@@ -57,6 +58,10 @@ struct BookControlButtonsView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .buttonStyle(.plain)
+        .onAppear { viewModel.setSourceWindowID(windowID) }
+        .onChange(of: windowID) { _, newValue in
+            viewModel.setSourceWindowID(newValue)
+        }
     }
 
     private let buttonCount: CGFloat = 5
