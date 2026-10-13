@@ -194,16 +194,37 @@ public extension MagicPlayMan {
 
             setState(.loading(.downloading(0)), reason: reason + ".iCloudDownload")
 
+            // 事件源：与仓库列表进度环同源（GlobalDownloadMonitor 从
+            // NSMetadataItem 的 percent key 推送进度）。生产环境下轮询的
+            // URL 资源键读不到百分比（长期为 0），只靠轮询 Hero 会一直
+            // 显示「0% 正在下载」，与列表进度不一致。
+            let eventProgressObserver = url.onDownloading(
+                verbose: self.verbose,
+                caller: self.className + ".play"
+            ) { [weak self] progress in
+                Task { @MainActor in
+                    self?.publishDownloadProgress(
+                        progress,
+                        requestGeneration: requestGeneration,
+                        reason: reason + ".eventProgress"
+                    )
+                }
+            }
+            defer { eventProgressObserver.cancel() }
+
+            // 轮询源保留：测试注入的替身与部分系统版本依赖快照读数推进。
+            // 两源经 MagicPlayManDownloadProgressPolicy 单调合并，互不覆盖。
             let progressTask = Task { @MainActor [weak self] in
                 while !Task.isCancelled {
                     try? await Task.sleep(nanoseconds: 500_000_000)
                     guard !Task.isCancelled, let self else { return }
                     guard self.isCurrentPlayRequest(requestGeneration) else { return }
 
-                    let progress = MagicPlayManPlaybackTimePolicy.normalizedUnitProgress(
-                        ICloudDownloadControl.shared.downloader.downloadProgress(url)
+                    self.publishDownloadProgress(
+                        ICloudDownloadControl.shared.downloader.downloadProgress(url),
+                        requestGeneration: requestGeneration,
+                        reason: reason + ".pollProgress"
                     )
-                    self.setState(.loading(.downloading(progress)), reason: reason + ".iCloudDownload")
                 }
             }
             defer { progressTask.cancel() }
@@ -275,6 +296,26 @@ public extension MagicPlayMan {
             let item = AVPlayerItem(url: url)
             self.load(item, autoPlay: autoPlay, startTime: startTime, requestGeneration: requestGeneration, reason: reason)
         }
+    }
+
+    /// 发布合并后的下载进度。仅当「当前播放请求仍有效且正处于下载态」时生效：
+    /// - 事件源与轮询源都可能各自读到 0，经 `MagicPlayManDownloadProgressPolicy`
+    ///   单调合并，任一源的 0 都不得覆盖另一源已发布的真实进度
+    ///   （否则顶部 Hero 会卡在「0% 正在下载」，与列表进度环不一致）；
+    /// - 下载完成后迟到的进度不得把 preparing/playing 覆盖回 downloading。
+    @MainActor
+    func publishDownloadProgress(
+        _ value: Double,
+        requestGeneration: UInt64,
+        reason: String
+    ) {
+        guard isCurrentPlayRequest(requestGeneration) else { return }
+        guard case .loading(.downloading(let current)) = state else { return }
+
+        let progress = MagicPlayManDownloadProgressPolicy.merged(current: current, incoming: value)
+        guard progress != current else { return }
+
+        setState(.loading(.downloading(progress)), reason: reason)
     }
 
     @MainActor
