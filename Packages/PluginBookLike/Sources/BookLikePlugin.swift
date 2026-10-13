@@ -35,6 +35,11 @@ public final class BookLikePlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private var likeViewModel: BookLikeViewModel?
     nonisolated(unsafe) private var likeObserver: BookLikeObserver?
 
+    /// 本插件消费的能力 Adapter。Observer 只在 init 期间使用能力安装订阅，
+    /// 但入口仍显式持有以满足组装层所有权约定（Capabilities 规范第 5 条）。
+    nonisolated(unsafe) private var bookLikeSceneCapability: BookLikeSceneCapabilityAdapter?
+    nonisolated(unsafe) private var bookLikePlaybackCapability: BookLikePlaybackCapabilityAdapter?
+
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
         if Self.verbose { os_log("\(Self.t)🔌 onRegister") }
@@ -122,12 +127,22 @@ public final class BookLikePlugin: AsyncSuperPlugin, SuperLog {
         sceneBox.scene = scene
         if Self.verbose { os_log("\(Self.t)🔧 installState") }
 
+        // 入口强持有 Adapter，ViewModel / Observer 以 Bool 或参数消费。
+        let sceneCapability = BookLikeSceneCapabilityAdapter(scene: scene)
+        let playbackCapability = BookLikePlaybackCapabilityAdapter(playback: playback)
+        bookLikeSceneCapability = sceneCapability
+        bookLikePlaybackCapability = playbackCapability
+
         let viewModel = BookLikeViewModel(
-            playbackProvider: playback,
+            isPlaybackAvailable: true,
             loadLikedBooks: makeLoadLikedBooks(),
             saveLikeStatus: makeSaveLikeStatus()
         )
-        let observer = BookLikeObserver(scene: scene, playback: playback, viewModel: viewModel)
+        let observer = BookLikeObserver(
+            scene: sceneCapability,
+            playback: playbackCapability,
+            viewModel: viewModel
+        )
         likeViewModel = viewModel
         likeObserver = observer
     }
@@ -138,6 +153,8 @@ public final class BookLikePlugin: AsyncSuperPlugin, SuperLog {
         likeObserver?.cancel()
         likeObserver = nil
         likeViewModel = nil
+        bookLikeSceneCapability = nil
+        bookLikePlaybackCapability = nil
     }
 
     /// 返回当前持有的 ViewModel；若尚未安装（启动前或插件被禁用），
@@ -147,8 +164,9 @@ public final class BookLikePlugin: AsyncSuperPlugin, SuperLog {
         if let likeViewModel {
             return likeViewModel
         }
+        // 视图贡献可能早于 boot：此时喜欢保存处于停用状态，等待后续装配。
         let viewModel = BookLikeViewModel(
-            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
+            isPlaybackAvailable: kernel?.resolveProvider((any PlaybackProviding).self) != nil,
             loadLikedBooks: makeLoadLikedBooks(),
             saveLikeStatus: makeSaveLikeStatus()
         )

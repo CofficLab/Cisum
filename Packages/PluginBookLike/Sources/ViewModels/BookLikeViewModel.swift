@@ -3,7 +3,6 @@ import Foundation
 import OSLog
 import ProviderScene
 import SwiftUI
-import ProviderPlayback
 import MagicKit
 
 /// 喜欢列表加载闭包（由插件入口组装本地仓库）。
@@ -28,7 +27,8 @@ final class BookLikeViewModel: ObservableObject, SuperLog {
     @Published private(set) var likedBooks: [BookLikeItem] = []
     @Published private(set) var isLoading = true
 
-    private let playbackProvider: (any PlaybackProviding)?
+    /// 播放服务是否可用（由入口按 Provider 是否存在注入）。
+    private let isPlaybackAvailable: Bool
     private let loadLikedBooks: BookLikeLoadProvider
     private let saveLikeStatus: BookLikeSaveProvider
     private let targetScene: AppScene
@@ -36,12 +36,12 @@ final class BookLikeViewModel: ObservableObject, SuperLog {
 
     init(
         targetScene: AppScene = .audiobooks,
-        playbackProvider: (any PlaybackProviding)?,
+        isPlaybackAvailable: Bool,
         loadLikedBooks: @escaping BookLikeLoadProvider,
         saveLikeStatus: @escaping BookLikeSaveProvider
     ) {
         self.targetScene = targetScene
-        self.playbackProvider = playbackProvider
+        self.isPlaybackAvailable = isPlaybackAvailable
         self.loadLikedBooks = loadLikedBooks
         self.saveLikeStatus = saveLikeStatus
     }
@@ -82,7 +82,7 @@ final class BookLikeViewModel: ObservableObject, SuperLog {
 
     private func activateLike() {
         guard !isActive else { return }
-        guard playbackProvider != nil else { return }
+        guard isPlaybackAvailable else { return }
 
         isActive = true
         if Self.verbose { os_log("\(Self.t)🟢 喜欢保存已激活") }

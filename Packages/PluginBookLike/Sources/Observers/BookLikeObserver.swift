@@ -1,5 +1,3 @@
-import ProviderScene
-import ProviderPlayback
 import Foundation
 import OSLog
 import MagicKit
@@ -13,19 +11,23 @@ final class BookLikeObserver: SuperLog {
     nonisolated static let verbose = false
 
     private weak var viewModel: BookLikeViewModel?
-    private var sceneHandle: (any SceneProvidingObserverHandle)?
-    private var playbackHandle: (any PlaybackProvidingObserverHandle)?
+    private var sceneHandle: (any BookLikeSceneObserverHandle)?
+    private var playbackHandle: (any BookLikePlaybackObserverHandle)?
 
-    init(scene: any SceneProviding, playback: any PlaybackProviding, viewModel: BookLikeViewModel) {
+    init(
+        scene: any BookLikeSceneCapability,
+        playback: any BookLikePlaybackCapability,
+        viewModel: BookLikeViewModel
+    ) {
         self.viewModel = viewModel
         if Self.verbose { os_log("\(Self.t)👀 BookLikeObserver 初始化") }
         viewModel.handleSceneChange(scene.currentScene)
         sceneHandle = scene.addObserver { [weak self] event in
-            guard case .selectionChanged(let scene) = event else { return }
-            self?.viewModel?.handleSceneChange(scene)
+            guard case let .selectionChanged(newScene) = event else { return }
+            self?.viewModel?.handleSceneChange(newScene)
         }
         playbackHandle = playback.addObserver { [weak self] event in
-            guard case .likeStatusChanged(let asset, let isLiked) = event else { return }
+            guard case let .likeStatusChanged(asset, isLiked) = event else { return }
             self?.viewModel?.handleLikeStatusChanged(asset: asset, liked: isLiked)
         }
     }
