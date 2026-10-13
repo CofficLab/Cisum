@@ -26,28 +26,32 @@ final class BookGridViewModel: ObservableObject, SuperLog {
     @Published var lastStateUpdatedURL: URL?
 
     private var currentAsset: URL?
-    private let playbackProvider: (any PlaybackProviding)?
-    private let toastProvider: (any ToastProviding)?
-    private var bookProvider: (any BookDatabaseProviding)?
+    /// 播放与提示能力（Capabilities 目录收窄），`weak` 持有。
+    private weak var playback: (any BookLibraryPlaybackCapability)?
+    private weak var toast: (any BookLibraryToastCapability)?
+    private var bookLibrary: (any BookLibraryCapability)?
     private var updateBooksGeneration = 0
     private var playBookGeneration = 0
     private var updateBooksDebounceTask: Task<Void, Never>?
 
     private static let verbose = false
 
-    init(playbackProvider: (any PlaybackProviding)? = nil, toastProvider: (any ToastProviding)? = nil) {
-        self.playbackProvider = playbackProvider
-        self.toastProvider = toastProvider
+    init(
+        playback: (any BookLibraryPlaybackCapability)? = nil,
+        toast: (any BookLibraryToastCapability)? = nil
+    ) {
+        self.playback = playback
+        self.toast = toast
     }
 
-    func bind(provider: (any BookDatabaseProviding)?) {
-        self.bookProvider = provider
+    func bind(library: (any BookLibraryCapability)?) {
+        self.bookLibrary = library
     }
 
     // MARK: - View lifecycle
 
     func handleOnAppear() {
-        if Self.verbose { os_log("\(Self.t)📋 handleOnAppear, provider: \(self.bookProvider == nil ? "nil" : "available")") }
+        if Self.verbose { os_log("\(Self.t)📋 handleOnAppear, provider: \(self.bookLibrary == nil ? "nil" : "available")") }
         isLoading = true
         scheduleUpdateBooksDebounced()
         if let currentAsset {
@@ -115,13 +119,13 @@ final class BookGridViewModel: ObservableObject, SuperLog {
     // MARK: - Data loading
 
     private func updateBooks(generation: Int) {
-        guard let bookProvider else {
+        guard let bookLibrary else {
             if Self.verbose { os_log("\(Self.t)⚠️ updateBooks: provider is nil") }
             return
         }
         if Self.verbose { os_log("\(Self.t)🔄 updateBooks gen=\(generation)") }
         Task { @MainActor [weak self] in
-            let books = await bookProvider.books(reason: "BookGridViewModel")
+            let books = await bookLibrary.books(reason: "BookGridViewModel")
             self?.setBooks(books, generation: generation)
         }
     }
@@ -206,14 +210,14 @@ final class BookGridViewModel: ObservableObject, SuperLog {
         }
 
         if Self.verbose { os_log("\(Self.t)▶️ 播放(\(reason)): \(url.lastPathComponent) @ \(time.map { "\($0)s" } ?? "开头")") }
-        await playbackProvider?.play(url, startTime: time)
+        await playback?.play(url, startTime: time)
     }
 
     private func playBook(_ book: BookDTO, generation: Int) async {
         let playableChildren = await BookGridPlayableChildrenLoader.load(for: book.url)
         let reason = "BookGridViewModel"
 
-        if let bookState = await bookProvider?.playbackState(for: book.url),
+        if let bookState = await bookLibrary?.playbackState(for: book.url),
            let savedURL = bookState.currentURL,
            let savedTime = bookState.time,
            isPlayableSavedURL(savedURL, in: book, playableChildren: playableChildren) {
@@ -221,8 +225,8 @@ final class BookGridViewModel: ObservableObject, SuperLog {
             return
         }
 
-        if let savedURL = bookProvider?.currentBookURL(),
-           let savedTime = bookProvider?.currentBookTime(),
+        if let savedURL = bookLibrary?.currentBookURL(),
+           let savedTime = bookLibrary?.currentBookTime(),
            isPlayableSavedURL(savedURL, in: book, playableChildren: playableChildren) {
             await play(savedURL, in: book, at: savedTime, generation: generation, reason: reason)
             return
@@ -238,7 +242,7 @@ final class BookGridViewModel: ObservableObject, SuperLog {
             ) else {
                 return
             }
-            await playbackProvider?.play(first, startTime: nil)
+            await playback?.play(first, startTime: nil)
         } else {
             guard BookGridPlaybackRequestPolicy.shouldReportNoPlayableChapters(
                 currentGeneration: playBookGeneration,
@@ -252,11 +256,11 @@ final class BookGridViewModel: ObservableObject, SuperLog {
 
             guard FileManager.default.fileExists(atPath: book.url.path),
                   BookPluginInfo.supportedExtensions.contains(book.url.pathExtension.lowercased()) else {
-                toastProvider?.error(String(localized: "No playable chapters found", bundle: .module))
+                toast?.error(String(localized: "No playable chapters found", bundle: .module))
                 return
             }
 
-            await playbackProvider?.play(book.url, startTime: nil)
+            await playback?.play(book.url, startTime: nil)
         }
     }
 

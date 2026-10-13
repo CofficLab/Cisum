@@ -18,15 +18,15 @@ final class BookListViewModel: ObservableObject, SuperLog {
     @Published private(set) var isLoading = false
     @Published private(set) var totalCount = 0
 
-    private let bookProvider: (any BookDatabaseProviding)?
+    private weak var bookLibrary: (any BookLibraryCapability)?
     private let reasonTag: String
     private var loadGeneration = 0
 
     init(
-        bookProvider: (any BookDatabaseProviding)?,
+        bookLibrary: (any BookLibraryCapability)?,
         reasonTag: String = "BookListViewModel"
     ) {
-        self.bookProvider = bookProvider
+        self.bookLibrary = bookLibrary
         self.reasonTag = reasonTag
     }
 
@@ -48,12 +48,12 @@ final class BookListViewModel: ObservableObject, SuperLog {
         isLoading = true
 
         Task { @MainActor in
-            guard let bookProvider else {
+            guard let bookLibrary else {
                 isLoading = false
                 return
             }
 
-            let books = await bookProvider.books(reason: reasonTag)
+            let books = await bookLibrary.books(reason: reasonTag)
             guard generation == loadGeneration else { return }
             self.books = books
             self.totalCount = books.count

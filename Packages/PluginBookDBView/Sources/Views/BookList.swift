@@ -36,7 +36,7 @@ struct BookList: View, SuperLog, SuperThread {
             )
         }
         .task {
-            books = await dependencies.bookProvider?.books(reason: "BookList") ?? []
+            books = await dependencies.bookLibrary?.books(reason: "BookList") ?? []
         }
     }
 }

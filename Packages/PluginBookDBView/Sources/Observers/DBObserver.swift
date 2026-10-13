@@ -1,6 +1,4 @@
-import Foundation
 import OSLog
-import ProviderBook
 import MagicKit
 
 /// 书籍数据库事件的集中观察者（迁移 Phase 3）。
@@ -13,26 +11,25 @@ final class DBObserver: SuperLog {
     nonisolated static let verbose = false
 
     private weak var viewModel: BookGridViewModel?
-    private var providerHandle: (any BookProvidingObserverHandle)?
+    private var handle: (any BookLibraryObserverHandle)?
 
-    init(viewModel: BookGridViewModel, provider: any BookDatabaseProviding) {
+    init(viewModel: BookGridViewModel, library: any BookLibraryCapability) {
         self.viewModel = viewModel
         if Self.verbose { os_log("\(Self.t)👀 BookDatabaseObserver 初始化") }
-        providerHandle = provider.addObserver { [weak self] event in
+        handle = library.addObserver { [weak self] event in
             switch event {
             case .librarySyncing: self?.viewModel?.handleBookDBSyncing()
             case .librarySynced: self?.viewModel?.handleBookDBSynced()
             case .libraryChanged: self?.viewModel?.handleBookDBUpdated()
             case .libraryDeleted: self?.viewModel?.handleBookDBDeleted()
-            case let .playbackStateChanged(url): self?.viewModel?.handleBookStateUpdated(url)
-            case .storageLocationChanged: break
+            case .playbackStateChanged(let url): self?.viewModel?.handleBookStateUpdated(url)
             }
         }
     }
 
     func cancel() {
         if Self.verbose { os_log("\(Self.t)🧹 BookDatabaseObserver 取消") }
-        providerHandle?.cancel()
-        providerHandle = nil
+        handle?.cancel()
+        handle = nil
     }
 }

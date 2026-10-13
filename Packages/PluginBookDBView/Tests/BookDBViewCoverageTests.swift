@@ -8,45 +8,25 @@ import Testing
 
 /// 最小播放探针：支持广播 assetChanged 事件。
 @MainActor
-private final class PlaybackProbe: PlaybackProviding {
-    var state: PlaybackStatus = .idle
+private final class PlaybackProbe: BookLibraryPlaybackCapability {
     var currentURL: URL?
-    var currentTime: TimeInterval = 0
-    var duration: TimeInterval = 0
-    var progress: Double = 0
-    var playMode: PlaybackMode = .sequence
-    var likedAssets: Set<URL> = []
-    var isPlaying: Bool { false }
-    var hasAsset: Bool { currentURL != nil }
 
     var played: [(url: URL, startTime: TimeInterval?)] = []
-    private var observers: [UUID: (PlaybackProvidingEvent) -> Void] = [:]
+    private var observers: [UUID: (BookLibraryPlaybackEvent) -> Void] = [:]
 
     func emitAssetChanged(_ url: URL?) {
-        let event = PlaybackProvidingEvent.assetChanged(url)
+        let event = BookLibraryPlaybackEvent.assetChanged(url: url)
         for observer in observers.values { observer(event) }
     }
-
-    func play(_ url: URL) async { played.append((url, nil)) }
 
     func play(_ url: URL, startTime: TimeInterval?) async {
         played.append((url, startTime))
     }
 
-    func pause() {}
-    func toggle() {}
-    func seek(toProgress progress: Double) {}
-    func seek(toTime time: TimeInterval) {}
-    func next() {}
-    func previous() {}
-    func setPlayMode(_ mode: PlaybackMode) {}
-    func toggleCurrentLike() {}
-    func togglePlayMode() {}
-
     @discardableResult
     func addObserver(
-        _ callback: @escaping (PlaybackProvidingEvent) -> Void
-    ) -> any PlaybackProvidingObserverHandle {
+        _ callback: @escaping (BookLibraryPlaybackEvent) -> Void
+    ) -> any BookLibraryPlaybackObserverHandle {
         let id = UUID()
         observers[id] = callback
         return ProbePlaybackHandle { [weak self] in
@@ -56,7 +36,7 @@ private final class PlaybackProbe: PlaybackProviding {
 }
 
 @MainActor
-private final class ProbePlaybackHandle: PlaybackProvidingObserverHandle {
+private final class ProbePlaybackHandle: BookLibraryPlaybackObserverHandle {
     private let onCancel: () -> Void
     private var cancelled = false
 
@@ -73,35 +53,30 @@ private final class ProbePlaybackHandle: PlaybackProvidingObserverHandle {
 
 /// 书籍数据库探针：可配置书籍列表与播放状态，支持广播事件。
 @MainActor
-private final class BookProbe: BookDatabaseProviding {
+private final class BookProbe: BookLibraryCapability {
     var bookDisk: URL?
-    var isAvailable: Bool = true
     var databaseRoot = URL(fileURLWithPath: "/tmp/book-db")
     var booksValue: [BookDTO] = []
     var playbackStateValue: BookPlaybackStateDTO?
     var currentBookURLValue: URL?
     var currentBookTimeValue: TimeInterval?
-    private var observers: [UUID: @MainActor @Sendable (BookProvidingEvent) -> Void] = [:]
+    private var observers: [UUID: (BookLibraryEvent) -> Void] = [:]
 
-    func totalCount() async -> Int { booksValue.count }
     func books(reason: String) async -> [BookDTO] { booksValue }
     func syncImportedItems(_ items: [URL]) async throws {}
     func coverData(for bookURL: URL) async -> Data? { nil }
     func playbackState(for bookURL: URL) async -> BookPlaybackStateDTO? { playbackStateValue }
-    func savePlaybackState(for bookURL: URL, currentURL: URL?, time: TimeInterval?) async throws {}
     func currentBookURL() -> URL? { currentBookURLValue }
     func currentBookTime() -> TimeInterval? { currentBookTimeValue }
-    func storeCurrentBookURL(_ url: URL?) {}
-    func storeCurrentBookTime(_ time: TimeInterval) {}
 
-    func emit(_ event: BookProvidingEvent) {
+    func emit(_ event: BookLibraryEvent) {
         for observer in observers.values { observer(event) }
     }
 
     @discardableResult
     func addObserver(
-        _ callback: @escaping @MainActor @Sendable (BookProvidingEvent) -> Void
-    ) -> any BookProvidingObserverHandle {
+        _ callback: @escaping (BookLibraryEvent) -> Void
+    ) -> any BookLibraryObserverHandle {
         let id = UUID()
         observers[id] = callback
         return ProbeBookHandle { [weak self] in
@@ -111,7 +86,7 @@ private final class BookProbe: BookDatabaseProviding {
 }
 
 @MainActor
-private final class ProbeBookHandle: BookProvidingObserverHandle {
+private final class ProbeBookHandle: BookLibraryObserverHandle {
     private let onCancel: () -> Void
     private var cancelled = false
 
@@ -175,7 +150,7 @@ struct DBObserverTests {
     func forwardsLibraryEventsToGridViewModel() async throws {
         let provider = BookProbe()
         let viewModel = BookGridViewModel()
-        let observer = DBObserver(viewModel: viewModel, provider: provider)
+        let observer = DBObserver(viewModel: viewModel, library: provider)
         defer { observer.cancel() }
 
         provider.emit(.librarySyncing)
@@ -186,9 +161,9 @@ struct DBObserverTests {
         try await Task.sleep(for: .milliseconds(100))
         #expect(!viewModel.isSyncing)
 
-        provider.emit(.libraryChanged(totalCount: 3))
+        provider.emit(.libraryChanged)
         try await Task.sleep(for: .milliseconds(100))
-        provider.emit(.libraryDeleted(urls: [URL(fileURLWithPath: "/tmp/gone.mp3")]))
+        provider.emit(.libraryDeleted)
         try await Task.sleep(for: .milliseconds(100))
 
         provider.emit(.playbackStateChanged(url: URL(fileURLWithPath: "/tmp/state.mp3")))
@@ -200,7 +175,7 @@ struct DBObserverTests {
     func cancellingObserverStopsForwarding() throws {
         let provider = BookProbe()
         let viewModel = BookGridViewModel()
-        let observer = DBObserver(viewModel: viewModel, provider: provider)
+        let observer = DBObserver(viewModel: viewModel, library: provider)
         observer.cancel()
 
         provider.emit(.librarySyncing)
@@ -239,7 +214,7 @@ struct BookGridViewModelTests {
         provider.booksValue = [book]
 
         let viewModel = BookGridViewModel()
-        viewModel.bind(provider: provider)
+        viewModel.bind(library: provider)
         viewModel.handleOnAppear()
         try await Task.sleep(for: .milliseconds(400))
 
@@ -255,7 +230,7 @@ struct BookGridViewModelTests {
         provider.booksValue = [makeBook(url: bookURL)]
 
         let viewModel = BookGridViewModel()
-        viewModel.bind(provider: provider)
+        viewModel.bind(library: provider)
         viewModel.handleOnAppear()
         try await Task.sleep(for: .milliseconds(400))
 
@@ -270,7 +245,7 @@ struct BookGridViewModelTests {
         provider.booksValue = [makeBook(url: bookURL)]
 
         let viewModel = BookGridViewModel()
-        viewModel.bind(provider: provider)
+        viewModel.bind(library: provider)
         viewModel.handleOnAppear()
         try await Task.sleep(for: .milliseconds(400))
 
@@ -292,8 +267,8 @@ struct BookGridViewModelTests {
         provider.booksValue = [makeBook(url: bookURL)]
         let playback = PlaybackProbe()
 
-        let viewModel = BookGridViewModel(playbackProvider: playback)
-        viewModel.bind(provider: provider)
+        let viewModel = BookGridViewModel(playback: playback)
+        viewModel.bind(library: provider)
         viewModel.handleOnAppear()
         try await Task.sleep(for: .milliseconds(400))
 
@@ -321,8 +296,8 @@ struct BookGridViewModelTests {
         provider.playbackStateValue = BookPlaybackStateDTO(currentURL: chapterURL, time: 30)
         let playback = PlaybackProbe()
 
-        let viewModel = BookGridViewModel(playbackProvider: playback)
-        viewModel.bind(provider: provider)
+        let viewModel = BookGridViewModel(playback: playback)
+        viewModel.bind(library: provider)
         viewModel.handleOnAppear()
         try await Task.sleep(for: .milliseconds(400))
 
@@ -355,7 +330,7 @@ struct BookGridViewModelTests {
         let provider = BookProbe()
         provider.booksValue = [makeBook(url: URL(fileURLWithPath: "/tmp/Book1"))]
         let viewModel = BookGridViewModel()
-        viewModel.bind(provider: provider)
+        viewModel.bind(library: provider)
 
         // 触发 debounce 后立即消失：代际失效，books 不应被应用。
         viewModel.handleOnAppear()

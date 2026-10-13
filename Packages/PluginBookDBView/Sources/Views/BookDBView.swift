@@ -112,12 +112,12 @@ extension BookDBView {
                     return
                 }
 
-                guard let bookProvider = dependencies.bookProvider else {
+                guard let bookLibrary = dependencies.bookLibrary else {
                     toastProvider?.error(String(localized: "Book repository is unavailable", bundle: .module))
                     return
                 }
 
-                try await bookProvider.syncImportedItems(copiedItems)
+                try await bookLibrary.syncImportedItems(copiedItems)
             } catch {
                 Self.cleanUpCopiedItems(copiedItems)
                 // os_log(.error, "\(self.t)❌ Failed to copy book files: \(error.localizedDescription)")
