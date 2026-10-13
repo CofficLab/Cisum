@@ -113,6 +113,76 @@ class CisumUITestBase: XCTestCase {
     }
 
     #if os(macOS)
+    /// 通过系统文件选择器导入测试音频。
+    ///
+    /// 音乐仓库没有公开的自动化导入入口，只能驱动真实选择器。
+    /// 注意：macOS 27+ 的跨进程选择器自动化不稳定，调用方应先按版本跳过。
+    func importFixtureViaFilePicker(fixtureURL: URL) {
+        let importButton = element(anyLabelOf: ["Add", "添加"])
+        XCTAssertTrue(importButton.waitForExistence(timeout: 10), "音乐仓库没有音频导入入口")
+        importButton.click()
+
+        let panelService = XCUIApplication(bundleIdentifier: "com.apple.appkit.xpc.openAndSavePanelService")
+        let servicePanel = panelService.windows.firstMatch
+        let appPanel = app.dialogs.firstMatch
+        let appSheet = app.sheets.firstMatch
+        let servicePanelAppeared = servicePanel.waitForExistence(timeout: 5)
+        let panelAppeared = servicePanelAppeared
+            || appPanel.waitForExistence(timeout: 1)
+            || appSheet.waitForExistence(timeout: 1)
+        XCTAssertTrue(panelAppeared, "点击导入后系统文件选择器没有出现")
+        let pickerApp: XCUIApplication = servicePanelAppeared ? panelService : app
+
+        pickerApp.typeKey("g", modifierFlags: [.command, .shift])
+        let goToFolderField = pickerApp.textFields["PathTextField"]
+        XCTAssertTrue(goToFolderField.waitForExistence(timeout: 5), "文件选择器没有显示路径输入框")
+        goToFolderField.click()
+        goToFolderField.typeKey("a", modifierFlags: .command)
+        let fixtureFolderPath = fixtureURL.deletingLastPathComponent().path
+        goToFolderField.typeText(fixtureFolderPath)
+        pickerApp.typeKey(.return, modifierFlags: [])
+        pickerApp.typeKey(.return, modifierFlags: [])
+
+        let name = fixtureURL.deletingPathExtension().lastPathComponent
+        let fixtureRow = element(containing: String(name.prefix(18)))
+        XCTAssertTrue(fixtureRow.waitForExistence(timeout: 10), "文件选择器未定位到测试音频: \(name)")
+        fixtureRow.doubleClick()
+
+        XCTAssertTrue(
+            pickerApp.windows.firstMatch.waitForNonExistence(timeout: 15)
+                || app.dialogs.firstMatch.waitForNonExistence(timeout: 1),
+            "文件选择器关闭前未完成测试音频导入"
+        )
+    }
+
+    /// 删除此前导入的测试音频，保持仓库干净。
+    func deleteImportedFixtureIfPresent(fixtureName: String) {
+        let track = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", fixtureName)).firstMatch
+        guard track.exists else { return }
+
+        track.rightClick()
+        let deleteMenuItem = app.menuItems.matching(identifier: "trash").firstMatch
+        XCTAssertTrue(deleteMenuItem.waitForExistence(timeout: 5), "曲目上下文菜单中没有删除命令")
+        deleteMenuItem.click()
+
+        let confirmDelete = app.buttons.matching(identifier: "Delete").firstMatch
+            .exists
+            ? app.buttons.matching(identifier: "Delete").firstMatch
+            : app.buttons.matching(identifier: "删除").firstMatch
+        XCTAssertTrue(confirmDelete.waitForExistence(timeout: 5), "删除确认没有出现")
+        confirmDelete.click()
+        XCTAssertTrue(track.waitForNonExistence(timeout: 15), "测试音频未从音乐仓库清理: \(fixtureName)")
+    }
+
+    /// macOS 27+ 的系统文件选择器无法稳定完成跨进程 UI 自动化导入。
+    func skipIfFilePickerAutomationUnavailable() throws {
+        if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 {
+            throw XCTSkip("macOS 27 的系统文件选择器无法稳定完成跨进程 UI 自动化导入")
+        }
+    }
+    #endif
+
+    #if os(macOS)
     func assertElementFitsWindow(
         _ element: XCUIElement,
         window: XCUIElement,

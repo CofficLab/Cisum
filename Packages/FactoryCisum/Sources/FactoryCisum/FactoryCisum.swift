@@ -79,6 +79,10 @@ public enum CisumBuilder: SuperLog {
     ) async throws -> KernelCoreContainer {
         let kernel = KernelCoreContainer()
 
+        // 0. UI 测试注入：必须在任何插件 boot 之前完成，否则播放插件可能在
+        //    安装替身之前就已经发起过 iCloud 下载。无参数时不做任何改动。
+        ICloudDownloadControl.shared.bootstrapFromLaunchArguments()
+
         // 1. 通过插件工厂装配插件清单（对齐 Lumi `pluginFactory.makePlugins()`）
         let factory = pluginFactory ?? DefaultPluginFactory()
         // RootView provider is installed through the same plugin lifecycle as

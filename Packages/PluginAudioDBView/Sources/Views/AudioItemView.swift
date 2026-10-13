@@ -168,6 +168,7 @@ extension AudioItemView {
                     Text(url.lastPathComponent)
                         .font(.headline)
                         .lineLimit(1)
+                        .accessibilityIdentifier("cisum.audio-library.item.title")
 
                     HStack {
                         switch AudioItemFileSizeDisplayPolicy.state(
