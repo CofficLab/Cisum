@@ -106,7 +106,12 @@ public final class PluginPluginManager: AsyncSuperPlugin {
             systemImage: iconName,
             order: order,
             detail: {
-            PluginManagementView(docsProvider: self.kernel?.resolveProvider((any DocsViewProviding).self), viewModel: viewModel)
+            PluginManagementView(
+                docs: PluginManagerDocsCapabilityAdapter(
+                    docs: self.kernel?.resolveProvider((any DocsViewProviding).self)
+                ),
+                viewModel: viewModel
+            )
         }
         )
     }
