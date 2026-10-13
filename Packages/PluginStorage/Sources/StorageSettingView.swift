@@ -121,7 +121,7 @@ public struct StorageSettingView: View, SuperLog {
 
     @ViewBuilder
     private var migrationProgressSheet: some View {
-        if let storageProvider = viewModel.resolvedStorageProvider {
+        if let storage = viewModel.resolvedStorage {
             MigrationProgressView(
                 sourceLocation: viewModel.location,
                 targetLocation: targetLocation,
@@ -131,7 +131,7 @@ public struct StorageSettingView: View, SuperLog {
                     showMigrationProgress = false
                     self.hasChanges = targetLocation != viewModel.location
                 },
-                storageProvider: storageProvider
+                storage: storage
             )
         } else {
             ProgressView()

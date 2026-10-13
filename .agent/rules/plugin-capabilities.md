@@ -95,8 +95,21 @@ final class PlaybackSettingsSceneCapabilityAdapter: PlaybackSettingsSceneCapabil
 2. **不泄漏句柄类型**：Provider 的 `*ObserverHandle` 不应出现在能力协议里；需在能力文件内**内联定义**自己的事件枚举与句柄协议（见 Lumi `PendingMessageSendingCapability`）。
 3. **装配只在插件入口**：Adapter 一律在 `<Plugin>.swift` 的 `onBoot(kernel:)` 中创建并注入 ViewModel / Observer。
 4. **持有用 `weak`**：Adapter 持有 Provider 时默认 `private weak var`，避免 Provider 已被 unregister 时仍被强引用。
-5. **可见性**：能力协议默认 `internal`；仅当该能力需被本包 `Tests` 使用时才提为 `public`。跨插件共享的能力不属于本机制，应下沉为 `Provider*` / `Kit*` 包。
-6. **禁止循环**：Adapter 可依赖 `Provider*` 包；Provider 包**不得**反向依赖插件。
+5. **⚠️ 入口必须强持有 Adapter**：`weak` 持有是消费侧的规则，但 Adapter 本身的**所有者是插件入口**。若入口只是 `makeXxxCapability(kernel:).init(...)` 临时创建后直接注入，Adapter 会随调用返回立即释放，消费方的 `weak` 全部落空（功能静默失效）。
+
+```swift
+// ❌ 错误：Adapter 无人持有，方法返回即释放
+let viewModel = MyViewModel(capability: MyCapabilityAdapter(provider: provider))
+
+// ✅ 正确：入口持有 Adapter，并在 shutdown 释放
+private var capability: MyCapabilityAdapter?
+let capability = MyCapabilityAdapter(provider: provider)
+self.capability = capability
+let viewModel = MyViewModel(capability: capability)
+```
+
+6. **可见性**：能力协议默认 `internal`；仅当该能力需被本包 `Tests` 使用时才提为 `public`。跨插件共享的能力不属于本机制，应下沉为 `Provider*` / `Kit*` 包。
+7. **禁止循环**：Adapter 可依赖 `Provider*` 包；Provider 包**不得**反向依赖插件。
 
 ---
 
@@ -131,6 +144,7 @@ final class PlaybackSettingsSceneCapabilityAdapter: PlaybackSettingsSceneCapabil
 - [ ] 未泄漏 Provider 的 `*ObserverHandle` 与事件类型
 - [ ] Adapter 在插件入口 `onBoot` 中创建并注入
 - [ ] Adapter 持有 Provider 用 `weak`
+- [ ] **插件入口显式强持有 Adapter，并在 shutdown 释放**
 - [ ] 能力文件放在 `Capabilities/`（而非 `Providers/`）
 - [ ] 命名符合 `<Plugin前缀><Domain>Capability` / `Adapter`
 

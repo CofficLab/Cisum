@@ -44,7 +44,8 @@ struct MigrationProgressView: View {
     let sourceURL: URL?
     let targetURL: URL?
     let onDismiss: () -> Void
-    let storageProvider: any StorageProviding
+    /// 存储能力（Capabilities 目录收窄）：迁移成功后据此提交新存储位置。
+    let storage: any StorageSettingsCapability
 
     @State private var processedFiles: [FileStatus] = []
     @State private var sourceFiles: [String] = []
@@ -327,7 +328,7 @@ struct MigrationProgressView: View {
                     updateGeneration: generation
                 ) else { return }
                 let completionMessage = Self.completionMessage(shouldMigrate: migrationRoots != nil)
-                storageProvider.setStorageLocation(targetLocation)
+                storage.setStorageLocation(targetLocation)
                 self.migrationCompleted = true
                 self.completionMessage = completionMessage
                 self.currentMigratingFile = completionMessage

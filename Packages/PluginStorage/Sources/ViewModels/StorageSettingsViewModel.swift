@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import MagicKit
 import CisumProviderStorage
+import ProviderStorage
 
 @MainActor
 final class StorageSettingsViewModel: ObservableObject, SuperLog {
@@ -11,42 +12,46 @@ final class StorageSettingsViewModel: ObservableObject, SuperLog {
     @Published private(set) var isICloudAvailable = false
     @Published private(set) var isLocalStorageAvailable = false
 
-    private weak var storageProvider: (any StorageProviding)?
+    /// 存储能力（Capabilities 目录收窄），`weak` 持有。
+    private weak var storage: (any StorageSettingsCapability)?
 
-    init(storageProvider: (any StorageProviding)?) {
-        self.storageProvider = storageProvider
+    init(storage: (any StorageSettingsCapability)? = nil) {
+        self.storage = storage
         refresh()
     }
 
     /// 当前存储位置解析出的根 URL；不可用时为 `nil`。
     var storageRoot: URL? {
-        storageProvider?.storageRoot
+        storage?.storageRoot
     }
 
     /// 解析指定存储位置对应的根 URL；不可用时返回 `nil`。
     func storageRoot(for location: StorageLocation) -> URL? {
-        storageProvider?.storageRoot(for: location)
+        storage?.storageRoot(for: location)
     }
 
     /// 用户意图：设置存储位置。
     func setStorageLocation(_ location: StorageLocation?) {
-        storageProvider?.setStorageLocation(location)
+        storage?.setStorageLocation(location)
     }
 
     func handleProviderChanged() {
         refresh()
     }
 
-    func updateStorageProvider(_ provider: (any StorageProviding)?) {
-        storageProvider = provider
+    /// 绑定存储能力：设置页导航项可能在插件启动前被请求，
+    /// 此时能力尚不存在，后续 `installSettingsState` 会再绑定一次。
+    func updateStorage(_ storage: (any StorageSettingsCapability)?) {
+        self.storage = storage
         refresh()
     }
 
-    var resolvedStorageProvider: (any StorageProviding)? { storageProvider }
+    /// 迁移流程需要的存储能力；尚未绑定时为 `nil`。
+    var resolvedStorage: (any StorageSettingsCapability)? { storage }
 
     private func refresh() {
-        location = storageProvider?.currentStorageLocation
-        isICloudAvailable = storageProvider?.isICloudStorageAvailable ?? false
-        isLocalStorageAvailable = storageProvider?.storageRoot(for: .local) != nil
+        location = storage?.currentStorageLocation
+        isICloudAvailable = storage?.isICloudStorageAvailable ?? false
+        isLocalStorageAvailable = storage?.storageRoot(for: .local) != nil
     }
 }

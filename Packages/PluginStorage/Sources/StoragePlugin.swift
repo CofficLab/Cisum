@@ -32,6 +32,9 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
 
     nonisolated(unsafe) var settingsViewModel: StorageSettingsViewModel?
     nonisolated(unsafe) private var settingsObserver: StorageProvidingObserver?
+    /// 设置页消费的存储能力。ViewModel 以 `weak` 持有 Adapter，
+    /// 故此处必须显式强持有，否则能力会随 `installSettingsState` 返回而释放。
+    nonisolated(unsafe) private var settingsCapability: StorageSettingsCapabilityAdapter?
 
     public init() {}
 
@@ -107,9 +110,7 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
         // View 贡献可能在插件启动前被请求：保证返回一个稳定、长期存在的
         // ViewModel，而不是每次请求都重新创建。
         let viewModel = settingsViewModel ?? {
-            let viewModel = StorageSettingsViewModel(
-                storageProvider: nil
-            )
+            let viewModel = StorageSettingsViewModel(storage: nil)
             settingsViewModel = viewModel
             return viewModel
         }()
@@ -139,11 +140,13 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
     /// legitimately exist without a capability.
     @MainActor
     func installSettingsState(storage: any CisumProviderStorage.StorageProviding) {
-        let viewModel = settingsViewModel ?? StorageSettingsViewModel(storageProvider: storage)
-        viewModel.updateStorageProvider(storage)
+        let capability = StorageSettingsCapabilityAdapter(storage: storage)
+        settingsCapability = capability
+        let viewModel = settingsViewModel ?? StorageSettingsViewModel(storage: capability)
+        viewModel.updateStorage(capability)
 
         settingsObserver?.cancel()
-        settingsObserver = StorageProvidingObserver(provider: storage, viewModel: viewModel)
+        settingsObserver = StorageProvidingObserver(storage: capability, viewModel: viewModel)
         settingsViewModel = viewModel
     }
 
@@ -152,6 +155,7 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
         settingsObserver?.cancel()
         settingsObserver = nil
         settingsViewModel = nil
+        settingsCapability = nil
     }
 
 }

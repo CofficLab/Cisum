@@ -1044,10 +1044,9 @@ import ProviderStorage
 @MainActor
 @Test func storageObserverPerformsInitialSync() {
     let service = StorageProvider()
-    let viewModel = StorageSettingsViewModel(
-        storageProvider: service
-    )
-    let observer = StorageProvidingObserver(provider: service, viewModel: viewModel)
+    let capability = StorageSettingsCapabilityAdapter(storage: service)
+    let viewModel = StorageSettingsViewModel(storage: capability)
+    let observer = StorageProvidingObserver(storage: capability, viewModel: viewModel)
     defer { observer.cancel() }
 
     // 监听安装前已经存在的状态不能丢失。
@@ -1059,10 +1058,9 @@ import ProviderStorage
 @MainActor
 @Test func storageObserverForwardsLocationChangeToViewModel() {
     let service = StorageProvider()
-    let viewModel = StorageSettingsViewModel(
-        storageProvider: service
-    )
-    let observer = StorageProvidingObserver(provider: service, viewModel: viewModel)
+    let capability = StorageSettingsCapabilityAdapter(storage: service)
+    let viewModel = StorageSettingsViewModel(storage: capability)
+    let observer = StorageProvidingObserver(storage: capability, viewModel: viewModel)
     defer { observer.cancel() }
 
     service.setStorageLocation(.local)
@@ -1075,10 +1073,9 @@ import ProviderStorage
 @MainActor
 @Test func storageObserverCancelStopsViewModelUpdates() {
     let service = TestStorageProviding(currentStorageLocation: nil)
-    let viewModel = StorageSettingsViewModel(
-        storageProvider: service
-    )
-    let observer = StorageProvidingObserver(provider: service, viewModel: viewModel)
+    let capability = StorageSettingsCapabilityAdapter(storage: service)
+    let viewModel = StorageSettingsViewModel(storage: capability)
+    let observer = StorageProvidingObserver(storage: capability, viewModel: viewModel)
 
     observer.cancel()
     service.setStorageLocation(.local)
