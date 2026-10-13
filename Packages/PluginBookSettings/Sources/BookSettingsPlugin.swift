@@ -33,6 +33,9 @@ public final class BookSettingsPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private var settingsViewModel: BookSettingsViewModel?
     nonisolated(unsafe) private var settingsObserver: BookSettingsObserver?
 
+    /// 本插件消费的能力 Adapter（见 Capabilities 规范第 5 条：入口强持有）。
+    nonisolated(unsafe) private var bookSettingsLibraryCapability: BookSettingsLibraryCapabilityAdapter?
+
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
         if Self.verbose { os_log("\(Self.t)🔌 onRegister") }
@@ -98,7 +101,10 @@ public final class BookSettingsPlugin: AsyncSuperPlugin, SuperLog {
             return
         }
         let viewModel = BookSettingsViewModel(bookDisk: { provider.bookDisk })
-        let observer = BookSettingsObserver(viewModel: viewModel, provider: provider)
+        // 能力由入口组装并持有（观察者只在 init 期间使用能力安装订阅）。
+        let libraryCapability = BookSettingsLibraryCapabilityAdapter(books: provider)
+        bookSettingsLibraryCapability = libraryCapability
+        let observer = BookSettingsObserver(viewModel: viewModel, library: libraryCapability)
         settingsViewModel = viewModel
         settingsObserver = observer
     }
