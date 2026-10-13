@@ -126,12 +126,43 @@ let viewModel = MyViewModel(capability: capability)
 
 ---
 
-## 6. 渐进迁移
+## 7. 惰性解析场景
+
+当 Provider 的注册时机**晚于**本插件的视图贡献请求（跨插件 boot 顺序不确定），
+不要在插件入口把 Provider **快照**进 Adapter——快照会永久失效。
+
+正确做法：让 Adapter 内部持**惰性解析闭包**，每次调用都重新 `resolveProvider`：
+
+```swift
+@MainActor
+public final class XxxCapabilityAdapter: XxxCapability {
+    private let resolve: @MainActor @Sendable () -> (any XxxProviding)?
+
+    public init(resolve: @escaping @MainActor @Sendable () -> (any XxxProviding)?) {
+        self.resolve = resolve
+    }
+
+    private var provider: (any XxxProviding)? { resolve() }
+    public var value: Int { provider?.value ?? 0 }
+}
+```
+
+这样「仓库不可用」的判断也要跟着改——原代码靠**闭包返回 nil** 判断，
+现在闭包被收进能力内部，应改判能力的 `isAvailable` / 空值语义。
+
+**注意 Sendable**：若 ViewModel 在 `Task { @MainActor in }` 跨闭包使用能力，
+能力协议需精化 `Sendable`（与内核 Provider 保持一致）。
+
+---
+
+## 8. 渐进迁移
 
 本规范**不要求**一次性改造全部插件。新增或重构插件时遵守；既有插件在触及相关文件时顺手迁移即可。
 
-当前存在「非入口文件直接依赖 `any *Providing`」且适合优先改造的包：
+**已完成迁移**（可作为参考实现）：
 `PluginPlayBack`、`PluginStorage`、`PluginBookDBView`、`PluginAudioDBView`。
+
+其余插件若仍存在「非入口文件直接依赖 `any *Providing`」，在触及时顺手迁移。
 
 ---
 
