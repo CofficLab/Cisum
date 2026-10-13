@@ -129,7 +129,11 @@ public final class PluginPlayBack: AsyncSuperPlugin {
             }
         }
         #endif
-        sceneObserver = PlaybackSceneObserver(scene: kernel.resolveProvider((any SceneProviding).self), player: player, store: store)
+        sceneObserver = PlaybackSceneObserver(
+            scene: makeSceneCapability(kernel: kernel),
+            player: player,
+            store: store
+        )
         installSettingsState(kernel: kernel)
     }
 
@@ -156,13 +160,28 @@ public final class PluginPlayBack: AsyncSuperPlugin {
 
     // MARK: - Settings state assembly
 
+    /// 组装场景能力：把内核 `SceneProviding` 收窄为本插件的 `PlaybackSceneCapability`。
+    ///
+    /// 场景 Provider 可能尚未注册（如 onReady 早于 ScenePlugin），此时退化为
+    /// 「无当前场景」的能力，Observer 仍能安装并等待后续事件。
+    @MainActor
+    private func makeSceneCapability(kernel: KernelCoreContainer) -> PlaybackSceneCapabilityAdapter {
+        PlaybackSceneCapabilityAdapter(scene: kernel.resolveProvider((any SceneProviding).self))
+    }
+
     /// 创建并持有设置页的 ViewModel 与场景观察者（幂等）。
     @MainActor
     private func installSettingsState(kernel: KernelCoreContainer) {
         guard settingsSceneObserver == nil else { return }
         guard let viewModel = settingsViewModel ?? makeSettingsViewModel() else { return }
-        let observer = PlaybackSettingsSceneObserver(provider: kernel.resolveProvider((any SceneProviding).self), viewModel: viewModel)
-        let playbackObserver = PlaybackSettingsPlaybackObserver(playback: kernel.resolveProvider((any PlaybackProviding).self), viewModel: viewModel)
+        let observer = PlaybackSettingsSceneObserver(
+            scene: makeSceneCapability(kernel: kernel),
+            viewModel: viewModel
+        )
+        let playbackObserver = PlaybackSettingsPlaybackObserver(
+            playback: PlaybackSettingsCapabilityAdapter(playback: playbackProvider),
+            viewModel: viewModel
+        )
         settingsSceneObserver = observer
         settingsPlaybackObserver = playbackObserver
     }
@@ -172,7 +191,7 @@ public final class PluginPlayBack: AsyncSuperPlugin {
         guard let store = stateStore else { return nil }
         let viewModel = PluginPlayBackSettingsViewModel(
             store: store,
-            playbackProvider: playbackProvider
+            playback: PlaybackSettingsCapabilityAdapter(playback: playbackProvider)
         )
         settingsViewModel = viewModel
         return viewModel
