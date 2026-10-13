@@ -36,6 +36,9 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private var libraryProvider: AudioLibraryProvider?
     nonisolated(unsafe) private var navigationProvider: AudioTrackNavigationProvider?
     nonisolated(unsafe) private var storageObserver: AudioStorageObserver?
+
+    /// 本插件消费的能力 Adapter（见 Capabilities 规范第 5 条：入口强持有）。
+    nonisolated(unsafe) private var audioDataStorageCapability: AudioDataStorageCapabilityAdapter?
     nonisolated(unsafe) private var fileSystemMonitor: AudioFileSystemMonitor?
 
     @MainActor
@@ -196,7 +199,9 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     private func setupStorageLocationObserver(kernel: KernelCoreContainer) {
         guard storageObserver == nil, let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
-        storageObserver = AudioStorageObserver(provider: storage) { [weak self] _ in
+        let storageCapability = AudioDataStorageCapabilityAdapter(storage: storage)
+        audioDataStorageCapability = storageCapability
+        storageObserver = AudioStorageObserver(storage: storageCapability) { [weak self] _ in
             Task { @MainActor [weak self] in
                 await self?.restartFileSystemMonitor()
             }
