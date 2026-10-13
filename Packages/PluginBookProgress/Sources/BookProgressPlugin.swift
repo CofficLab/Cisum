@@ -34,6 +34,12 @@ public final class BookProgressPlugin: AsyncSuperPlugin, SuperLog {
 
     nonisolated(unsafe) private let sceneBox = SceneBox()
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var playbackCapability: BookProgressPlaybackCapabilityAdapter?
+    nonisolated(unsafe) private var libraryCapability: BookProgressLibraryCapabilityAdapter?
+    nonisolated(unsafe) private var sceneCapability: BookProgressSceneCapabilityAdapter?
+    nonisolated(unsafe) private var toastCapability: BookProgressToastCapabilityAdapter?
     nonisolated(unsafe) private var progressViewModel: BookProgressViewModel?
     nonisolated(unsafe) private var progressObserver: BookProgressObserver?
 
@@ -95,35 +101,33 @@ public final class BookProgressPlugin: AsyncSuperPlugin, SuperLog {
         guard progressViewModel == nil else { return }
 
         guard let scene = kernel.resolveProvider((any SceneProviding).self),
-              let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
+              let playbackProvider = kernel.resolveProvider((any PlaybackProviding).self) else { return }
         sceneBox.scene = scene
-        let bookProvider = kernel.resolveProvider(BookDatabaseProviding.self)
+
+        // 入口持有 Adapter，ViewModel 以 `weak` 消费。
+        let playback = BookProgressPlaybackCapabilityAdapter(playback: playbackProvider)
+        let library = BookProgressLibraryCapabilityAdapter(
+            books: kernel.resolveProvider(BookDatabaseProviding.self)
+        )
+        let sceneCapability = BookProgressSceneCapabilityAdapter(scene: scene)
+        let toast = BookProgressToastCapabilityAdapter(
+            toast: kernel.resolveProvider((any ToastProviding).self)
+        )
+        self.playbackCapability = playback
+        self.libraryCapability = library
+        self.sceneCapability = sceneCapability
+        self.toastCapability = toast
 
         let viewModel = BookProgressViewModel(
             targetScene: .audiobooks,
-            playbackProvider: playback,
-            currentBookURL: { bookProvider?.currentBookURL() },
-            currentBookTime: { bookProvider?.currentBookTime() },
-            storeCurrentBookURL: { bookProvider?.storeCurrentBookURL($0) },
-            storeCurrentBookTime: { bookProvider?.storeCurrentBookTime($0) },
-            bookDisk: { bookProvider?.bookDisk },
-            saveBookState: { bookURL, currentURL, time in
-                do {
-                    try await bookProvider?.savePlaybackState(
-                        for: bookURL,
-                        currentURL: currentURL,
-                        time: time
-                    )
-                } catch {
-                    os_log(.error, "BookProgressPlugin failed to save book state: \(error.localizedDescription)")
-                }
-            },
-            toastProvider: kernel.resolveProvider((any ToastProviding).self)
+            playback: playback,
+            library: library,
+            toast: toast
         )
         let observer = BookProgressObserver(
-            scene: scene,
+            scene: sceneCapability,
             playback: playback,
-            bookProvider: bookProvider,
+            library: library,
             viewModel: viewModel
         )
         progressViewModel = viewModel
@@ -135,6 +139,10 @@ public final class BookProgressPlugin: AsyncSuperPlugin, SuperLog {
         progressObserver?.cancel()
         progressObserver = nil
         progressViewModel = nil
+        playbackCapability = nil
+        libraryCapability = nil
+        sceneCapability = nil
+        toastCapability = nil
     }
 
     /// 返回当前持有的 ViewModel；若尚未安装（启动前或插件被禁用），
@@ -144,16 +152,16 @@ public final class BookProgressPlugin: AsyncSuperPlugin, SuperLog {
         if let progressViewModel {
             return progressViewModel
         }
+        // 视图贡献可能早于 onReady：此时进度条处于不可用状态，等待后续装配。
         let viewModel = BookProgressViewModel(
             targetScene: .audiobooks,
-            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
-            currentBookURL: { nil },
-            currentBookTime: { nil },
-            storeCurrentBookURL: { _ in },
-            storeCurrentBookTime: { _ in },
-            bookDisk: { nil },
-            saveBookState: { _, _, _ in },
-            toastProvider: kernel?.resolveProvider((any ToastProviding).self)
+            playback: kernel?.resolveProvider((any PlaybackProviding).self)
+                .map(BookProgressPlaybackCapabilityAdapter.init),
+            library: BookProgressLibraryCapabilityAdapter(
+                books: kernel?.resolveProvider(BookDatabaseProviding.self)
+            ),
+            toast: kernel?.resolveProvider((any ToastProviding).self)
+                .map(BookProgressToastCapabilityAdapter.init)
         )
         progressViewModel = viewModel
         return viewModel
