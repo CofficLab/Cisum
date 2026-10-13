@@ -48,6 +48,11 @@ public final class AudioPlugin: AsyncSuperPlugin, SuperLog {
     public static let dbDirName = AudioPluginInfo.effectiveDBDirName
 
     nonisolated(unsafe) private var rootViewModel: AudioRootViewModel?
+
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var storageCapability: AudioRootStorageCapabilityAdapter?
+    nonisolated(unsafe) private var toastCapability: AudioRootToastCapabilityAdapter?
     nonisolated(unsafe) private var rootObserver: AudioStorageObserver?
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
 
@@ -63,12 +68,15 @@ public final class AudioPlugin: AsyncSuperPlugin, SuperLog {
     public func addRootView<Content>(@ViewBuilder content: () -> Content) -> AnyView? where Content: View {
         // View 贡献可能在启动前被请求：保证返回稳定、长期存在的 ViewModel。
         let viewModel = rootViewModel ?? {
-            let viewModel = AudioRootViewModel(
-                hasStorageLocation: { @MainActor [weak self] in
-                    self?.kernel?.resolveProvider((any StorageProviding).self)?.hasUsableStorageLocation ?? false
-                },
-                toastProvider: self.kernel?.resolveProvider((any ToastProviding).self)
+            let storage = AudioRootStorageCapabilityAdapter(
+                storage: kernel?.resolveProvider((any StorageProviding).self)
             )
+            let toast = AudioRootToastCapabilityAdapter(
+                toast: kernel?.resolveProvider((any ToastProviding).self)
+            )
+            storageCapability = storage
+            toastCapability = toast
+            let viewModel = AudioRootViewModel(storage: storage, toast: toast)
             rootViewModel = viewModel
             return viewModel
         }()
@@ -98,11 +106,14 @@ public final class AudioPlugin: AsyncSuperPlugin, SuperLog {
     private func installRootState(kernel: KernelCoreContainer) {
         guard rootViewModel == nil else { return }
         guard let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
-        let viewModel = AudioRootViewModel(
-            hasStorageLocation: { storage.hasUsableStorageLocation },
-            toastProvider: kernel.resolveProvider((any ToastProviding).self)
+        let storageCapability = AudioRootStorageCapabilityAdapter(storage: storage)
+        let toastCapability = AudioRootToastCapabilityAdapter(
+            toast: kernel.resolveProvider((any ToastProviding).self)
         )
-        let observer = AudioStorageObserver(provider: storage, viewModel: viewModel)
+        self.storageCapability = storageCapability
+        self.toastCapability = toastCapability
+        let viewModel = AudioRootViewModel(storage: storageCapability, toast: toastCapability)
+        let observer = AudioStorageObserver(storage: storageCapability, viewModel: viewModel)
         rootViewModel = viewModel
         rootObserver = observer
     }
