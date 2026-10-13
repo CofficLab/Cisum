@@ -85,6 +85,29 @@ final class PlaybackDownloadProgressTests: XCTestCase {
         )
     }
 
+    // MARK: - Progress source merging
+
+    /// 复现缺陷：顶部进度有两个来源——
+    /// ① 轮询源：URL 资源键（`NSURLUbiquitousItemPercentDownloadedKey` + allocatedSize
+    ///    兜底），生产环境对 dataless 文件长期读到 0；
+    /// ② 事件源：`GlobalDownloadMonitor` 的 `NSMetadataItem` percent key——
+    ///    这正是仓库列表进度环（8%）的数据源。
+    /// 两源并联时，任何一源读到 0 都**不得**把另一源已发布的真实进度覆盖回 0%，
+    /// 否则顶部 Hero 就会呈现用户报告的「一直 0%」。
+    func testPollingZeroNeverRegressesPublishedProgress() {
+        // 事件源发布了 8%，轮询源随后读到 0 → 必须保持 8%
+        XCTAssertEqual(MagicPlayManDownloadProgressPolicy.merged(current: 0.08, incoming: 0), 0.08)
+        // 轮询源推进到 30%，事件源回 0 → 取更高的 30%
+        XCTAssertEqual(MagicPlayManDownloadProgressPolicy.merged(current: 0.08, incoming: 0.3), 0.3)
+        // 初始态无进度，任一源给出有效值都要采纳
+        XCTAssertEqual(MagicPlayManDownloadProgressPolicy.merged(current: 0, incoming: 0.08), 0.08)
+        // 非法值按 0 处理，不得回退已发布进度
+        XCTAssertEqual(MagicPlayManDownloadProgressPolicy.merged(current: 0.4, incoming: .nan), 0.4)
+        // 越界值归一化
+        XCTAssertEqual(MagicPlayManDownloadProgressPolicy.merged(current: 0, incoming: 1.5), 1)
+        XCTAssertEqual(MagicPlayManDownloadProgressPolicy.merged(current: 0, incoming: -0.2), 0)
+    }
+
     // MARK: - Helpers
 
     /// 写入一个真实存在的本地文件，确保通过播放前的基础校验；
