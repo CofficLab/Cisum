@@ -1,4 +1,5 @@
 import ProviderScene
+import ProviderAudioLibrary
 import ProviderDocsView
 import ProviderPlayback
 import CisumUIComponents
@@ -89,6 +90,17 @@ public final class PluginPlayBack: AsyncSuperPlugin {
         // 持久化存储（order 12 在 StoragePlugin 之后，Lumi StorageProviding 已可用）
         guard let storage = kernel.resolveProvider((any ProviderStorage.StorageProviding).self) else { return }
         let store = PlaybackStateStore(rootDirectory: storage.dataRootDirectory)
+        #if DEBUG
+        // UI 测试隔离：清空上次运行遗留的「当前播放记录」，保证每次 UI 测试启动
+        // 都处于确定的「无当前曲目」状态；否则场景切换/播放器收起类断言会被
+        // 上一轮 UI 测试留下的记录污染（记录随 App 持久化，跨测试运行生效）。
+        // 必须在 onReady 的场景观察者恢复之前完成。
+        if ProcessInfo.processInfo.arguments.contains("--cisum-ui-testing") {
+            for scene in AppScene.allCases {
+                store.saveCurrentFile(nil, for: scene)
+            }
+        }
+        #endif
         stateStore = store
 
         // 监听播放文件变化，记录到当前场景的磁盘槽位（场景由 sceneObserver 提供）
@@ -104,6 +116,19 @@ public final class PluginPlayBack: AsyncSuperPlugin {
     @MainActor
     public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         guard let player = magicPlayMan, let store = stateStore else { return }
+        #if DEBUG
+        // `--cisum-ui-testing-playback-file <name>`：把音频目录下的指定文件写入
+        // 音乐场景槽位，让 App 启动即恢复播放该文件（UI 测试据此在启动阶段进入
+        // 下载态，无需依赖 XCUITest 点击触发）。放在 onReady：跨插件 Provider
+        // （AudioLibraryProviding）此时才保证注册完毕；必须在场景观察者恢复之前。
+        if let index = ProcessInfo.processInfo.arguments.firstIndex(of: "--cisum-ui-testing-playback-file"),
+           ProcessInfo.processInfo.arguments.indices.contains(index + 1) {
+            if let library = kernel.resolveProvider((any AudioLibraryProviding).self),
+               let disk = library.audioDisk {
+                store.saveCurrentFile(disk.appendingPathComponent(ProcessInfo.processInfo.arguments[index + 1]), for: .music)
+            }
+        }
+        #endif
         sceneObserver = PlaybackSceneObserver(scene: kernel.resolveProvider((any SceneProviding).self), player: player, store: store)
         installSettingsState(kernel: kernel)
     }
@@ -173,3 +198,4 @@ public final class PluginPlayBack: AsyncSuperPlugin {
         )
     }
 }
+

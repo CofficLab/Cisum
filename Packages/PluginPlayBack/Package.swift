@@ -22,6 +22,7 @@ let package = Package(
         .package(name: "KitPlayback", path: "../MagicPlayMan"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
+        .package(name: "ProviderAudioLibrary", path: "../ProviderAudioLibrary"),
         .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.6.0"),
     ],
     targets: [
@@ -39,6 +40,7 @@ let package = Package(
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
+                .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "ProviderStorage", package: "LumiProviders"),
             ],
             path: ".",
@@ -55,6 +57,7 @@ let package = Package(
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
+                .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
             ],
             path: "Tests"
         ),
