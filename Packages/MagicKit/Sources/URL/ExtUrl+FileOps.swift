@@ -191,25 +191,7 @@ public extension URL {
     /// 这里改用文件实际占用的磁盘空间判断（dataless 占位文件的已分配空间恒为 0），
     /// 不依赖 iCloud 状态键，任何进程与权限下都能可靠读取。
     var hasLocalContent: Bool {
-        guard isFileURL, isFileExist else { return false }
-
-        guard let values = try? resourceValues(forKeys: [
-            .isUbiquitousItemKey,
-            .fileSizeKey,
-            .totalFileAllocatedSizeKey,
-            .fileAllocatedSizeKey,
-        ]) else {
-            return true
-        }
-
-        // 只有 iCloud 项目才可能是「占位无内容」，其余一律视为本地可用
-        guard values.isUbiquitousItem == true else { return true }
-
-        // 空文件没有内容需要下载
-        guard let fileSize = values.fileSize, fileSize > 0 else { return true }
-
-        let allocatedSize = values.totalFileAllocatedSize ?? values.fileAllocatedSize ?? 0
-        return allocatedSize > 0
+        magicKitHasLocalContent()
     }
 
     /// 创建文件如果不存在，返回自身
@@ -287,41 +269,32 @@ public extension URL {
     }
 
     /// Ensure an iCloud-backed file has finished downloading before a caller reads or copies it.
+    ///
+    /// 走 `ICloudDownloadControl` 注入的网关，使单元测试与 UI 测试可以脚本化
+    /// 「下载中 / 超时 / 离线」，无需真实 iCloud 账号。
     func ensureLocalAvailability(
         timeout: TimeInterval = 120,
         pollInterval: TimeInterval = 0.25
     ) async throws {
-        guard checkIsICloud(verbose: false) else { return }
+        let downloader = ICloudDownloadControl.shared.downloader
+        guard downloader.isICloudBacked(self) else { return }
 
-        // 以「内容是否已在本地」为唯一判据，而不依赖 isDownloaded / isNotDownloaded：
-        // 被驱逐（dataless）的文件这两个值会同时为 false，既不会发起下载也无法判定完成。
-        if hasLocalContent { return }
+        let timeout = ICloudDownloadControl.shared.effectiveTimeout ?? timeout
+        if downloader.hasLocalContent(self) { return }
 
-        // 无条件请求下载：该 API 对已下载/下载中的项目是幂等的，
-        // 而 isNotDownloaded 为 false 并不代表内容确实在本地。
-        try FileManager.default.startDownloadingUbiquitousItem(at: self)
+        try Self.requestDownload(for: self, from: downloader)
 
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
             try Task.checkCancellation()
 
-            var refreshedURL = self
-            refreshedURL.removeAllCachedResourceValues()
-            if refreshedURL.hasLocalContent {
-                return
-            }
+            if downloader.hasLocalContent(self) { return }
 
             let nanoseconds = UInt64(max(pollInterval, 0.05) * 1_000_000_000)
             try await Task.sleep(nanoseconds: nanoseconds)
         }
 
-        throw NSError(
-            domain: "MagicKit.FileAvailability",
-            code: 1,
-            userInfo: [
-                NSLocalizedDescriptionKey: "Timed out waiting for iCloud file to download: \(lastPathComponent)"
-            ]
-        )
+        throw ICloudDownloadError.timedOut(fileName: lastPathComponent)
     }
 
     /// Synchronous variant for non-async file workflows such as migration.
@@ -329,30 +302,36 @@ public extension URL {
         timeout: TimeInterval = 120,
         pollInterval: TimeInterval = 0.25
     ) throws {
-        guard checkIsICloud(verbose: false) else { return }
+        let downloader = ICloudDownloadControl.shared.downloader
+        guard downloader.isICloudBacked(self) else { return }
 
-        if hasLocalContent { return }
+        let timeout = ICloudDownloadControl.shared.effectiveTimeout ?? timeout
+        if downloader.hasLocalContent(self) { return }
 
-        try FileManager.default.startDownloadingUbiquitousItem(at: self)
+        try Self.requestDownload(for: self, from: downloader)
 
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
-            var refreshedURL = self
-            refreshedURL.removeAllCachedResourceValues()
-            if refreshedURL.hasLocalContent {
-                return
-            }
+            if downloader.hasLocalContent(self) { return }
 
             Thread.sleep(forTimeInterval: max(pollInterval, 0.05))
         }
 
-        throw NSError(
-            domain: "MagicKit.FileAvailability",
-            code: 1,
-            userInfo: [
-                NSLocalizedDescriptionKey: "Timed out waiting for iCloud file to download: \(lastPathComponent)"
-            ]
-        )
+        throw ICloudDownloadError.timedOut(fileName: lastPathComponent)
+    }
+
+    /// 发起 iCloud 下载请求，并把底层错误统一归类为 `ICloudDownloadError`。
+    ///
+    /// 无条件请求：对已下载 / 下载中的项目该 API 是幂等的，
+    /// 而 `isNotDownloaded == false` 并不代表内容确实在本地。
+    private static func requestDownload(for url: URL, from downloader: any UbiquitousItemDownloading) throws {
+        do {
+            try downloader.startDownload(url)
+        } catch let error as ICloudDownloadError {
+            throw error
+        } catch {
+            throw ICloudDownloadError.requestFailed(error.localizedDescription)
+        }
     }
 
     /// 计算文件的 MD5 哈希值。
