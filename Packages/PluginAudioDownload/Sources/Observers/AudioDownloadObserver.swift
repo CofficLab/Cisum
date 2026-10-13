@@ -1,6 +1,5 @@
-import ProviderScene
-import ProviderPlayback
 import MagicKit
+import ProviderScene
 
 @MainActor
 final class AudioDownloadObserver: SuperLog {
@@ -8,22 +7,22 @@ final class AudioDownloadObserver: SuperLog {
     nonisolated static let verbose = false
 
     private weak var viewModel: AudioDownloadViewModel?
-    private var sceneHandle: (any SceneProvidingObserverHandle)?
-    private var playbackHandle: (any PlaybackProvidingObserverHandle)?
+    private var sceneHandle: (any AudioDownloadSceneObserverHandle)?
+    private var playbackHandle: (any AudioDownloadObserverHandle)?
 
     init(
-        scene: any SceneProviding,
-        playback: any PlaybackProviding,
+        scene: any AudioDownloadSceneCapability,
+        playback: any AudioDownloadCapability,
         viewModel: AudioDownloadViewModel
     ) {
         self.viewModel = viewModel
         viewModel.handleSceneChange(scene.currentScene)
         sceneHandle = scene.addObserver { [weak self] event in
-            guard case .selectionChanged(let scene) = event else { return }
-            self?.viewModel?.handleSceneChange(scene)
+            guard case let .selectionChanged(newScene) = event else { return }
+            self?.viewModel?.handleSceneChange(newScene)
         }
         playbackHandle = playback.addObserver { [weak self] event in
-            guard case .assetChanged(let url) = event else { return }
+            guard case let .assetChanged(url) = event else { return }
             self?.viewModel?.handleAssetChanged(url)
         }
     }

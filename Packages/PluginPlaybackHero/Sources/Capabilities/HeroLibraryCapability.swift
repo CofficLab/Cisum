@@ -62,14 +62,11 @@ final class HeroLibraryCapabilityAdapter: HeroLibraryCapability {
             switch event {
             case .repositoryEmpty:
                 callback(.becameEmpty)
-            case .synced(let totalCount), .deleted(_, let totalCount):
-                // 只有明确「变为非空」才恢复封面；计数为 0 时等待
-                // `repositoryEmpty` 这一权威信号，避免单次不一致的计数
-                // 误判仓库状态（原有行为：计数 0 时不改变可见性）。
+            case .synced(let totalCount), .updated(let totalCount), .deleted(_, let totalCount):
+                // 只有明确「变为非空」才恢复封面；计数为 0 时不改变可见性，
+                // 等待 `repositoryEmpty` 这一权威信号，避免单次不一致的计数
+                // 误判仓库状态（保持原有行为：计数 0 时不改变可见性）。
                 if totalCount > 0 { callback(.becameNonEmpty) }
-            case .updated:
-                // `updated` 语义宽泛（任意变更），不能据此判断空/非空。
-                break
             case .syncing, .repositoryAvailabilityChanged, .sorting, .sortCompleted:
                 break
             }

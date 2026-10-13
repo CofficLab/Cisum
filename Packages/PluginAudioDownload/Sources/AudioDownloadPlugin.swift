@@ -42,6 +42,11 @@ public final class AudioDownloadPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private let sceneBox = SceneBox()
     nonisolated(unsafe) private var viewModel: AudioDownloadViewModel?
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var playbackCapability: AudioDownloadCapabilityAdapter?
+    nonisolated(unsafe) private var sceneCapability: AudioDownloadSceneCapabilityAdapter?
+    nonisolated(unsafe) private var toastCapability: AudioDownloadToastCapabilityAdapter?
     nonisolated(unsafe) private var observer: AudioDownloadObserver?
 
     @MainActor
@@ -89,20 +94,33 @@ public final class AudioDownloadPlugin: AsyncSuperPlugin, SuperLog {
               let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
         sceneBox.scene = scene
 
+        // 入口强持有 Adapter，ViewModel / Observer 以 `weak` 或参数消费。
+        let playbackCapability = AudioDownloadCapabilityAdapter(playback: playback)
+        let sceneCapability = AudioDownloadSceneCapabilityAdapter(scene: scene)
+        let toastCapability = AudioDownloadToastCapabilityAdapter(
+            toast: kernel.resolveProvider((any ToastProviding).self)
+        )
+        self.playbackCapability = playbackCapability
+        self.sceneCapability = sceneCapability
+        self.toastCapability = toastCapability
+
         let viewModel = AudioDownloadViewModel(
-            playbackProvider: playback,
-            toastProvider: kernel.resolveProvider((any ToastProviding).self)
+            playback: playbackCapability,
+            toast: toastCapability
         )
         self.viewModel = viewModel
         observer = AudioDownloadObserver(
-            scene: scene,
-            playback: playback,
+            scene: sceneCapability,
+            playback: playbackCapability,
             viewModel: viewModel
         )
     }
 
     @MainActor
     private func teardownState() {
+        playbackCapability = nil
+        sceneCapability = nil
+        toastCapability = nil
         observer?.cancel()
         observer = nil
         viewModel = nil
