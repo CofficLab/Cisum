@@ -35,6 +35,11 @@ public enum PlaybackState: Equatable {
         case playbackError(String)
         case unsupportedFormat(String)
         case invalidURL(String)
+        /// iCloud 文件未能下载到本地（超时 / 离线 / 请求被拒）。
+        ///
+        /// 独立于 `.networkError` 存在：文案与恢复建议不同，且不应让用户
+        /// 误以为是自己网络的问题。
+        case iCloudDownloadFailed(String)
 
         public var errorDescription: String? {
             switch self {
@@ -50,6 +55,8 @@ public enum PlaybackState: Equatable {
                 return String(localized: "Unsupported format: \(ext)", bundle: .module)
             case .invalidURL(let url):
                 return String(localized: "Invalid URL: \(url)", bundle: .module)
+            case let .iCloudDownloadFailed(message):
+                return String(localized: "iCloud Download Failed: \(message)", bundle: .module)
             }
         }
 
@@ -68,6 +75,8 @@ public enum PlaybackState: Equatable {
                 return "\(localization.unsupportedFormat): \(ext)"
             case .invalidURL(let url):
                 return "\(localization.invalidURL): \(url)"
+            case let .iCloudDownloadFailed(message):
+                return "\(localization.iCloudDownloadFailedTitle): \(message)"
             }
         }
 
@@ -86,6 +95,8 @@ public enum PlaybackState: Equatable {
                 return localization.mediaTypeNotSupported
             case .invalidURL:
                 return localization.invalidURLReason
+            case .iCloudDownloadFailed:
+                return localization.iCloudDownloadFailedReason
             }
         }
 
@@ -104,6 +115,8 @@ public enum PlaybackState: Equatable {
                 return localization.chooseSupportedFormat
             case .invalidURL:
                 return localization.checkURLFormat
+            case .iCloudDownloadFailed:
+                return localization.retryICloudDownload
             }
         }
 
@@ -121,6 +134,8 @@ public enum PlaybackState: Equatable {
                 return String(localized: "The selected media type is not supported", bundle: .module)
             case .invalidURL:
                 return String(localized: "The provided URL is invalid", bundle: .module)
+            case .iCloudDownloadFailed:
+                return String(localized: "The file could not be downloaded from iCloud", bundle: .module)
             }
         }
 
@@ -138,6 +153,8 @@ public enum PlaybackState: Equatable {
                 return String(localized: "Choose a supported audio or video format", bundle: .module)
             case .invalidURL:
                 return String(localized: "Check if the URL format is correct", bundle: .module)
+            case .iCloudDownloadFailed:
+                return String(localized: "Check your internet connection and iCloud storage space, then try again", bundle: .module)
             }
         }
     }
@@ -187,6 +204,14 @@ public enum PlaybackState: Equatable {
         return false
     }
     
+    /// 是否是 iCloud 下载失败。
+    public var isICloudDownloadFailed: Bool {
+        if case .failed(.iCloudDownloadFailed) = self {
+            return true
+        }
+        return false
+    }
+
     /// 是否可以 seek
     public var canSeek: Bool {
         switch self {

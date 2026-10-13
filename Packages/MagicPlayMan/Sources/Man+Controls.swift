@@ -183,7 +183,11 @@ public extension MagicPlayMan {
         // iCloud 未下载（dataless 占位）文件：本地只有占位元数据，AVFoundation 读取会失败
         // （AVError -11800），从而被下面的可播性校验误判为 invalidAsset。
         // 必须在可播性校验之前先确保内容落到本地。
-        if url.isFileURL, !url.hasLocalContent {
+        //
+        // 判定走下载网关（而非直接读磁盘），生产实现等价、行为不变，
+        // 但测试可注入替身让 UI 测试抵达「下载中/失败」状态。
+        if url.isFileURL,
+           !ICloudDownloadControl.shared.downloader.hasLocalContent(url) {
             if self.verbose {
                 os_log("\(self.t)☁️ (\(reason)) iCloud asset is not available locally, downloading: \(url.lastPathComponent)")
             }
@@ -197,7 +201,7 @@ public extension MagicPlayMan {
                     guard self.isCurrentPlayRequest(requestGeneration) else { return }
 
                     let progress = MagicPlayManPlaybackTimePolicy.normalizedUnitProgress(
-                        url.getDownloadProgressSnapshot(verbose: false)
+                        ICloudDownloadControl.shared.downloader.downloadProgress(url)
                     )
                     self.setState(.loading(.downloading(progress)), reason: reason + ".iCloudDownload")
                 }
@@ -209,7 +213,7 @@ public extension MagicPlayMan {
             } catch {
                 os_log(.error, "\(self.t)❌ (\(reason)) iCloud download failed: \(error.localizedDescription)")
                 await resetPlayerItemAfterFailedPlayback(reason: reason + ".iCloudDownload")
-                setState(.failed(.networkError(error.localizedDescription)), reason: reason + ".play")
+                setState(.failed(.iCloudDownloadFailed(error.localizedDescription)), reason: reason + ".play")
                 return
             }
 

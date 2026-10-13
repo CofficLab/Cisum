@@ -89,6 +89,8 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
             return String(localized: "Unsupported audio format", bundle: .module) + ": " + ext
         case .invalidURL(let scheme):
             return String(localized: "Invalid audio URL", bundle: .module) + ": " + scheme
+        case .iCloudDownloadFailed:
+            return String(localized: "The audio file could not be downloaded from iCloud", bundle: .module)
         }
     }
 

@@ -57,6 +57,8 @@ struct ErrorOverlay: View {
             return "\(loc.unsupportedFormat): \(ext)"
         case let .invalidURL(url):
             return "\(loc.invalidURL): \(url)"
+        case .iCloudDownloadFailed:
+            return loc.iCloudDownloadFailedReason
         }
     }
 }

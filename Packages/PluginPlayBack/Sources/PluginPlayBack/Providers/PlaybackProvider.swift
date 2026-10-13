@@ -238,6 +238,7 @@ private extension PlaybackState.PlaybackError {
         case .playbackError(let message): return .playbackError(message)
         case .unsupportedFormat(let ext): return .unsupportedFormat(ext)
         case .invalidURL(let url): return .invalidURL(url)
+        case .iCloudDownloadFailed(let message): return .iCloudDownloadFailed(message)
         }
     }
 }
@@ -276,6 +277,7 @@ private extension PlaybackFailure {
         case .playbackError(let message): return .playbackError(message)
         case .unsupportedFormat(let ext): return .unsupportedFormat(ext)
         case .invalidURL(let url): return .invalidURL(url)
+        case .iCloudDownloadFailed(let message): return .iCloudDownloadFailed(message)
         }
     }
 }
