@@ -1,3 +1,4 @@
+import ProviderControlView
 import ProviderPlayback
 import ProviderAudioLibrary
 import ProviderScene
@@ -27,8 +28,10 @@ final class PlaybackHeroObserver: SuperLog {
             switch event {
             case .assetChanged(let url):
                 self.viewModel?.applyAssetChanged(url)
+                self.publishHeroVisibility()
             case .stateChanged(let state):
                 self.viewModel?.applyStateChanged(state)
+                self.publishHeroVisibility()
             default: break
             }
         }
@@ -38,9 +41,11 @@ final class PlaybackHeroObserver: SuperLog {
             switch event {
             case .repositoryEmpty:
                 self.viewModel?.applyRepositoryEmpty(true)
+                self.publishHeroVisibility()
             case .synced(let totalCount), .updated(let totalCount), .deleted(_, let totalCount):
                 if totalCount > 0 {
                     self.viewModel?.applyRepositoryEmpty(false)
+                    self.publishHeroVisibility()
                 }
             case .syncing, .repositoryAvailabilityChanged, .sorting, .sortCompleted:
                 break
@@ -52,8 +57,14 @@ final class PlaybackHeroObserver: SuperLog {
             switch event {
             case .selectionChanged(let scene):
                 self.viewModel?.applyMusicSceneActive(scene == .music)
+                self.publishHeroVisibility()
             }
         }
+    }
+
+    /// 把封面呈现状态广播给控制区与根布局（替代失效的 preference 链路）。
+    private func publishHeroVisibility() {
+        ControlHeroVisibility.shared.isVisible = viewModel?.isHeroVisible ?? true
     }
 
     func cancel() {

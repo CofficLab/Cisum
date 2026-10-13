@@ -1,7 +1,10 @@
 import CisumUIComponents
 import KernelCore
 import LumiUI
+import ProviderAudioLibrary
+import ProviderPlayback
 import ProviderPlugin
+import ProviderScene
 import SwiftUI
 import os
 
@@ -15,12 +18,14 @@ struct CisumRootLayoutView: View {
     @State private var isDetailVisible: Bool
     @State private var rememberedHeight: CGFloat = 0
     @State private var autoResizing = false
-    @State private var isPlaybackHeroVisible = true
     let kernel: KernelCoreContainer
 
     init(provider: CisumRootViewProvider, kernel: KernelCoreContainer) {
         self.provider = provider
         self.kernel = kernel
+        // 只在此解析基础设施 Provider（createKernel 早期注册）；
+        // 播放/场景/仓库 Provider 由插件注册，必须等内核启动完成后再绑定
+        //（见 viewModel.attach），否则贡献聚合期间 resolveProvider 会卡死。
         _viewModel = StateObject(wrappedValue: CisumRootLayoutViewModel(
             pluginProvider: kernel.resolveProvider((any PluginProviding).self)
         ))
@@ -35,7 +40,7 @@ struct CisumRootLayoutView: View {
                 VStack(spacing: 0) {
                     controlArea
                         .frame(height: isDetailVisible
-                            ? (isPlaybackHeroVisible
+                            ? (viewModel.isPlaybackHeroPresenting
                                 ? CisumPlayerLayout.controlMinimumHeight
                                 : CisumPlayerLayout.emptyPlayerControlHeight)
                             : geometry.size.height)
@@ -51,12 +56,14 @@ struct CisumRootLayoutView: View {
                 .frame(width: layoutWidth(for: geometry), height: layoutHeight(for: geometry))
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
-            .onPreferenceChange(PlaybackHeroVisibilityKey.self) { isVisible in
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    isPlaybackHeroVisible = isVisible
-                }
+            .onAppear {
+                handleOnAppear()
+                viewModel.attach(
+                    playback: kernel.resolveProvider((any PlaybackProviding).self),
+                    scene: kernel.resolveProvider((any SceneProviding).self),
+                    library: kernel.resolveProvider((any AudioLibraryProviding).self)
+                )
             }
-            .onAppear { handleOnAppear() }
             .onChange(of: provider.isContentViewHidden) { _, hidden in
                 handleContentViewVisibilityChange(!hidden, geometry: geometry)
             }

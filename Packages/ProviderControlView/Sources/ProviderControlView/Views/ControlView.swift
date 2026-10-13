@@ -17,7 +17,11 @@ struct ControlView: View {
     var progressView: AnyView? = nil
     var controlButtonsView: AnyView? = nil
     var rightAlbumView: AnyView? = nil
-    @State private var isHeroVisible = PlaybackHeroVisibilityKey.defaultValue
+    /// 播放器区呈现状态：由 PluginPlaybackHero 的 Observer 驱动（事件直达），
+    /// 不再经 preference 自底向上传递（该链路会停留在默认值，收起断言恒失败）。
+    @ObservedObject private var heroVisibility = ControlHeroVisibility.shared
+
+    private var isHeroVisible: Bool { heroVisibility.isVisible }
 
     var body: some View {
         GeometryReader { geometry in
@@ -27,6 +31,7 @@ struct ControlView: View {
                         heroArea(for: geometry)
                             .frame(maxWidth: .infinity)
                             .frame(height: isHeroVisible ? heroHeight(for: geometry) : 0, alignment: .top)
+                            .animation(.easeInOut(duration: 0.2), value: isHeroVisible)
                     }
 
                     stateArea
@@ -62,11 +67,6 @@ struct ControlView: View {
         .frame(minHeight: isHeroVisible
             ? CisumPlayerLayout.controlMinimumHeight
             : CisumPlayerLayout.emptyPlayerControlHeight)
-        .onPreferenceChange(PlaybackHeroVisibilityKey.self) { isVisible in
-            withAnimation(.easeInOut(duration: 0.2)) {
-                isHeroVisible = isVisible
-            }
-        }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cisum.player.controls")
     }

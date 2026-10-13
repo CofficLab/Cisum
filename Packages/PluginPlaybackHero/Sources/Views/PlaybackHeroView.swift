@@ -72,7 +72,6 @@ struct PlaybackHeroView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .preference(key: PlaybackHeroVisibilityKey.self, value: viewModel.isHeroVisible)
     }
 
     private func shouldShowAlbum(in geometry: GeometryProxy) -> Bool {
