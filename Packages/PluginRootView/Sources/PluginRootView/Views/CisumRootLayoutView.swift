@@ -27,7 +27,9 @@ struct CisumRootLayoutView: View {
         // 播放/场景/仓库 Provider 由插件注册，必须等内核启动完成后再绑定
         //（见 viewModel.attach），否则贡献聚合期间 resolveProvider 会卡死。
         _viewModel = StateObject(wrappedValue: CisumRootLayoutViewModel(
-            pluginProvider: kernel.resolveProvider((any PluginProviding).self)
+            contributions: RootContributionCapabilityAdapter(
+                plugins: kernel.resolveProvider((any PluginProviding).self)
+            )
         ))
         _isDetailVisible = State(initialValue: provider.isContentViewVisible)
     }
@@ -58,11 +60,12 @@ struct CisumRootLayoutView: View {
             }
             .onAppear {
                 handleOnAppear()
-                viewModel.attach(
+                // 能力在此组装：View 是本能力的组装层，容器不触碰 Provider。
+                viewModel.attach(environment: RootEnvironmentCapabilityAdapter(
                     playback: kernel.resolveProvider((any PlaybackProviding).self),
                     scene: kernel.resolveProvider((any SceneProviding).self),
                     library: kernel.resolveProvider((any AudioLibraryProviding).self)
-                )
+                ))
             }
             .onChange(of: provider.isContentViewHidden) { _, hidden in
                 handleContentViewVisibilityChange(!hidden, geometry: geometry)
