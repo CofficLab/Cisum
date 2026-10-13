@@ -42,6 +42,7 @@ let package = Package(
             path: ".",
             sources: [
                 "Sources/BookPlugin.swift",
+                "Sources/Capabilities",
                 "Sources/Observers",
                 "Sources/ViewModels",
                 "Sources/Views",

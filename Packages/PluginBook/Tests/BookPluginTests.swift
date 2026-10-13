@@ -1086,7 +1086,8 @@ private final class BookObserverProbeHandle: BookProvidingObserverHandle {
 struct BookRootViewModelTests {
     @Test
     func reloadWithAvailableProviderFinishesLoading() async throws {
-        let viewModel = BookRootViewModel(bookProvider: BookDatabaseProbe())
+        let booksProbe = BookDatabaseProbe()
+        let viewModel = BookRootViewModel(books: BookRootCapabilityAdapter(books: booksProbe))
         viewModel.reloadContainer()
 
         for _ in 0..<50 where viewModel.isLoading {
@@ -1100,7 +1101,7 @@ struct BookRootViewModelTests {
     func reloadWithoutProviderReportsDiskNotFound() async throws {
         let unavailable = BookDatabaseProbe()
         unavailable.isAvailable = false
-        let viewModel = BookRootViewModel(bookProvider: unavailable)
+        let viewModel = BookRootViewModel(books: BookRootCapabilityAdapter(books: unavailable))
         viewModel.reloadContainer()
 
         for _ in 0..<50 where viewModel.isLoading {
@@ -1112,7 +1113,8 @@ struct BookRootViewModelTests {
 
     @Test
     func storageChangeReloadsAndEmitsNewNotice() async throws {
-        let viewModel = BookRootViewModel(bookProvider: BookDatabaseProbe())
+        let booksProbe = BookDatabaseProbe()
+        let viewModel = BookRootViewModel(books: BookRootCapabilityAdapter(books: booksProbe))
         let first = viewModel.storageLocationDidChangeNotice
         viewModel.handleStorageLocationChanged()
 
@@ -1127,7 +1129,7 @@ struct BookRootViewModelTests {
     func staleReloadResultDoesNotOverrideNewerGeneration() async throws {
         let probe = BookDatabaseProbe()
         probe.isAvailable = false
-        let viewModel = BookRootViewModel(bookProvider: probe)
+        let viewModel = BookRootViewModel(books: BookRootCapabilityAdapter(books: probe))
         viewModel.reloadContainer()
         probe.isAvailable = true
         viewModel.reloadContainer()
@@ -1173,8 +1175,9 @@ struct BookStorageObserverTests {
     func observerDrivesReloadOnStorageEvents() async throws {
         let storage = BookStorageProbe()
         storage.hasUsableStorageLocation = true
-        let viewModel = BookRootViewModel(bookProvider: BookDatabaseProbe())
-        let observer = BookStorageObserver(storage: storage, viewModel: viewModel)
+        let booksProbe = BookDatabaseProbe()
+        let viewModel = BookRootViewModel(books: BookRootCapabilityAdapter(books: booksProbe))
+        let observer = BookStorageObserver(storage: BookStorageCapabilityAdapter(storage: storage), viewModel: viewModel)
 
         for _ in 0..<50 where viewModel.isLoading {
             try await Task.sleep(for: .milliseconds(10))
@@ -1193,8 +1196,9 @@ struct BookStorageObserverTests {
     @Test
     func observerCancellationIsIdempotent() {
         let storage = BookStorageProbe()
-        let viewModel = BookRootViewModel(bookProvider: BookDatabaseProbe())
-        let observer = BookStorageObserver(storage: storage, viewModel: viewModel)
+        let booksProbe = BookDatabaseProbe()
+        let viewModel = BookRootViewModel(books: BookRootCapabilityAdapter(books: booksProbe))
+        let observer = BookStorageObserver(storage: BookStorageCapabilityAdapter(storage: storage), viewModel: viewModel)
         observer.cancel()
         observer.cancel()
         #expect(true)

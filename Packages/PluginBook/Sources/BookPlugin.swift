@@ -32,6 +32,11 @@ public final class BookPlugin: AsyncSuperPlugin, SuperLog {
     )
 
     nonisolated(unsafe) private var rootViewModel: BookRootViewModel?
+
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var bookRootCapability: BookRootCapabilityAdapter?
+    nonisolated(unsafe) private var bookStorageCapability: BookStorageCapabilityAdapter?
     nonisolated(unsafe) private var rootObserver: BookStorageObserver?
 
     @MainActor
@@ -100,8 +105,14 @@ public final class BookPlugin: AsyncSuperPlugin, SuperLog {
     ) {
         guard rootViewModel == nil else { return }
         if Self.verbose { os_log("\(Self.t)🔧 installRootState") }
-        let viewModel = BookRootViewModel(bookProvider: bookProvider)
-        let observer = BookStorageObserver(storage: storage, viewModel: viewModel)
+        let capability = BookRootCapabilityAdapter(books: bookProvider)
+        bookRootCapability = capability
+        let viewModel = BookRootViewModel(books: capability)
+        // 观察者只在 init 期间使用能力安装订阅，之后仅依赖句柄；
+        // 但为满足入口强持有的统一约定，能力同时被本插件持有。
+        let storageCapability = BookStorageCapabilityAdapter(storage: storage)
+        self.bookStorageCapability = storageCapability
+        let observer = BookStorageObserver(storage: storageCapability, viewModel: viewModel)
         rootViewModel = viewModel
         rootObserver = observer
     }
@@ -119,9 +130,8 @@ public final class BookPlugin: AsyncSuperPlugin, SuperLog {
         if let rootViewModel {
             return rootViewModel
         }
-        let viewModel = BookRootViewModel(
-            bookProvider: nil
-        )
+        // 视图贡献可能早于数据层就绪：能力缺失时退化为「未就绪」错误态。
+        let viewModel = BookRootViewModel(books: nil)
         rootViewModel = viewModel
         return viewModel
     }
