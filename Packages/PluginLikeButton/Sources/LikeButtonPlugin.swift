@@ -31,6 +31,9 @@ public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var viewModel: LikeButtonViewModel?
     nonisolated(unsafe) private var observer: LikeButtonObserver?
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var playbackCapability: LikeButtonCapabilityAdapter?
 
 
     @MainActor
@@ -93,11 +96,11 @@ public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
 
         guard let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
 
-        let viewModel = LikeButtonViewModel(
-            playbackProvider: playback
-        )
+        let capability = LikeButtonCapabilityAdapter(playback: playback)
+        playbackCapability = capability
+        let viewModel = LikeButtonViewModel(playback: capability)
         self.viewModel = viewModel
-        observer = LikeButtonObserver(playback: playback, viewModel: viewModel)
+        observer = LikeButtonObserver(playback: capability, viewModel: viewModel)
     }
 
     @MainActor
@@ -105,6 +108,7 @@ public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
         observer?.cancel()
         observer = nil
         viewModel = nil
+        playbackCapability = nil
     }
 
 }
