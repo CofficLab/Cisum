@@ -36,6 +36,12 @@ public final class BookPlayModePlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private var viewModel: BookPlayModeViewModel?
     nonisolated(unsafe) private var observer: BookPlayModeObserver?
 
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var playbackCapability: BookPlayModeCapabilityAdapter?
+    nonisolated(unsafe) private var sceneCapability: BookPlayModeSceneCapabilityAdapter?
+    nonisolated(unsafe) private var toastCapability: BookPlayModeToastCapabilityAdapter?
+
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
         if Self.verbose { os_log("\(Self.t)🔌 onRegister") }
@@ -97,14 +103,27 @@ public final class BookPlayModePlugin: AsyncSuperPlugin, SuperLog {
         sceneBox.scene = scene
         if Self.verbose { os_log("\(Self.t)🔧 installState") }
 
+        let playbackCapability = BookPlayModeCapabilityAdapter(playback: playback)
+        let sceneCapability = BookPlayModeSceneCapabilityAdapter(scene: scene)
+        let toastCapability = BookPlayModeToastCapabilityAdapter(
+            toast: kernel.resolveProvider((any ToastProviding).self)
+        )
+        self.playbackCapability = playbackCapability
+        self.sceneCapability = sceneCapability
+        self.toastCapability = toastCapability
+
         let viewModel = BookPlayModeViewModel(
-            playbackProvider: playback,
+            playback: playbackCapability,
             loadPlayMode: makeLoadPlayMode(),
             storePlayMode: makeStorePlayMode(),
-            toastProvider: kernel.resolveProvider((any ToastProviding).self)
+            toast: toastCapability
         )
         self.viewModel = viewModel
-        observer = BookPlayModeObserver(scene: scene, playback: playback, viewModel: viewModel)
+        observer = BookPlayModeObserver(
+            scene: sceneCapability,
+            playback: playbackCapability,
+            viewModel: viewModel
+        )
     }
 
     @MainActor
@@ -113,6 +132,9 @@ public final class BookPlayModePlugin: AsyncSuperPlugin, SuperLog {
         observer?.cancel()
         observer = nil
         viewModel = nil
+        playbackCapability = nil
+        sceneCapability = nil
+        toastCapability = nil
     }
 
     /// 播放模式持久化的读取入口（由插件入口组装，不暴露单例给 ViewModel）。

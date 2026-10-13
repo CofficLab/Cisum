@@ -7,8 +7,10 @@ import Testing
 
 // MARK: - 探针实现
 
+/// 最小播放探针：同时实现内核 Provider 与本插件的播放模式能力，
+/// 验证 Adapter 语义在 probe 上等价。
 @MainActor
-private final class PlaybackProbe: PlaybackProviding {
+private final class PlaybackProbe: PlaybackProviding, BookPlayModeCapability {
     var state: PlaybackStatus = .idle
     var currentURL: URL?
     var currentTime: TimeInterval = 0
@@ -49,10 +51,24 @@ private final class PlaybackProbe: PlaybackProviding {
             self?.observers.removeValue(forKey: id)
         }
     }
+
+    @discardableResult
+    func addObserver(
+        _ callback: @escaping (BookPlayModeEvent) -> Void
+    ) -> any BookPlayModeObserverHandle {
+        let id = UUID()
+        observers[id] = { event in
+            guard case let .playModeChanged(mode) = event else { return }
+            callback(.playModeChanged(mode))
+        }
+        return ProbePlaybackHandle { [weak self] in
+            self?.observers.removeValue(forKey: id)
+        }
+    }
 }
 
 @MainActor
-private final class ProbePlaybackHandle: PlaybackProvidingObserverHandle {
+private final class ProbePlaybackHandle: PlaybackProvidingObserverHandle, BookPlayModeObserverHandle {
     private let onCancel: () -> Void
     private var cancelled = false
 
@@ -67,8 +83,9 @@ private final class ProbePlaybackHandle: PlaybackProvidingObserverHandle {
     }
 }
 
+/// 最小场景探针：同时实现内核 Provider 与本插件的场景能力。
 @MainActor
-private final class SceneProbe: SceneProviding {
+private final class SceneProbe: SceneProviding, BookPlayModeSceneCapability {
     var scenes: [AppScene] = [.music, .audiobooks]
     var currentScene: AppScene?
     private var observers: [UUID: (SceneProvidingEvent) -> Void] = [:]
@@ -91,10 +108,24 @@ private final class SceneProbe: SceneProviding {
             self?.observers.removeValue(forKey: id)
         }
     }
+
+    @discardableResult
+    func addObserver(
+        _ callback: @escaping (BookPlayModeSceneEvent) -> Void
+    ) -> any BookPlayModeSceneObserverHandle {
+        let id = UUID()
+        observers[id] = { event in
+            guard case let .selectionChanged(scene) = event else { return }
+            callback(.selectionChanged(scene: scene))
+        }
+        return ProbeSceneHandle { [weak self] in
+            self?.observers.removeValue(forKey: id)
+        }
+    }
 }
 
 @MainActor
-private final class ProbeSceneHandle: SceneProvidingObserverHandle {
+private final class ProbeSceneHandle: SceneProvidingObserverHandle, BookPlayModeSceneObserverHandle {
     private let onCancel: () -> Void
     private var cancelled = false
 
@@ -158,7 +189,7 @@ struct BookPlayModeViewModelTests {
     ) -> BookPlayModeViewModel {
         BookPlayModeViewModel(
             targetScene: targetScene,
-            playbackProvider: capability,
+            playback: capability,
             loadPlayMode: load,
             storePlayMode: store
         )
@@ -244,7 +275,7 @@ struct BookPlayModeObserverTests {
 
         let viewModel = BookPlayModeViewModel(
             targetScene: .audiobooks,
-            playbackProvider: capability,
+            playback: capability,
             loadPlayMode: { .repeatAll },
             storePlayMode: { _ in }
         )
@@ -268,7 +299,7 @@ struct BookPlayModeObserverTests {
         var stored: [PlaybackMode] = []
         let viewModel = BookPlayModeViewModel(
             targetScene: .audiobooks,
-            playbackProvider: capability,
+            playback: capability,
             loadPlayMode: { .sequence },
             storePlayMode: { stored.append($0) }
         )
@@ -290,7 +321,7 @@ struct BookPlayModeObserverTests {
         let capability = PlaybackProbe()
         let viewModel = BookPlayModeViewModel(
             targetScene: .audiobooks,
-            playbackProvider: capability,
+            playback: capability,
             loadPlayMode: { .repeatAll },
             storePlayMode: { _ in }
         )
