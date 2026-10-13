@@ -116,13 +116,36 @@ let viewModel = MyViewModel(capability: capability)
 ## 5. 是否该建 Capability（判断标准）
 
 **应当建**：
-- View / ViewModel / Observer 直接持有 `any XxxProviding`
+- View / ViewModel / Observer 直接持有 `any XxxProviding`（**无论成员多少**——消费面小不等于可以绕过边界）
 - 同一 Provider 在插件内有 2 处以上消费点
+- 入口注入的多个闭包各自 `resolveProvider` 同一个 Provider（收敛为一个能力，解析与降级语义只留一份）
 - 单元测试需要 mock 掉某个外部能力
 
-**不必建**：
+**不必建**（豁免项必须在代码中写注释说明理由）：
 - 只有插件入口（`<Plugin>.swift`）消费 Provider —— 入口本就是组装层，直接 resolve 即可
-- 只有单个 Observer 消费、且仅转发一次事件
+- `Providers/` 生产目录内的文件 —— 那是本插件**实现** Provider 的地方及其基础设施依赖
+- 一次性同步读取的闭包（如恢复进度时读一次 `isLiked`）、纯诊断快照（如
+  `AudioStorageDiagnosticsFactory`）—— 不订阅、不持有、不重试
+- 组装层 View 中「`resolveProvider` 后立刻包成 Adapter」的调用 —— View 在此角色等同入口
+  （如 `PluginRootView/CisumRootLayoutView`），但必须在调用点注释说明组装层身份
+
+---
+
+## 6. 消费方持有样式
+
+| 持有者 | 样式 | 理由 |
+|--------|------|------|
+| Adapter → Provider | **`weak`**（硬规则） | Provider 可能已被 unregister，不得延长其生命周期 |
+| 插件入口 → Adapter | **强持有**（硬规则，见第 4 节第 5 条） | 组装层所有权；teardown 时随状态一起释放 |
+| ViewModel / View → Adapter | **默认强持有 `let`** | 能力是容器的普通依赖；容器生命周期由入口 teardown 控制（先置空容器再释放能力）。强持有不会延长 Provider 生命周期（Adapter 对 Provider 已 `weak`），且消除了「临时 Adapter 被释放 → 能力静默失效」的陷阱 |
+| Observer → Adapter | 不持有 | 观察者只在 `init` 期间用能力安装订阅，之后仅依赖返回的句柄 |
+
+> 例外：若消费容器可能**长寿于**组装层（如 StateObject 之外的跨会话缓存），可改 `weak`，
+> 但必须在注释中说明为何组装层的强持有不足。
+
+**测试陷阱**：Adapter 对 Provider 是 `weak`，测试中
+`MyCapabilityAdapter(probe: MyProbe())` 这种临时 Provider 会在初始化后立即释放，
+能力退化为空值。测试必须自己持有 Probe 与 Adapter（与生产路径的第 5 条同源）。
 
 ---
 
@@ -155,14 +178,53 @@ public final class XxxCapabilityAdapter: XxxCapability {
 
 ---
 
-## 8. 渐进迁移
+## 8. 迁移状态与验证
 
-本规范**不要求**一次性改造全部插件。新增或重构插件时遵守；既有插件在触及相关文件时顺手迁移即可。
+### 已完成迁移（可作为参考实现）
 
-**已完成迁移**（可作为参考实现）：
-`PluginPlayBack`、`PluginStorage`、`PluginBookDBView`、`PluginAudioDBView`。
+全部 36 个带测试的插件包已迁移完毕（2026-10 全量批次），按模式归类：
 
-其余插件若仍存在「非入口文件直接依赖 `any *Providing`」，在触及时顺手迁移。
+| 模式 | 参考插件 |
+|------|---------|
+| 多 Provider 合并为「环境能力」（信号合并，非数据） | `PluginAudioControlButtons`、`PluginAudioProgress`、`PluginRootView` |
+| 信号 vs 数据的区分（需要数据的 Provider 不合并） | `PluginPlaybackHero`（需要 `totalCount` 数据） |
+| 惰性解析闭包（Provider 注册晚于视图请求） | `PluginAudioDBView`、`PluginAudioProgress`、`PluginAudioLike`、`PluginAudioCopy` |
+| 入口注入的多个闭包收敛为单一能力 | `PluginAudioWidgetControl`（4 闭包）、`PluginBookProgress`（6 闭包）、`PluginBookLike`/`PluginAudioLike`（本地 Store 闭包保留） |
+| 生产方收窄自己的契约（保留写入能力） | `PluginScene` |
+| 消费边与生产边分离（自产自销的 Provider） | `PluginAudioLike`（自己注册 `AudioLikeProviding`，消费侧同样收窄） |
+| 纯信号 Observer（无读取） | `PluginAudioSettings`、`PluginBookSettings`、`PluginAudioDBData` |
+| View 组装层 | `PluginRootView`（View 构造 Adapter 并注释组装层身份） |
+
+### 验证扫描命令
+
+```bash
+cd Packages && for p in Plugin*/; do n=$(basename $p); [ -d "$p/Sources" ] || continue
+  files=$(grep -rlE "any [A-Z][A-Za-z]*Providing" "$p/Sources" --include="*.swift" 2>/dev/null \
+    | grep -v "/Capabilities/" | grep -vE "Plugin\.swift$")
+  c=$(echo "$files" | grep -c .)
+  [ "$c" != "0" ] && { echo "-- $n"; echo "$files" | sed "s|$p/Sources/||"; }
+done
+```
+
+> **注意用宽模式 `any XxxProviding`，不要用 `(any ...`**——带括号的窄模式会漏掉
+> `init(provider: any StorageProviding)` 这类无括号签名，首次扫描因此漏掉 6 个插件。
+
+**当前允许的输出**（均须有代码注释说明理由）：
+- `Providers/` 与 `Services/` 下的 Provider 实现文件（生产目录，含其基础设施依赖）
+- 插件入口 `*Plugin.swift` / `*Manager.swift`（组装层）
+- `AudioStorageDiagnosticsFactory`（一次性诊断快照）
+- `AudioProgressViewModel` 的 `audioLike` 闭包（恢复时一次性读取）
+- `CisumRootLayoutView`（组装层 View，`resolveProvider` 后立即包成 Adapter）
+
+### 回归
+
+新增/改动后对全部插件包跑测试（一次约 4 分钟）：
+
+```bash
+cd Packages && for p in Plugin*/; do [ -d "$p/Tests" ] || continue
+  printf "%-26s " "$(basename $p)"; (cd $p && swift test 2>&1 | grep -E "✘|error:|Test run with" | tail -1)
+done
+```
 
 ---
 
@@ -178,6 +240,11 @@ public final class XxxCapabilityAdapter: XxxCapability {
 - [ ] **插件入口显式强持有 Adapter，并在 shutdown 释放**
 - [ ] 能力文件放在 `Capabilities/`（而非 `Providers/`）
 - [ ] 命名符合 `<Plugin前缀><Domain>Capability` / `Adapter`
+- [ ] 收窄后保留「Provider 缺失时的降级语义」——原代码靠 `provider == nil` / 闭包返回 nil
+      判断的可用性，要在能力上以 `isAvailable` / 空值语义显式承载，避免 UI 在启动早期误闪
+- [ ] 消费方持有样式符合第 6 节表格（VM/View 默认强持有能力，入口强持有为硬要求）
+- [ ] 包若使用**逐目录列举**的 `sources:` 清单（如 `PluginAudio`、`PluginBook`、`PluginAudioLike`），
+      新建 `Sources/Capabilities` 后需同步加入清单，否则能力文件不会被编译
 
 ---
 
