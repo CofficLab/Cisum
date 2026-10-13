@@ -339,14 +339,33 @@ private final class ProbeSceneHandle: SceneProvidingObserverHandle {
     }
 }
 
+/// 最小喜欢仓库能力探针：替代原先两个注入闭包。
+@MainActor
+private final class AudioLikeRepositoryProbe: AudioLikeRepositoryCapability {
+    var likedItems: [AudioLikeItem] = []
+    var saved: [String] = []
+
+    func allLiked() async -> [AudioLikeItem] { likedItems }
+
+    func updateLikeStatus(
+        audioId: String,
+        liked: Bool,
+        url: URL?,
+        title: String?
+    ) async throws {
+        saved.append(audioId)
+    }
+}
+
 @MainActor
 struct AudioLikeViewModelTests {
     @Test
     func reloadAppliesOnlyLatestGeneration() async throws {
+        // ViewModel 以 `weak` 持有能力，测试需自行持有（规则第 5 条）。
+        let repository = AudioLikeRepositoryProbe()
         let viewModel = AudioLikeViewModel(
             isPlaybackAvailable: false,
-            loadLikedAudios: { [] },
-            saveLikeStatus: { _, _, _, _ in }
+            repository: repository
         )
         viewModel.reloadLikedAudios()
         for _ in 0..<50 where viewModel.isLoading {
@@ -358,43 +377,46 @@ struct AudioLikeViewModelTests {
 
     @Test
     func sceneChangeActivationGatesLikeSaving() async throws {
-        var saved: [String] = []
+        let repository = AudioLikeRepositoryProbe()
         let viewModel = AudioLikeViewModel(
             isPlaybackAvailable: true,
-            loadLikedAudios: { [] },
-            saveLikeStatus: { audioId, _, _, _ in saved.append(audioId) }
+            repository: repository
         )
 
         // 未激活时不保存。
         viewModel.handleLikeStatusChanged(asset: URL(fileURLWithPath: "/tmp/a.mp3"), liked: true)
         try await Task.sleep(for: .milliseconds(30))
-        #expect(saved.isEmpty)
+        #expect(repository.saved.isEmpty)
 
         // 激活后保存并 post 通知。
         viewModel.handleSceneChange(.music, targetScene: .music)
         viewModel.handleLikeStatusChanged(asset: URL(fileURLWithPath: "/tmp/a.mp3"), liked: true)
-        for _ in 0..<50 where saved.isEmpty {
+        for _ in 0..<50 where repository.saved.isEmpty {
             try await Task.sleep(for: .milliseconds(10))
         }
-        #expect(saved == ["file:///tmp/a.mp3"])
+        #expect(repository.saved == ["file:///tmp/a.mp3"])
 
         // 离开场景后再次停用。
         viewModel.handleSceneChange(.audiobooks, targetScene: .music)
         viewModel.handleLikeStatusChanged(asset: URL(fileURLWithPath: "/tmp/b.mp3"), liked: true)
         try await Task.sleep(for: .milliseconds(30))
-        #expect(saved.count == 1)
+        #expect(repository.saved.count == 1)
     }
 
     @Test
     func observerForwardsSceneSelectionToViewModel() async throws {
         let scene = SceneProbe()
         scene.currentScene = .music
+        let repository = AudioLikeRepositoryProbe()
         let viewModel = AudioLikeViewModel(
             isPlaybackAvailable: true,
-            loadLikedAudios: { [] },
-            saveLikeStatus: { _, _, _, _ in }
+            repository: repository
         )
-        let observer = AudioLikeObserver(scene: scene, playback: PlaybackProbeStub(), viewModel: viewModel)
+        let observer = AudioLikeObserver(
+            scene: AudioLikeSceneCapabilityAdapter(scene: scene),
+            playback: AudioLikePlaybackCapabilityAdapter(playback: PlaybackProbeStub()),
+            viewModel: viewModel
+        )
         defer { observer.cancel() }
 
         // 切走场景再切回；activation 路径无公开状态，验证不崩溃且通知转发正常。

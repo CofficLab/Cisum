@@ -1,5 +1,3 @@
-import ProviderScene
-import ProviderPlayback
 import Foundation
 import MagicKit
 
@@ -14,18 +12,22 @@ final class AudioLikeObserver: SuperLog {
 
     private weak var viewModel: AudioLikeViewModel?
     private var token: NSObjectProtocol?
-    private var sceneHandle: (any SceneProvidingObserverHandle)?
-    private var playbackHandle: (any PlaybackProvidingObserverHandle)?
+    private var sceneHandle: (any AudioLikeSceneObserverHandle)?
+    private var playbackHandle: (any AudioLikePlaybackObserverHandle)?
 
-    init(scene: any SceneProviding, playback: any PlaybackProviding, viewModel: AudioLikeViewModel) {
+    init(
+        scene: any AudioLikeSceneCapability,
+        playback: any AudioLikePlaybackCapability,
+        viewModel: AudioLikeViewModel
+    ) {
         self.viewModel = viewModel
         viewModel.handleSceneChange(scene.currentScene, targetScene: .music)
         sceneHandle = scene.addObserver { [weak self] event in
-            guard case .selectionChanged(let scene) = event else { return }
-            self?.viewModel?.handleSceneChange(scene, targetScene: .music)
+            guard case let .selectionChanged(newScene) = event else { return }
+            self?.viewModel?.handleSceneChange(newScene, targetScene: .music)
         }
         playbackHandle = playback.addObserver { [weak self] event in
-            guard case .likeStatusChanged(let asset, let isLiked) = event else { return }
+            guard case let .likeStatusChanged(asset, isLiked) = event else { return }
             self?.viewModel?.handleLikeStatusChanged(asset: asset, liked: isLiked)
         }
         token = NotificationCenter.default.addObserver(

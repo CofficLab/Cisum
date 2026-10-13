@@ -49,6 +49,7 @@ let package = Package(
             path: ".",
             sources: [
                 "Sources/AudioLikePlugin.swift",
+                "Sources/Capabilities",
                 "Sources/Events",
                 "Sources/Models/AudioLikePluginInfo.swift",
                 "Sources/Models/AudioLikeModel.swift",
