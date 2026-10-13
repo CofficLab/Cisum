@@ -165,6 +165,40 @@ final class CisumWelcomeUITests: CisumUITestBase {
         )
     }
 
+    /// 欢迎页展示期间，主窗口顶部工具栏必须保持干净：
+    /// 不允许出现任何按钮、弹出菜单等可交互控件（引导期间工具栏不应暴露功能入口）。
+    func testWelcomeGuideKeepsTopToolbarFreeOfControls() throws {
+        XCTAssertTrue(setupGate.waitForExistence(timeout: 10), "首次启动应展示存储引导")
+
+#if os(macOS)
+        let window = app.windows.firstMatch
+        XCTAssertTrue(window.waitForExistence(timeout: 5), "主窗口未出现")
+
+        // 工具栏本身可以不存在（等价于没有任何控件）；存在时必须为空。
+        let toolbar = window.toolbars.firstMatch
+        guard toolbar.exists else { return }
+
+        var offenders: [String] = []
+        let controlQueries: [(String, XCUIElementQuery)] = [
+            ("button", toolbar.descendants(matching: .button)),
+            ("popUpButton", toolbar.descendants(matching: .popUpButton)),
+            ("menu", toolbar.descendants(matching: .menu)),
+            ("menuItem", toolbar.descendants(matching: .menuItem)),
+        ]
+        for (kind, query) in controlQueries {
+            for index in 0..<query.count {
+                let control = query.element(boundBy: index)
+                offenders.append("\(kind) \"\(control.label)\" \(control.frame)")
+            }
+        }
+
+        XCTAssertTrue(
+            offenders.isEmpty,
+            "欢迎页顶部工具栏不应有任何按钮/控件，但发现了 \(offenders.count) 个：\(offenders.joined(separator: ", "))"
+        )
+#endif
+    }
+
     /// [R7] 引导文案必须中英文都存在（本地化不缺失）。
     func testFirstLaunchCopyIsLocalized() throws {
         XCTAssertTrue(setupGate.waitForExistence(timeout: 10), "首次启动应阻止进入主界面并要求选择存储位置")
