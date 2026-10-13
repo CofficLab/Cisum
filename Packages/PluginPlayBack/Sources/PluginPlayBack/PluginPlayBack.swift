@@ -55,6 +55,12 @@ public final class PluginPlayBack: AsyncSuperPlugin {
     /// 场景观察者（onReady 时创建）：监听场景变动并按场景恢复/记录播放文件。
     nonisolated(unsafe) private var sceneObserver: PlaybackSceneObserver?
 
+    /// 设置页与场景观察者消费的 Adapter。ViewModel / Observer 以 `weak`
+    /// 或不持有 Adapter，故此处必须显式强持有，否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var sceneCapability: PlaybackSceneCapabilityAdapter?
+    nonisolated(unsafe) private var settingsSceneCapability: PlaybackSceneCapabilityAdapter?
+    nonisolated(unsafe) private var settingsPlaybackCapability: PlaybackSettingsCapabilityAdapter?
+
     /// 设置页 ViewModel 与场景观察者（onReady 时创建，设置页导航项注入同一实例）。
     nonisolated(unsafe) private var settingsViewModel: PluginPlayBackSettingsViewModel?
     nonisolated(unsafe) private var settingsSceneObserver: PlaybackSettingsSceneObserver?
@@ -129,8 +135,10 @@ public final class PluginPlayBack: AsyncSuperPlugin {
             }
         }
         #endif
+        let capability = makeSceneCapability(kernel: kernel)
+        sceneCapability = capability
         sceneObserver = PlaybackSceneObserver(
-            scene: makeSceneCapability(kernel: kernel),
+            scene: capability,
             player: player,
             store: store
         )
@@ -145,10 +153,13 @@ public final class PluginPlayBack: AsyncSuperPlugin {
         observerHandle = nil
         sceneObserver?.cancel()
         sceneObserver = nil
+        sceneCapability = nil
         settingsSceneObserver?.cancel()
         settingsSceneObserver = nil
+        settingsSceneCapability = nil
         settingsPlaybackObserver?.cancel()
         settingsPlaybackObserver = nil
+        settingsPlaybackCapability = nil
         settingsViewModel = nil
         stateStore = nil
         playbackProvider?.shutdown()
@@ -174,12 +185,16 @@ public final class PluginPlayBack: AsyncSuperPlugin {
     private func installSettingsState(kernel: KernelCoreContainer) {
         guard settingsSceneObserver == nil else { return }
         guard let viewModel = settingsViewModel ?? makeSettingsViewModel() else { return }
+        let sceneCapability = makeSceneCapability(kernel: kernel)
+        let playbackCapability = PlaybackSettingsCapabilityAdapter(playback: playbackProvider)
+        settingsSceneCapability = sceneCapability
+        settingsPlaybackCapability = playbackCapability
         let observer = PlaybackSettingsSceneObserver(
-            scene: makeSceneCapability(kernel: kernel),
+            scene: sceneCapability,
             viewModel: viewModel
         )
         let playbackObserver = PlaybackSettingsPlaybackObserver(
-            playback: PlaybackSettingsCapabilityAdapter(playback: playbackProvider),
+            playback: playbackCapability,
             viewModel: viewModel
         )
         settingsSceneObserver = observer
@@ -189,9 +204,11 @@ public final class PluginPlayBack: AsyncSuperPlugin {
     @MainActor
     private func makeSettingsViewModel() -> PluginPlayBackSettingsViewModel? {
         guard let store = stateStore else { return nil }
+        let capability = PlaybackSettingsCapabilityAdapter(playback: playbackProvider)
+        settingsPlaybackCapability = capability
         let viewModel = PluginPlayBackSettingsViewModel(
             store: store,
-            playback: PlaybackSettingsCapabilityAdapter(playback: playbackProvider)
+            playback: capability
         )
         settingsViewModel = viewModel
         return viewModel
