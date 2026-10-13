@@ -115,6 +115,7 @@ Sources/
 |------|------|---------|
 | `Models/` | 数据模型 | struct / class / enum 数据定义 |
 | `Observers/` | 事件订阅 | `*Observer` 等监听类型 |
+| `Capabilities/` | 消费外部能力 | `<前缀><Domain>Capability` 窄协议 + Adapter，详见 [Capabilities 规范](./plugin-capabilities.md) |
 | `Support/` | 辅助 | `PluginLocalization.swift`、轻量扩展 |
 | `ViewModels/` | 视图模型 | `@Observable` / `ObservableObject` 类 |
 | `Views/` | 视图 | SwiftUI `View` 组件 |
