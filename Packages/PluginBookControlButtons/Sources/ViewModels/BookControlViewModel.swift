@@ -23,11 +23,12 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     private static let log = Logger(subsystem: "com.yueyi.cisum", category: "BookControl")
     private static let tag = "⏭️"
 
-    private let playbackProvider: (any PlaybackProviding)?
-    private let bookDisk: @MainActor () -> URL?
+    /// 播放、书库与提示能力（Capabilities 目录收窄），`weak` 持有。
+    private weak var playback: (any BookControlPlaybackCapability)?
+    private weak var library: (any BookControlLibraryCapability)?
     @Published private(set) var isPlaying = false
     @Published private(set) var playMode: PlaybackMode = .sequence
-    private let toastProvider: (any ToastProviding)?
+    private weak var toast: (any BookControlToastCapability)?
     private var controlGeneration = 0
     private var currentScene: AppScene?
     private let targetScene: AppScene
@@ -41,17 +42,17 @@ final class BookControlViewModel: ObservableObject, SuperLog {
 
     init(
         targetScene: AppScene,
-        playbackProvider: (any PlaybackProviding)?,
-        toastProvider: (any ToastProviding)? = nil,
-        bookDisk: @escaping @MainActor () -> URL? = { nil }
+        playback: (any BookControlPlaybackCapability)?,
+        library: (any BookControlLibraryCapability)? = nil,
+        toast: (any BookControlToastCapability)? = nil
     ) {
         self.targetScene = targetScene
-        self.playbackProvider = playbackProvider
-        self.toastProvider = toastProvider
-        self.bookDisk = bookDisk
-        if let playbackProvider {
-            isPlaying = playbackProvider.isPlaying
-            playMode = playbackProvider.playMode
+        self.playback = playback
+        self.library = library
+        self.toast = toast
+        if let playback {
+            isPlaying = playback.isPlaying
+            playMode = playback.playMode
         }
     }
 
@@ -79,18 +80,18 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     }
 
     func toggle() {
-        guard let playbackProvider else {
+        guard let playback else {
             reportUnavailable(operation: "toggle playback")
             return
         }
-        playbackProvider.toggle()
+        playback.toggle()
     }
 
     func previous() {
         if Self.verbose {
             Self.log.debug("\(Self.tag)⏮️ Previous chapter button tapped")
         }
-        guard let asset = playbackProvider?.currentURL else {
+        guard let asset = playback?.currentURL else {
             reportUnavailable(operation: "play previous chapter", message: String(localized: "There is no current audiobook chapter.", bundle: .module))
             return
         }
@@ -101,7 +102,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
         if Self.verbose {
             Self.log.debug("\(Self.tag)⏭️ Next chapter button tapped")
         }
-        guard let asset = playbackProvider?.currentURL else {
+        guard let asset = playback?.currentURL else {
             reportUnavailable(operation: "play next chapter", message: String(localized: "There is no current audiobook chapter.", bundle: .module))
             return
         }
@@ -109,11 +110,11 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     }
 
     func togglePlayMode() {
-        guard let playbackProvider else {
+        guard let playback else {
             reportUnavailable(operation: "change playback mode")
             return
         }
-        playbackProvider.togglePlayMode()
+        playback.togglePlayMode()
     }
 
     private func activateControl() {
@@ -124,7 +125,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
             return
         }
 
-        guard playbackProvider != nil else { return }
+        guard playback != nil else { return }
     }
 
     private func deactivateControl() {
@@ -135,13 +136,13 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     // MARK: - Navigation
 
     func handlePreviousRequested(_ asset: URL) {
-        guard shouldActivateControl, let playback = playbackProvider else { return }
+        guard shouldActivateControl, let playback else { return }
 
         if Self.verbose {
             Self.log.debug("\(Self.tag)⏮️ Previous chapter requested")
         }
 
-        let bookDisk = bookDisk()
+        let bookDisk = library?.bookDisk
         guard BookControlPlaybackRequestPolicy.shouldNavigateBookAsset(asset, bookDisk: bookDisk) else {
             return
         }
@@ -165,7 +166,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
                     currentGeneration: controlGeneration,
                     requestGeneration: generation
                 ) else { return }
-                await playback.play(prev)
+                await playback.play(prev, startTime: nil)
                 if Self.verbose {
                     Self.log.debug("\(Self.tag)✅ Playing previous chapter: \(prev.lastPathComponent)")
                 }
@@ -177,13 +178,13 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     }
 
     func handleNextRequested(_ asset: URL) {
-        guard shouldActivateControl, let playback = playbackProvider else { return }
+        guard shouldActivateControl, let playback else { return }
 
         if Self.verbose {
             Self.log.debug("\(Self.tag)⏭️ Next chapter requested")
         }
 
-        let bookDisk = bookDisk()
+        let bookDisk = library?.bookDisk
         guard BookControlPlaybackRequestPolicy.shouldNavigateBookAsset(asset, bookDisk: bookDisk) else {
             return
         }
@@ -207,7 +208,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
                     currentGeneration: controlGeneration,
                     requestGeneration: generation
                 ) else { return }
-                await playback.play(next)
+                await playback.play(next, startTime: nil)
                 if Self.verbose {
                     Self.log.debug("\(Self.tag)✅ Playing next chapter: \(next.lastPathComponent)")
                 }
@@ -249,7 +250,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     // MARK: - DB & storage events
 
     func handleBookDBDeleted(deletedURLs: [URL]) {
-        guard let playback = playbackProvider else { return }
+        guard let playback else { return }
 
         if BookControlPlaybackRequestPolicy.shouldInvalidateChapterCacheAfterDeletion(deletedURLs: deletedURLs) {
             BookControlChapterCache.removeAll()
@@ -280,7 +281,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     }
 
     func handleStorageLocationDidReset() {
-        guard let playback = playbackProvider else { return }
+        guard let playback else { return }
         guard BookControlPlaybackRequestPolicy.shouldResetForStorageLocationChange(isSceneActive: shouldActivateControl) else {
             return
         }
@@ -306,7 +307,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     }
 
     private func presentError(title: String, message: String) {
-        toastProvider?.presentError(
+        toast?.presentError(
             title: title,
             message: message,
             sourceWindowID: sourceWindowID

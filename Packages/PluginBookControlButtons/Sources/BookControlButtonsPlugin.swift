@@ -46,7 +46,14 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
     private nonisolated(unsafe) var controlViewModel: BookControlViewModel?
     private nonisolated(unsafe) var sceneObserver: BookControlSceneObserver?
     private nonisolated(unsafe) var playbackObserver: BookControlPlaybackObserver?
-    private nonisolated(unsafe) var bookProviderObserver: (any BookProvidingObserverHandle)?
+    private nonisolated(unsafe) var libraryObserver: BookControlLibraryObserver?
+
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    private nonisolated(unsafe) var playbackCapability: BookControlPlaybackCapabilityAdapter?
+    private nonisolated(unsafe) var sceneCapability: BookControlSceneCapabilityAdapter?
+    private nonisolated(unsafe) var libraryCapability: BookControlLibraryCapabilityAdapter?
+    private nonisolated(unsafe) var toastCapability: BookControlToastCapabilityAdapter?
 
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
@@ -119,43 +126,35 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
         guard let scene = kernel.resolveProvider((any SceneProviding).self),
               let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
         if Self.verbose { os_log("\(Self.t)🔧 installState") }
+        // 入口强持有 Adapter，ViewModel / Observer 以 `weak` 或参数消费。
+        let playbackCapability = BookControlPlaybackCapabilityAdapter(playback: playback)
+        let sceneCapability = BookControlSceneCapabilityAdapter(scene: scene)
+        let libraryCapability = BookControlLibraryCapabilityAdapter(
+            books: kernel.resolveProvider(BookDatabaseProviding.self)
+        )
+        let toastCapability = BookControlToastCapabilityAdapter(
+            toast: kernel.resolveProvider((any ToastProviding).self)
+        )
+        self.playbackCapability = playbackCapability
+        self.sceneCapability = sceneCapability
+        self.libraryCapability = libraryCapability
+        self.toastCapability = toastCapability
+
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackProvider: playback,
-            toastProvider: kernel.resolveProvider((any ToastProviding).self),
-            bookDisk: { kernel.resolveProvider(BookDatabaseProviding.self)?.bookDisk }
+            playback: playbackCapability,
+            library: libraryCapability,
+            toast: toastCapability
         )
-        sceneObserver = BookControlSceneObserver(scene: scene, viewModel: viewModel)
-        playbackObserver = BookControlPlaybackObserver(playback: playback, viewModel: viewModel)
-        installDatabaseObservers(
-            viewModel: viewModel,
-            provider: kernel.resolveProvider(BookDatabaseProviding.self)
+        sceneObserver = BookControlSceneObserver(scene: sceneCapability, viewModel: viewModel)
+        playbackObserver = BookControlPlaybackObserver(
+            playback: playbackCapability,
+            viewModel: viewModel
         )
+        libraryObserver = BookControlLibraryObserver(library: libraryCapability, viewModel: viewModel)
         controlViewModel = viewModel
     }
 
-    /// 订阅书籍数据库与存储重置通知，转发到 ViewModel。
-    @MainActor
-    private func installDatabaseObservers(
-        viewModel: BookControlViewModel,
-        provider: (any BookDatabaseProviding)?
-    ) {
-        guard let provider else { return }
-        bookProviderObserver = provider.addObserver { [weak viewModel] event in
-            Task { @MainActor in
-                switch event {
-                case .libraryChanged:
-                    viewModel?.handleBookDBRefreshed()
-                case .librarySyncing, .librarySynced, .playbackStateChanged:
-                    break
-                case let .libraryDeleted(urls):
-                    viewModel?.handleBookDBDeleted(deletedURLs: urls)
-                case .storageLocationChanged:
-                    viewModel?.handleStorageLocationDidReset()
-                }
-            }
-        }
-    }
 
     @MainActor
     private func teardownState() {
@@ -164,9 +163,13 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
         sceneObserver = nil
         playbackObserver?.cancel()
         playbackObserver = nil
-        bookProviderObserver?.cancel()
-        bookProviderObserver = nil
+        libraryObserver?.cancel()
+        libraryObserver = nil
         controlViewModel = nil
+        playbackCapability = nil
+        sceneCapability = nil
+        libraryCapability = nil
+        toastCapability = nil
     }
 
     /// 返回当前持有的 ViewModel；若尚未安装（启动前或插件被禁用），
@@ -176,13 +179,18 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
         if let controlViewModel {
             return controlViewModel
         }
+        // 视图贡献可能早于 onReady：此时控制按钮处于不可用状态，等待后续装配。
+        let playbackCapability = BookControlPlaybackCapabilityAdapter(
+            playback: kernel?.resolveProvider((any PlaybackProviding).self)
+        )
+        self.playbackCapability = playbackCapability
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
-            toastProvider: kernel?.resolveProvider((any ToastProviding).self),
-            bookDisk: { [weak self] in
-                self?.kernel?.resolveProvider(BookDatabaseProviding.self)?.bookDisk
-            }
+            playback: playbackCapability,
+            library: kernel?.resolveProvider(BookDatabaseProviding.self)
+                .map(BookControlLibraryCapabilityAdapter.init),
+            toast: kernel?.resolveProvider((any ToastProviding).self)
+                .map(BookControlToastCapabilityAdapter.init)
         )
         controlViewModel = viewModel
         return viewModel
