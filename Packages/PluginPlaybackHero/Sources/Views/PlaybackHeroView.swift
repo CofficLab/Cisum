@@ -54,6 +54,20 @@ struct PlaybackHeroView: View {
                         .frame(height: titleViewHeight)
                         .foregroundStyle(appTheme.textPrimary)
                         .shadow(color: appTheme.background.opacity(0.18), radius: 8, y: 2)
+
+                    // 下载状态行：始终可见（不依赖封面区布局条件），
+                    // 否则默认窗口（控制区高度 < 450）下用户对「正在下载」毫无感知。
+                    if viewModel.state.isDownloading {
+                        Text(downloadStatusText)
+                            .font(.system(size: 12))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                            .multilineTextAlignment(.center)
+                            .frame(width: max(0, geometry.size.width - 32))
+                            .foregroundStyle(appTheme.textSecondary)
+                            .accessibilityIdentifier("cisum.player.download.status")
+                            .transition(.opacity)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -98,20 +112,28 @@ struct PlaybackHeroView: View {
                 Text("\(Int(downloadProgress * 100))%")
                     .font(.system(size: 36, weight: .bold, design: .rounded))
                     .foregroundStyle(appTheme.textPrimary)
+                    .accessibilityIdentifier("cisum.player.download.progress")
                 Text(viewModel.localizedStateText())
                     .font(.system(size: 14))
                     .foregroundStyle(appTheme.textSecondary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
+                    .accessibilityIdentifier("cisum.player.download.state")
             }
             .padding(.horizontal, 24)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(appTheme.elevatedSurface.opacity(0.55))
+        .accessibilityIdentifier("cisum.player.download.overlay")
     }
 
     private var downloadProgress: CGFloat {
         guard case let .loading(.downloading(progress)) = viewModel.state else { return 0 }
         return CGFloat(min(max(progress.isFinite ? progress : 0, 0), 1))
+    }
+
+    /// 状态行文案：百分比 + 本地化状态描述（如「42% Downloading」）。
+    private var downloadStatusText: String {
+        "\(Int(downloadProgress * 100))% \(viewModel.localizedStateText())"
     }
 }

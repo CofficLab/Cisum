@@ -17,6 +17,9 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
     private static let log = Logger(subsystem: "com.yueyi.cisum", category: "ControlButtons")
 
     @Published private(set) var isPlaying = false
+    /// 下载/加载等待期间为 true：播放按钮据此禁用，
+    /// 避免用户点击后被状态机静默忽略（点了没任何反应）。
+    @Published private(set) var isBusy = false
     @Published private(set) var playMode: PlaybackMode = .sequence
     private let playbackProvider: (any PlaybackProviding)?
     private let navigationProvider: (any AudioTrackNavigationProviding)?
@@ -58,6 +61,7 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
 
     func applyStateChanged(_ state: PlaybackStatus) {
         isPlaying = state == .playing
+        isBusy = state.isLoading
 
         guard case .failed(let failure) = state else {
             lastPresentedFailure = nil
