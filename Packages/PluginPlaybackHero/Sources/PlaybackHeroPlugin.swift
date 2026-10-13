@@ -81,7 +81,7 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
                 viewModel: viewModel,
                 isDemoMode: kernel?.resolveProvider((any AppStateProviding).self)?.isDemoMode ?? false
             )
-            .appDebugBadge("Playback Cover", alignment: .bottomLeading)
+            .appDebugBadge("Playback Cover", alignment: .topTrailing)
         )
     }
 
