@@ -33,6 +33,10 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private var viewModel: PlaybackProgressViewModel?
     nonisolated(unsafe) private var observer: PlaybackProgressObserver?
 
+    /// 进度能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式强持有，
+    /// 否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var playbackCapability: ProgressBarCapabilityAdapter?
+
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
         if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
@@ -94,8 +98,11 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     private func installState(kernel: KernelCoreContainer?) {
         guard viewModel == nil else { return }
-        let playback = kernel?.resolveProvider((any PlaybackProviding).self)
-        let viewModel = PlaybackProgressViewModel(playbackProvider: playback)
+        let playback = ProgressBarCapabilityAdapter(
+            playback: kernel?.resolveProvider((any PlaybackProviding).self)
+        )
+        playbackCapability = playback
+        let viewModel = PlaybackProgressViewModel(playback: playback)
         self.viewModel = viewModel
         observer = PlaybackProgressObserver(playback: playback, viewModel: viewModel)
     }
@@ -105,6 +112,7 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
         observer?.cancel()
         observer = nil
         viewModel = nil
+        playbackCapability = nil
     }
 
 }
