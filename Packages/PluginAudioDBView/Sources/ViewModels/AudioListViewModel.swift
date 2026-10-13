@@ -39,25 +39,27 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     private var loadGeneration = 0
     private var selectionGeneration = 0
 
-    private let audioLibraryProvider: @MainActor () -> (any AudioLibraryProviding)?
-    private let playbackProvider: (any PlaybackProviding)?
+    /// 音频库能力（Capabilities 目录收窄），内部惰性解析 Provider。
+    private let library: any AudioLibraryCapability
+    /// 播放与提示能力（Capabilities 目录收窄），`weak` 持有。
+    private weak var playback: (any AudioLibraryPlaybackCapability)?
     private var currentAsset: URL?
     private let reasonTag: String
     private let isDesktop: Bool
-    private let toastProvider: (any ToastProviding)?
+    private weak var toast: (any AudioLibraryToastCapability)?
 
     init(
-        audioLibrary: @escaping @MainActor () -> (any AudioLibraryProviding)?,
-        playbackProvider: (any PlaybackProviding)? = nil,
+        library: any AudioLibraryCapability,
+        playback: (any AudioLibraryPlaybackCapability)? = nil,
         reasonTag: String = "AudioListViewModel",
         isDesktop: Bool? = nil,
-        toastProvider: (any ToastProviding)? = nil
+        toast: (any AudioLibraryToastCapability)? = nil
     ) {
-        self.audioLibraryProvider = audioLibrary
-        self.playbackProvider = playbackProvider
+        self.library = library
+        self.playback = playback
         self.reasonTag = reasonTag
         self.isDesktop = isDesktop ?? Self.defaultIsDesktop
-        self.toastProvider = toastProvider
+        self.toast = toast
     }
 
     /// 非桌面平台（用于显示「添加」按钮等布局差异）。
@@ -151,17 +153,17 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                 return
             }
 
-            guard let playbackProvider = self.playbackProvider else {
-                os_log(.error, "\(Self.t)4/5 Playback provider is missing; cannot play: \(url.path)")
+            guard let playback else {
+                os_log(.error, "\(Self.t)4/5 播放能力缺失，无法播放：\(url.path)")
                 return
             }
 
             if Self.verbose {
-                os_log("\(Self.t)4/5 Calling PlaybackProviding.play: \(url.path)")
+                os_log("\(Self.t)4/5 调用播放能力 play：\(url.path)")
             }
-            await playbackProvider.play(url)
+            await playback.play(url)
             if Self.verbose {
-                os_log("\(Self.t)5/5 PlaybackProviding.play returned: \(url.lastPathComponent)")
+                os_log("\(Self.t)5/5 播放能力 play 已返回：\(url.lastPathComponent)")
             }
         }
     }
@@ -195,13 +197,13 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     /// 用户从列表删除条目（滑动删除）。
     func deleteItems(at offsets: IndexSet) {
         guard let urlsToDelete = Self.urlsToDelete(from: offsets, in: urls) else {
-            toastProvider?.error(String(localized: "Delete failed: the audio list changed. Please try again.", bundle: .module))
+            toast?.error(String(localized: "Delete failed: the audio list changed. Please try again.", bundle: .module))
             return
         }
 
         Task { @MainActor in
-            guard let library = audioLibraryProvider() else {
-                toastProvider?.error(String(localized: "Delete failed: audio repository is unavailable", bundle: .module))
+            guard library.isAvailable else {
+                toast?.error(String(localized: "Delete failed: audio repository is unavailable", bundle: .module))
                 return
             }
             await deleteFiles(urlsToDelete, in: library)
@@ -211,8 +213,8 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     /// 删除单个文件（列表项上下文菜单）。
     func deleteFile(_ url: URL) {
         Task { @MainActor in
-            guard let library = audioLibraryProvider() else {
-                toastProvider?.error(String(localized: "Delete failed: audio repository is unavailable", bundle: .module))
+            guard library.isAvailable else {
+                toast?.error(String(localized: "Delete failed: audio repository is unavailable", bundle: .module))
                 return
             }
             await deleteFiles([url], in: library)
@@ -292,10 +294,10 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         hasSuccessfullyLoadedRepository = false
 
         Task { @MainActor in
-            guard let library = audioLibraryProvider() else {
+            guard library.isAvailable else {
                 isLoading = false
                 hasSuccessfullyLoadedRepository = false
-                toastProvider?.error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
+                toast?.error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
                 return
             }
             guard library.isAvailable else {
@@ -309,8 +311,8 @@ final class AudioListViewModel: ObservableObject, SuperLog {
 
             let pageSize = self.pageSize
             Task.detached(priority: .background) {
-                let count = await library.totalCount()
-                let urls = await library.urls(
+                let count = await self.library.totalCount()
+                let urls = await self.library.urls(
                     offset: 0,
                     limit: pageSize,
                     reason: self.reasonTag
@@ -342,9 +344,9 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         let generation = loadGeneration
 
         Task { @MainActor in
-            guard let library = audioLibraryProvider() else {
+            guard library.isAvailable else {
                 isLoadingMore = false
-                toastProvider?.error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
+                toast?.error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
                 return
             }
 
@@ -358,7 +360,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
             )
 
             Task.detached(priority: .background) {
-                let newUrls = await library.urls(
+                let newUrls = await self.library.urls(
                     offset: offset,
                     limit: pageSize,
                     reason: self.reasonTag
@@ -426,11 +428,11 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         }
 
         Task { @MainActor in
-            guard let library = audioLibraryProvider() else {
+            guard library.isAvailable else {
                 isLoading = false
                 isLoadingMore = false
                 hasSuccessfullyLoadedRepository = false
-                toastProvider?.error(String(localized: "Refresh failed: audio repository is unavailable", bundle: .module))
+                toast?.error(String(localized: "Refresh failed: audio repository is unavailable", bundle: .module))
                 return
             }
             guard library.isAvailable else {
@@ -443,7 +445,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
             Task.detached(priority: .background) {
                 let currentCount = await self.urls.count
                 let currentTotalCount = await self.totalCount
-                let newTotalCount = await library.totalCount()
+                let newTotalCount = await self.library.totalCount()
 
                 await MainActor.run {
                     guard AudioListLoadPolicy.shouldApplyResult(
@@ -465,7 +467,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                         let currentCount = currentCount
                         let newTotalCount = newTotalCount
                         Task.detached(priority: .background) {
-                            let refreshedUrls = await library.urls(
+                            let refreshedUrls = await self.library.urls(
                                 offset: 0,
                                 limit: currentCount,
                                 reason: self.reasonTag
@@ -502,7 +504,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
 
     private func deleteFiles(
         _ urlsToDelete: [URL],
-        in library: any AudioLibraryProviding
+        in library: any AudioLibraryCapability
     ) async {
         do {
             try await library.delete(urls: urlsToDelete, verbose: false)
@@ -511,13 +513,13 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                 deletedURLs: urlsToDelete,
                 isPlaybackControllerHandlingDeletion: true
             ) {
-                await playbackProvider?.reset()
+                await playback?.reset()
             }
             for url in urlsToDelete {
-                toastProvider?.info(String(localized: "Deleted \(url.title)", bundle: .module))
+                toast?.info(String(localized: "Deleted \(url.title)", bundle: .module))
             }
         } catch {
-            toastProvider?.error(String(localized: "Delete failed: \(error.localizedDescription)", bundle: .module))
+            toast?.error(String(localized: "Delete failed: \(error.localizedDescription)", bundle: .module))
         }
     }
 

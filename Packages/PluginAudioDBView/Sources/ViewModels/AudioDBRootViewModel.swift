@@ -1,4 +1,3 @@
-import ProviderAudioLibrary
 import Foundation
 import MagicKit
 
@@ -10,20 +9,21 @@ import MagicKit
 final class AudioDBRootViewModel: ObservableObject, SuperLog {
     nonisolated static let verbose = false
 
-    private let audioLibraryProvider: @MainActor () -> (any AudioLibraryProviding)?
+    /// 音频库能力（Capabilities 目录收窄），内部惰性解析 Provider。
+    private let library: any AudioLibraryCapability
     private let showDBViewAction: @MainActor () -> Void
 
     init(
-        audioLibrary: @escaping @MainActor () -> (any AudioLibraryProviding)?,
+        library: any AudioLibraryCapability,
         showDBView: @escaping @MainActor () -> Void
     ) {
-        self.audioLibraryProvider = audioLibrary
+        self.library = library
         self.showDBViewAction = showDBView
     }
 
     /// 检查仓库是否为空；为空或无仓库时请求显示数据库视图。
     func checkAudioRepo() async {
-        guard let library = audioLibraryProvider() else {
+        guard library.isAvailable else {
             showDBViewAction()
             return
         }

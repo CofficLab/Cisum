@@ -44,6 +44,15 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private var sceneState: AudioDBSceneState?
     nonisolated(unsafe) private var sceneObserver: AudioDBSceneObserver?
 
+    /// 本插件消费的能力 Adapter。ViewModel / 依赖结构以 `weak` 或不持有
+    /// Adapter，故入口必须显式强持有，否则能力会随装配调用返回而释放。
+    /// `library` 内部惰性解析 Provider，因此可跨 boot 阶段长期复用同一实例。
+    nonisolated(unsafe) private var library: AudioLibraryCapabilityAdapter?
+    nonisolated(unsafe) private var playback: AudioLibraryPlaybackCapabilityAdapter?
+    nonisolated(unsafe) private var toast: AudioLibraryToastCapabilityAdapter?
+    nonisolated(unsafe) private var sceneCapability: MusicLibrarySceneCapabilityAdapter?
+    nonisolated(unsafe) private var settingPlayback: AudioLibraryPlaybackCapabilityAdapter?
+
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
         if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
@@ -107,7 +116,7 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
                 rootViewModel: root,
                 dbViewModel: db,
                 sceneState: resolveSceneState(),
-                audioLibrary: audioLibraryProvider,
+                library: makeLibraryCapability(),
                 audioDisk: audioDiskProvider,
                 audioDiagnostics: audioDiagnosticsProvider,
                 isDemoMode: kernel?.resolveProvider((any AppStateProviding).self)?.isDemoMode ?? false,
@@ -133,7 +142,7 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
                     listViewModel: list,
                     rootViewModel: root,
                     dbViewModel: db,
-                    audioLibrary: audioLibraryProvider,
+                    library: makeLibraryCapability(),
                     audioDisk: audioDiskProvider,
                     audioDiagnostics: audioDiagnosticsProvider,
                     isImporting: Binding(
@@ -155,11 +164,16 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
         // 设置页使用独立的 AudioListViewModel，避免与主窗口内容区（AudioList）
         // 共享同一实例——否则设置页 onAppear 触发 handleOnAppear() 重载时，
         // 共享状态变化会传播到主窗口 contentview，导致其闪动。
-        let playback = self.kernel?.resolveProvider((any PlaybackProviding).self)
+        let playback = AudioLibraryPlaybackCapabilityAdapter(
+            playback: self.kernel?.resolveProvider((any PlaybackProviding).self)
+        )
+        settingPlayback = playback
         let settingList = AudioListViewModel(
-            audioLibrary: audioLibraryProvider,
-            playbackProvider: playback,
-            toastProvider: self.kernel?.resolveProvider((any ToastProviding).self)
+            library: makeLibraryCapability(),
+            playback: playback,
+            toast: AudioLibraryToastCapabilityAdapter(
+                toast: self.kernel?.resolveProvider((any ToastProviding).self)
+            )
         )
         let settingTree = AudioTreeViewModel(disk: audioDiskProvider)
         settingPlaybackObserver = AudioDBPlaybackObserver(playback: playback, viewModel: settingList)
@@ -184,7 +198,7 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     private var settingDependencies: AudioDBDependencies {
         AudioDBDependencies(
-                audioLibrary: audioLibraryProvider,
+                library: makeLibraryCapability(),
             audioDisk: audioDiskProvider,
             audioDiagnostics: audioDiagnosticsProvider,
             supportedExtensions: AudioPluginInfo.supportedExtensions,
@@ -205,19 +219,22 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
 
     // MARK: - Data Provider bridge
 
-    /// 音频仓库闭包：从数据层 Provider 获取。
+    /// 组装音频库能力：内部惰性解析内核 Provider，跨 boot 阶段稳定可用。
     @MainActor
-    private var audioLibraryProvider: @MainActor @Sendable () -> (any AudioLibraryProviding)? {
-        { @MainActor [weak self] in
+    private func makeLibraryCapability() -> AudioLibraryCapabilityAdapter {
+        if let library { return library }
+        let capability = AudioLibraryCapabilityAdapter { @MainActor [weak self] in
             self?.kernel?.resolveProvider((any AudioLibraryProviding).self)
         }
+        library = capability
+        return capability
     }
 
-    /// 音频磁盘目录闭包：从数据层 Provider 获取。
+    /// 音频磁盘目录闭包：通过音频库能力读取。
     @MainActor
     private var audioDiskProvider: @MainActor @Sendable () -> URL? {
         { @MainActor [weak self] in
-            self?.kernel?.resolveProvider((any AudioLibraryProviding).self)?.audioDisk
+            (self?.library ?? self?.makeLibraryCapability())?.audioDisk
         }
     }
 
@@ -242,14 +259,22 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
 
         guard listViewModel == nil else { return }
 
-        guard let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
+        guard let playbackProvider = kernel.resolveProvider((any PlaybackProviding).self) else { return }
+        let libraryCapability = makeLibraryCapability()
+        let playbackCapability = AudioLibraryPlaybackCapabilityAdapter(playback: playbackProvider)
+        let toastCapability = AudioLibraryToastCapabilityAdapter(
+            toast: kernel.resolveProvider((any ToastProviding).self)
+        )
+        playback = playbackCapability
+        toast = toastCapability
+
         let list = AudioListViewModel(
-            audioLibrary: audioLibraryProvider,
-            playbackProvider: playback,
-            toastProvider: kernel.resolveProvider((any ToastProviding).self)
+            library: libraryCapability,
+            playback: playbackCapability,
+            toast: toastCapability
         )
         let root = AudioDBRootViewModel(
-            audioLibrary: audioLibraryProvider,
+            library: libraryCapability,
             showDBView: { kernel.resolveProvider((any AppStateProviding).self)?.showDBView() ?? () }
         )
         let db = AudioDBViewModel()
@@ -257,9 +282,9 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
             list: list,
             root: root,
             db: db,
-            library: kernel.resolveProvider((any AudioLibraryProviding).self)
+            library: libraryCapability
         )
-        let playbackObserver = AudioDBPlaybackObserver(playback: playback, viewModel: list)
+        let playbackObserver = AudioDBPlaybackObserver(playback: playbackCapability, viewModel: list)
 
         listViewModel = list
         rootViewModel = root
@@ -274,6 +299,7 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
     private func teardownState() {
         sceneObserver?.cancel()
         sceneObserver = nil
+        sceneCapability = nil
         sceneState = nil
         databaseObserver?.cancel()
         databaseObserver = nil
@@ -284,6 +310,9 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
         listViewModel = nil
         rootViewModel = nil
         dbViewModel = nil
+        playback = nil
+        toast = nil
+        settingPlayback = nil
     }
 
     /// 返回当前持有的 ViewModel；若尚未安装（启动前或插件被禁用），
@@ -293,12 +322,19 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
         if let listViewModel, let rootViewModel, let dbViewModel {
             return (listViewModel, rootViewModel, dbViewModel)
         }
-        let list = AudioListViewModel(
-            audioLibrary: audioLibraryProvider,
-            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
-            toastProvider: kernel?.resolveProvider((any ToastProviding).self)
+        let libraryCapability = makeLibraryCapability()
+        let playback = AudioLibraryPlaybackCapabilityAdapter(
+            playback: kernel?.resolveProvider((any PlaybackProviding).self)
         )
-        let root = AudioDBRootViewModel(audioLibrary: audioLibraryProvider, showDBView: {})
+        self.playback = playback
+        let list = AudioListViewModel(
+            library: libraryCapability,
+            playback: playback,
+            toast: AudioLibraryToastCapabilityAdapter(
+                toast: kernel?.resolveProvider((any ToastProviding).self)
+            )
+        )
+        let root = AudioDBRootViewModel(library: libraryCapability, showDBView: {})
         let db = AudioDBViewModel()
         listViewModel = list
         rootViewModel = root
@@ -312,10 +348,13 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
         if let sceneState { return sceneState }
         // `sceneBox` 为空（onReady 之前被请求）时回落到内核当前场景，避免把一个
         // 永远收不到事件、且初始值恒为 false 的失效状态缓存下来。
-        let scene = sceneBox.scene ?? kernel?.resolveProvider((any SceneProviding).self)
-        let state = AudioDBSceneState(isMusicScene: scene?.currentScene == .music)
+        let capability = MusicLibrarySceneCapabilityAdapter(
+            scene: sceneBox.scene ?? kernel?.resolveProvider((any SceneProviding).self)
+        )
+        sceneCapability = capability
+        let state = AudioDBSceneState(isMusicScene: capability.currentScene == .music)
         sceneState = state
-        sceneObserver = AudioDBSceneObserver(scene: scene, sceneState: state)
+        sceneObserver = AudioDBSceneObserver(scene: capability, sceneState: state)
         return state
     }
 

@@ -36,7 +36,7 @@ public struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
 
     private var viewDependencies: AudioDBDependencies {
         AudioDBDependencies(
-            audioLibrary: dependencies.audioLibrary,
+            library: dependencies.library,
             audioDisk: dependencies.audioDisk,
             audioDiagnostics: dependencies.audioDiagnostics,
             supportedExtensions: dependencies.supportedExtensions,
@@ -387,13 +387,13 @@ extension AudioDBView {
 
         do {
             let copiedURLs = try await copyFiles(importableURLs, to: storageRoot)
-            guard let library = dependencies.audioLibrary() else {
+            guard dependencies.library.isAvailable else {
                 Self.cleanUpCopiedFiles(copiedURLs)
                 toastProvider?.error(String(localized: "Import failed: audio repository is unavailable", bundle: .module))
                 return
             }
 
-            await library.sync(urls: copiedURLs, verbose: false, isFirst: false)
+            await dependencies.library.sync(urls: copiedURLs, verbose: false, isFirst: false)
         } catch {
             os_log(.error, "\(self.t)❌ Failed to copy files: \(error.localizedDescription)")
             toastProvider?.error(String(localized: "Import failed: \(error.localizedDescription)", bundle: .module))

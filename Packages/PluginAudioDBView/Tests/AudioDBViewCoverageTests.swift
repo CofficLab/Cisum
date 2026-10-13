@@ -34,41 +34,25 @@ private final class StorageProbe: StorageProviding {
 
 /// 最小播放探针：支持广播 assetChanged 事件。
 @MainActor
-private final class PlaybackProbe: PlaybackProviding {
-    var state: PlaybackStatus = .idle
+private final class PlaybackProbe: AudioLibraryPlaybackCapability {
     var currentURL: URL?
-    var currentTime: TimeInterval = 0
-    var duration: TimeInterval = 0
-    var progress: Double = 0
-    var playMode: PlaybackMode = .sequence
-    var likedAssets: Set<URL> = []
-    var isPlaying: Bool { false }
-    var hasAsset: Bool { currentURL != nil }
 
     var playedURLs: [URL] = []
     var resetCount = 0
-    private var observers: [UUID: (PlaybackProvidingEvent) -> Void] = [:]
+    private var observers: [UUID: (AudioLibraryPlaybackEvent) -> Void] = [:]
 
     func emitAssetChanged(_ url: URL?) {
-        let event = PlaybackProvidingEvent.assetChanged(url)
+        let event = AudioLibraryPlaybackEvent.assetChanged(url: url)
         for observer in observers.values { observer(event) }
     }
 
     func play(_ url: URL) async { playedURLs.append(url) }
-    func pause() {}
-    func toggle() {}
-    func seek(toProgress progress: Double) {}
-    func seek(toTime time: TimeInterval) {}
-    func next() {}
-    func previous() {}
-    func setPlayMode(_ mode: PlaybackMode) {}
-    func toggleCurrentLike() {}
-    func togglePlayMode() {}
+    func reset() async { resetCount += 1 }
 
     @discardableResult
     func addObserver(
-        _ callback: @escaping (PlaybackProvidingEvent) -> Void
-    ) -> any PlaybackProvidingObserverHandle {
+        _ callback: @escaping (AudioLibraryPlaybackEvent) -> Void
+    ) -> any AudioLibraryPlaybackObserverHandle {
         let id = UUID()
         observers[id] = callback
         return ProbePlaybackHandle { [weak self] in
@@ -78,7 +62,7 @@ private final class PlaybackProbe: PlaybackProviding {
 }
 
 @MainActor
-private final class ProbePlaybackHandle: PlaybackProvidingObserverHandle {
+private final class ProbePlaybackHandle: AudioLibraryPlaybackObserverHandle {
     private let onCancel: () -> Void
     private var cancelled = false
 
@@ -95,30 +79,27 @@ private final class ProbePlaybackHandle: PlaybackProvidingObserverHandle {
 
 /// 最小音频库探针：支持广播数据库事件。
 @MainActor
-private final class AudioLibraryProbe: AudioLibraryProviding {
+private final class AudioLibraryProbe: AudioLibraryCapability {
     var audioDisk: URL?
     var supportedExtensions: [String] = ["mp3"]
     var isAvailable: Bool = true
     var totalCountValue = 0
-    private var observers: [UUID: (AudioLibraryProvidingEvent) -> Void] = [:]
+    private var observers: [UUID: (AudioLibraryEvent) -> Void] = [:]
 
     func totalCount() async -> Int { totalCountValue }
     func allURLs(reason: String) async -> [URL] { [] }
     func urls(offset: Int, limit: Int, reason: String) async -> [URL] { [] }
-    func contains(_ url: URL) async -> Bool { false }
     func delete(urls: [URL], verbose: Bool) async throws {}
     func sync(urls: [URL], verbose: Bool, isFirst: Bool) async {}
-    func sort(url: URL?, reason: String) async {}
-    func sortRandom(url: URL?, reason: String, verbose: Bool) async throws {}
 
-    func emit(_ event: AudioLibraryProvidingEvent) {
+    func emit(_ event: AudioLibraryEvent) {
         for observer in observers.values { observer(event) }
     }
 
     @discardableResult
     func addObserver(
-        _ callback: @escaping (AudioLibraryProvidingEvent) -> Void
-    ) -> any AudioLibraryProvidingObserverHandle {
+        _ callback: @escaping (AudioLibraryEvent) -> Void
+    ) -> any AudioLibraryObserverHandle {
         let id = UUID()
         observers[id] = callback
         return ProbeLibraryHandle { [weak self] in
@@ -128,7 +109,7 @@ private final class AudioLibraryProbe: AudioLibraryProviding {
 }
 
 @MainActor
-private final class ProbeLibraryHandle: AudioLibraryProvidingObserverHandle {
+private final class ProbeLibraryHandle: AudioLibraryObserverHandle {
     private let onCancel: () -> Void
     private var cancelled = false
 
@@ -145,23 +126,20 @@ private final class ProbeLibraryHandle: AudioLibraryProvidingObserverHandle {
 
 /// 最小场景探针：触发 selectionChanged 事件。
 @MainActor
-private final class SceneProbe: SceneProviding {
-    var scenes: [AppScene] = [.music, .audiobooks]
+private final class SceneProbe: MusicLibrarySceneCapability {
     var currentScene: AppScene?
-    private var observers: [UUID: (SceneProvidingEvent) -> Void] = [:]
+    private var observers: [UUID: (MusicLibrarySceneEvent) -> Void] = [:]
 
     func setCurrentScene(_ scene: AppScene) {
         currentScene = scene
-        let event = SceneProvidingEvent.selectionChanged(scene: scene)
+        let event = MusicLibrarySceneEvent.selectionChanged(scene: scene)
         for observer in observers.values { observer(event) }
     }
 
-    func restoreCurrentScene() {}
-
     @discardableResult
     func addObserver(
-        _ callback: @escaping (SceneProvidingEvent) -> Void
-    ) -> any SceneProvidingObserverHandle {
+        _ callback: @escaping (MusicLibrarySceneEvent) -> Void
+    ) -> any MusicLibrarySceneObserverHandle {
         let id = UUID()
         observers[id] = callback
         return SceneProbeHandle { [weak self] in
@@ -171,7 +149,7 @@ private final class SceneProbe: SceneProviding {
 }
 
 @MainActor
-private final class SceneProbeHandle: SceneProvidingObserverHandle {
+private final class SceneProbeHandle: MusicLibrarySceneObserverHandle {
     private let onCancel: () -> Void
     private var cancelled = false
 
@@ -335,7 +313,7 @@ struct AudioDBSceneObserverTests {
     @Test
     func initWithoutSceneKeepsCurrentFlag() {
         let state = AudioDBSceneState(isMusicScene: false)
-        let observer = AudioDBSceneObserver(scene: nil, sceneState: state)
+        let observer = AudioDBSceneObserver(scene: MusicLibrarySceneCapabilityAdapter(scene: nil), sceneState: state)
         observer.cancel()
         #expect(!state.isMusicScene)
     }
@@ -348,7 +326,7 @@ struct AudioDBDependenciesTests {
     @Test
     func emptyDefaultsAreSafe() {
         let empty = AudioDBDependencies.empty
-        #expect(empty.audioLibrary() == nil)
+        #expect(empty.library.isAvailable == false)
         #expect(empty.audioDisk() == nil)
         #expect(empty.supportedExtensions.isEmpty)
         #expect(empty.isDesktop)
@@ -358,11 +336,10 @@ struct AudioDBDependenciesTests {
     @Test
     func initStoresAllFields() {
         let binding = Binding(get: { false }, set: { _ in })
-        var capturedLibrary: (any AudioLibraryProviding)?
-        var capturedDisk: URL?
+        let capturedDisk: URL? = nil
 
         let deps = AudioDBDependencies(
-            audioLibrary: { capturedLibrary },
+            library: AudioLibraryCapabilityAdapter(resolve: { nil }),
             audioDisk: { capturedDisk },
             audioDiagnostics: { AudioStorageDiagnosticsFactory.make(storage: nil) },
             supportedExtensions: ["mp3"],
@@ -383,7 +360,7 @@ struct AudioDBDependenciesTests {
 @MainActor
 struct AudioDBPlaybackObserverTests {
     private func makeList() -> AudioListViewModel {
-        AudioListViewModel(audioLibrary: { nil })
+        AudioListViewModel(library: AudioLibraryCapabilityAdapter(resolve: { nil }))
     }
 
     @Test
@@ -432,14 +409,14 @@ struct AudioListRepositoryPresentationTests {
     func hidesEmptyRepositoryStateUntilAnAvailableRepositoryLoadsSuccessfully() async throws {
         let unavailableLibrary = AudioLibraryProbe()
         unavailableLibrary.isAvailable = false
-        let unavailableList = AudioListViewModel(audioLibrary: { unavailableLibrary })
+        let unavailableList = AudioListViewModel(library: unavailableLibrary)
         unavailableList.handleOnAppear()
         try await waitForInitialListLoad(unavailableList)
 
         #expect(!unavailableList.isConfirmedRepositoryEmpty)
 
         let availableLibrary = AudioLibraryProbe()
-        let emptyList = AudioListViewModel(audioLibrary: { availableLibrary })
+        let emptyList = AudioListViewModel(library: availableLibrary)
         emptyList.handleOnAppear()
         try await waitForInitialListLoad(emptyList)
 
@@ -463,7 +440,7 @@ struct AudioDatabaseObserverTests {
     func storageAvailabilityChangeRetriesPreviouslyUnavailableRepository() async throws {
         let library = AudioLibraryProbe()
         library.isAvailable = false
-        let list = AudioListViewModel(audioLibrary: { library })
+        let list = AudioListViewModel(library: library)
         let observer = AudioDatabaseObserver(list: list, root: nil, db: nil, library: library)
         defer { observer.cancel() }
 
@@ -481,9 +458,9 @@ struct AudioDatabaseObserverTests {
     @Test
     func dbEventsForwardToSortingAndRootViewModels() async throws {
         let library = AudioLibraryProbe()
-        let list = AudioListViewModel(audioLibrary: { library })
+        let list = AudioListViewModel(library: library)
         var showDBCount = 0
-        let root = AudioDBRootViewModel(audioLibrary: { library }, showDBView: { showDBCount += 1 })
+        let root = AudioDBRootViewModel(library: library, showDBView: { showDBCount += 1 })
         let db = AudioDBViewModel()
 
         let observer = AudioDatabaseObserver(list: list, root: root, db: db, library: library)
@@ -497,20 +474,20 @@ struct AudioDatabaseObserverTests {
 
         // synced/updated 触发 root 仓库检查；totalCount=0 → showDBView。
         library.totalCountValue = 0
-        library.emit(.synced(totalCount: 0))
+        library.emit(.synced)
         try await Task.sleep(for: .milliseconds(100))
         #expect(showDBCount == 1)
 
         // deleted 事件转发不崩溃。
-        library.emit(.deleted(urls: [URL(fileURLWithPath: "/tmp/a.mp3")], totalCount: 0))
+        library.emit(.deleted(urls: [URL(fileURLWithPath: "/tmp/a.mp3")]))
         #expect(showDBCount == 1)
     }
 
     @Test
     func cancellingObserverStopsForwarding() {
         let library = AudioLibraryProbe()
-        let list = AudioListViewModel(audioLibrary: { library })
-        let root = AudioDBRootViewModel(audioLibrary: { library }, showDBView: {})
+        let list = AudioListViewModel(library: library)
+        let root = AudioDBRootViewModel(library: library, showDBView: {})
         let db = AudioDBViewModel()
 
         let observer = AudioDatabaseObserver(list: list, root: root, db: db, library: library)
