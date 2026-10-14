@@ -108,6 +108,15 @@ enum AudioItemFileSizeCache {
     }
 }
 
+/// 头像重建标识：URL + 缩略图重载次数。
+///
+/// iCloud 文件下载完成后内容才真正落到本地，此时必须让 `AvatarView` 重建并重新
+/// 加载封面。把它作为 `.id(...)` 的值，是取代 kit 内部 `needsReload` 的机制。
+struct AudioItemAvatarIdentity: Hashable {
+    let id: URL
+    let reloadToken: Int
+}
+
 enum AudioItemFileActionPolicy {
     static func canRevealInFinder(_ url: URL) -> Bool {
         pathExistsIncludingSymlink(url)
@@ -144,6 +153,11 @@ struct AudioItemView: View, Equatable, SuperLog {
         lhs.url == rhs.url
     }
 
+    /// 缩略图重载次数；直接读进度容器，绕过 `.equatable()` 的短路。
+    private var reloadToken: Int {
+        listViewModel.downloadStore.reloadToken(for: url)
+    }
+
     init(_ url: URL, listViewModel: AudioListViewModel) {
         self.url = url
         self._listViewModel = ObservedObject(wrappedValue: listViewModel)
@@ -156,12 +170,26 @@ extension AudioItemView {
     var body: some View {
         AppListRow(isSelected: listViewModel.selection == url, action: playAudio) {
             HStack(alignment: .center, spacing: 12) {
-                // 头像部分
+                // 头像部分：kit 内部下载监控已关闭（进度由插件状态源驱动），
+                // 改由独立子视图叠加进度环。
+                //
+                // `.id(...)` 拼上缩略图重载标记：下载完成一次即换新 id，强制
+                // AvatarView 重建并重新加载封面，取代 kit 内部 `needsReload`。
                 url.makeAvatarView(verbose: Self.verbose)
                     .magicSize(.init(width: 40, height: 40))
                     .magicAvatarShape(.circle)
                     .magicBackground(appTheme.primary.opacity(0.1))
-                    .magicDownloadMonitor(true)
+                    .magicDownloadMonitor(false)
+                    .overlay {
+                        AudioDownloadProgressRing(
+                            store: listViewModel.downloadStore,
+                            url: url,
+                            backgroundColor: appTheme.primary.opacity(0.1)
+                        )
+                    }
+                    // `.id(...)` 必须放在最后：它会把视图擦除为 `some View`，
+                    // 放在链首会让后续 `magic*` 修饰符失去 `AvatarView` 类型。
+                    .id(AudioItemAvatarIdentity(id: url, reloadToken: reloadToken))
 
                 // 文件信息部分
                 VStack(alignment: .leading, spacing: 4) {

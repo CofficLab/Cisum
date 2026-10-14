@@ -21,6 +21,21 @@ final class CloudDownloadProgressStore: ObservableObject {
     /// 文件身份 → 下载进度（`0...1`）。
     @Published private(set) var progresses: [String: Double] = [:]
 
+    /// 文件身份 → 下载完成次数。
+    ///
+    /// 每次进度抵达 `1.0` 递增一次，用于驱动缩略图重载：iCloud 文件下载完成后内容才
+    /// 真正落到本地，此前读到的封面是占位或空。按**次数**而非布尔值计数，是因为文件
+    /// 可能被「优化 Mac 存储」再次驱逐并重新下载。
+    @Published private(set) var completionTokens: [String: Int] = [:]
+
+    /// 某文件的缩略图重载标记；未下载完成过为 `0`。
+    ///
+    /// 视图把它拼进 `AvatarView` 的 `.id(...)`：完成一次即换新 id，强制重建并重新
+    /// 加载缩略图，取代 kit 内部 `needsReload` 的作用。
+    func reloadToken(for url: URL) -> Int {
+        completionTokens[AudioListFileIdentity.canonicalIdentity(for: url)] ?? 0
+    }
+
     /// 是否存在正在下载（进度未完成）的条目。
     var hasActiveDownloads: Bool {
         progresses.values.contains { $0 < 1 }
@@ -40,6 +55,10 @@ final class CloudDownloadProgressStore: ObservableObject {
         guard merged > current else { return false }
 
         progresses[key] = merged
+        // 首次抵达完成时递增重载标记；重复的 1.0（removed 事件可能补发）不重复计数。
+        if merged >= 1 {
+            completionTokens[key] = (completionTokens[key] ?? 0) + 1
+        }
         return true
     }
 
@@ -60,21 +79,27 @@ final class CloudDownloadProgressStore: ObservableObject {
     /// 只保留仍在 `activeURLs` 中的条目；调用方在列表重载或删除后传入当前可见集合。
     func retainOnly(_ activeURLs: [URL]) {
         let activeKeys = Set(activeURLs.map(AudioListFileIdentity.canonicalIdentity(for:)))
-        guard progresses.keys.contains(where: { !activeKeys.contains($0) }) else { return }
-
-        progresses = progresses.filter { activeKeys.contains($0.key) }
+        if progresses.keys.contains(where: { !activeKeys.contains($0) }) {
+            progresses = progresses.filter { activeKeys.contains($0.key) }
+        }
+        if completionTokens.keys.contains(where: { !activeKeys.contains($0) }) {
+            completionTokens = completionTokens.filter { activeKeys.contains($0.key) }
+        }
     }
 
-    /// 清理已删除文件的进度。
+    /// 清理已删除文件的进度与重载标记。
     func remove(_ urls: [URL]) {
         guard !urls.isEmpty else { return }
         for url in urls {
-            progresses.removeValue(forKey: AudioListFileIdentity.canonicalIdentity(for: url))
+            let key = AudioListFileIdentity.canonicalIdentity(for: url)
+            progresses.removeValue(forKey: key)
+            completionTokens.removeValue(forKey: key)
         }
     }
 
     func removeAll() {
         progresses.removeAll()
+        completionTokens.removeAll()
     }
 
     private static func clamp(_ value: Double) -> Double {
