@@ -32,6 +32,30 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     @Published private(set) var totalCount = 0
     @Published private(set) var hasSuccessfullyLoadedRepository = false
 
+    /// 下载进度状态源。
+    ///
+    /// 独立于本 ViewModel 发布：进度环子视图只观察这个容器，下载进度变化
+    /// 因此不会让列表本体重算，也不受 `AudioList` 上 `.equatable()` 的短路影响。
+    let downloadStore = CloudDownloadProgressStore()
+
+    /// 下载能力（Capabilities 目录收窄），`weak` 持有：Provider 可能尚未注册。
+    private weak var download: (any CloudDownloadCapability)?
+
+    /// 读取某条目的下载进度。
+    ///
+    /// 无事件记录时回落到能力快照，使「订阅建立前就已在下载」的条目也能正确显示。
+    func downloadProgress(for url: URL) -> Double {
+        downloadStore.progress(for: url) { [weak self] in
+            guard let self, let download = self.download else { return 1 }
+            return download.progress(for: url)
+        }
+    }
+
+    /// 接收 Observer 转发的下载进度。
+    func applyDownloadProgress(url: URL, progress: Double) {
+        downloadStore.apply(url, progress: progress)
+    }
+
     var isConfirmedRepositoryEmpty: Bool {
         hasSuccessfullyLoadedRepository && !isLoading && totalCount == 0 && urls.isEmpty
     }
@@ -51,12 +75,14 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     init(
         library: any AudioLibraryCapability,
         playback: (any AudioLibraryPlaybackCapability)? = nil,
+        download: (any CloudDownloadCapability)? = nil,
         reasonTag: String = "AudioListViewModel",
         isDesktop: Bool? = nil,
         toast: (any AudioLibraryToastCapability)? = nil
     ) {
         self.library = library
         self.playback = playback
+        self.download = download
         self.reasonTag = reasonTag
         self.isDesktop = isDesktop ?? Self.defaultIsDesktop
         self.toast = toast
@@ -249,6 +275,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
             isLoading = false
             isLoadingMore = false
             AudioItemFileSizeCache.remove(urlsToDelete)
+            downloadStore.remove(urlsToDelete)
 
             urls.removeAll { url in
                 AudioListDeletionPolicy.shouldRemove(url, deletedURLs: urlsToDelete)
@@ -403,6 +430,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     /// 全量重置并刷新。
     private func refresh(reason: String) {
         AudioItemFileSizeCache.removeAll()
+        downloadStore.removeAll()
 
         loadGeneration += 1
         currentPage = 0
@@ -417,6 +445,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     /// 重载当前页数据以刷新已加载内容。
     private func loadCurrentPageData(reason: String) {
         AudioItemFileSizeCache.removeAll()
+        downloadStore.removeAll()
 
         loadGeneration += 1
         let generation = loadGeneration

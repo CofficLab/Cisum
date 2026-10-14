@@ -1,5 +1,6 @@
 import ProviderAppState
 import ProviderAudioLibrary
+import ProviderCloudDownload
 import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
@@ -39,6 +40,7 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private var rootViewModel: AudioDBRootViewModel?
     nonisolated(unsafe) private var dbViewModel: AudioDBViewModel?
     nonisolated(unsafe) private var databaseObserver: AudioDatabaseObserver?
+nonisolated(unsafe) private var downloadObserver: CloudDownloadObserver?
     nonisolated(unsafe) private var playbackObserver: AudioDBPlaybackObserver?
     nonisolated(unsafe) private var settingPlaybackObserver: AudioDBPlaybackObserver?
     nonisolated(unsafe) private var sceneState: AudioDBSceneState?
@@ -48,6 +50,7 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
     /// Adapter，故入口必须显式强持有，否则能力会随装配调用返回而释放。
     /// `library` 内部惰性解析 Provider，因此可跨 boot 阶段长期复用同一实例。
     nonisolated(unsafe) private var library: AudioLibraryCapabilityAdapter?
+nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
     nonisolated(unsafe) private var playback: AudioLibraryPlaybackCapabilityAdapter?
     nonisolated(unsafe) private var toast: AudioLibraryToastCapabilityAdapter?
     nonisolated(unsafe) private var sceneCapability: MusicLibrarySceneCapabilityAdapter?
@@ -230,6 +233,20 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
         return capability
     }
 
+    /// 组装 iCloud 下载进度能力：内部惰性解析内核 Provider。
+    ///
+    /// 与音频库能力一样持惰性闭包——本插件的视图贡献可能早于 Provider 注册，
+    /// 快照引用会让进度能力永久失效。
+    @MainActor
+    private func makeDownloadCapability() -> CloudDownloadCapabilityAdapter {
+        if let download { return download }
+        let capability = CloudDownloadCapabilityAdapter { @MainActor [weak self] in
+            self?.kernel?.resolveProvider((any CloudDownloadProviding).self)
+        }
+        download = capability
+        return capability
+    }
+
     /// 音频磁盘目录闭包：通过音频库能力读取。
     @MainActor
     private var audioDiskProvider: @MainActor @Sendable () -> URL? {
@@ -271,6 +288,7 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
         let list = AudioListViewModel(
             library: libraryCapability,
             playback: playbackCapability,
+            download: makeDownloadCapability(),
             toast: toastCapability
         )
         let root = AudioDBRootViewModel(
@@ -291,6 +309,7 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
         dbViewModel = db
         databaseObserver = observer
         self.playbackObserver = playbackObserver
+        downloadObserver = CloudDownloadObserver(download: makeDownloadCapability(), viewModel: list)
 
         _ = resolveSceneState()
     }
@@ -303,6 +322,8 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
         sceneState = nil
         databaseObserver?.cancel()
         databaseObserver = nil
+        downloadObserver?.cancel()
+        downloadObserver = nil
         playbackObserver?.cancel()
         playbackObserver = nil
         settingPlaybackObserver?.cancel()
