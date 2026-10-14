@@ -174,9 +174,14 @@ public final class ICloudDownloadControl: @unchecked Sendable {
     /// UI 测试使用的启动参数键。
     public static let launchArgumentKey = "--cisum-ui-testing-icloud-download"
 
+    /// UI 测试注入固定下载进度的启动参数键，形如
+    /// `--cisum-ui-testing-download-progress=0.42`。
+    public static let progressLaunchArgumentKey = "--cisum-ui-testing-download-progress"
+
     private let lock = NSLock()
     private var downloaderOverride: UbiquitousItemDownloading?
     private var timeoutOverride: TimeInterval?
+    private var progressOverride: Double?
     private let production = FileManagerUbiquitousItemDownloader()
 
     private init() {}
@@ -209,11 +214,31 @@ public final class ICloudDownloadControl: @unchecked Sendable {
         return timeoutOverride
     }
 
+    /// 覆写下载进度快照，范围 0...1；nil 表示不覆写（使用真实资源键）。
+    ///
+    /// 存在的理由：`GlobalDownloadMonitor` 的进度来自 `NSMetadataQuery`，
+    /// 它**绕过** `downloader` 网关直接读资源键，因此仅注入 `StubUbiquitousItemDownloader`
+    /// 能把播放态推进到 `.downloading`，却无法让进度离开 0 —— UI 测试因此
+    /// 断言不了任何非零百分比。此覆写让真实 App 进程能呈现确定的进度值。
+    public func overrideProgress(_ progress: Double?) {
+        lock.lock()
+        progressOverride = progress.map { min(max($0.isFinite ? $0 : 0, 0), 1) }
+        lock.unlock()
+    }
+
+    /// 生效的固定进度；nil 表示应走真实资源键。
+    public var effectiveProgressOverride: Double? {
+        lock.lock()
+        defer { lock.unlock() }
+        return progressOverride
+    }
+
     /// 恢复生产配置。
     public func reset() {
         lock.lock()
         downloaderOverride = nil
         timeoutOverride = nil
+        progressOverride = nil
         lock.unlock()
     }
 
@@ -224,8 +249,17 @@ public final class ICloudDownloadControl: @unchecked Sendable {
     public func bootstrapFromLaunchArguments(
         _ arguments: [String] = ProcessInfo.processInfo.arguments
     ) -> Bool {
+        var didInstall = false
+
+        // 两个参数彼此独立：只给进度参数而没给模式参数时，进度覆写仍须生效，
+        // 因此不能把进度解析塞进模式参数的 guard 里提前返回。
+        if let progress = Self.parseProgressOverride(arguments) {
+            overrideProgress(progress)
+            didInstall = true
+        }
+
         guard let raw = arguments.first(where: { $0.hasPrefix(Self.launchArgumentKey) }) else {
-            return false
+            return didInstall
         }
 
         // 参数形如 `--key=value`：先按前缀命中键，再剥掉 `=` 与两侧空白取值。
@@ -248,10 +282,28 @@ public final class ICloudDownloadControl: @unchecked Sendable {
             override(StubUbiquitousItemDownloader(behavior: .startFails(message: "network offline")))
             overrideTimeout(3)
         default:
-            return false
+            return didInstall
         }
 
         return true
+    }
+
+    /// 解析 `--cisum-ui-testing-download-progress=<0...1>`。
+    ///
+    /// 取不到合法数值时返回 nil（不覆写），避免坏参数让 UI 测试静默走到
+    /// 真实进度上、断言失去意义。
+    private static func parseProgressOverride(_ arguments: [String]) -> Double? {
+        guard let raw = arguments.first(where: { $0.hasPrefix(progressLaunchArgumentKey) }) else {
+            return nil
+        }
+
+        let rawValue = String(raw.dropFirst(progressLaunchArgumentKey.count))
+            .trimmingCharacters(in: .whitespaces)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "="))
+            .trimmingCharacters(in: .whitespaces)
+
+        guard let parsed = Double(rawValue), parsed.isFinite else { return nil }
+        return min(max(parsed, 0), 1)
     }
 }
 

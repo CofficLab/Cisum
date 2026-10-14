@@ -517,6 +517,12 @@ public extension URL {
 
     /// 获取 iCloud 文件当前下载进度，范围为 0...1。
     func getDownloadProgressSnapshot(verbose: Bool = false) -> Double {
+        // UI 测试注入的固定进度优先于真实资源键：真实键在本机没有 iCloud
+        // 占位文件时恒为 0，测试无法断言非零百分比。
+        if let overridden = ICloudDownloadControl.shared.effectiveProgressOverride {
+            return overridden
+        }
+
         var mutableSelf = self
         mutableSelf.removeAllCachedResourceValues()
 
