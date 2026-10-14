@@ -16,7 +16,7 @@ import XCTest
 ///
 /// ⚠️ 已知限制：默认窗口（400x600）下 Hero 下载覆盖层
 /// （cisum.player.download.overlay）不渲染（布局条件要求控制区高度 > 450pt），
-/// 对它的「不存在」断言没有判别力，改由「下载状态行 + 按钮禁用」覆盖。
+/// 对它的「不存在」断言没有判别力，改由「按钮禁用」覆盖。
 class CisumICloudTestBase: CisumUITestBase {
     let seededAudioName = "Cisum-ICloud-Download-Test.wav"
 
@@ -60,28 +60,23 @@ class CisumICloudTestBase: CisumUITestBase {
 final class CisumICloudDownloadTimeoutUITests: CisumICloudTestBase {
     override var icloudMode: String { "timeout" }
 
-    /// 下载态必须有可感知的 UI：标题下方出现下载状态行。
+    /// 标题下方不得出现重复的下载百分比行。
     ///
-    /// 此前默认布局下下载态毫无 UI 呈现（覆盖层受布局条件限制不渲染），
-    /// 该用例驱动「始终可见的状态行」落地。
-    func testDownloadStatusLineVisibleWhileDownloading() throws {
+    /// 该行曾拼成「0% 正在下载 0%」——外层前缀与引擎 `localizedStateText()`
+    /// 自带的百分比各占一个。下载进度改由封面区大圆环独占呈现，故此处断言其不存在。
+    func testNoDuplicateDownloadStatusLineBelowTitle() throws {
         guard waitForSeededTrackReady() else { return }
 
         let statusLine = element(identifier: "cisum.player.download.status")
-        let appeared = statusLine.waitForExistence(timeout: 10)
-        XCTAssertTrue(
-            appeared,
-            "下载等待期间标题下方应显示下载状态行 cisum.player.download.status（当前完全无 UI 呈现）"
-        )
 
-        if appeared {
-            // SwiftUI Text 在 macOS AX 树中文本可能挂在 value（与 cisum.player.title 一致）
-            let text = (statusLine.label.isEmpty ? (statusLine.value as? String ?? "") : statusLine.label)
-            XCTAssertFalse(
-                text.isEmpty,
-                "下载状态行文案不应为空（label=\(statusLine.label) value=\(String(describing: statusLine.value))）"
-            )
-        }
+        // 给下载态一点时间出现：若该行仍被渲染，此处应能捕获到。
+        _ = element(identifier: "cisum.player.title").waitForExistence(timeout: 10)
+        Thread.sleep(forTimeInterval: 2)
+
+        XCTAssertFalse(
+            statusLine.exists,
+            "标题下方不应再渲染下载状态行 cisum.player.download.status（会显示成重复百分比）"
+        )
     }
 
     /// 下载/加载期间播放按钮必须禁用，避免用户点击后静默无响应。

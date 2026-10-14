@@ -54,19 +54,11 @@ struct PlaybackHeroView: View {
                         .foregroundStyle(appTheme.textPrimary)
                         .shadow(color: appTheme.background.opacity(0.18), radius: 8, y: 2)
 
-                    // 下载状态行：始终可见（不依赖封面区布局条件），
-                    // 否则默认窗口（控制区高度 < 450）下用户对「正在下载」毫无感知。
-                    if viewModel.state.isDownloading {
-                        Text(downloadStatusText)
-                            .font(.system(size: 12))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.5)
-                            .multilineTextAlignment(.center)
-                            .frame(width: max(0, geometry.size.width - 32))
-                            .foregroundStyle(appTheme.textSecondary)
-                            .accessibilityIdentifier("cisum.player.download.status")
-                            .transition(.opacity)
-                    }
+                    // 标题下方**不再**渲染下载状态行：引擎的 `localizedStateText()`
+                    // 在下载态下已自带百分比（如「正在下载 0%」），这里再拼一次
+                    // 前缀就会显示成「0% 正在下载 0%」——同一行两个百分比。
+                    // 下载进度改由封面区的大圆环（cisum.player.download.overlay）独占
+                    // 呈现；该圆环仅在控制区高度 > 450pt 时渲染。
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -128,10 +120,5 @@ struct PlaybackHeroView: View {
     private var downloadProgress: CGFloat {
         guard case let .loading(.downloading(progress)) = viewModel.state else { return 0 }
         return CGFloat(min(max(progress.isFinite ? progress : 0, 0), 1))
-    }
-
-    /// 状态行文案：百分比 + 本地化状态描述（如「42% Downloading」）。
-    private var downloadStatusText: String {
-        "\(Int(downloadProgress * 100))% \(viewModel.localizedStateText())"
     }
 }
