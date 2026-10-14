@@ -15,8 +15,27 @@ import SwiftUI
 struct ControlButtonsDownloadRing: View {
     /// 进度（0...1）；调用方保证已夹取到合法区间。
     let progress: Double
-    /// 轨道与弧的粗细，按钮尺寸较小时需比列表项更细。
-    let lineWidth: CGFloat
+    /// 圆环直径，等于播放按钮尺寸。
+    let diameter: CGFloat
+
+    /// 轨道与弧的粗细。
+    ///
+    /// 按直径的固定比例推导：按钮只有 32~72pt，固定值在两端都会失真。
+    private var lineWidth: CGFloat {
+        max(2, diameter * 0.06)
+    }
+
+    /// 中心百分比的字号。
+    ///
+    /// 必须由**直径**推导，不能挂在 `lineWidth` 上：描边是为了在小控件上保持
+    /// 视觉克制才压到 2pt 的，若按它算字号会得到 3pt 的文字——macOS 上完全
+    /// 不可读（这正是本视图初版的缺陷）。
+    ///
+    /// 下限 10pt 保证在任何按钮尺寸下都可辨认；上限 14pt 避免大按钮上数字
+    /// 显得笨重。两者都落在直径的 26% 以内，不会挤到圆环内壁。
+    private var fontSize: CGFloat {
+        max(10, min(diameter * 0.26, 14))
+    }
 
     var body: some View {
         ZStack {
@@ -28,11 +47,11 @@ struct ControlButtonsDownloadRing: View {
                 .stroke(Color.accentColor, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
 
-            // 百分比字号按按钮尺寸缩放，避免在小尺寸下溢出圆环。
             Text("\(Int(progress * 100))%")
-                .font(.system(size: lineWidth * 1.5, weight: .semibold, design: .rounded))
+                .font(.system(size: fontSize, weight: .semibold, design: .rounded))
                 .foregroundStyle(.secondary)
-                .minimumScaleFactor(0.5)
+                // 留出余量而非压到极限：缩得太小会退化成同样看不清的问题。
+                .minimumScaleFactor(0.7)
                 .lineLimit(1)
         }
         .accessibilityIdentifier("cisum.player.button.download.progress")
@@ -43,14 +62,22 @@ struct ControlButtonsDownloadRing: View {
 // MARK: - 预览
 
 #Preview("Download Ring") {
-    HStack(spacing: 20) {
-        ControlButtonsDownloadRing(progress: 0.42, lineWidth: 2)
-            .frame(width: 32, height: 32)
-            .background(Color.orange)
+    VStack(spacing: 24) {
+        // 覆盖控制区按钮的实际尺寸区间（controlButtonMaximumSize = 72）。
+        HStack(spacing: 24) {
+            ForEach([32.0, 44.0, 56.0, 72.0], id: \.self) { size in
+                ControlButtonsDownloadRing(progress: 0.42, diameter: size)
+                    .frame(width: size, height: size)
+            }
+        }
 
-        ControlButtonsDownloadRing(progress: 0.08, lineWidth: 3)
-            .frame(width: 40, height: 40)
-            .background(Color.orange)
+        HStack(spacing: 24) {
+            ForEach([32.0, 44.0, 56.0, 72.0], id: \.self) { size in
+                ControlButtonsDownloadRing(progress: 1, diameter: size)
+                    .frame(width: size, height: size)
+            }
+        }
     }
     .padding()
+    .background(Color.orange)
 }

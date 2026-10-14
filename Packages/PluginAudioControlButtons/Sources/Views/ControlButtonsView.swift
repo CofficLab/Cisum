@@ -41,7 +41,7 @@ struct ControlButtonsView: View {
                     Button(action: viewModel.toggle) {
                         ControlButtonsDownloadRing(
                             progress: Self.clamped(downloadProgress),
-                            lineWidth: max(2, buttonSize * 0.06)
+                            diameter: buttonSize
                         )
                         .frame(width: buttonSize, height: buttonSize)
                         .background(Circle().fill(DesignTokens.Material.glassUltra))
