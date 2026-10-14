@@ -141,7 +141,7 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
                 guard let kernel = self?.kernel else { return }
                 kernel.resolveProvider((any RootViewProviding).self)?.toggleContentView()
             }
-            .appDebugBadge("Audio Controls", alignment: .bottomLeading)
+            .appDebugBadge("Audio Controls", alignment: .bottomTrailing)
         )
     }
 
