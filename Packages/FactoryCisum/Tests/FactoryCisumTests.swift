@@ -1,12 +1,14 @@
 import ProviderControlView
 import ProviderContentView
 import ProviderRootView
+import ProviderCloudDownload
 import FactoryCisum
 import KernelCore
 import ProviderSettingView
 import ProviderPlugin
 import ProviderTheme
 import PluginRootView
+import Foundation
 import Testing
 
 @MainActor
@@ -63,6 +65,19 @@ struct FactoryCisumTests {
         // the three ProviderTheme appearance variants.
         #expect(theme.themes.count == 22)
         #expect(theme.selectedThemeId != nil)
+        try await kernel.stopAsync()
+        CisumBuilder.destroyKernel(kernel)
+    }
+
+    @Test
+    func kernelExposesCloudDownloadProgressProvider() async throws {
+        let kernel = try await CisumBuilder.createKernel()
+        let download = try #require(kernel.resolveProvider((any CloudDownloadProviding).self))
+
+        // A plain local file is not iCloud-backed, so the provider must
+        // report it as complete rather than as a pending download.
+        #expect(download.progress(for: URL(fileURLWithPath: "/tmp")) == 1)
+
         try await kernel.stopAsync()
         CisumBuilder.destroyKernel(kernel)
     }

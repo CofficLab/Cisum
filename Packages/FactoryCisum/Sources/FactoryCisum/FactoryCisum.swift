@@ -9,6 +9,7 @@ import ProviderDocsView
 import ProviderToast
 import ProviderDevice
 import ProviderCloud
+import ProviderCloudDownload
 import KernelCore
 import ProviderPlugin
 import ProviderPluginManaging
@@ -107,6 +108,9 @@ public enum CisumBuilder: SuperLog {
         try kernel.registerProvider((any ThemeProviding).self, themeProvider)
 
         try kernel.registerProvider((any CloudProviding).self, CloudService())
+        // iCloud 文件下载进度：与账户可用性分开注册，因为它广播的是高频、
+        // 文件粒度的变化，且由独立的 NSMetadataQuery 支撑。
+        try kernel.registerProvider((any CloudDownloadProviding).self, CloudDownloadService())
         try kernel.registerProvider((any DeviceProviding).self, DeviceService())
         try kernel.registerProvider((any DocsViewProviding).self, DefaultDocsViewProvider())
         // 提示 Provider 必须在插件 onBoot 前存在；ToastSuperPlugin 随后替换为真实实现。
