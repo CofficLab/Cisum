@@ -643,16 +643,47 @@ import UniformTypeIdentifiers
     AudioItemFileSizeCache.store(12, for: file)
     #expect(AudioItemFileSizeCache.cachedSize(for: file) == Optional(Optional(Int64(12))))
 
+    // 读取失败**不入缓存**：iCloud 占位文件在下载完成前读不到大小，若把失败缓存下来，
+    // 条目在下载完成后仍会永远显示「不可用」，且没有任何信号能触发重读。
     AudioItemFileSizeCache.store(nil, for: missing)
-    #expect(AudioItemFileSizeCache.cachedSize(for: missing) != nil)
-    #expect(AudioItemFileSizeCache.cachedSize(for: missing)! == nil)
+    #expect(AudioItemFileSizeCache.cachedSize(for: missing) == nil)
 
     AudioItemFileSizeCache.remove([file])
     #expect(AudioItemFileSizeCache.cachedSize(for: file) == nil)
-    #expect(AudioItemFileSizeCache.cachedSize(for: missing) != nil)
 
     AudioItemFileSizeCache.removeAll()
-    #expect(AudioItemFileSizeCache.cachedSize(for: missing) == nil)
+    #expect(AudioItemFileSizeCache.cachedSize(for: file) == nil)
+}
+
+/// 回归：占位文件（下载前读不到大小）在下载完成后必须能读到真实大小。
+///
+/// 若失败结果被缓存，条目标记为「不可用」后就没有任何信号能触发重读，用户会一直
+/// 看到「不可用」。
+@MainActor
+@Test func audioItemFileSizeCacheAllowsRetryAfterDownloadCompletes() throws {
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent("cisum-size-retry-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+
+    let file = root.appendingPathComponent("dataless.mp3")
+    AudioItemFileSizeCache.removeAll()
+
+    // 下载前：文件尚未落地，读取失败。
+    #expect(AudioItemFileSizeReadPolicy.currentFileSize(for: file) == nil)
+    AudioItemFileSizeCache.store(AudioItemFileSizeReadPolicy.currentFileSize(for: file), for: file)
+    #expect(AudioItemFileSizeCache.cachedSize(for: file) == nil)
+
+    // 下载完成：真实内容落地。
+    try Data(repeating: 0x41, count: 4096).write(to: file)
+    let sizeAfterDownload = AudioItemFileSizeReadPolicy.currentFileSize(for: file)
+    #expect(sizeAfterDownload == 4096)
+
+    // 重读必须成功——这正是「失败不入缓存」的意义。
+    AudioItemFileSizeCache.store(sizeAfterDownload, for: file)
+    #expect(AudioItemFileSizeCache.cachedSize(for: file) == Optional(Optional(Int64(4096))))
+
+    AudioItemFileSizeCache.removeAll()
 }
 
 @MainActor
