@@ -4,7 +4,6 @@ import KernelCore
 import ProviderPlugin
 import ProviderRootView
 import KitAppEvents
-import CisumUIComponents
 import MagicKit
 import LumiUI
 import SwiftUI
@@ -55,6 +54,10 @@ public final class WelcomePlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) static var storage: (any StorageProviding)?
     private static let storageSetupOverlayID = "cisum.welcome.storage-setup"
 
+    /// 本插件消费的能力 Adapter。Overlay 的 StateObject 强持有能力，
+    /// 入口同样持有以满足组装层所有权约定（Capabilities 规范第 5 条）。
+    nonisolated(unsafe) private var welcomeStorageCapability: WelcomeStorageCapabilityAdapter?
+
     /// OnReady 阶段（Storage 服务已注册）将 `WelcomePluginHost` 桥接到内核
     /// `StorageProviding`。
     @MainActor
@@ -75,9 +78,23 @@ public final class WelcomePlugin: AsyncSuperPlugin, SuperLog {
 
         kernel.resolveProvider((any RootViewProviding).self)?.addOverlays([
             RootOverlayItem(id: Self.storageSetupOverlayID, order: 9_000) { content in
-                WelcomeStorageSetupOverlay(storage: storage, content: content)
+                WelcomeStorageSetupOverlay(
+                    storage: self.welcomeStorageCapability(for: storage),
+                    content: content
+                )
             }
         ])
+    }
+
+    /// 组装欢迎页存储能力（幂等）：入口持有，Overlay 经能力消费存储。
+    @MainActor
+    private func welcomeStorageCapability(
+        for storage: (any StorageProviding)?
+    ) -> WelcomeStorageCapabilityAdapter {
+        if let welcomeStorageCapability { return welcomeStorageCapability }
+        let capability = WelcomeStorageCapabilityAdapter(storage: storage)
+        welcomeStorageCapability = capability
+        return capability
     }
 
     @MainActor

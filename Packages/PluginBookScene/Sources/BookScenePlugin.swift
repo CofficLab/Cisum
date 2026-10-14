@@ -3,7 +3,6 @@ import ProviderDocsView
 import KernelCore
 import ProviderPlugin
 import KitAppEvents
-import CisumUIComponents
 import LumiUI
 import OSLog
 import SwiftUI
@@ -82,7 +81,10 @@ public final class BookScenePlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     public func addPosterView() -> AnyView? {
-        AnyView(BookScenePluginPosterView(setCurrentScene: setSceneAction ?? { _ in }))
+        AnyView(
+            BookScenePluginPosterView(setCurrentScene: setSceneAction ?? { _ in })
+                .appDebugBadge("Audiobooks", alignment: .bottomLeading)
+        )
     }
 
     // MARK: - State assembly

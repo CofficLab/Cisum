@@ -1,4 +1,3 @@
-import ProviderScene
 import Foundation
 import MagicKit
 import OSLog
@@ -11,9 +10,9 @@ final class BookControlSceneObserver: SuperLog {
     nonisolated static let verbose = false
 
     private weak var viewModel: BookControlViewModel?
-    private var sceneHandle: (any SceneProvidingObserverHandle)?
+    private var sceneHandle: (any BookControlSceneObserverHandle)?
 
-    init(scene: any SceneProviding, viewModel: BookControlViewModel) {
+    init(scene: any BookControlSceneCapability, viewModel: BookControlViewModel) {
         self.viewModel = viewModel
         if Self.verbose { os_log("\(Self.t)👀 BookControlSceneObserver 初始化") }
         // Initial sync：先同步当前快照再安装监听，避免丢失监听安装前的状态。

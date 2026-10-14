@@ -1,5 +1,4 @@
 import MagicKit
-import CisumUIComponents
 import LumiUI
 import OSLog
 import SwiftUI
@@ -48,7 +47,7 @@ public struct BookSettingsView: View, SuperLog {
                         AppSettingRow(
                             title: String(localized: "Library Size", bundle: .module),
                             description: viewModel.description,
-                            icon: .cisumIconMusicLibrary
+                            icon: AppSymbol.musicLibrary
                         ) {
                             if let diskSize = viewModel.diskSize {
                                 Text(diskSize)
@@ -61,14 +60,14 @@ public struct BookSettingsView: View, SuperLog {
                                 AppSettingRow(
                                     title: String(localized: "Open Library", bundle: .module),
                                     description: String(localized: "View in Finder", bundle: .module),
-                                    icon: .cisumIconShowInFinder
+                                    icon: AppSymbol.showInFinder
                                 ) {
-                                    Image(systemName: .cisumIconShowInFinder)
+                                    Image(systemName: AppSymbol.showInFinder)
                                         .frame(width: 28, height: 28)
                                         .background(.regularMaterial, in: Circle())
-                                        .cisumShadowSm()
-                                        .cisumHoverScale(105)
-                                        .cisumButton {
+                                        .shadowSm()
+                                        .appHoverScale(1.05)
+                                        .appPlainButton {
                                             disk.openInFinder()
                                         }
                                         .accessibilityLabel(Self.openLibraryActionLabel)
@@ -80,7 +79,7 @@ public struct BookSettingsView: View, SuperLog {
                         AppSettingRow(
                             title: String(localized: "File Count", bundle: .module),
                             description: String(localized: "Total files in library", bundle: .module),
-                            icon: .cisumIconDocument
+                            icon: AppSymbol.document
                         ) {
                             if Self.shouldUseSingularFileCount(viewModel.fileCount) {
                                 Text("\(viewModel.fileCount) file", bundle: .module)
@@ -96,7 +95,7 @@ public struct BookSettingsView: View, SuperLog {
                         AppSettingRow(
                             title: String(localized: "Error", bundle: .module),
                             description: viewModel.description,
-                            icon: .cisumIconMusicLibrary
+                            icon: AppSymbol.musicLibrary
                         ) {
                             Text("Cannot get audiobook library information", bundle: .module)
                                 .font(.footnote)

@@ -56,16 +56,10 @@ import Testing
 // MARK: - ViewModel 集成
 
 @MainActor
-private final class PlaybackProbe: PlaybackProviding {
+private final class PlaybackProbe: PlaybackControlCapability {
     var currentURL: URL?
-    var state: PlaybackStatus = .paused
-    var currentTime: TimeInterval = 0
-    var duration: TimeInterval = 0
-    var progress: Double = 0
     var playMode: PlaybackMode = .sequence
-    var likedAssets: Set<URL> = []
-    var isPlaying: Bool { state.isPlaying }
-    var hasAsset: Bool { currentURL != nil }
+    var isPlaying = false
     var toggleCount = 0
     var togglePlayModeCount = 0
     var playedURLs: [URL] = []
@@ -75,44 +69,145 @@ private final class PlaybackProbe: PlaybackProviding {
     func togglePlayMode() { togglePlayModeCount += 1 }
     func play(_ url: URL) async { playedURLs.append(url); currentURL = url }
     func reset() async { resetCount += 1 }
-    func pause() {}
-    func seek(toProgress progress: Double) {}
-    func seek(toTime time: TimeInterval) {}
-    func next() {}
-    func previous() {}
-    func setPlayMode(_ mode: PlaybackMode) { playMode = mode }
-    func toggleCurrentLike() {}
-    func addObserver(_ callback: @escaping (PlaybackProvidingEvent) -> Void) -> any PlaybackProvidingObserverHandle {
-        NoopPlaybackProvidingObserverHandle()
+
+    @discardableResult
+    func addObserver(
+        _ callback: @escaping (PlaybackControlEvent) -> Void
+    ) -> any PlaybackControlObserverHandle {
+        NoopControlObserverHandle()
     }
 }
 
 @MainActor
-private final class NavigationProbe: AudioTrackNavigationProviding {
+private final class NoopControlObserverHandle: PlaybackControlObserverHandle {
+    func cancel() {}
+}
+
+@MainActor
+private final class NavigationProbe: TrackNavigationCapability {
     var nextResult: Result<URL?, Error> = .success(nil)
     var previousResult: Result<URL?, Error> = .success(nil)
     var firstURLValue: URL?
     var lastURLValue: URL?
 
-    func nextURL(after current: URL?, verbose: Bool) async throws -> URL? { try nextResult.get() }
-    func previousURL(before current: URL?, verbose: Bool) async throws -> URL? { try previousResult.get() }
+    func nextURL(after current: URL) async throws -> URL? { try nextResult.get() }
+    func previousURL(before current: URL) async throws -> URL? { try previousResult.get() }
     func firstURL() async throws -> URL? { firstURLValue }
     func lastURL() async throws -> URL? { lastURLValue }
 }
 
 @MainActor
-private final class ToastProbe: ToastProviding {
+private final class ToastProbe: PlaybackControlToastCapability {
     var errors: [(title: String, message: String, sourceWindowID: String?)] = []
     var infos: [String] = []
+    var warnings: [String] = []
 
-    func show(_ toast: CisumToast) { infos.append(toast.title) }
+    func info(_ message: String) { infos.append(message) }
+    func warning(_ message: String) { warnings.append(message) }
     func presentError(title: String, message: String, sourceWindowID: String?) {
         errors.append((title, message, sourceWindowID))
     }
-    func dismissError() {}
-    func showLoading(title: String, detail: String?) {}
-    func dismissLoading() {}
-    func dismissAll() {}
+}
+
+// MARK: - Adapter 转发
+
+/// 验证 Adapter 把内核 Provider 事件翻译为能力事件，并正确过滤无关事件。
+@MainActor
+struct ControlButtonsCapabilityAdapterTests {
+    /// 内核 `PlaybackProviding` 的最小实现：用于验证事件翻译。
+    private final class PlaybackProviderStub: PlaybackProviding {
+        var state: PlaybackStatus = .paused
+        var currentURL: URL?
+        var currentTime: TimeInterval = 0
+        var duration: TimeInterval = 0
+        var progress: Double = 0
+        var playMode: PlaybackMode = .sequence
+        var likedAssets: Set<URL> = []
+        var isPlaying: Bool { state.isPlaying }
+        var hasAsset: Bool { currentURL != nil }
+
+        private var callbacks: [UUID: (PlaybackProvidingEvent) -> Void] = [:]
+
+        func play(_ url: URL) async {}
+        func pause() {}
+        func toggle() {}
+        func seek(toProgress progress: Double) {}
+        func seek(toTime time: TimeInterval) {}
+        func next() {}
+        func previous() {}
+        func setPlayMode(_ mode: PlaybackMode) {}
+        func toggleCurrentLike() {}
+        func togglePlayMode() {}
+        func reset() async {}
+
+        @discardableResult
+        func addObserver(
+            _ callback: @escaping (PlaybackProvidingEvent) -> Void
+        ) -> any PlaybackProvidingObserverHandle {
+            let id = UUID()
+            callbacks[id] = callback
+            return StubHandle { [weak self] in self?.callbacks[id] = nil }
+        }
+
+        func emit(_ event: PlaybackProvidingEvent) {
+            for callback in Array(callbacks.values) { callback(event) }
+        }
+    }
+
+    private final class StubHandle: PlaybackProvidingObserverHandle {
+        private let onCancel: () -> Void
+        init(onCancel: @escaping () -> Void) { self.onCancel = onCancel }
+        func cancel() { onCancel() }
+    }
+
+    @Test
+    func forwardsConsumedEventsAndDropsOthers() {
+        let provider = PlaybackProviderStub()
+        let capability = PlaybackControlCapabilityAdapter(playback: provider)
+        var received: [String] = []
+        let handle = capability.addObserver { event in
+            switch event {
+            case .stateChanged: received.append("state")
+            case .playModeChanged: received.append("mode")
+            case .previousRequested: received.append("prev")
+            case .nextRequested: received.append("next")
+            case .navigationFailed: received.append("navFailed")
+            }
+        }
+
+        let asset = URL(fileURLWithPath: "/tmp/a.mp3")
+        provider.emit(.stateChanged(.playing))
+        provider.emit(.playModeChanged(.shuffle))
+        provider.emit(.previousRequested(asset))
+        provider.emit(.nextRequested(asset))
+        provider.emit(.navigationFailed(
+            PlaybackNavigationFailure(direction: .next, reason: "reached end")
+        ))
+        // 以下事件控制按钮不消费，应在能力边界被丢弃。
+        provider.emit(.assetChanged(asset))
+        provider.emit(.timeChanged(currentTime: 1, progress: 0.1))
+        provider.emit(.likeStatusChanged(asset: asset, isLiked: true))
+
+        #expect(received == ["state", "mode", "prev", "next", "navFailed"])
+
+        handle.cancel()
+        handle.cancel()
+        provider.emit(.stateChanged(.paused))
+        #expect(received == ["state", "mode", "prev", "next", "navFailed"])
+    }
+
+    @Test
+    func degradesGracefullyWhenPlaybackProviderIsAbsent() {
+        let capability = PlaybackControlCapabilityAdapter(playback: nil)
+
+        #expect(capability.currentURL == nil)
+        #expect(!capability.isPlaying)
+        #expect(capability.playMode == .sequence)
+        // 退化态下控制与订阅不应崩溃。
+        capability.toggle()
+        capability.togglePlayMode()
+        capability.addObserver { _ in }.cancel()
+    }
 }
 
 @MainActor
@@ -120,10 +215,10 @@ struct ControlButtonsViewModelTests {
     @Test
     func initReflectsPlaybackState() {
         let playback = PlaybackProbe()
-        playback.state = .playing
+        playback.isPlaying = true
         playback.playMode = .shuffle
         let viewModel = ControlButtonsViewModel(
-            playbackProvider: playback,
+            playback: playback,
             targetScene: .music,
             currentScene: .music
         )
@@ -135,7 +230,7 @@ struct ControlButtonsViewModelTests {
     @Test
     func sceneMismatchDeactivatesControl() {
         let viewModel = ControlButtonsViewModel(
-            playbackProvider: nil,
+            playback: nil,
             targetScene: .music,
             currentScene: .audiobooks
         )
@@ -144,7 +239,7 @@ struct ControlButtonsViewModelTests {
 
     @Test
     func applyStateChangedTracksPlaying() {
-        let viewModel = ControlButtonsViewModel(playbackProvider: nil, targetScene: .music)
+        let viewModel = ControlButtonsViewModel(playback: nil, targetScene: .music)
         viewModel.applyStateChanged(.playing)
         #expect(viewModel.isPlaying)
         viewModel.applyStateChanged(.paused)
@@ -157,8 +252,8 @@ struct ControlButtonsViewModelTests {
     func failureStatePresentsErrorOnce() {
         let toast = ToastProbe()
         let viewModel = ControlButtonsViewModel(
-            playbackProvider: nil,
-            toastProvider: toast,
+            playback: nil,
+            toast: toast,
             targetScene: .music
         )
 
@@ -189,8 +284,8 @@ struct ControlButtonsViewModelTests {
         navigation.nextResult = .success(next)
 
         let viewModel = ControlButtonsViewModel(
-            playbackProvider: playback,
-            navigationProvider: navigation,
+            playback: playback,
+            navigation: navigation,
             targetScene: .music,
             currentScene: .music
         )
@@ -212,8 +307,8 @@ struct ControlButtonsViewModelTests {
         navigation.nextResult = .success(next)
 
         let viewModel = ControlButtonsViewModel(
-            playbackProvider: playback,
-            navigationProvider: navigation,
+            playback: playback,
+            navigation: navigation,
             targetScene: .music,
             currentScene: .music
         )
@@ -236,9 +331,9 @@ struct ControlButtonsViewModelTests {
         let toast = ToastProbe()
 
         let viewModel = ControlButtonsViewModel(
-            playbackProvider: playback,
-            navigationProvider: navigation,
-            toastProvider: toast,
+            playback: playback,
+            navigation: navigation,
+            toast: toast,
             targetScene: .music,
             currentScene: .music
         )
@@ -261,9 +356,9 @@ struct ControlButtonsViewModelTests {
         let toast = ToastProbe()
 
         let viewModel = ControlButtonsViewModel(
-            playbackProvider: playback,
-            navigationProvider: navigation,
-            toastProvider: toast,
+            playback: playback,
+            navigation: navigation,
+            toast: toast,
             targetScene: .music,
             currentScene: .music
         )
@@ -288,8 +383,8 @@ struct ControlButtonsViewModelTests {
         navigation.firstURLValue = first
 
         let viewModel = ControlButtonsViewModel(
-            playbackProvider: playback,
-            navigationProvider: navigation,
+            playback: playback,
+            navigation: navigation,
             targetScene: .music,
             currentScene: .music
         )
@@ -305,9 +400,9 @@ struct ControlButtonsViewModelTests {
     func previousWithoutCapabilityReportsUnavailable() {
         let toast = ToastProbe()
         let viewModel = ControlButtonsViewModel(
-            playbackProvider: nil,
-            navigationProvider: nil,
-            toastProvider: toast,
+            playback: nil,
+            navigation: nil,
+            toast: toast,
             targetScene: .music,
             currentScene: .music
         )
@@ -319,8 +414,8 @@ struct ControlButtonsViewModelTests {
     func toggleWithoutCapabilityReportsUnavailable() {
         let toast = ToastProbe()
         let viewModel = ControlButtonsViewModel(
-            playbackProvider: nil,
-            toastProvider: toast,
+            playback: nil,
+            toast: toast,
             targetScene: .music,
             currentScene: .music
         )
@@ -335,8 +430,8 @@ struct ControlButtonsViewModelTests {
         playback.currentURL = current
 
         let viewModel = ControlButtonsViewModel(
-            playbackProvider: playback,
-            navigationProvider: nil,
+            playback: playback,
+            navigation: nil,
             targetScene: .music,
             currentScene: .music
         )
@@ -354,8 +449,8 @@ struct ControlButtonsViewModelTests {
         playback.currentURL = URL(fileURLWithPath: "/tmp/kept.mp3")
 
         let viewModel = ControlButtonsViewModel(
-            playbackProvider: playback,
-            navigationProvider: nil,
+            playback: playback,
+            navigation: nil,
             targetScene: .music,
             currentScene: .music
         )

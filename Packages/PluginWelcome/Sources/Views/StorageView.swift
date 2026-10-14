@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import SwiftUI
 
@@ -32,16 +31,18 @@ public struct StorageView: View {
                 AppSettingRow(
                     title: String(localized: "iCloud Drive", bundle: .module),
                     description: String(localized: "Files stored in iCloud\nAccessible on other devices\nEnsure sufficient iCloud storage", bundle: .module),
-                    icon: .cisumIconCloud,
+                    icon: AppSymbol.cloud,
                     action: {
+                        // Selecting a row only updates the draft; nothing is
+                        // persisted until the user taps Continue.
                         if isICloudAvailable {
-                            updateSelection(.icloud)
+                            selectDraft(.icloud)
                         }
                     }
                 ) {
                     HStack {
                         if tempStorageSelection == .icloud {
-                            Image(systemName: .cisumIconCheckmarkSimple)
+                            Image(systemName: AppSymbol.checkmark)
                                 .foregroundColor(.accentColor)
                         } else {
                             Text("Recommended", bundle: .module)
@@ -72,19 +73,37 @@ public struct StorageView: View {
                 AppSettingRow(
                     title: String(localized: "App Local Storage", bundle: .module),
                     description: String(localized: "Stored within the app, data will be lost if app is deleted", bundle: .module),
-                    icon: .cisumIconFolder,
+                    icon: AppSymbol.folder,
                     action: {
-                        updateSelection(.local)
+                        // Selecting a row only updates the draft; nothing is
+                        // persisted until the user taps Continue.
+                        selectDraft(.local)
                     }
                 ) {
                     HStack {
                         if tempStorageSelection == .local {
-                            Image(systemName: .cisumIconCheckmarkSimple)
+                            Image(systemName: AppSymbol.checkmark)
                                 .foregroundColor(.accentColor)
                         }
                     }
                 }
                 .accessibilityIdentifier("cisum.welcome.storage.option.local")
+
+                Divider()
+
+                // Explicit confirmation: without this button the overlay would
+                // stay up forever for first-run users who only see the default
+                // pre-selection checkmark.
+                Button(action: confirmSelection) {
+                    Text(String(localized: "Continue", bundle: .module))
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(tempStorageSelection == nil)
+                .keyboardShortcut(.defaultAction)
+                .accessibilityIdentifier("cisum.welcome.storage.continue")
+                .padding(.top, 4)
             }
             .onAppear(perform: onAppear)
             .onDisappear(perform: onDisappear)
@@ -113,6 +132,22 @@ public struct StorageView: View {
             displayedSelection: tempStorageSelection
         ) else { return }
 
+        updateSelection(tempStorageSelection)
+    }
+
+    /// Updates the draft only. Rows are selectable without committing, so the
+    /// user can change their mind before tapping Continue.
+    private func selectDraft(_ selection: WelcomeStorageSelection) {
+        tempStorageSelection = WelcomeStorageSelectionPolicy.validatedSelection(
+            selection,
+            isICloudAvailable: isICloudAvailable
+        )
+    }
+
+    /// Explicit confirmation: commits the draft, which opens the storage gate
+    /// and dismisses the first-run overlay.
+    private func confirmSelection() {
+        guard let tempStorageSelection else { return }
         updateSelection(tempStorageSelection)
     }
 

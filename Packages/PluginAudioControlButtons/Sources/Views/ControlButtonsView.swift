@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import MagicKit
 import SwiftUI
@@ -16,12 +15,12 @@ struct ControlButtonsView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let buttonSize = CisumPlayerLayout.controlButtonSize(
+            let buttonSize = AppResponsivePlayerLayoutMetrics.shared.controlButtonSize(
                 width: geometry.size.width,
                 areaHeight: geometry.size.height
             )
 
-            HStack(spacing: CisumPlayerLayout.controlButtonSpacing) {
+            HStack(spacing: AppResponsivePlayerLayoutMetrics.shared.controlButtonSpacing) {
                 AppCircularIconButton(
                     systemImage: "ellipsis",
                     accessibilityLabel: "More",
@@ -41,6 +40,8 @@ struct ControlButtonsView: View {
                     isActive: viewModel.isPlaying,
                     action: viewModel.toggle
                 )
+                // 下载/加载等待期间禁用：否则点击会被状态机静默忽略（点了没反应）。
+                .disabled(viewModel.isBusy)
                 AppCircularIconButton(
                     systemImage: "forward.end.fill",
                     accessibilityLabel: "Next",
@@ -65,7 +66,7 @@ struct ControlButtonsView: View {
         }
     }
 
-    private let bottomPadding = CisumPlayerLayout.controlButtonBottomPadding
+    private let bottomPadding = AppResponsivePlayerLayoutMetrics.shared.controlButtonBottomPadding
 
     private var playModeIconName: String {
         switch viewModel.playMode {

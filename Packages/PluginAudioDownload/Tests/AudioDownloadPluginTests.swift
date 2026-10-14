@@ -172,7 +172,7 @@ import ProviderScene
 struct AudioDownloadViewModelTests {
     @Test
     func inactiveSceneIgnoresAssetChanges() {
-        let viewModel = AudioDownloadViewModel(playbackProvider: nil)
+        let viewModel = AudioDownloadViewModel(playback: nil)
         viewModel.handleSceneChange(.audiobooks)
         viewModel.handleAssetChanged(URL(fileURLWithPath: "/tmp/track.mp3"))
         #expect(true) // 非音乐场景不启动下载，也不报错
@@ -180,7 +180,7 @@ struct AudioDownloadViewModelTests {
 
     @Test
     func nilAssetInMusicSceneIsIgnored() {
-        let viewModel = AudioDownloadViewModel(playbackProvider: nil)
+        let viewModel = AudioDownloadViewModel(playback: nil)
         viewModel.handleSceneChange(.music)
         viewModel.handleAssetChanged(nil)
         #expect(true)
@@ -188,7 +188,7 @@ struct AudioDownloadViewModelTests {
 
     @Test
     func leavingMusicSceneBumpsGeneration() {
-        let viewModel = AudioDownloadViewModel(playbackProvider: nil)
+        let viewModel = AudioDownloadViewModel(playback: nil)
         viewModel.handleSceneChange(.music)
         viewModel.handleSceneChange(.audiobooks)
         viewModel.handleSceneChange(.music)

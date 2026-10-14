@@ -1,12 +1,7 @@
-import ProviderScene
-import ProviderPlayback
-import ProviderAudioLibrary
-import CisumProviderStorage
-import Foundation
 import MagicKit
 import os
 
-/// 订阅播放、场景和音频库外部事件，并把事件回写给 ViewModel。
+/// 订阅播放与外部环境事件，并把事件回写给 ViewModel。
 @MainActor
 final class ControlButtonsObserver: SuperLog {
     nonisolated static let emoji = "🎛️"
@@ -14,35 +9,19 @@ final class ControlButtonsObserver: SuperLog {
     private static let log = Logger(subsystem: "com.yueyi.cisum", category: "ControlButtons.Observer")
 
     private weak var viewModel: ControlButtonsViewModel?
-    private var playbackHandle: (any PlaybackProvidingObserverHandle)?
-    private var sceneHandle: (any SceneProvidingObserverHandle)?
-    private var libraryHandle: (any AudioLibraryProvidingObserverHandle)?
-    private var storageHandle: (any StorageProvidingObserverHandle)?
+    private var playbackHandle: (any PlaybackControlObserverHandle)?
+    private var environmentHandle: (any PlaybackEnvironmentObserverHandle)?
 
     init(
-        scene: any SceneProviding,
-        playback: any PlaybackProviding,
-        library: (any AudioLibraryProviding)?,
-        storage: (any StorageProviding)?,
+        playback: any PlaybackControlCapability,
+        environment: any PlaybackEnvironmentCapability,
         viewModel: ControlButtonsViewModel
     ) {
         self.viewModel = viewModel
         if Self.verbose {
-            Self.log.info("\(Self.t)👀 ControlButtons observer installed; scene=\(String(describing: scene.currentScene))")
+            Self.log.info("\(Self.t)👀 ControlButtons observer installed; scene=\(String(describing: environment.currentScene))")
         }
-        viewModel.handleSceneChange(scene.currentScene)
-
-        sceneHandle = scene.addObserver { [weak self] event in
-            guard let self else {
-                Self.log.error("\(Self.t)❌ Scene event dropped: observer was released")
-                return
-            }
-            guard case .selectionChanged(let scene) = event else { return }
-            if Self.verbose {
-                Self.log.info("\(Self.t)👀 Scene changed: \(String(describing: scene))")
-            }
-            self.viewModel?.handleSceneChange(scene)
-        }
+        viewModel.handleSceneChange(environment.currentScene)
 
         playbackHandle = playback.addObserver { [weak self] event in
             guard let self else {
@@ -73,29 +52,32 @@ final class ControlButtonsObserver: SuperLog {
             case .navigationFailed(let failure):
                 Self.log.error("\(Self.t)❌ Playback navigation failed: \(failure.reason)")
                 self.viewModel?.handleNavigationFailure(failure)
-            default:
-                break
             }
         }
 
-        libraryHandle = library?.addObserver { [weak self] event in
-            guard case .deleted(let urls, _) = event else { return }
-            self?.viewModel?.handleDBDeleted(urlsToDelete: urls)
-        }
-        storageHandle = storage?.addObserver { [weak self] event in
-            guard case .locationChanged = event else { return }
-            self?.viewModel?.handleStorageLocationDidReset()
+        environmentHandle = environment.addObserver { [weak self] event in
+            guard let self else {
+                Self.log.error("\(Self.t)❌ Environment event dropped: observer was released")
+                return
+            }
+            switch event {
+            case .sceneChanged(let scene):
+                if Self.verbose {
+                    Self.log.info("\(Self.t)👀 Scene changed: \(String(describing: scene))")
+                }
+                self.viewModel?.handleSceneChange(scene)
+            case .filesDeleted(let urls):
+                self.viewModel?.handleDBDeleted(urlsToDelete: urls)
+            case .storageLocationReset:
+                self.viewModel?.handleStorageLocationDidReset()
+            }
         }
     }
 
     func cancel() {
-        sceneHandle?.cancel()
-        sceneHandle = nil
         playbackHandle?.cancel()
         playbackHandle = nil
-        libraryHandle?.cancel()
-        libraryHandle = nil
-        storageHandle?.cancel()
-        storageHandle = nil
+        environmentHandle?.cancel()
+        environmentHandle = nil
     }
 }

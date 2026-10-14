@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import SwiftUI
 import ProviderAudioLibrary
@@ -83,8 +82,8 @@ struct AudioDBTips: View {
         .padding()
         .background(appTheme.surface.opacity(0.85))
         .background(appTheme.background.opacity(0.5))
-        .cisumRoundedMedium()
-        .cisumShadowXl()
+        .appRoundedMedium()
+        .shadowXl()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

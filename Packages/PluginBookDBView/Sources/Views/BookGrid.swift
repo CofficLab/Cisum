@@ -1,5 +1,4 @@
 import MagicKit
-import CisumUIComponents
 import LumiUI
 import OSLog
 import ProviderBook
@@ -198,8 +197,8 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
         .onAppear {
             if Self.verbose { os_log("\(Self.t)📖 BookGrid onAppear") }
             Task { @MainActor in
-                if Self.verbose { os_log("\(Self.t)📖 BookGrid provider: \(dependencies.bookProvider == nil ? "nil" : "available")") }
-                viewModel.bind(provider: dependencies.bookProvider)
+                if Self.verbose { os_log("\(Self.t)📖 BookGrid provider: \(dependencies.bookLibrary == nil ? "nil" : "available")") }
+                viewModel.bind(library: dependencies.bookLibrary)
                 viewModel.handleOnAppear()
             }
         }

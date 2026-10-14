@@ -1,6 +1,5 @@
 import MagicKit
 #if os(macOS)
-    import CisumUIComponents
 import LumiUI
     import MagicKit
     import OSLog
@@ -56,12 +55,12 @@ import LumiUI
                 content
                 VStack {
                     AudioCopyTips(variant: .pro)
-                        .cisumIf(showProTips)
+                        .appIf(showProTips)
 
                     AudioCopyTips(variant: .drop)
-                        .cisumIf(isDropping)
+                        .appIf(isDropping)
                 }
-                .cisumInfinite()
+                .appFillAvailableSpace()
                 .onAppear(perform: onAppear)
                 .onDrop(of: [UTType.fileURL], isTargeted: self.$isDropping, perform: onDropProviders)
             }

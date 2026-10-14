@@ -1,6 +1,5 @@
 import ProviderAudioLibrary
 import ProviderDocsView
-import CisumUIComponents
 import LumiUI
 import KernelCore
 import ProviderPlugin
@@ -31,6 +30,10 @@ public final class CopyPlugin: AsyncSuperPlugin, SuperLog {
     )
 
         nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
+
+    /// 复制能力 Adapter：由入口组装，注入 `AudioCopyService` 的静态持有
+    /// （视同组装层所有权），内部惰性解析音频库 Provider。
+    nonisolated(unsafe) private var libraryCapability: AudioCopyLibraryCapabilityAdapter?
 
 
     @MainActor
@@ -68,17 +71,16 @@ public final class CopyPlugin: AsyncSuperPlugin, SuperLog {
 
         @MainActor
         private func configureService() {
+            if libraryCapability == nil {
+                libraryCapability = AudioCopyLibraryCapabilityAdapter { @MainActor [weak self] in
+                    self?.kernel?.resolveProvider((any AudioLibraryProviding).self)
+                }
+            }
             AudioCopyService.configure(
-                audioDiskProvider: {
-                    self.kernel?.resolveProvider((any AudioLibraryProviding).self)?.audioDisk
-                },
-                audioCountProvider: {
-                    guard let library = self.kernel?.resolveProvider((any AudioLibraryProviding).self) else {
-                        return 0
-                    }
-                    return await library.totalCount()
-                },
-                toastProvider: self.kernel?.resolveProvider((any ToastProviding).self)
+                library: libraryCapability!,
+                toast: AudioCopyToastCapabilityAdapter(
+                    toast: self.kernel?.resolveProvider((any ToastProviding).self)
+                )
             )
         }
     }

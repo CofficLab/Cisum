@@ -1,6 +1,5 @@
 import ProviderDocsView
 import ProviderPlayback
-import CisumUIComponents
 import LumiUI
 import KernelCore
 import ProviderPlugin
@@ -32,6 +31,10 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var viewModel: PlaybackProgressViewModel?
     nonisolated(unsafe) private var observer: PlaybackProgressObserver?
+
+    /// 进度能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式强持有，
+    /// 否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var playbackCapability: ProgressBarCapabilityAdapter?
 
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
@@ -78,7 +81,10 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
     public func addProgressView() -> AnyView? {
         installState(kernel: kernel)
         guard let viewModel else { return nil }
-        return AnyView(PlaybackProgressView(viewModel: viewModel))
+        return AnyView(
+            PlaybackProgressView(viewModel: viewModel)
+                .appDebugBadge("Progress Bar", alignment: .bottomLeading)
+        )
     }
 
     @MainActor
@@ -91,8 +97,11 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     private func installState(kernel: KernelCoreContainer?) {
         guard viewModel == nil else { return }
-        let playback = kernel?.resolveProvider((any PlaybackProviding).self)
-        let viewModel = PlaybackProgressViewModel(playbackProvider: playback)
+        let playback = ProgressBarCapabilityAdapter(
+            playback: kernel?.resolveProvider((any PlaybackProviding).self)
+        )
+        playbackCapability = playback
+        let viewModel = PlaybackProgressViewModel(playback: playback)
         self.viewModel = viewModel
         observer = PlaybackProgressObserver(playback: playback, viewModel: viewModel)
     }
@@ -102,6 +111,7 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
         observer?.cancel()
         observer = nil
         viewModel = nil
+        playbackCapability = nil
     }
 
 }

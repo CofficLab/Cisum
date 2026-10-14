@@ -21,12 +21,19 @@ final class AudioRootViewModel: ObservableObject, SuperLog {
     @Published private(set) var storageLocationDidChangeNotice: UUID?
 
     private var initGeneration = 0
-    private let hasStorageLocation: @MainActor () -> Bool
-    private let toastProvider: (any ToastProviding)?
+    /// 存储与提示能力（Capabilities 目录收窄）。
+    ///
+    /// **强持有**：入口 teardown 先释放本容器再释放能力；能力内部对 Provider
+    /// 为 `weak`，强持有能力不会延长 Provider 的生命周期。
+    private let storage: (any AudioRootStorageCapability)?
+    private let toast: (any AudioRootToastCapability)?
 
-    init(hasStorageLocation: @escaping @MainActor () -> Bool, toastProvider: (any ToastProviding)? = nil) {
-        self.hasStorageLocation = hasStorageLocation
-        self.toastProvider = toastProvider
+    init(
+        storage: (any AudioRootStorageCapability)?,
+        toast: (any AudioRootToastCapability)? = nil
+    ) {
+        self.storage = storage
+        self.toast = toast
     }
 
     /// 重建容器。代际（generation）保护保证旧任务结果不会覆盖新状态。
@@ -36,7 +43,7 @@ final class AudioRootViewModel: ObservableObject, SuperLog {
         isInitializing = true
         error = nil
 
-        guard hasStorageLocation() else {
+        guard storage?.hasUsableStorageLocation == true else {
             isInitializing = false
             error = .storageMissing
             return
@@ -48,6 +55,6 @@ final class AudioRootViewModel: ObservableObject, SuperLog {
     /// 存储位置变化：产生新信号供 View 弹 toast。
     func handleStorageLocationChanged() {
         storageLocationDidChangeNotice = UUID()
-        toastProvider?.info(String(localized: "Storage location has changed", bundle: .module))
+        toast?.info(String(localized: "Storage location has changed", bundle: .module))
     }
 }

@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import SwiftUI
 
@@ -46,7 +45,7 @@ public struct BookPosterView: View {
                 }
             }) {
                 HStack(spacing: 8) {
-                    Image(systemName: .cisumIconArrowUpCircle)
+                    Image(systemName: AppSymbol.arrowUpCircle)
                     Text("Enter Audiobook Library", bundle: .module)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)

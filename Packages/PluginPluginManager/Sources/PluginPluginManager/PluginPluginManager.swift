@@ -1,6 +1,5 @@
 import ProviderDocsView
 import KernelCore
-import CisumUIComponents
 import LumiUI
 import ProviderPluginManaging
 import ProviderPluginControl
@@ -44,6 +43,10 @@ public final class PluginPluginManager: AsyncSuperPlugin {
     nonisolated(unsafe) private var managementManager: (any PluginManaging)?
     nonisolated(unsafe) private var managementViewModel: PluginManagementViewModel?
     nonisolated(unsafe) private var managementObserver: PluginManagerObserver?
+    /// 强持有文档能力 Adapter，避免临时创建后立即释放。
+    ///
+    /// 在 `makeSettingEntry()` 中创建，`teardownState()` 中释放。
+    nonisolated(unsafe) private var docsCapability: PluginManagerDocsCapabilityAdapter?
 
     public init() {}
 
@@ -100,13 +103,21 @@ public final class PluginPluginManager: AsyncSuperPlugin {
         guard let kernel else { return nil }
         try? installState(kernel: kernel)
         let viewModel = resolveViewModel()
+        // 创建并强持有 Adapter，避免闭包中临时创建后立即释放导致能力静默失效。
+        let docs = PluginManagerDocsCapabilityAdapter(
+            docs: kernel.resolveProvider((any DocsViewProviding).self)
+        )
+        self.docsCapability = docs
         return SettingEntryItem(
             id: Self.settingsEntryID,
             title: String(localized: "Plugin Manager", bundle: .module),
             systemImage: iconName,
             order: order,
             detail: {
-            PluginManagementView(docsProvider: self.kernel?.resolveProvider((any DocsViewProviding).self), viewModel: viewModel)
+            PluginManagementView(
+                docs: docs,
+                viewModel: viewModel
+            )
         }
         )
     }
@@ -136,6 +147,7 @@ public final class PluginPluginManager: AsyncSuperPlugin {
         managementObserver = nil
         managementViewModel = nil
         managementManager = nil
+        docsCapability = nil
     }
 
     @MainActor

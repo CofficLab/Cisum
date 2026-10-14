@@ -1,6 +1,5 @@
 import MagicKit
 #if os(macOS)
-import CisumUIComponents
 import LumiUI
 import OSLog
 import SwiftData
@@ -30,7 +29,7 @@ struct CopyList: View, SuperLog, SuperThread {
             viewModel.refreshTasks(postCountChanged: true)
         }
         .background(.regularMaterial)
-        .cisumShadowSm()
+        .shadowSm()
     }
 
     /// 空视图

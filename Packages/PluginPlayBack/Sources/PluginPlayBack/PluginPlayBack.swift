@@ -1,7 +1,7 @@
 import ProviderScene
+import ProviderAudioLibrary
 import ProviderDocsView
 import ProviderPlayback
-import CisumUIComponents
 import LumiUI
 import KernelCore
 import ProviderPlugin
@@ -54,6 +54,12 @@ public final class PluginPlayBack: AsyncSuperPlugin {
     /// 场景观察者（onReady 时创建）：监听场景变动并按场景恢复/记录播放文件。
     nonisolated(unsafe) private var sceneObserver: PlaybackSceneObserver?
 
+    /// 设置页与场景观察者消费的 Adapter。ViewModel / Observer 以 `weak`
+    /// 或不持有 Adapter，故此处必须显式强持有，否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var sceneCapability: PlaybackSceneCapabilityAdapter?
+    nonisolated(unsafe) private var settingsSceneCapability: PlaybackSceneCapabilityAdapter?
+    nonisolated(unsafe) private var settingsPlaybackCapability: PlaybackSettingsCapabilityAdapter?
+
     /// 设置页 ViewModel 与场景观察者（onReady 时创建，设置页导航项注入同一实例）。
     nonisolated(unsafe) private var settingsViewModel: PluginPlayBackSettingsViewModel?
     nonisolated(unsafe) private var settingsSceneObserver: PlaybackSettingsSceneObserver?
@@ -89,6 +95,17 @@ public final class PluginPlayBack: AsyncSuperPlugin {
         // 持久化存储（order 12 在 StoragePlugin 之后，Lumi StorageProviding 已可用）
         guard let storage = kernel.resolveProvider((any ProviderStorage.StorageProviding).self) else { return }
         let store = PlaybackStateStore(rootDirectory: storage.dataRootDirectory)
+        #if DEBUG
+        // UI 测试隔离：清空上次运行遗留的「当前播放记录」，保证每次 UI 测试启动
+        // 都处于确定的「无当前曲目」状态；否则场景切换/播放器收起类断言会被
+        // 上一轮 UI 测试留下的记录污染（记录随 App 持久化，跨测试运行生效）。
+        // 必须在 onReady 的场景观察者恢复之前完成。
+        if ProcessInfo.processInfo.arguments.contains("--cisum-ui-testing") {
+            for scene in AppScene.allCases {
+                store.saveCurrentFile(nil, for: scene)
+            }
+        }
+        #endif
         stateStore = store
 
         // 监听播放文件变化，记录到当前场景的磁盘槽位（场景由 sceneObserver 提供）
@@ -104,7 +121,26 @@ public final class PluginPlayBack: AsyncSuperPlugin {
     @MainActor
     public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         guard let player = magicPlayMan, let store = stateStore else { return }
-        sceneObserver = PlaybackSceneObserver(scene: kernel.resolveProvider((any SceneProviding).self), player: player, store: store)
+        #if DEBUG
+        // `--cisum-ui-testing-playback-file <name>`：把音频目录下的指定文件写入
+        // 音乐场景槽位，让 App 启动即恢复播放该文件（UI 测试据此在启动阶段进入
+        // 下载态，无需依赖 XCUITest 点击触发）。放在 onReady：跨插件 Provider
+        // （AudioLibraryProviding）此时才保证注册完毕；必须在场景观察者恢复之前。
+        if let index = ProcessInfo.processInfo.arguments.firstIndex(of: "--cisum-ui-testing-playback-file"),
+           ProcessInfo.processInfo.arguments.indices.contains(index + 1) {
+            if let library = kernel.resolveProvider((any AudioLibraryProviding).self),
+               let disk = library.audioDisk {
+                store.saveCurrentFile(disk.appendingPathComponent(ProcessInfo.processInfo.arguments[index + 1]), for: .music)
+            }
+        }
+        #endif
+        let capability = makeSceneCapability(kernel: kernel)
+        sceneCapability = capability
+        sceneObserver = PlaybackSceneObserver(
+            scene: capability,
+            player: player,
+            store: store
+        )
         installSettingsState(kernel: kernel)
     }
 
@@ -116,10 +152,13 @@ public final class PluginPlayBack: AsyncSuperPlugin {
         observerHandle = nil
         sceneObserver?.cancel()
         sceneObserver = nil
+        sceneCapability = nil
         settingsSceneObserver?.cancel()
         settingsSceneObserver = nil
+        settingsSceneCapability = nil
         settingsPlaybackObserver?.cancel()
         settingsPlaybackObserver = nil
+        settingsPlaybackCapability = nil
         settingsViewModel = nil
         stateStore = nil
         playbackProvider?.shutdown()
@@ -131,13 +170,32 @@ public final class PluginPlayBack: AsyncSuperPlugin {
 
     // MARK: - Settings state assembly
 
+    /// 组装场景能力：把内核 `SceneProviding` 收窄为本插件的 `PlaybackSceneCapability`。
+    ///
+    /// 场景 Provider 可能尚未注册（如 onReady 早于 ScenePlugin），此时退化为
+    /// 「无当前场景」的能力，Observer 仍能安装并等待后续事件。
+    @MainActor
+    private func makeSceneCapability(kernel: KernelCoreContainer) -> PlaybackSceneCapabilityAdapter {
+        PlaybackSceneCapabilityAdapter(scene: kernel.resolveProvider((any SceneProviding).self))
+    }
+
     /// 创建并持有设置页的 ViewModel 与场景观察者（幂等）。
     @MainActor
     private func installSettingsState(kernel: KernelCoreContainer) {
         guard settingsSceneObserver == nil else { return }
         guard let viewModel = settingsViewModel ?? makeSettingsViewModel() else { return }
-        let observer = PlaybackSettingsSceneObserver(provider: kernel.resolveProvider((any SceneProviding).self), viewModel: viewModel)
-        let playbackObserver = PlaybackSettingsPlaybackObserver(playback: kernel.resolveProvider((any PlaybackProviding).self), viewModel: viewModel)
+        let sceneCapability = makeSceneCapability(kernel: kernel)
+        let playbackCapability = PlaybackSettingsCapabilityAdapter(playback: playbackProvider)
+        settingsSceneCapability = sceneCapability
+        settingsPlaybackCapability = playbackCapability
+        let observer = PlaybackSettingsSceneObserver(
+            scene: sceneCapability,
+            viewModel: viewModel
+        )
+        let playbackObserver = PlaybackSettingsPlaybackObserver(
+            playback: playbackCapability,
+            viewModel: viewModel
+        )
         settingsSceneObserver = observer
         settingsPlaybackObserver = playbackObserver
     }
@@ -145,9 +203,11 @@ public final class PluginPlayBack: AsyncSuperPlugin {
     @MainActor
     private func makeSettingsViewModel() -> PluginPlayBackSettingsViewModel? {
         guard let store = stateStore else { return nil }
+        let capability = PlaybackSettingsCapabilityAdapter(playback: playbackProvider)
+        settingsPlaybackCapability = capability
         let viewModel = PluginPlayBackSettingsViewModel(
             store: store,
-            playbackProvider: playbackProvider
+            playback: capability
         )
         settingsViewModel = viewModel
         return viewModel
@@ -173,3 +233,4 @@ public final class PluginPlayBack: AsyncSuperPlugin {
         )
     }
 }
+

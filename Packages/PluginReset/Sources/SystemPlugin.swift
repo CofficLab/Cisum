@@ -1,6 +1,5 @@
 import ProviderDocsView
 import CisumProviderStorage
-import CisumUIComponents
 import LumiUI
 import KernelCore
 import ProviderPlugin

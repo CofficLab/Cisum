@@ -1,5 +1,4 @@
 import MagicKit
-import CisumUIComponents
 import LumiUI
 import SwiftUI
 
@@ -43,14 +42,14 @@ public struct SystemSetting: View, SuperLog {
                     AppSettingRow(
                         title: String(localized: "Reset Storage Location", bundle: .module),
                         description: String(localized: "Clear the media storage selection", bundle: .module),
-                        icon: .cisumIconReset
+                        icon: AppSymbol.reset
                     ) {
-                        Image.cisumReset
+                        Image.appReset
                             .frame(width: 28, height: 28)
                             .background(.regularMaterial, in: Circle())
-                            .cisumShadowSm()
-                            .cisumHoverScale(105)
-                            .cisumButton {
+                            .shadowSm()
+                            .appHoverScale(1.05)
+                            .appPlainButton {
                                 showConfirmSheet = true
                             }
                             .accessibilityLabel(Self.resetStorageLocationActionLabel)

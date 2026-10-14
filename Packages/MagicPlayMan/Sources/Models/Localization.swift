@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import CisumUIComponents
 import LumiUI
 import MagicKit
 
@@ -117,6 +116,7 @@ public struct Localization {
     public var networkError: String { localized("Network error") }
     public var playbackError: String { localized("Playback error") }
     public var unsupportedFormat: String { localized("Unsupported format") }
+    public var iCloudDownloadFailedTitle: String { localized("iCloud Download Failed") }
 
     // MARK: - Playback State Text
     public var ready: String { localized("Ready") }
@@ -132,6 +132,7 @@ public struct Localization {
     public var networkConnectionProblem: String { localized("There was a problem with the network connection") }
     public var playbackProblem: String { localized("There was a problem during playback") }
     public var mediaTypeNotSupported: String { localized("The selected media type is not supported") }
+    public var iCloudDownloadFailedReason: String { localized("The file could not be downloaded from iCloud") }
 
     // MARK: - Error Recovery Suggestions
     public var selectMediaFromLibrary: String { localized("Select a media file from your library") }
@@ -142,6 +143,7 @@ public struct Localization {
     public var checkURLFormat: String { localized("Check if the URL format is correct") }
     public var invalidURL: String { localized("Invalid URL") }
     public var invalidURLReason: String { localized("The provided URL is invalid") }
+    public var retryICloudDownload: String { localized("Check your internet connection and iCloud storage space, then try again") }
 
     // MARK: - Button Disabled Reasons
     public var firstTrack: String { localized("This is the first track") }

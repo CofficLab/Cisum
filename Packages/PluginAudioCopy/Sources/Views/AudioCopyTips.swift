@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import ProviderAudioLibrary
 import ProviderStore
@@ -35,7 +34,7 @@ struct AudioCopyTips: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity)
-                .cisumInfinite()
+                .appFillAvailableSpace()
                 .background(
                     RoundedRectangle(cornerRadius: 16)
                         .fill(.ultraThinMaterial)
@@ -49,7 +48,7 @@ struct AudioCopyTips: View {
             case .pro:
                 VStack(spacing: 20) {
                     HStack {
-                        Image.cisumInfo
+                        Image.appInfo
                             .foregroundStyle(appTheme.primary)
                         Text("Basic plan supports up to \(AudioPluginInfo.maxAudioCount) files", bundle: .module)
                             .font(.title3)
@@ -65,7 +64,7 @@ struct AudioCopyTips: View {
             }
         }
         .background(.regularMaterial)
-        .cisumShadowMd()
+        .shadowMd()
     }
 
     /// 格式标签视图
@@ -79,7 +78,7 @@ struct AudioCopyTips: View {
             HStack(spacing: 8) {
                 ForEach(supportedFormats, id: \.self) { format in
                     HStack(spacing: 4) {
-                        Image.cisumMusicNote
+                        Image.appMusicNote
                             .font(.caption2)
                         Text(format.uppercased())
                             .font(.caption)

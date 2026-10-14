@@ -1,12 +1,11 @@
 import ProviderRootView
+import ProviderToast
 import ProviderAudioNavigation
 import ProviderScene
 import ProviderDocsView
-import ProviderToast
 import ProviderPlayback
 import ProviderAudioLibrary
 import CisumProviderStorage
-import CisumUIComponents
 import LumiUI
 import KernelCore
 import ProviderPlugin
@@ -39,6 +38,13 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
     nonisolated(unsafe) private var viewModel: ControlButtonsViewModel?
     nonisolated(unsafe) private var observer: ControlButtonsObserver?
 
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var playbackCapability: PlaybackControlCapabilityAdapter?
+    nonisolated(unsafe) private var navigationCapability: TrackNavigationCapabilityAdapter?
+    nonisolated(unsafe) private var toastCapability: PlaybackControlToastCapabilityAdapter?
+    nonisolated(unsafe) private var environmentCapability: PlaybackEnvironmentCapabilityAdapter?
+
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
         if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
@@ -57,26 +63,7 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
     public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         teardownState()
-        guard let playback = kernel.resolveProvider((any PlaybackProviding).self) else {
-            throw KernelCoreError.providerNotFound(type: (any PlaybackProviding).self)
-        }
-        guard let scene = kernel.resolveProvider((any SceneProviding).self) else {
-            throw KernelCoreError.providerNotFound(type: (any SceneProviding).self)
-        }
-        let viewModel = ControlButtonsViewModel(
-            playbackProvider: playback,
-            navigationProvider: kernel.resolveProvider((any AudioTrackNavigationProviding).self),
-            toastProvider: kernel.resolveProvider((any ToastProviding).self),
-            currentScene: scene.currentScene
-        )
-        self.viewModel = viewModel
-        observer = ControlButtonsObserver(
-            scene: scene,
-            playback: playback,
-            library: kernel.resolveProvider((any AudioLibraryProviding).self),
-            storage: kernel.resolveProvider((any StorageProviding).self),
-            viewModel: viewModel
-        )
+        try installState(kernel: kernel)
         registerContribution(kernel: kernel)
     }
 
@@ -84,27 +71,52 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
     public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         guard viewModel == nil else { return }
-        guard let playback = kernel.resolveProvider((any PlaybackProviding).self) else {
+        try installState(kernel: kernel)
+        registerContribution(kernel: kernel)
+    }
+
+    /// 组装 ViewModel、Observer 与四项能力 Adapter（幂等由调用方保证）。
+    ///
+    /// 播放与场景 Provider 是硬依赖：缺失时控制按钮无意义，直接抛错让内核
+    /// 记录；导航与提示为软依赖，缺失时按钮仍可用但会提示「服务不可用」。
+    @MainActor
+    private func installState(kernel: KernelCoreContainer) throws {
+        guard let playbackProvider = kernel.resolveProvider((any PlaybackProviding).self) else {
             throw KernelCoreError.providerNotFound(type: (any PlaybackProviding).self)
         }
-        guard let scene = kernel.resolveProvider((any SceneProviding).self) else {
+        guard let sceneProvider = kernel.resolveProvider((any SceneProviding).self) else {
             throw KernelCoreError.providerNotFound(type: (any SceneProviding).self)
         }
+
+        let playback = PlaybackControlCapabilityAdapter(playback: playbackProvider)
+        let navigation = TrackNavigationCapabilityAdapter(
+            navigation: kernel.resolveProvider((any AudioTrackNavigationProviding).self)
+        )
+        let toast = PlaybackControlToastCapabilityAdapter(
+            toast: kernel.resolveProvider((any ToastProviding).self)
+        )
+        let environment = PlaybackEnvironmentCapabilityAdapter(
+            scene: sceneProvider,
+            library: kernel.resolveProvider((any AudioLibraryProviding).self),
+            storage: kernel.resolveProvider((any StorageProviding).self)
+        )
+        playbackCapability = playback
+        navigationCapability = navigation
+        toastCapability = toast
+        environmentCapability = environment
+
         let viewModel = ControlButtonsViewModel(
-            playbackProvider: playback,
-            navigationProvider: kernel.resolveProvider((any AudioTrackNavigationProviding).self),
-            toastProvider: kernel.resolveProvider((any ToastProviding).self),
-            currentScene: scene.currentScene
+            playback: playback,
+            navigation: navigation,
+            toast: toast,
+            currentScene: environment.currentScene
         )
         self.viewModel = viewModel
         observer = ControlButtonsObserver(
-            scene: scene,
             playback: playback,
-            library: kernel.resolveProvider((any AudioLibraryProviding).self),
-            storage: kernel.resolveProvider((any StorageProviding).self),
+            environment: environment,
             viewModel: viewModel
         )
-        registerContribution(kernel: kernel)
     }
 
     @MainActor
@@ -122,15 +134,14 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
     /// 向 `ControlViewProviding` 注入播放控制按钮组。
     @MainActor
     public func addControlButtonsView() -> AnyView? {
-        let viewModel = viewModel ?? ControlButtonsViewModel(
-            playbackProvider: nil,
-            toastProvider: kernel?.resolveProvider((any ToastProviding).self)
-        )
+        // 视图贡献可能早于 onReady：此时按钮处于不可用状态，等待后续装配。
+        let viewModel = viewModel ?? ControlButtonsViewModel(playback: nil)
         return AnyView(
             ControlButtonsView(viewModel: viewModel) { [weak self] in
                 guard let kernel = self?.kernel else { return }
                 kernel.resolveProvider((any RootViewProviding).self)?.toggleContentView()
             }
+            .appDebugBadge("Audio Controls", alignment: .bottomTrailing)
         )
     }
 
@@ -146,5 +157,9 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
         observer?.cancel()
         observer = nil
         viewModel = nil
+        playbackCapability = nil
+        navigationCapability = nil
+        toastCapability = nil
+        environmentCapability = nil
     }
 }

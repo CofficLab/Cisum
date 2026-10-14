@@ -7,42 +7,27 @@ import KitAppEvents
 import Testing
 @testable import PluginPlaybackProgress
 
+/// 最小进度能力探针：记录 seek 调用并可广播进度事件。
 @MainActor
-private final class PlaybackStub: PlaybackProviding {
-    var state: PlaybackStatus = .paused
-    var currentURL: URL? = URL(fileURLWithPath: "/library/current.mp3")
+private final class PlaybackStub: ProgressBarCapability {
     var currentTime: TimeInterval
     var duration: TimeInterval
-    var progress: Double = 0
-    var playMode: PlaybackMode = .sequence
-    var likedAssets: Set<URL> = []
     private(set) var seekTimes: [TimeInterval] = []
-    private var observers: [UUID: (PlaybackProvidingEvent) -> Void] = [:]
+    private var observers: [UUID: (ProgressBarEvent) -> Void] = [:]
 
     var observerCount: Int { observers.count }
-
-    var isPlaying: Bool { state.isPlaying }
-    var hasAsset: Bool { currentURL != nil }
 
     init(currentTime: TimeInterval = 0, duration: TimeInterval = 0) {
         self.currentTime = currentTime
         self.duration = duration
     }
 
-    func play(_ url: URL) async { currentURL = url }
-    func pause() {}
-    func toggle() {}
-    func seek(toProgress progress: Double) {}
     func seek(toTime time: TimeInterval) { seekTimes.append(time) }
-    func next() {}
-    func previous() {}
-    func setPlayMode(_ mode: PlaybackMode) { playMode = mode }
-    func toggleCurrentLike() {}
-    func togglePlayMode() {}
 
+    @discardableResult
     func addObserver(
-        _ callback: @escaping (PlaybackProvidingEvent) -> Void
-    ) -> any PlaybackProvidingObserverHandle {
+        _ callback: @escaping (ProgressBarEvent) -> Void
+    ) -> any ProgressBarObserverHandle {
         let id = UUID()
         observers[id] = callback
         return PlaybackObserverHandle { [weak self] in
@@ -50,7 +35,7 @@ private final class PlaybackStub: PlaybackProviding {
         }
     }
 
-    func send(_ event: PlaybackProvidingEvent) {
+    func send(_ event: ProgressBarEvent) {
         for callback in Array(observers.values) {
             callback(event)
         }
@@ -58,7 +43,7 @@ private final class PlaybackStub: PlaybackProviding {
 }
 
 @MainActor
-private final class PlaybackObserverHandle: PlaybackProvidingObserverHandle {
+private final class PlaybackObserverHandle: ProgressBarObserverHandle {
     private var onCancel: (() -> Void)?
 
     init(onCancel: @escaping () -> Void) {
@@ -76,7 +61,7 @@ struct PlaybackProgressTests {
     @Test
     func viewModelUsesPlaybackProviderForSnapshotAndSeek() {
         let playback = PlaybackStub(currentTime: 12, duration: 60)
-        let viewModel = PlaybackProgressViewModel(playbackProvider: playback)
+        let viewModel = PlaybackProgressViewModel(playback: playback)
 
         #expect(viewModel.currentTime == 12)
         #expect(viewModel.duration == 60)
@@ -88,7 +73,7 @@ struct PlaybackProgressTests {
     @Test
     func viewModelUsesSafeSnapshotAfterPlaybackIsReleased() {
         var playback: PlaybackStub? = PlaybackStub(currentTime: 12, duration: 60)
-        let viewModel = PlaybackProgressViewModel(playbackProvider: playback)
+        let viewModel = PlaybackProgressViewModel(playback: playback)
         #expect(viewModel.currentTime == 12)
         #expect(viewModel.duration == 60)
         playback = nil
@@ -102,7 +87,7 @@ struct PlaybackProgressTests {
     @Test
     func viewModelSyncsInitialAndAssetStateAndNormalizesSeekInput() {
         let playback = PlaybackStub(currentTime: 3, duration: 10)
-        let viewModel = PlaybackProgressViewModel(playbackProvider: playback)
+        let viewModel = PlaybackProgressViewModel(playback: playback)
 
         #expect(viewModel.currentTime == 3)
         #expect(viewModel.duration == 10)
@@ -128,7 +113,7 @@ struct PlaybackProgressTests {
     @Test
     func progressBindingUpdatesDisplayWithoutDuplicatingPlaybackSeek() {
         let playback = PlaybackStub(currentTime: 1, duration: 10)
-        let viewModel = PlaybackProgressViewModel(playbackProvider: playback)
+        let viewModel = PlaybackProgressViewModel(playback: playback)
         let view = PlaybackProgressView(viewModel: viewModel)
         let binding = view.makeCurrentTimeBinding()
 
@@ -144,31 +129,34 @@ struct PlaybackProgressTests {
     @Test
     func observerRoutesProgressEventsAndStopsAfterCancellation() {
         let playback = PlaybackStub(currentTime: 1, duration: 10)
-        let viewModel = PlaybackProgressViewModel(playbackProvider: playback)
+        let viewModel = PlaybackProgressViewModel(playback: playback)
         let observer = PlaybackProgressObserver(playback: playback, viewModel: viewModel)
 
-        playback.send(.timeChanged(currentTime: 4, progress: 0.4))
+        playback.send(.timeChanged(4))
         playback.send(.durationChanged(20))
-        playback.send(.stateChanged(.playing))
         #expect(viewModel.currentTime == 4)
         #expect(viewModel.duration == 20)
 
         playback.currentTime = 7
         playback.duration = 30
-        playback.send(.assetChanged(URL(fileURLWithPath: "/library/next.mp3")))
+        playback.send(.assetChanged)
         #expect(viewModel.currentTime == 7)
         #expect(viewModel.duration == 30)
 
         observer.cancel()
         observer.cancel()
-        playback.send(.timeChanged(currentTime: 9, progress: 0.3))
+        playback.send(.timeChanged(9))
         #expect(viewModel.currentTime == 7)
     }
 
     @Test
     func observerWithoutPlaybackCanBeCancelled() {
-        let viewModel = PlaybackProgressViewModel(playbackProvider: nil)
-        let observer = PlaybackProgressObserver(playback: nil, viewModel: viewModel)
+        let viewModel = PlaybackProgressViewModel(playback: nil)
+        // Provider 缺席时能力退化为「时长归零」，Observer 安装与取消均应安全。
+        let observer = PlaybackProgressObserver(
+            playback: ProgressBarCapabilityAdapter(playback: nil),
+            viewModel: viewModel
+        )
 
         observer.cancel()
         #expect(viewModel.currentTime == 0)
@@ -178,7 +166,8 @@ struct PlaybackProgressTests {
     @Test
     func pluginRegistersDocsAndRestoresObserverAcrossLifecycle() async throws {
         let kernel = KernelCoreContainer()
-        let playback = PlaybackStub(currentTime: 5, duration: 25)
+        // 走真实 Provider stub + Adapter：验证 Adapter 在生命周期内正确安装/释放监听。
+        let playback = PlaybackProviderStub(currentTime: 5, duration: 25)
         let docs = DefaultDocsViewProvider()
         try kernel.registerProvider((any PlaybackProviding).self, playback)
         try kernel.registerProvider((any DocsViewProviding).self, docs)
@@ -221,9 +210,60 @@ struct PlaybackProgressTests {
 
     @Test
     func progressAndDocumentationViewsBuildTheirContent() {
-        let viewModel = PlaybackProgressViewModel(playbackProvider: nil)
+        let viewModel = PlaybackProgressViewModel(playback: nil)
         _ = PlaybackProgressView(viewModel: viewModel).body
         _ = PlaybackProgressPluginAboutView().body
         _ = PlaybackProgressPluginManualView().body
     }
 }
+
+/// 内核 `PlaybackProviding` 的最小实现：仅供生命周期测试验证 Adapter 转发。
+@MainActor
+private final class PlaybackProviderStub: PlaybackProviding {
+    var state: PlaybackStatus = .paused
+    var currentURL: URL?
+    var currentTime: TimeInterval
+    var duration: TimeInterval
+    var progress: Double = 0
+    var playMode: PlaybackMode = .sequence
+    var likedAssets: Set<URL> = []
+    var isPlaying: Bool { state.isPlaying }
+    var hasAsset: Bool { currentURL != nil }
+
+    var observerCount: Int { observers.count }
+    private var observers: [UUID: (PlaybackProvidingEvent) -> Void] = [:]
+
+    init(currentTime: TimeInterval = 0, duration: TimeInterval = 0) {
+        self.currentTime = currentTime
+        self.duration = duration
+    }
+
+    func play(_ url: URL) async { currentURL = url }
+    func pause() {}
+    func toggle() {}
+    func seek(toProgress progress: Double) {}
+    func seek(toTime time: TimeInterval) {}
+    func next() {}
+    func previous() {}
+    func setPlayMode(_ mode: PlaybackMode) { playMode = mode }
+    func toggleCurrentLike() {}
+    func togglePlayMode() {}
+    func reset() async {}
+
+    @discardableResult
+    func addObserver(
+        _ callback: @escaping (PlaybackProvidingEvent) -> Void
+    ) -> any PlaybackProvidingObserverHandle {
+        let id = UUID()
+        observers[id] = callback
+        return ProviderHandle { [weak self] in self?.observers.removeValue(forKey: id) }
+    }
+}
+
+@MainActor
+private final class ProviderHandle: PlaybackProvidingObserverHandle {
+    private let onCancel: () -> Void
+    init(onCancel: @escaping () -> Void) { self.onCancel = onCancel }
+    func cancel() { onCancel() }
+}
+

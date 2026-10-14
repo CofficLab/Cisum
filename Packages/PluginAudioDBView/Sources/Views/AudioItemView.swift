@@ -1,111 +1,17 @@
 import MagicKit
-import CisumUIComponents
 import LumiUI
 import Foundation
 import OSLog
 import SwiftUI
 import ProviderToast
 
-enum AudioItemFileSizeLoadPolicy {
-    static func shouldApplySize(currentURL: URL, requestedURL: URL) -> Bool {
-        representsSameFile(currentURL, requestedURL)
-    }
-
-    private static func representsSameFile(_ lhs: URL, _ rhs: URL) -> Bool {
-        lhs.isSameFileLocation(as: rhs)
-    }
-}
-
-enum AudioItemFileSizeReadPolicy {
-    static func fileSize(from attributes: [FileAttributeKey: Any]) -> Int64? {
-        if let number = attributes[.size] as? NSNumber {
-            return normalizedSize(number)
-        }
-
-        if let size = attributes[.size] as? Int {
-            return normalizedSize(Int64(size))
-        }
-
-        if let size = attributes[.size] as? Int64 {
-            return normalizedSize(size)
-        }
-
-        if let size = attributes[.size] as? UInt64 {
-            guard size <= UInt64(Int64.max) else { return Int64.max }
-            return Int64(size)
-        }
-
-        return nil
-    }
-
-    private static func normalizedSize(_ size: Int64) -> Int64 {
-        max(size, 0)
-    }
-
-    private static func normalizedSize(_ number: NSNumber) -> Int64 {
-        if number.compare(NSNumber(value: 0)) == .orderedAscending {
-            return 0
-        }
-
-        if number.compare(NSNumber(value: Int64.max)) == .orderedDescending {
-            return Int64.max
-        }
-
-        return number.int64Value
-    }
-}
-
-enum AudioItemFileSizeDisplayState: Equatable {
-    case loading
-    case unavailable
-    case size(Int64)
-}
-
-enum AudioItemFileSizeDisplayPolicy {
-    static func state(fileSize: Int64?, isUnavailable: Bool) -> AudioItemFileSizeDisplayState {
-        if let fileSize {
-            return .size(fileSize)
-        }
-
-        return isUnavailable ? .unavailable : .loading
-    }
-}
-
-@MainActor
-enum AudioItemFileSizeCache {
-    private struct Entry {
-        let size: Int64?
-    }
-
-    private static var entries: [String: Entry] = [:]
-
-    static func cachedSize(for url: URL) -> Int64?? {
-        let key = cacheKey(for: url)
-        guard let entry = entries[key] else {
-            return nil
-        }
-        return .some(entry.size)
-    }
-
-    static func store(_ size: Int64?, for url: URL) {
-        let key = cacheKey(for: url)
-        entries[key] = Entry(size: size)
-    }
-
-    static func remove(_ urls: [URL]) {
-        let keys = urls.map(cacheKey(for:))
-        for key in keys {
-            entries.removeValue(forKey: key)
-        }
-    }
-
-    static func removeAll() {
-        entries.removeAll()
-    }
-
-    private static func cacheKey(for url: URL) -> String {
-        AudioListFileIdentity.canonicalIdentity(for: url)
-    }
+/// 头像重建标识：URL + 缩略图重载次数。
+///
+/// iCloud 文件下载完成后内容才真正落到本地，此时必须让 `AvatarView` 重建并重新
+/// 加载封面。把它作为 `.id(...)` 的值，是取代 kit 内部 `needsReload` 的机制。
+struct AudioItemAvatarIdentity: Hashable {
+    let id: URL
+    let reloadToken: Int
 }
 
 enum AudioItemFileActionPolicy {
@@ -134,14 +40,16 @@ struct AudioItemView: View, Equatable, SuperLog {
 
     let url: URL
 
-    /// 文件大小
-    @State private var fileSize: Int64?
-    @State private var fileSizeUnavailable = false
     /// 删除确认对话框
     @State private var showDeleteConfirmation = false
 
     nonisolated static func == (lhs: AudioItemView, rhs: AudioItemView) -> Bool {
         lhs.url == rhs.url
+    }
+
+    /// 缩略图重载次数；直接读进度容器，绕过 `.equatable()` 的短路。
+    private var reloadToken: Int {
+        listViewModel.downloadStore.reloadToken(for: url)
     }
 
     init(_ url: URL, listViewModel: AudioListViewModel) {
@@ -156,43 +64,44 @@ extension AudioItemView {
     var body: some View {
         AppListRow(isSelected: listViewModel.selection == url, action: playAudio) {
             HStack(alignment: .center, spacing: 12) {
-                // 头像部分
+                // 头像部分：kit 内部下载监控已关闭（进度由插件状态源驱动），
+                // 改由独立子视图叠加进度环。
+                //
+                // `.id(...)` 拼上缩略图重载标记：下载完成一次即换新 id，强制
+                // AvatarView 重建并重新加载封面，取代 kit 内部 `needsReload`。
                 url.makeAvatarView(verbose: Self.verbose)
                     .magicSize(.init(width: 40, height: 40))
                     .magicAvatarShape(.circle)
                     .magicBackground(appTheme.primary.opacity(0.1))
-                    .magicDownloadMonitor(true)
+                    .magicDownloadMonitor(false)
+                    .overlay {
+                        AudioDownloadProgressRing(
+                            store: listViewModel.downloadStore,
+                            url: url,
+                            backgroundColor: appTheme.primary.opacity(0.1)
+                        )
+                    }
+                    // `.id(...)` 必须放在最后：它会把视图擦除为 `some View`，
+                    // 放在链首会让后续 `magic*` 修饰符失去 `AvatarView` 类型。
+                    .id(AudioItemAvatarIdentity(id: url, reloadToken: reloadToken))
 
                 // 文件信息部分
                 VStack(alignment: .leading, spacing: 4) {
                     Text(url.lastPathComponent)
                         .font(.headline)
                         .lineLimit(1)
+                        .accessibilityIdentifier("cisum.audio-library.item.title")
 
                     HStack {
-                        switch AudioItemFileSizeDisplayPolicy.state(
-                            fileSize: fileSize,
-                            isUnavailable: fileSizeUnavailable
-                        ) {
-                        case .size(let fileSize):
-                            AppSizeLabel(bytes: fileSize)
-                        case .unavailable:
-                            Text("Unavailable", bundle: .module)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        case .loading:
-                            Text("...")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
+                        AudioItemFileSizeLabel(
+                            url: url,
+                            downloadStore: listViewModel.downloadStore
+                        )
                     }
                 }
 
                 Spacer()
             }
-        }
-        .task(id: url) {
-            await loadFileSize()
         }
         #if os(macOS)
             .contextMenu {
@@ -261,39 +170,6 @@ extension AudioItemView {
 // MARK: - Action
 
 extension AudioItemView {
-    /// 在后台加载文件大小
-    private func loadFileSize() async {
-        let requestedURL = url
-
-        // Check cache first without resetting state - avoids a flicker
-        if let cachedSize = AudioItemFileSizeCache.cachedSize(for: requestedURL) {
-            fileSize = cachedSize
-            fileSizeUnavailable = cachedSize == nil
-            return
-        }
-
-        // Only reset state when we actually need to load
-        fileSize = nil
-        fileSizeUnavailable = false
-
-        let size = await Task.detached(priority: .background) { () -> Int64? in
-            guard let attributes = try? FileManager.default.attributesOfItem(atPath: requestedURL.path) else {
-                return nil
-            }
-
-            return AudioItemFileSizeReadPolicy.fileSize(from: attributes)
-        }.value
-
-        guard !Task.isCancelled,
-              AudioItemFileSizeLoadPolicy.shouldApplySize(currentURL: url, requestedURL: requestedURL) else {
-            return
-        }
-
-        AudioItemFileSizeCache.store(size, for: requestedURL)
-        fileSize = size
-        fileSizeUnavailable = size == nil
-    }
-
     /// 导出到下载目录
     private func exportToDownloads() {
         let sourceURL = url

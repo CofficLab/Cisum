@@ -1,6 +1,5 @@
 import ProviderDocsView
 import ProviderPlayback
-import CisumUIComponents
 import LumiUI
 import KernelCore
 import ProviderPlugin
@@ -31,6 +30,9 @@ public final class OpenButtonPlugin: AsyncSuperPlugin, SuperLog {
     private nonisolated(unsafe) weak var kernel: KernelCoreContainer?
     private nonisolated(unsafe) var viewModel: OpenButtonViewModel?
     private nonisolated(unsafe) var observer: OpenButtonObserver?
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    private nonisolated(unsafe) var playbackCapability: OpenButtonCapabilityAdapter?
 
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
@@ -103,11 +105,11 @@ public final class OpenButtonPlugin: AsyncSuperPlugin, SuperLog {
 
         guard let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
 
-        let viewModel = OpenButtonViewModel(
-            playbackProvider: playback
-        )
+        let capability = OpenButtonCapabilityAdapter(playback: playback)
+        playbackCapability = capability
+        let viewModel = OpenButtonViewModel(playback: capability)
         self.viewModel = viewModel
-        observer = OpenButtonObserver(playback: playback, viewModel: viewModel)
+        observer = OpenButtonObserver(playback: capability, viewModel: viewModel)
     }
 
     @MainActor
@@ -115,6 +117,7 @@ public final class OpenButtonPlugin: AsyncSuperPlugin, SuperLog {
         observer?.cancel()
         observer = nil
         viewModel = nil
+        playbackCapability = nil
     }
 
 }

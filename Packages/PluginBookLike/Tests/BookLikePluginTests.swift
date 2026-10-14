@@ -158,7 +158,7 @@ struct BookLikeViewModelTests {
     func reloadLoadsLikedBooks() {
         let items = [BookLikeItem(url: URL(fileURLWithPath: "/tmp/book-a"), title: "A")]
         let viewModel = BookLikeViewModel(
-            playbackProvider: BookLikePlaybackProbe(),
+            isPlaybackAvailable: true,
             loadLikedBooks: { items },
             saveLikeStatus: { _, _ in }
         )
@@ -173,7 +173,7 @@ struct BookLikeViewModelTests {
     func likeSaveRequiresActiveScene() {
         var saved: [(Bool, URL)] = []
         let viewModel = BookLikeViewModel(
-            playbackProvider: BookLikePlaybackProbe(),
+            isPlaybackAvailable: true,
             loadLikedBooks: { [] },
             saveLikeStatus: { liked, url in saved.append((liked, url)) }
         )
@@ -197,7 +197,7 @@ struct BookLikeViewModelTests {
     func activationRequiresPlaybackProvider() {
         var saved: [(Bool, URL)] = []
         let viewModel = BookLikeViewModel(
-            playbackProvider: nil,
+            isPlaybackAvailable: false,
             loadLikedBooks: { [] },
             saveLikeStatus: { liked, url in saved.append((liked, url)) }
         )
@@ -211,7 +211,7 @@ struct BookLikeViewModelTests {
     func likeStatusChangeReloadsList() {
         var loadCount = 0
         let viewModel = BookLikeViewModel(
-            playbackProvider: BookLikePlaybackProbe(),
+            isPlaybackAvailable: true,
             loadLikedBooks: {
                 loadCount += 1
                 return []

@@ -1,7 +1,6 @@
 import ProviderAudioNavigation
 import ProviderDocsView
 import ProviderPlayback
-import CisumUIComponents
 import LumiUI
 import KernelCore
 import ProviderPlugin
@@ -33,6 +32,11 @@ public final class AudioWidgetControlPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var widgetViewModel: AudioWidgetControlViewModel?
     nonisolated(unsafe) private var widgetObserver: AudioWidgetCommandObserver?
+
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var playbackCapability: WidgetPlaybackCapabilityAdapter?
+    nonisolated(unsafe) private var navigationCapability: WidgetNavigationCapabilityAdapter?
 
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
@@ -87,33 +91,18 @@ public final class AudioWidgetControlPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     private func installState(kernel: KernelCoreContainer?) {
         guard widgetViewModel == nil else { return }
-        let viewModel = AudioWidgetControlViewModel(
-            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
-            nextAsset: { current, verbose in
-                guard let navigation = kernel?.resolveProvider((any AudioTrackNavigationProviding).self) else {
-                    return nil
-                }
-                return try await navigation.nextURL(after: current, verbose: verbose)
-            },
-            previousAsset: { current, verbose in
-                guard let navigation = kernel?.resolveProvider((any AudioTrackNavigationProviding).self) else {
-                    return nil
-                }
-                return try await navigation.previousURL(before: current, verbose: verbose)
-            },
-            firstAsset: {
-                guard let navigation = kernel?.resolveProvider((any AudioTrackNavigationProviding).self) else {
-                    return nil
-                }
-                return try await navigation.firstURL()
-            },
-            lastAsset: {
-                guard let navigation = kernel?.resolveProvider((any AudioTrackNavigationProviding).self) else {
-                    return nil
-                }
-                return try await navigation.lastURL()
-            }
+        // 播放为硬依赖（Widget 控制无播放对象即无意义）；导航为软依赖，
+        // 缺失时上一曲/下一曲命令静默放弃，不影响播放/暂停。
+        let playback = WidgetPlaybackCapabilityAdapter(
+            playback: kernel?.resolveProvider((any PlaybackProviding).self)
         )
+        let navigation = WidgetNavigationCapabilityAdapter(
+            navigation: kernel?.resolveProvider((any AudioTrackNavigationProviding).self)
+        )
+        playbackCapability = playback
+        navigationCapability = navigation
+
+        let viewModel = AudioWidgetControlViewModel(playback: playback, navigation: navigation)
         let observer = AudioWidgetCommandObserver(viewModel: viewModel)
         widgetViewModel = viewModel
         widgetObserver = observer
@@ -124,6 +113,8 @@ public final class AudioWidgetControlPlugin: AsyncSuperPlugin, SuperLog {
         widgetObserver?.cancel()
         widgetObserver = nil
         widgetViewModel = nil
+        playbackCapability = nil
+        navigationCapability = nil
     }
 
     @MainActor

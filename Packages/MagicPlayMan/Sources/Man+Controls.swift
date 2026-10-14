@@ -1,7 +1,6 @@
 import AVFoundation
 import Foundation
 import ProviderPlayback
-import CisumUIComponents
 import LumiUI
 import MagicKit
 import OSLog
@@ -183,23 +182,48 @@ public extension MagicPlayMan {
         // iCloud 未下载（dataless 占位）文件：本地只有占位元数据，AVFoundation 读取会失败
         // （AVError -11800），从而被下面的可播性校验误判为 invalidAsset。
         // 必须在可播性校验之前先确保内容落到本地。
-        if url.isFileURL, !url.hasLocalContent {
+        //
+        // 判定走下载网关（而非直接读磁盘），生产实现等价、行为不变，
+        // 但测试可注入替身让 UI 测试抵达「下载中/失败」状态。
+        if url.isFileURL,
+           !ICloudDownloadControl.shared.downloader.hasLocalContent(url) {
             if self.verbose {
                 os_log("\(self.t)☁️ (\(reason)) iCloud asset is not available locally, downloading: \(url.lastPathComponent)")
             }
 
             setState(.loading(.downloading(0)), reason: reason + ".iCloudDownload")
 
+            // 事件源：与仓库列表进度环同源（GlobalDownloadMonitor 从
+            // NSMetadataItem 的 percent key 推送进度）。生产环境下轮询的
+            // URL 资源键读不到百分比（长期为 0），只靠轮询 Hero 会一直
+            // 显示「0% 正在下载」，与列表进度不一致。
+            let eventProgressObserver = url.onDownloading(
+                verbose: self.verbose,
+                caller: self.className + ".play"
+            ) { [weak self] progress in
+                Task { @MainActor in
+                    self?.publishDownloadProgress(
+                        progress,
+                        requestGeneration: requestGeneration,
+                        reason: reason + ".eventProgress"
+                    )
+                }
+            }
+            defer { eventProgressObserver.cancel() }
+
+            // 轮询源保留：测试注入的替身与部分系统版本依赖快照读数推进。
+            // 两源经 MagicPlayManDownloadProgressPolicy 单调合并，互不覆盖。
             let progressTask = Task { @MainActor [weak self] in
                 while !Task.isCancelled {
                     try? await Task.sleep(nanoseconds: 500_000_000)
                     guard !Task.isCancelled, let self else { return }
                     guard self.isCurrentPlayRequest(requestGeneration) else { return }
 
-                    let progress = MagicPlayManPlaybackTimePolicy.normalizedUnitProgress(
-                        url.getDownloadProgressSnapshot(verbose: false)
+                    self.publishDownloadProgress(
+                        ICloudDownloadControl.shared.downloader.downloadProgress(url),
+                        requestGeneration: requestGeneration,
+                        reason: reason + ".pollProgress"
                     )
-                    self.setState(.loading(.downloading(progress)), reason: reason + ".iCloudDownload")
                 }
             }
             defer { progressTask.cancel() }
@@ -209,7 +233,7 @@ public extension MagicPlayMan {
             } catch {
                 os_log(.error, "\(self.t)❌ (\(reason)) iCloud download failed: \(error.localizedDescription)")
                 await resetPlayerItemAfterFailedPlayback(reason: reason + ".iCloudDownload")
-                setState(.failed(.networkError(error.localizedDescription)), reason: reason + ".play")
+                setState(.failed(.iCloudDownloadFailed(error.localizedDescription)), reason: reason + ".play")
                 return
             }
 
@@ -271,6 +295,26 @@ public extension MagicPlayMan {
             let item = AVPlayerItem(url: url)
             self.load(item, autoPlay: autoPlay, startTime: startTime, requestGeneration: requestGeneration, reason: reason)
         }
+    }
+
+    /// 发布合并后的下载进度。仅当「当前播放请求仍有效且正处于下载态」时生效：
+    /// - 事件源与轮询源都可能各自读到 0，经 `MagicPlayManDownloadProgressPolicy`
+    ///   单调合并，任一源的 0 都不得覆盖另一源已发布的真实进度
+    ///   （否则顶部 Hero 会卡在「0% 正在下载」，与列表进度环不一致）；
+    /// - 下载完成后迟到的进度不得把 preparing/playing 覆盖回 downloading。
+    @MainActor
+    func publishDownloadProgress(
+        _ value: Double,
+        requestGeneration: UInt64,
+        reason: String
+    ) {
+        guard isCurrentPlayRequest(requestGeneration) else { return }
+        guard case .loading(.downloading(let current)) = state else { return }
+
+        let progress = MagicPlayManDownloadProgressPolicy.merged(current: current, incoming: value)
+        guard progress != current else { return }
+
+        setState(.loading(.downloading(progress)), reason: reason)
     }
 
     @MainActor

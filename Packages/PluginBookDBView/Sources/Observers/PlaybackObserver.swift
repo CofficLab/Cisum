@@ -1,4 +1,3 @@
-import ProviderPlayback
 import OSLog
 import MagicKit
 
@@ -9,13 +8,13 @@ final class PlaybackObserver: SuperLog {
     nonisolated static let verbose = false
 
     private weak var viewModel: BookGridViewModel?
-    private var handle: (any PlaybackProvidingObserverHandle)?
+    private var handle: (any BookLibraryPlaybackObserverHandle)?
 
-    init(playback: (any PlaybackProviding)?, viewModel: BookGridViewModel) {
+    init(playback: any BookLibraryPlaybackCapability, viewModel: BookGridViewModel) {
         self.viewModel = viewModel
         if Self.verbose { os_log("\(Self.t)👀 BookDBPlaybackObserver 初始化") }
-        viewModel.handleAssetChanged(playback?.currentURL)
-        handle = playback?.addObserver { [weak self] event in
+        viewModel.handleAssetChanged(playback.currentURL)
+        handle = playback.addObserver { [weak self] event in
             guard case .assetChanged(let url) = event else { return }
             self?.viewModel?.handleAssetChanged(url)
         }

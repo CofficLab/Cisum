@@ -2,7 +2,8 @@ import ProviderAudioLibrary
 import SwiftUI
 
 public struct AudioDBDependencies: @unchecked Sendable {
-    public var audioLibrary: @MainActor @Sendable () -> (any AudioLibraryProviding)?
+    /// 音频库能力（Capabilities 目录收窄），内部惰性解析内核 Provider。
+    public var library: any AudioLibraryCapability
     public var audioDisk: @MainActor @Sendable () -> URL?
     public var audioDiagnostics: @MainActor @Sendable () -> AudioStorageDiagnostics
     public var supportedExtensions: [String]
@@ -12,7 +13,7 @@ public struct AudioDBDependencies: @unchecked Sendable {
     public var isImporting: Binding<Bool>
 
     public init(
-        audioLibrary: @escaping @MainActor @Sendable () -> (any AudioLibraryProviding)?,
+        library: any AudioLibraryCapability,
         audioDisk: @escaping @MainActor @Sendable () -> URL?,
         audioDiagnostics: @escaping @MainActor @Sendable () -> AudioStorageDiagnostics,
         supportedExtensions: [String],
@@ -21,7 +22,7 @@ public struct AudioDBDependencies: @unchecked Sendable {
         showDBView: @escaping @MainActor @Sendable () -> Void,
         isImporting: Binding<Bool>
     ) {
-        self.audioLibrary = audioLibrary
+        self.library = library
         self.audioDisk = audioDisk
         self.audioDiagnostics = audioDiagnostics
         self.supportedExtensions = supportedExtensions
@@ -31,8 +32,12 @@ public struct AudioDBDependencies: @unchecked Sendable {
         self.isImporting = isImporting
     }
 
+    /// 空依赖：音频库能力解析为 `nil`（Provider 未就绪 / 数据层插件缺席）。
+    ///
+    /// 标记 `@MainActor`：`AudioLibraryCapabilityAdapter` 的构造是 MainActor 隔离的。
+    @MainActor
     public static let empty = AudioDBDependencies(
-        audioLibrary: { nil },
+        library: AudioLibraryCapabilityAdapter(resolve: { nil }),
         audioDisk: { nil },
         audioDiagnostics: { AudioStorageDiagnosticsFactory.make(storage: nil) },
         supportedExtensions: [],

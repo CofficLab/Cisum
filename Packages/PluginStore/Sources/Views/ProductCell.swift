@@ -1,4 +1,3 @@
-import CisumUIComponents
 import MagicKit
 import LumiUI
 import OSLog
@@ -94,7 +93,7 @@ struct ProductCell: View, SuperLog {
                 .fill(.regularMaterial)
                 .stroke(borderColor, lineWidth: 1)
         )
-        .cisumShadowSm()
+        .shadowSm()
         .alert(isPresented: $isShowingError, content: {
             Alert(title: Text(LocalizedStringKey(errorTitle), bundle: .module), message: nil, dismissButton: .default(Text("OK", bundle: .module)))
         })
@@ -193,10 +192,10 @@ struct ProductCell: View, SuperLog {
         .padding(.vertical, 10)
         .background(appTheme.primary.opacity(0.12))
         .foregroundStyle(appTheme.primary)
-        .cisumHoverScale(105)
-        .cisumRoundedMedium()
-        .cisumShadowSm()
-        .cisumButton(buy)
+        .appHoverScale(1.05)
+        .appRoundedMedium()
+        .shadowSm()
+        .appPlainButton(buy)
         .disabled(purchasing || isPurchased)
         .opacity(isPurchased ? 0.6 : 1.0)
     }

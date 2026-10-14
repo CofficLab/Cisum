@@ -45,6 +45,11 @@ extension AvatarView {
             .frame(width: size.width, height: size.height)
             .background(backgroundColor)
             .clipShape(shape)
+            // 下载进度覆盖层标识：列表行用它断言「iCloud 文件正在下载」。
+            // 挂在 AvatarView 本体上无效（自定义视图不把修饰符透传给内容），
+            // 只能加在真正渲染出来的子视图上。
+            .accessibilityIdentifier("cisum.avatar.download.progress")
+            .accessibilityValue(Text("\(Int(progress * 100))%"))
         }
     }
 }

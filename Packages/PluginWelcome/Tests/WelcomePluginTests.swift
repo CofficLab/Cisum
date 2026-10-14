@@ -48,6 +48,30 @@ import Testing
     ) == .local)
 }
 
+/// [R3] 进入引导即展示默认预选，保证「继续」按钮始终有可提交的值。
+@Test func onboardingAlwaysPresentsASelectedDraftForTheConfirmButton() {
+    #expect(WelcomeStorageSelectionPolicy.displayedSelection(
+        currentStorageSelection: nil,
+        isICloudAvailable: true
+    ) != nil)
+    #expect(WelcomeStorageSelectionPolicy.displayedSelection(
+        currentStorageSelection: nil,
+        isICloudAvailable: false
+    ) != nil)
+}
+
+/// [R7] 已保存的选择不得被默认预选覆盖（老用户重新进入设置页/降级场景）。
+@Test func storageSelectionKeepsExistingChoiceWhenItIsStillAvailable() {
+    #expect(WelcomeStorageSelectionPolicy.displayedSelection(
+        currentStorageSelection: .local,
+        isICloudAvailable: true
+    ) == .local)
+    #expect(WelcomeStorageSelectionPolicy.displayedSelection(
+        currentStorageSelection: .icloud,
+        isICloudAvailable: true
+    ) == .icloud)
+}
+
 @Test func storageSelectionDoesNotPersistInitialDefaultBeforeUserChooses() {
     #expect(!WelcomeStorageSelectionPolicy.shouldPersistDisplayedSelectionOnAppear(
         currentStorageSelection: nil,

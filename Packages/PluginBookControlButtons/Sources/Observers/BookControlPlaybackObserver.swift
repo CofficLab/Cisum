@@ -1,4 +1,3 @@
-import ProviderPlayback
 import Foundation
 import OSLog
 import MagicPlayMan
@@ -12,9 +11,9 @@ final class BookControlPlaybackObserver: SuperLog {
     nonisolated static let verbose = false
 
     private weak var viewModel: BookControlViewModel?
-    private var playbackHandle: (any PlaybackProvidingObserverHandle)?
+    private var playbackHandle: (any BookControlPlaybackObserverHandle)?
 
-    init(playback: any PlaybackProviding, viewModel: BookControlViewModel) {
+    init(playback: any BookControlPlaybackCapability, viewModel: BookControlViewModel) {
         self.viewModel = viewModel
         if Self.verbose { os_log("\(Self.t)👀 BookControlPlaybackObserver 初始化") }
         playbackHandle = playback.addObserver { [weak self] event in
@@ -28,8 +27,6 @@ final class BookControlPlaybackObserver: SuperLog {
                 self.viewModel?.handlePreviousRequested(asset)
             case .nextRequested(let asset):
                 self.viewModel?.handleNextRequested(asset)
-            default:
-                break
             }
         }
     }

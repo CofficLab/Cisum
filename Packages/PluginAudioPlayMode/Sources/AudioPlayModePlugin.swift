@@ -4,7 +4,6 @@ import ProviderPlayback
 import KernelCore
 import ProviderPlugin
 import KitAppEvents
-import CisumUIComponents
 import LumiUI
 import ProviderAudioLibrary
 import ProviderToast
@@ -35,6 +34,13 @@ public final class AudioPlayModePlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var viewModel: AudioPlayModeViewModel?
     nonisolated(unsafe) private var observer: AudioPlayModeObserver?
+
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var playbackCapability: AudioPlayModeCapabilityAdapter?
+    nonisolated(unsafe) private var sceneCapability: AudioPlayModeSceneCapabilityAdapter?
+    nonisolated(unsafe) private var orderingCapability: AudioQueueOrderingCapabilityAdapter?
+    nonisolated(unsafe) private var toastCapability: AudioPlayModeToastCapabilityAdapter?
 
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
@@ -90,16 +96,33 @@ public final class AudioPlayModePlugin: AsyncSuperPlugin, SuperLog {
               let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
         sceneBox.scene = scene
 
+        // 入口强持有 Adapter，ViewModel / Observer 以 `weak` 或参数消费。
+        let playbackCapability = AudioPlayModeCapabilityAdapter(playback: playback)
+        let sceneCapability = AudioPlayModeSceneCapabilityAdapter(scene: scene)
+        let orderingCapability = AudioQueueOrderingCapabilityAdapter(
+            ordering: kernel.resolveProvider(AudioLibraryOrderingProviding.self)
+        )
+        let toastCapability = AudioPlayModeToastCapabilityAdapter(
+            toast: kernel.resolveProvider((any ToastProviding).self)
+        )
+        self.playbackCapability = playbackCapability
+        self.sceneCapability = sceneCapability
+        self.orderingCapability = orderingCapability
+        self.toastCapability = toastCapability
+
         let viewModel = AudioPlayModeViewModel(
-            playbackProvider: playback,
-            sort: makeSortAction(),
-            shuffle: makeShuffleAction(),
+            playback: playbackCapability,
+            ordering: orderingCapability,
             loadPlayMode: makeLoadPlayMode(),
             storePlayMode: makeStorePlayMode(),
-            toastProvider: kernel.resolveProvider((any ToastProviding).self)
+            toast: toastCapability
         )
         self.viewModel = viewModel
-        observer = AudioPlayModeObserver(scene: scene, playback: playback, viewModel: viewModel)
+        observer = AudioPlayModeObserver(
+            scene: sceneCapability,
+            playback: playbackCapability,
+            viewModel: viewModel
+        )
     }
 
     @MainActor
@@ -107,29 +130,13 @@ public final class AudioPlayModePlugin: AsyncSuperPlugin, SuperLog {
         observer?.cancel()
         observer = nil
         viewModel = nil
+        playbackCapability = nil
+        sceneCapability = nil
+        orderingCapability = nil
+        toastCapability = nil
     }
 
-    @MainActor
-    private func makeSortAction() -> AudioPlayModeSortAction {
-        let ordering = kernel?.resolveProvider(AudioLibraryOrderingProviding.self)
-        return { @MainActor currentURL in
-            guard let ordering else {
-                throw AudioLibraryProvidingError.unavailable
-            }
-            await ordering.sort(url: currentURL, reason: "PlayModeChanged")
-        }
-    }
 
-    @MainActor
-    private func makeShuffleAction() -> AudioPlayModeShuffleAction {
-        let ordering = kernel?.resolveProvider(AudioLibraryOrderingProviding.self)
-        return { @MainActor currentURL in
-            guard let ordering else {
-                throw AudioLibraryProvidingError.unavailable
-            }
-            try await ordering.sortRandom(url: currentURL, reason: "PlayModeChanged", verbose: false)
-        }
-    }
 
     /// 播放模式持久化的读取入口（由插件入口组装，不暴露单例给 ViewModel）。
     @MainActor

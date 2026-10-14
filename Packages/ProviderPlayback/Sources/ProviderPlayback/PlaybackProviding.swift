@@ -40,6 +40,11 @@ public enum PlaybackFailure: Equatable, Sendable {
     case playbackError(String)
     case unsupportedFormat(String)
     case invalidURL(String)
+    /// iCloud 文件未能下载到本地（超时 / 离线 / 请求被拒）。
+    ///
+    /// 与 `.networkError` 分开：二者的用户提示与恢复建议不同，
+    /// 跨插件传递时不应被合并为普通网络错误。
+    case iCloudDownloadFailed(String)
 }
 
 /// Provider 对外暴露的播放模式数据。

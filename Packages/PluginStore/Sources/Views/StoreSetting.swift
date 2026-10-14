@@ -1,4 +1,3 @@
-import CisumUIComponents
 import MagicKit
 import LumiUI
 import Foundation
@@ -85,13 +84,13 @@ public struct StoreSetting: View, SuperLog, SuperEvent {
                         description: String(localized: "Subscribe to Pro to unlock all features", bundle: .module),
                         icon: "cart"
                     ) {
-                        Image.cisumAppStore
+                        Image.appAppStore
                             .frame(width: 28)
                             .frame(height: 28)
                             .background(.regularMaterial, in: .circle)
-                            .cisumShadowSm()
-                            .cisumHoverScale(105)
-                            .cisumButton({
+                            .shadowSm()
+                            .appHoverScale(1.05)
+                            .appPlainButton({
                                 viewModel.showBuySheet = true
                             })
                             .accessibilityLabel(Self.purchaseActionLabel)
@@ -104,13 +103,13 @@ public struct StoreSetting: View, SuperLog, SuperEvent {
                         description: String(localized: "Restore purchases made on other devices", bundle: .module),
                         icon: "arrow.clockwise"
                     ) {
-                        Image.cisumReset
+                        Image.appReset
                             .frame(width: 28)
                             .frame(height: 28)
                             .background(.regularMaterial, in: .circle)
-                            .cisumShadowSm()
-                            .cisumHoverScale(105)
-                            .cisumButton({
+                            .shadowSm()
+                            .appHoverScale(1.05)
+                            .appPlainButton({
                                 viewModel.showRestoreSheet = true
                             })
                             .accessibilityLabel(Self.restorePurchaseActionLabel)

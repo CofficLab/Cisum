@@ -7,7 +7,9 @@ Cisum follows the same package model as Lumi and Kuzee and uses the pinned share
    playback primitives, UI components, event observation, and app utilities.
 2. `Provider*` packages define app-facing contracts, domain models, events, and
    observer handles. A Provider contract is the boundary used by the kernel's
-   registry; it is not duplicated as a narrower capability protocol in each plugin.
+   registry. A consuming plugin may narrow that contract further through a local
+   `Capabilities/` adapter that declares only the members it actually uses; the
+   Provider remains the single definition of the contract itself.
 3. `Plugin*` packages implement one feature and consume other features through
    their Provider contracts. A plugin can provide the concrete implementation for
    a service it owns, then register that implementation with the shared kernel.
@@ -24,8 +26,10 @@ FactoryCisum
   └── Kit*
 ```
 
-Avoid per-plugin `Capability` protocols and adapters that only forward calls to a
-Provider, app-wide compatibility/export aggregators, duplicate domain models, and
+Avoid capability adapters that mirror their Provider's entire protocol — such an
+adapter adds indirection without narrowing, which is the actual defect. A capability
+that declares only the members the owning plugin consumes is the intended pattern.
+Also avoid app-wide compatibility/export aggregators, duplicate domain models, and
 `NotificationCenter` shims where the owning Provider already exposes typed events.
 Put a shared contract in the appropriate `Provider*` package, shared presentation
 or utility in `Kit*`, feature behavior in `Plugin*`, and app-only assembly in

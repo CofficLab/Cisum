@@ -7,7 +7,6 @@ import ProviderToast
 import KernelCore
 import ProviderPlugin
 import KitAppEvents
-import CisumUIComponents
 import LumiUI
 import ProviderSettingView
 import SwiftUI
@@ -114,6 +113,13 @@ public final class AudioLikePlugin: AsyncSuperPlugin, SuperLog {
 
     // MARK: - State assembly
 
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var repositoryCapability: AudioLikeRepositoryCapabilityAdapter?
+    nonisolated(unsafe) private var playbackCapability: AudioLikePlaybackCapabilityAdapter?
+    nonisolated(unsafe) private var sceneCapability: AudioLikeSceneCapabilityAdapter?
+    nonisolated(unsafe) private var toastCapability: AudioLikeToastCapabilityAdapter?
+
     /// 创建并持有喜欢状态 ViewModel 与观察者（幂等）。
     @MainActor
     private func installState(kernel: KernelCoreContainer) {
@@ -123,13 +129,30 @@ public final class AudioLikePlugin: AsyncSuperPlugin, SuperLog {
               let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
         sceneBox.scene = scene
 
+        // 入口强持有 Adapter；仓库能力内部惰性解析本插件注册的 Provider。
+        let repository = AudioLikeRepositoryCapabilityAdapter { @MainActor [weak self] in
+            self?.kernel?.resolveProvider((any AudioLikeProviding).self)
+        }
+        let playbackCapability = AudioLikePlaybackCapabilityAdapter(playback: playback)
+        let sceneCapability = AudioLikeSceneCapabilityAdapter(scene: scene)
+        let toastCapability = AudioLikeToastCapabilityAdapter(
+            toast: kernel.resolveProvider((any ToastProviding).self)
+        )
+        repositoryCapability = repository
+        self.playbackCapability = playbackCapability
+        self.sceneCapability = sceneCapability
+        self.toastCapability = toastCapability
+
         let viewModel = AudioLikeViewModel(
             isPlaybackAvailable: true,
-            loadLikedAudios: makeLoadLikedAudios(),
-            saveLikeStatus: makeSaveLikeStatus(),
-            toastProvider: kernel.resolveProvider((any ToastProviding).self)
+            repository: repository,
+            toast: toastCapability
         )
-        let observer = AudioLikeObserver(scene: scene, playback: playback, viewModel: viewModel)
+        let observer = AudioLikeObserver(
+            scene: sceneCapability,
+            playback: playbackCapability,
+            viewModel: viewModel
+        )
         self.viewModel = viewModel
         self.observer = observer
     }
@@ -154,6 +177,10 @@ public final class AudioLikePlugin: AsyncSuperPlugin, SuperLog {
         observer?.cancel()
         observer = nil
         viewModel = nil
+        repositoryCapability = nil
+        playbackCapability = nil
+        sceneCapability = nil
+        toastCapability = nil
     }
 
     /// 返回当前持有的 ViewModel；若尚未安装（启动前或插件被禁用），
@@ -163,37 +190,22 @@ public final class AudioLikePlugin: AsyncSuperPlugin, SuperLog {
         if let viewModel {
             return viewModel
         }
+        // 视图贡献可能早于 boot：仓库能力内部惰性解析，无需在此重新装配观察者。
+        let repository = AudioLikeRepositoryCapabilityAdapter { @MainActor [weak self] in
+            self?.kernel?.resolveProvider((any AudioLikeProviding).self)
+        }
+        repositoryCapability = repository
         let viewModel = AudioLikeViewModel(
             isPlaybackAvailable: kernel?.resolveProvider((any PlaybackProviding).self) != nil,
-            loadLikedAudios: makeLoadLikedAudios(),
-            saveLikeStatus: makeSaveLikeStatus(),
-            toastProvider: kernel?.resolveProvider((any ToastProviding).self)
+            repository: repository,
+            toast: kernel?.resolveProvider((any ToastProviding).self)
+                .map(AudioLikeToastCapabilityAdapter.init)
         )
         self.viewModel = viewModel
         return viewModel
     }
 
-    /// 本地喜欢仓库的加载入口（由插件入口组装，不暴露单例给 ViewModel）。
-    @MainActor
-    private func makeLoadLikedAudios() -> AudioLikeLoadProvider {
-        { @MainActor in
-            await self.kernel?.resolveProvider((any AudioLikeProviding).self)?.allLiked() ?? []
-        }
-    }
 
-    /// 本地喜欢仓库的保存入口（由插件入口组装，不暴露单例给 ViewModel）。
-    @MainActor
-    private func makeSaveLikeStatus() -> AudioLikeSaveProvider {
-        { @MainActor audioId, liked, url, title in
-            guard let provider = self.kernel?.resolveProvider((any AudioLikeProviding).self) else { return }
-            try await provider.updateLikeStatus(
-                audioId: audioId,
-                liked: liked,
-                url: url,
-                title: title
-            )
-        }
-    }
 
     private final class SceneBox {
         weak var scene: (any SceneProviding)?

@@ -1,4 +1,3 @@
-import CisumUIComponents
 import MagicKit
 import LumiUI
 import OSLog
@@ -56,7 +55,7 @@ struct PurchaseView: View, SuperLog {
                     .infiniteWidth()
                 }
             }
-            .cisumPx2()
+            .padding(.horizontal, 8)
         }
     }
 }

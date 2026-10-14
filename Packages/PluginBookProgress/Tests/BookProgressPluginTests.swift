@@ -698,6 +698,39 @@ private final class BookProgressPlaybackProbe: PlaybackProviding {
     func togglePlayMode() {}
 }
 
+
+/// 最小书库能力探针：记录读写的进度偏好，替代原先的六个注入闭包。
+@MainActor
+private final class BookLibraryCapabilityProbe: BookProgressLibraryCapability {
+    var bookDisk: URL?
+    var currentURLValue: URL?
+    var currentTimeValue: TimeInterval?
+    var savedStates: [(bookURL: URL, currentURL: URL, time: TimeInterval?)] = []
+
+    func currentBookURL() -> URL? { currentURLValue }
+    func currentBookTime() -> TimeInterval? { currentTimeValue }
+    func storeCurrentBookURL(_ url: URL?) { currentURLValue = url }
+    func storeCurrentBookTime(_ time: TimeInterval) { currentTimeValue = time }
+
+    func savePlaybackState(for bookURL: URL, currentURL: URL?, time: TimeInterval?) async throws {
+        if let currentURL {
+            savedStates.append((bookURL, currentURL, time))
+        }
+    }
+
+    @discardableResult
+    func addObserver(
+        _ callback: @escaping (BookProgressLibraryEvent) -> Void
+    ) -> any BookProgressLibraryObserverHandle {
+        NoopBookProgressHandle()
+    }
+}
+
+@MainActor
+private final class NoopBookProgressHandle: BookProgressLibraryObserverHandle {
+    func cancel() {}
+}
+
 @MainActor
 struct BookProgressViewModelTests {
     @Test
@@ -711,15 +744,16 @@ struct BookProgressViewModelTests {
         try Data("audio".utf8).write(to: chapter)
 
         let playback = BookProgressPlaybackProbe()
+        let library = BookLibraryCapabilityProbe()
+        library.currentURLValue = book
+        library.currentTimeValue = 42
+        library.bookDisk = root
+        // ViewModel 以 `weak` 持有能力 Adapter，测试需自行持有（规则第 5 条）。
+        let playbackCapability = BookProgressPlaybackCapabilityAdapter(playback: playback)
         let viewModel = BookProgressViewModel(
             targetScene: .audiobooks,
-            playbackProvider: playback,
-            currentBookURL: { book },
-            currentBookTime: { 42 },
-            storeCurrentBookURL: { _ in },
-            storeCurrentBookTime: { _ in },
-            bookDisk: { root },
-            saveBookState: { _, _, _ in }
+            playback: playbackCapability,
+            library: library
         )
 
         viewModel.handleSceneChange(.audiobooks)
@@ -743,15 +777,16 @@ struct BookProgressViewModelTests {
 
         let playback = BookProgressPlaybackProbe()
         playback.currentURL = book
+        let library = BookLibraryCapabilityProbe()
+        library.currentURLValue = book
+        library.currentTimeValue = 30
+        library.bookDisk = root
+        // ViewModel 以 `weak` 持有能力 Adapter，测试需自行持有（规则第 5 条）。
+        let playbackCapability = BookProgressPlaybackCapabilityAdapter(playback: playback)
         let viewModel = BookProgressViewModel(
             targetScene: .audiobooks,
-            playbackProvider: playback,
-            currentBookURL: { book },
-            currentBookTime: { 30 },
-            storeCurrentBookURL: { _ in },
-            storeCurrentBookTime: { _ in },
-            bookDisk: { root },
-            saveBookState: { _, _, _ in }
+            playback: playbackCapability,
+            library: library
         )
 
         viewModel.handleSceneChange(.audiobooks)
@@ -772,50 +807,46 @@ struct BookProgressViewModelTests {
         try FileManager.default.createDirectory(at: book, withIntermediateDirectories: true)
         try Data("audio".utf8).write(to: chapter)
 
-        var storedTime: TimeInterval?
-        var savedStates: [(URL, URL, TimeInterval?)] = []
         let playback = BookProgressPlaybackProbe()
         playback.currentURL = chapter
         playback.state = .paused
         playback.currentTime = 15
+        let library = BookLibraryCapabilityProbe()
+        library.currentURLValue = book
+        library.bookDisk = root
+        // ViewModel 以 `weak` 持有能力 Adapter，测试需自行持有（规则第 5 条）。
+        let playbackCapability = BookProgressPlaybackCapabilityAdapter(playback: playback)
         let viewModel = BookProgressViewModel(
             targetScene: .audiobooks,
-            playbackProvider: playback,
-            currentBookURL: { book },
-            currentBookTime: { storedTime },
-            storeCurrentBookURL: { _ in },
-            storeCurrentBookTime: { storedTime = $0 },
-            bookDisk: { root },
-            saveBookState: { bookURL, currentURL, time in savedStates.append((bookURL, currentURL, time)) }
+            playback: playbackCapability,
+            library: library
         )
 
         viewModel.handleSceneChange(.audiobooks)
         viewModel.handlePlayManStateChanged(true)
-        for _ in 0..<50 where savedStates.isEmpty {
+        for _ in 0..<50 where library.savedStates.isEmpty {
             try await Task.sleep(for: .milliseconds(10))
         }
-        #expect(storedTime == 15)
-        #expect(savedStates.count == 1)
+        #expect(library.currentTimeValue == 15)
+        #expect(library.savedStates.count == 1)
     }
 
     @Test
     func deletionOfCurrentBookClearsStoredProgress() {
-        var storedURL: URL? = URL(fileURLWithPath: "/tmp/book")
-        var storedTime: TimeInterval = 100
         let playback = BookProgressPlaybackProbe()
+        let library = BookLibraryCapabilityProbe()
+        library.currentURLValue = URL(fileURLWithPath: "/tmp/book")
+        library.currentTimeValue = 100
+        // ViewModel 以 `weak` 持有能力 Adapter，测试需自行持有（规则第 5 条）。
+        let playbackCapability = BookProgressPlaybackCapabilityAdapter(playback: playback)
         let viewModel = BookProgressViewModel(
             targetScene: .audiobooks,
-            playbackProvider: playback,
-            currentBookURL: { storedURL },
-            currentBookTime: { storedTime },
-            storeCurrentBookURL: { storedURL = $0 },
-            storeCurrentBookTime: { storedTime = $0 },
-            bookDisk: { nil },
-            saveBookState: { _, _, _ in }
+            playback: playbackCapability,
+            library: library
         )
 
         viewModel.handleBookDBDeleted(deletedURLs: [URL(fileURLWithPath: "/tmp/book")])
-        #expect(storedURL == nil)
-        #expect(storedTime == 0)
+        #expect(library.currentURLValue == nil)
+        #expect(library.currentTimeValue == 0)
     }
 }
