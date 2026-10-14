@@ -1,7 +1,6 @@
 import CisumProviderStorage
 import ProviderAudioLibrary
 import ProviderDocsView
-import CisumUIComponents
 import LumiUI
 import KernelCore
 import ProviderPlugin
@@ -31,6 +30,9 @@ public final class AudioSettingsPlugin: AsyncSuperPlugin, SuperLog {
 
     nonisolated(unsafe) private var settingsViewModel: AudioSettingsViewModel?
     nonisolated(unsafe) private var settingsObserver: AudioSettingsObserver?
+
+    /// 本插件消费的能力 Adapter（见 Capabilities 规范第 5 条：入口强持有）。
+    nonisolated(unsafe) private var audioSettingsStorageCapability: AudioSettingsStorageCapabilityAdapter?
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
 
     @MainActor
@@ -91,7 +93,10 @@ public final class AudioSettingsPlugin: AsyncSuperPlugin, SuperLog {
         guard settingsViewModel == nil else { return }
         let viewModel = AudioSettingsViewModel(audioDisk: { [weak self] in self?.kernelAudioDisk() })
         guard let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
-        let observer = AudioSettingsObserver(provider: storage, viewModel: viewModel)
+        // 能力由入口组装并持有（观察者只在 init 期间使用能力安装订阅）。
+        let storageCapability = AudioSettingsStorageCapabilityAdapter(storage: storage)
+        audioSettingsStorageCapability = storageCapability
+        let observer = AudioSettingsObserver(storage: storageCapability, viewModel: viewModel)
         settingsViewModel = viewModel
         settingsObserver = observer
     }

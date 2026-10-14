@@ -22,7 +22,7 @@ final class PlaybackSceneObserver: SuperLog {
 
     private weak var player: MagicPlayMan?
     private let store: PlaybackStateStore
-    private var handle: (any SceneProvidingObserverHandle)?
+    private var handle: (any PlaybackSceneObserverHandle)?
 
     /// 恢复代际：快速连续切换场景时，仅最新一次恢复生效。
     private var restoreGeneration = 0
@@ -30,17 +30,17 @@ final class PlaybackSceneObserver: SuperLog {
     /// 当前激活场景；文件落盘时用它定位场景槽位。
     private(set) var currentScene: AppScene?
 
-    init(scene: (any SceneProviding)?, player: MagicPlayMan, store: PlaybackStateStore) {
+    init(scene: any PlaybackSceneCapability, player: MagicPlayMan, store: PlaybackStateStore) {
         self.player = player
         self.store = store
         // Initial sync：先同步当前快照再安装监听，避免丢失监听安装前的状态。
-        restore(scene?.currentScene)
-        handle = scene?.addObserver { [weak self] event in
-            guard case .selectionChanged(let scene) = event else { return }
-            self?.restore(scene)
+        restore(scene.currentScene)
+        handle = scene.addObserver { [weak self] event in
+            guard case .selectionChanged(let newScene) = event else { return }
+            self?.restore(newScene)
         }
         if Self.verbose {
-            Self.log.info("\(Self.t)👀 Scene observer installed; scene=\(String(describing: scene?.currentScene))")
+            Self.log.info("\(Self.t)👀 Scene observer installed; scene=\(String(describing: scene.currentScene))")
         }
     }
 

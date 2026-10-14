@@ -1,21 +1,21 @@
 import ProviderBook
 import SwiftUI
 
-/// 有声书仓库设置页依赖：通过 Provider 访问书籍数据。
+/// 有声书仓库设置页依赖：通过本插件的书库能力访问书籍数据。
 public struct BookDBDependencies: @unchecked Sendable {
-    public var bookProvider: (any BookDatabaseProviding)?
+    public var bookLibrary: (any BookLibraryCapability)?
     public var bookDisk: @MainActor @Sendable () -> URL?
 
     public init(
-        bookProvider: (any BookDatabaseProviding)?,
+        bookLibrary: (any BookLibraryCapability)?,
         bookDisk: @escaping @MainActor @Sendable () -> URL?
     ) {
-        self.bookProvider = bookProvider
+        self.bookLibrary = bookLibrary
         self.bookDisk = bookDisk
     }
 
     public static let empty = BookDBDependencies(
-        bookProvider: nil,
+        bookLibrary: nil,
         bookDisk: { nil }
     )
 }

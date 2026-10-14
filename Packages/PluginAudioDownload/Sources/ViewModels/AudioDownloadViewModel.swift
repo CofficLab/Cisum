@@ -2,22 +2,24 @@ import Foundation
 import MagicKit
 import OSLog
 import ProviderScene
-import ProviderToast
-import ProviderPlayback
 
 @MainActor
 final class AudioDownloadViewModel: SuperLog {
     static let emoji = "⬇️"
     private static let verbose = false
-    private weak var playbackProvider: (any PlaybackProviding)?
-    private let toastProvider: (any ToastProviding)?
+    /// 播放与提示能力（Capabilities 目录收窄），`weak` 持有。
+    private weak var playback: (any AudioDownloadCapability)?
+    private weak var toast: (any AudioDownloadToastCapability)?
     private var currentScene: AppScene?
     private var generation = 0
     private var activeDownloadAssets: [URL] = []
 
-    init(playbackProvider: (any PlaybackProviding)?, toastProvider: (any ToastProviding)? = nil) {
-        self.playbackProvider = playbackProvider
-        self.toastProvider = toastProvider
+    init(
+        playback: (any AudioDownloadCapability)?,
+        toast: (any AudioDownloadToastCapability)? = nil
+    ) {
+        self.playback = playback
+        self.toast = toast
     }
 
     func handleSceneChange(_ scene: AppScene?) {
@@ -26,7 +28,7 @@ final class AudioDownloadViewModel: SuperLog {
         }
         currentScene = scene
         guard scene == .music else { return }
-        handleAssetChanged(playbackProvider?.currentURL)
+        handleAssetChanged(playback?.currentURL)
     }
 
     func handleAssetChanged(_ url: URL?) {
@@ -43,7 +45,7 @@ final class AudioDownloadViewModel: SuperLog {
             guard let self,
                   AudioDownloadRequestPolicy.shouldApplyDownloadResult(
                       requestedAsset: url,
-                      currentAsset: self.playbackProvider?.currentURL,
+                      currentAsset: self.playback?.currentURL,
                       isSceneActive: self.currentScene == .music,
                       currentGeneration: self.generation,
                       requestGeneration: requestGeneration
@@ -52,7 +54,7 @@ final class AudioDownloadViewModel: SuperLog {
                 try await url!.ensureLocalAvailability()
                 guard AudioDownloadRequestPolicy.shouldApplyDownloadResult(
                     requestedAsset: url,
-                    currentAsset: self.playbackProvider?.currentURL,
+                    currentAsset: self.playback?.currentURL,
                     isSceneActive: self.currentScene == .music,
                     currentGeneration: self.generation,
                     requestGeneration: requestGeneration
@@ -61,7 +63,7 @@ final class AudioDownloadViewModel: SuperLog {
             } catch {
                 guard self.currentScene == .music, self.generation == requestGeneration else { return }
                 os_log(.error, "音频文件下载失败: %{public}@", error.localizedDescription)
-                toastProvider?.error(String(localized: "Download failed: \(error.localizedDescription)", bundle: .module))
+                toast?.error(String(localized: "Download failed: \(error.localizedDescription)", bundle: .module))
             }
         }
     }

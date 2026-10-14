@@ -36,6 +36,9 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private var libraryProvider: AudioLibraryProvider?
     nonisolated(unsafe) private var navigationProvider: AudioTrackNavigationProvider?
     nonisolated(unsafe) private var storageObserver: AudioStorageObserver?
+
+    /// 本插件消费的能力 Adapter（见 Capabilities 规范第 5 条：入口强持有）。
+    nonisolated(unsafe) private var audioDataStorageCapability: AudioDataStorageCapabilityAdapter?
     nonisolated(unsafe) private var fileSystemMonitor: AudioFileSystemMonitor?
 
     @MainActor
@@ -48,6 +51,7 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         try installProviders(kernel: kernel)
+        resetUITestAudioStateIfRequested()
         seedUITestAudioIfRequested()
         setupStorageLocationObserver(kernel: kernel)
         startFileSystemMonitor()
@@ -76,6 +80,33 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     }
 
     // MARK: - UI test support
+
+    /// Resets the audio repository to a known-empty state before each UI test
+    /// launch. UI tests expect a deterministic repository, but a previous test
+    /// run's seed audio can persist in the shared audio database (the shutdown
+    /// cleanup is not reliable when XCUITest terminates the app). Clearing the
+    /// disk directory on startup makes the empty-repository precondition hold
+    /// regardless of what the previous run left behind.
+    @MainActor
+    private func resetUITestAudioStateIfRequested() {
+        #if DEBUG
+        let arguments = ProcessInfo.processInfo.arguments
+        guard arguments.contains("--cisum-ui-testing"),
+              let provider = libraryProvider,
+              let disk = provider.audioDisk else { return }
+
+        let urls = (try? FileManager.default.contentsOfDirectory(
+            at: disk,
+            includingPropertiesForKeys: nil
+        )) ?? []
+        for url in urls {
+            try? FileManager.default.removeItem(at: url)
+        }
+        if !urls.isEmpty {
+            os_log("🧹 UI test audio repository reset: removed \(urls.count) leftover item(s)")
+        }
+        #endif
+    }
 
     /// Creates a deterministic audio entry inside the app sandbox so UI tests
     /// can exercise the repository list without driving the system file picker.
@@ -168,7 +199,9 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     private func setupStorageLocationObserver(kernel: KernelCoreContainer) {
         guard storageObserver == nil, let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
-        storageObserver = AudioStorageObserver(provider: storage) { [weak self] _ in
+        let storageCapability = AudioDataStorageCapabilityAdapter(storage: storage)
+        audioDataStorageCapability = storageCapability
+        storageObserver = AudioStorageObserver(storage: storageCapability) { [weak self] _ in
             Task { @MainActor [weak self] in
                 await self?.restartFileSystemMonitor()
             }

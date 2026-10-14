@@ -95,14 +95,14 @@ struct LikeButtonViewModelTests {
         playback.currentURL = URL(fileURLWithPath: "/tmp/song.mp3")
         playback.likedAssets = [URL(fileURLWithPath: "/tmp/song.mp3")]
 
-        let viewModel = LikeButtonViewModel(playbackProvider: playback)
+        let viewModel = LikeButtonViewModel(playback: LikeButtonCapabilityAdapter(playback: playback))
         #expect(viewModel.hasAsset)
         #expect(viewModel.isLiked)
     }
 
     @Test
     func initFallsBackWhenPlaybackIsUnavailable() {
-        let viewModel = LikeButtonViewModel(playbackProvider: nil)
+        let viewModel = LikeButtonViewModel(playback: nil)
         #expect(!viewModel.hasAsset)
         #expect(!viewModel.isLiked)
     }
@@ -112,7 +112,7 @@ struct LikeButtonViewModelTests {
         let playback = PlaybackProbe()
         let url = URL(fileURLWithPath: "/tmp/song.mp3")
         playback.likedAssets = [url]
-        let viewModel = LikeButtonViewModel(playbackProvider: playback)
+        let viewModel = LikeButtonViewModel(playback: LikeButtonCapabilityAdapter(playback: playback))
 
         viewModel.handleAssetChanged(url)
         #expect(viewModel.hasAsset)
@@ -125,7 +125,7 @@ struct LikeButtonViewModelTests {
 
     @Test
     func handleLikeStatusChangedUpdatesFlag() {
-        let viewModel = LikeButtonViewModel(playbackProvider: nil)
+        let viewModel = LikeButtonViewModel(playback: nil)
         viewModel.handleLikeStatusChanged(true)
         #expect(viewModel.isLiked)
         viewModel.handleLikeStatusChanged(false)
@@ -137,7 +137,7 @@ struct LikeButtonViewModelTests {
         let playback = PlaybackProbe()
         let url = URL(fileURLWithPath: "/tmp/song.mp3")
         playback.currentURL = url
-        let viewModel = LikeButtonViewModel(playbackProvider: playback)
+        let viewModel = LikeButtonViewModel(playback: LikeButtonCapabilityAdapter(playback: playback))
 
         viewModel.handleLikedAssetsChanged([url])
         #expect(viewModel.isLiked)
@@ -149,7 +149,7 @@ struct LikeButtonViewModelTests {
     @Test
     func toggleLikeForwardsToCapability() {
         let playback = PlaybackProbe()
-        let viewModel = LikeButtonViewModel(playbackProvider: playback)
+        let viewModel = LikeButtonViewModel(playback: LikeButtonCapabilityAdapter(playback: playback))
         viewModel.toggleLike()
         #expect(playback.toggleCount == 1)
     }
@@ -160,8 +160,8 @@ struct LikeButtonObserverTests {
     @Test
     func forwardsPlaybackEvents() {
         let probe = PlaybackProbe()
-        let viewModel = LikeButtonViewModel(playbackProvider: nil)
-        let observer = LikeButtonObserver(playback: probe, viewModel: viewModel)
+        let viewModel = LikeButtonViewModel(playback: nil)
+        let observer = LikeButtonObserver(playback: LikeButtonCapabilityAdapter(playback: probe), viewModel: viewModel)
         defer { observer.cancel() }
 
         let url = URL(fileURLWithPath: "/tmp/a.mp3")
@@ -178,8 +178,8 @@ struct LikeButtonObserverTests {
     @Test
     func cancellingObserverStopsForwarding() {
         let probe = PlaybackProbe()
-        let viewModel = LikeButtonViewModel(playbackProvider: nil)
-        let observer = LikeButtonObserver(playback: probe, viewModel: viewModel)
+        let viewModel = LikeButtonViewModel(playback: nil)
+        let observer = LikeButtonObserver(playback: LikeButtonCapabilityAdapter(playback: probe), viewModel: viewModel)
 
         observer.cancel()
         probe.emitAssetChanged(URL(fileURLWithPath: "/tmp/b.mp3"))

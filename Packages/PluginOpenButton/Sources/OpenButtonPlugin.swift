@@ -1,6 +1,5 @@
 import ProviderDocsView
 import ProviderPlayback
-import CisumUIComponents
 import LumiUI
 import KernelCore
 import ProviderPlugin
@@ -31,6 +30,9 @@ public final class OpenButtonPlugin: AsyncSuperPlugin, SuperLog {
     private nonisolated(unsafe) weak var kernel: KernelCoreContainer?
     private nonisolated(unsafe) var viewModel: OpenButtonViewModel?
     private nonisolated(unsafe) var observer: OpenButtonObserver?
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    private nonisolated(unsafe) var playbackCapability: OpenButtonCapabilityAdapter?
 
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
@@ -43,25 +45,29 @@ public final class OpenButtonPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         #if os(macOS)
-        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            contrib.addToolBarButtons(ownerPluginID: id, self.addToolBarButtons())
-        }
-        #endif
         self.kernel = kernel
-        // 跨插件 Provider（Playback）在 onReady 中解析，
-        // 不假设其他插件已完成 Provider 注册。
+        // onBoot 时 viewModel 尚未就绪，延迟到 onReady 注册工具栏按钮。
+        #else
+        self.kernel = kernel
+        #endif
     }
 
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
     @MainActor
     public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         installState(kernel: kernel)
+        #if os(macOS)
+        registerToolBarButtonsIfNeeded()
+        #endif
     }
 
     @MainActor
     public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         installState(kernel: kernel)
+        #if os(macOS)
+        registerToolBarButtonsIfNeeded()
+        #endif
     }
 
     @MainActor
@@ -82,6 +88,13 @@ public final class OpenButtonPlugin: AsyncSuperPlugin, SuperLog {
             guard let viewModel else { return [] }
             return [(id: OpenButtonPluginInfo.toolbarItemId, view: AnyView(OpenCurrentButtonView(viewModel: viewModel)))]
         }
+
+        @MainActor
+        private func registerToolBarButtonsIfNeeded() {
+            guard let kernel else { return }
+            guard let contrib = kernel.resolveProvider((any PluginContributionProviding).self) else { return }
+            contrib.addToolBarButtons(ownerPluginID: id, addToolBarButtons())
+        }
     #endif
 
     // MARK: - State assembly
@@ -92,11 +105,11 @@ public final class OpenButtonPlugin: AsyncSuperPlugin, SuperLog {
 
         guard let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
 
-        let viewModel = OpenButtonViewModel(
-            playbackProvider: playback
-        )
+        let capability = OpenButtonCapabilityAdapter(playback: playback)
+        playbackCapability = capability
+        let viewModel = OpenButtonViewModel(playback: capability)
         self.viewModel = viewModel
-        observer = OpenButtonObserver(playback: playback, viewModel: viewModel)
+        observer = OpenButtonObserver(playback: capability, viewModel: viewModel)
     }
 
     @MainActor
@@ -104,6 +117,7 @@ public final class OpenButtonPlugin: AsyncSuperPlugin, SuperLog {
         observer?.cancel()
         observer = nil
         viewModel = nil
+        playbackCapability = nil
     }
 
 }

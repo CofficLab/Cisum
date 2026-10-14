@@ -75,19 +75,19 @@ struct OpenButtonViewModelTests {
     func initReflectsCurrentURL() {
         let playback = PlaybackProbe()
         playback.currentURL = URL(fileURLWithPath: "/tmp/song.mp3")
-        let viewModel = OpenButtonViewModel(playbackProvider: playback)
+        let viewModel = OpenButtonViewModel(playback: OpenButtonCapabilityAdapter(playback: playback))
         #expect(viewModel.url == playback.currentURL)
     }
 
     @Test
     func initWithoutPlaybackKeepsNil() {
-        let viewModel = OpenButtonViewModel(playbackProvider: nil)
+        let viewModel = OpenButtonViewModel(playback: nil)
         #expect(viewModel.url == nil)
     }
 
     @Test
     func handleAssetChangedUpdatesURL() {
-        let viewModel = OpenButtonViewModel(playbackProvider: nil)
+        let viewModel = OpenButtonViewModel(playback: nil)
         let url = URL(fileURLWithPath: "/tmp/new.mp3")
         viewModel.handleAssetChanged(url)
         #expect(viewModel.url == url)
@@ -101,8 +101,8 @@ struct OpenButtonObserverTests {
     @Test
     func forwardsAssetChanges() {
         let probe = PlaybackProbe()
-        let viewModel = OpenButtonViewModel(playbackProvider: nil)
-        let observer = OpenButtonObserver(playback: probe, viewModel: viewModel)
+        let viewModel = OpenButtonViewModel(playback: nil)
+        let observer = OpenButtonObserver(playback: OpenButtonCapabilityAdapter(playback: probe), viewModel: viewModel)
         defer { observer.cancel() }
 
         probe.emitAssetChanged(URL(fileURLWithPath: "/tmp/a.mp3"))
@@ -114,8 +114,8 @@ struct OpenButtonObserverTests {
     @Test
     func cancellingObserverStopsForwarding() {
         let probe = PlaybackProbe()
-        let viewModel = OpenButtonViewModel(playbackProvider: nil)
-        let observer = OpenButtonObserver(playback: probe, viewModel: viewModel)
+        let viewModel = OpenButtonViewModel(playback: nil)
+        let observer = OpenButtonObserver(playback: OpenButtonCapabilityAdapter(playback: probe), viewModel: viewModel)
 
         observer.cancel()
         probe.emitAssetChanged(URL(fileURLWithPath: "/tmp/b.mp3"))

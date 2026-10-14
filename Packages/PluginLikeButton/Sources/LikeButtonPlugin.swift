@@ -1,6 +1,5 @@
 import ProviderDocsView
 import ProviderPlayback
-import CisumUIComponents
 import LumiUI
 import KernelCore
 import ProviderPlugin
@@ -31,6 +30,9 @@ public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var viewModel: LikeButtonViewModel?
     nonisolated(unsafe) private var observer: LikeButtonObserver?
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var playbackCapability: LikeButtonCapabilityAdapter?
 
 
     @MainActor
@@ -43,24 +45,22 @@ public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
-        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            contrib.addToolBarButtons(ownerPluginID: id, self.addToolBarButtons())
-        }
         self.kernel = kernel
-        // 跨插件 Provider（Playback）在 onReady 中解析，
-        // 不假设其他插件已完成 Provider 注册。
+        // onBoot 时 viewModel 尚未就绪，延迟到 onReady 注册工具栏按钮。
     }
 
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
     @MainActor
     public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         installState(kernel: kernel)
+        registerToolBarButtonsIfNeeded()
     }
 
     @MainActor
     public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         installState(kernel: kernel)
+        registerToolBarButtonsIfNeeded()
     }
 
     @MainActor
@@ -80,6 +80,13 @@ public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
         return [(id: LikeButtonPluginInfo.toolbarItemId, view: AnyView(LikeToggleButtonView(viewModel: viewModel)))]
     }
 
+    @MainActor
+    private func registerToolBarButtonsIfNeeded() {
+        guard let kernel else { return }
+        guard let contrib = kernel.resolveProvider((any PluginContributionProviding).self) else { return }
+        contrib.addToolBarButtons(ownerPluginID: id, addToolBarButtons())
+    }
+
     // MARK: - State assembly
 
     @MainActor
@@ -88,11 +95,11 @@ public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
 
         guard let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
 
-        let viewModel = LikeButtonViewModel(
-            playbackProvider: playback
-        )
+        let capability = LikeButtonCapabilityAdapter(playback: playback)
+        playbackCapability = capability
+        let viewModel = LikeButtonViewModel(playback: capability)
         self.viewModel = viewModel
-        observer = LikeButtonObserver(playback: playback, viewModel: viewModel)
+        observer = LikeButtonObserver(playback: capability, viewModel: viewModel)
     }
 
     @MainActor
@@ -100,6 +107,7 @@ public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
         observer?.cancel()
         observer = nil
         viewModel = nil
+        playbackCapability = nil
     }
 
 }

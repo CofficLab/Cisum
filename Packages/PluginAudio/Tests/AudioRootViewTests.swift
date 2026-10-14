@@ -20,11 +20,39 @@ import Testing
 }
 
 
+/// 最小存储能力探针：只提供可用性布尔量（适配器对 Provider 为 `weak`，
+/// 无法包装临时 Provider，故字面量场景直接实现能力）。
+@MainActor
+private final class AudioStorageCapabilityProbe: AudioRootStorageCapability {
+    var hasUsableStorageLocation: Bool
+
+    init(hasUsable: Bool) {
+        self.hasUsableStorageLocation = hasUsable
+    }
+
+    @discardableResult
+    func addObserver(
+        _ callback: @escaping (AudioRootStorageEvent) -> Void
+    ) -> any AudioRootStorageObserverHandle {
+        NoopAudioStorageHandle()
+    }
+}
+
+@MainActor
+private final class NoopAudioStorageHandle: AudioRootStorageObserverHandle {
+    func cancel() {}
+}
+
+@MainActor
+private func makeStorage(hasUsable: Bool) -> AudioStorageCapabilityProbe {
+    AudioStorageCapabilityProbe(hasUsable: hasUsable)
+}
+
 @MainActor
 struct AudioRootViewModelTests {
     @Test
     func reloadWithStorageFinishesInitialization() {
-        let viewModel = AudioRootViewModel(hasStorageLocation: { true })
+        let viewModel = AudioRootViewModel(storage: makeStorage(hasUsable: true))
         viewModel.reloadContainer()
         #expect(viewModel.isInitializing == false)
         #expect(viewModel.error == nil)
@@ -32,7 +60,7 @@ struct AudioRootViewModelTests {
 
     @Test
     func reloadWithoutStorageReportsMissingStorage() {
-        let viewModel = AudioRootViewModel(hasStorageLocation: { false })
+        let viewModel = AudioRootViewModel(storage: makeStorage(hasUsable: false))
         viewModel.reloadContainer()
         #expect(viewModel.isInitializing == false)
         #expect(viewModel.error == .storageMissing)
@@ -40,7 +68,7 @@ struct AudioRootViewModelTests {
 
     @Test
     func storageLocationChangeProducesNewNotice() {
-        let viewModel = AudioRootViewModel(hasStorageLocation: { true })
+        let viewModel = AudioRootViewModel(storage: makeStorage(hasUsable: true))
         viewModel.handleStorageLocationChanged()
         let first = viewModel.storageLocationDidChangeNotice
         viewModel.handleStorageLocationChanged()
@@ -87,8 +115,9 @@ struct AudioStorageObserverTests {
     func observerDrivesReloadOnStorageEvents() {
         let provider = StorageProviderProbe()
         provider.hasUsableStorageLocation = true
-        let viewModel = AudioRootViewModel(hasStorageLocation: { provider.hasUsableStorageLocation })
-        let observer = AudioStorageObserver(provider: provider, viewModel: viewModel)
+        let storage = AudioRootStorageCapabilityAdapter(storage: provider)
+        let viewModel = AudioRootViewModel(storage: storage)
+        let observer = AudioStorageObserver(storage: storage, viewModel: viewModel)
 
         // 初始同步应完成一次加载。
         #expect(viewModel.isInitializing == false)
@@ -104,8 +133,11 @@ struct AudioStorageObserverTests {
     @Test
     func observerCancellationIsIdempotent() {
         let provider = StorageProviderProbe()
-        let viewModel = AudioRootViewModel(hasStorageLocation: { true })
-        let observer = AudioStorageObserver(provider: provider, viewModel: viewModel)
+        let viewModel = AudioRootViewModel(storage: makeStorage(hasUsable: true))
+        let observer = AudioStorageObserver(
+            storage: AudioRootStorageCapabilityAdapter(storage: provider),
+            viewModel: viewModel
+        )
         observer.cancel()
         observer.cancel()
         #expect(true)

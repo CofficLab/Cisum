@@ -172,10 +172,10 @@ struct ScenePluginTests {
         service.restoreCurrentScene()
         service.setCurrentScene(.audiobooks)
 
-        let viewModel = SceneSettingsViewModel(
-            sceneProvider: service
-        )
-        let observer = SceneProvidingObserver(provider: service, viewModel: viewModel)
+        // 走真实 SceneProvider + Adapter：验证 Adapter 的转发与句柄取消正确。
+        let capability = SceneSelectionCapabilityAdapter(scene: service)
+        let viewModel = SceneSettingsViewModel(selection: capability)
+        let observer = SceneProvidingObserver(selection: capability, viewModel: viewModel)
         defer { observer.cancel() }
 
         // 监听安装前已经存在的状态不能丢失。
@@ -194,10 +194,10 @@ struct ScenePluginTests {
         let service = SceneProvider(pluginDataDirectory: pluginDir)
         service.restoreCurrentScene()
 
-        let viewModel = SceneSettingsViewModel(
-            sceneProvider: service
-        )
-        let observer = SceneProvidingObserver(provider: service, viewModel: viewModel)
+        // 走真实 SceneProvider + Adapter：验证 Adapter 的转发与句柄取消正确。
+        let capability = SceneSelectionCapabilityAdapter(scene: service)
+        let viewModel = SceneSettingsViewModel(selection: capability)
+        let observer = SceneProvidingObserver(selection: capability, viewModel: viewModel)
         defer { observer.cancel() }
 
         service.setCurrentScene(.audiobooks)
@@ -215,10 +215,10 @@ struct ScenePluginTests {
         let service = SceneProvider(pluginDataDirectory: pluginDir)
         service.restoreCurrentScene()
 
-        let viewModel = SceneSettingsViewModel(
-            sceneProvider: service
-        )
-        let observer = SceneProvidingObserver(provider: service, viewModel: viewModel)
+        // 走真实 SceneProvider + Adapter：验证 Adapter 的转发与句柄取消正确。
+        let capability = SceneSelectionCapabilityAdapter(scene: service)
+        let viewModel = SceneSettingsViewModel(selection: capability)
+        let observer = SceneProvidingObserver(selection: capability, viewModel: viewModel)
 
         service.setCurrentScene(.audiobooks)
         #expect(viewModel.currentScene == .audiobooks)

@@ -7,9 +7,20 @@ import Testing
 
 // MARK: - 探针实现
 
-/// 最小播放探针：支持广播 playModeChanged 事件。
+/// 最小排序能力探针：记录顺序/随机重建队列的调用。
 @MainActor
-private final class PlaybackProbe: PlaybackProviding {
+private final class OrderingProbe: AudioQueueOrderingCapability {
+    var onSort: ((_ currentURL: URL?) async throws -> Void)?
+    var onShuffle: ((_ currentURL: URL?) async throws -> Void)?
+
+    func sort(currentURL: URL?) async throws { try await onSort?(currentURL) }
+    func shuffle(currentURL: URL?) async throws { try await onShuffle?(currentURL) }
+}
+
+/// 最小播放探针：支持广播 playModeChanged 事件。
+/// 最小播放探针：同时实现内核 Provider 与本插件的播放模式能力。
+@MainActor
+private final class PlaybackProbe: PlaybackProviding, AudioPlayModeCapability {
     var state: PlaybackStatus = .idle
     var currentURL: URL?
     var currentTime: TimeInterval = 0
@@ -50,10 +61,24 @@ private final class PlaybackProbe: PlaybackProviding {
             self?.observers.removeValue(forKey: id)
         }
     }
+
+    @discardableResult
+    func addObserver(
+        _ callback: @escaping (AudioPlayModeEvent) -> Void
+    ) -> any AudioPlayModeObserverHandle {
+        let id = UUID()
+        observers[id] = { event in
+            guard case let .playModeChanged(mode) = event else { return }
+            callback(.playModeChanged(mode))
+        }
+        return ProbePlaybackHandle { [weak self] in
+            self?.observers.removeValue(forKey: id)
+        }
+    }
 }
 
 @MainActor
-private final class ProbePlaybackHandle: PlaybackProvidingObserverHandle {
+private final class ProbePlaybackHandle: PlaybackProvidingObserverHandle, AudioPlayModeObserverHandle {
     private let onCancel: () -> Void
     private var cancelled = false
 
@@ -69,8 +94,9 @@ private final class ProbePlaybackHandle: PlaybackProvidingObserverHandle {
 }
 
 /// 最小场景探针：触发 selectionChanged 事件。
+/// 最小场景探针：同时实现内核 Provider 与本插件的场景能力。
 @MainActor
-private final class SceneProbe: SceneProviding {
+private final class SceneProbe: SceneProviding, AudioPlayModeSceneCapability {
     var scenes: [AppScene] = [.music, .audiobooks]
     var currentScene: AppScene?
     private var observers: [UUID: (SceneProvidingEvent) -> Void] = [:]
@@ -93,10 +119,24 @@ private final class SceneProbe: SceneProviding {
             self?.observers.removeValue(forKey: id)
         }
     }
+
+    @discardableResult
+    func addObserver(
+        _ callback: @escaping (AudioPlayModeSceneEvent) -> Void
+    ) -> any AudioPlayModeSceneObserverHandle {
+        let id = UUID()
+        observers[id] = { event in
+            guard case let .selectionChanged(scene) = event else { return }
+            callback(.selectionChanged(scene: scene))
+        }
+        return ProbeSceneHandle { [weak self] in
+            self?.observers.removeValue(forKey: id)
+        }
+    }
 }
 
 @MainActor
-private final class ProbeSceneHandle: SceneProvidingObserverHandle {
+private final class ProbeSceneHandle: SceneProvidingObserverHandle, AudioPlayModeSceneObserverHandle {
     private let onCancel: () -> Void
     private var cancelled = false
 
@@ -178,16 +218,18 @@ struct AudioPlayModeViewModelTests {
     private func makeViewModel(
         targetScene: AppScene = .music,
         capability: PlaybackProbe? = PlaybackProbe(),
-        onSort: @escaping AudioPlayModeSortAction = { _ in },
-        onShuffle: @escaping AudioPlayModeShuffleAction = { _ in },
+        onSort: @escaping (_ currentURL: URL?) async throws -> Void = { _ in },
+        onShuffle: @escaping (_ currentURL: URL?) async throws -> Void = { _ in },
         load: @escaping AudioPlayModeLoadAction = { .sequence },
         store: @escaping AudioPlayModeStoreAction = { _, _ in }
     ) -> AudioPlayModeViewModel {
-        AudioPlayModeViewModel(
+        let ordering = OrderingProbe()
+        ordering.onSort = onSort
+        ordering.onShuffle = onShuffle
+        return AudioPlayModeViewModel(
             targetScene: targetScene,
-            playbackProvider: capability,
-            sort: onSort,
-            shuffle: onShuffle,
+            playback: capability,
+            ordering: ordering,
             loadPlayMode: load,
             storePlayMode: store
         )
@@ -345,9 +387,8 @@ struct AudioPlayModeObserverTests {
 
         let viewModel = AudioPlayModeViewModel(
             targetScene: .music,
-            playbackProvider: capability,
-            sort: { _ in },
-            shuffle: { _ in },
+            playback: capability,
+            ordering: OrderingProbe(),
             loadPlayMode: { .shuffle },
             storePlayMode: { _, _ in }
         )
@@ -372,9 +413,8 @@ struct AudioPlayModeObserverTests {
         var stored: [String] = []
         let viewModel = AudioPlayModeViewModel(
             targetScene: .music,
-            playbackProvider: capability,
-            sort: { _ in },
-            shuffle: { _ in },
+            playback: capability,
+            ordering: OrderingProbe(),
             loadPlayMode: { .sequence },
             storePlayMode: { raw, _ in stored.append(raw) }
         )
@@ -397,9 +437,8 @@ struct AudioPlayModeObserverTests {
         let capability = PlaybackProbe()
         let viewModel = AudioPlayModeViewModel(
             targetScene: .music,
-            playbackProvider: capability,
-            sort: { _ in },
-            shuffle: { _ in },
+            playback: capability,
+            ordering: OrderingProbe(),
             loadPlayMode: { .shuffle },
             storePlayMode: { _, _ in }
         )

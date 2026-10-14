@@ -1,5 +1,4 @@
 import MagicKit
-import CisumUIComponents
 import LumiUI
 import OSLog
 import ProviderBook
@@ -170,7 +169,7 @@ extension BookTile {
         cover = nil
         lastPlayedTitle = nil
 
-        guard let bookProvider = dependencies.bookProvider else { return }
+        guard let bookLibrary = dependencies.bookLibrary else { return }
 
         let bookURL = url
         let bookTitle = title
@@ -180,8 +179,8 @@ extension BookTile {
             os_log("\(logPrefix)Loading cover art for \(bookTitle)")
         }
 
-        let coverData = await bookProvider.coverData(for: bookURL)
-        let playbackState = await bookProvider.playbackState(for: bookURL)
+        let coverData = await bookLibrary.coverData(for: bookURL)
+        let playbackState = await bookLibrary.playbackState(for: bookURL)
 
         guard !Task.isCancelled else {
             return

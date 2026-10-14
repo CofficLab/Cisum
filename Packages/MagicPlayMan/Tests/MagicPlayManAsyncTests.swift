@@ -444,6 +444,110 @@ final class MagicPlayManAsyncTests: XCTestCase {
         XCTAssertEqual(man.progress, 0)
     }
 
+    // MARK: - Track Switch Progress Reset
+
+    /// 歌曲1 播放到 50% → 切换到歌曲2 → currentTime / progress 必须归零。
+    /// 等待一段时间以捕获来自旧 item 的异步回调，避免旧进度覆盖新状态。
+    func testSwitchingTracksResetsProgressToZero() async throws {
+        let track1 = try Self.makeSilentWAV(durationSeconds: 2)
+        let track2 = try Self.makeSilentWAV(durationSeconds: 2)
+        defer {
+            try? FileManager.default.removeItem(at: track1)
+            try? FileManager.default.removeItem(at: track2)
+        }
+
+        let man = MagicPlayMan()
+
+        // 加载歌曲1
+        await man.play(track1, autoPlay: false, reason: "test.song1")
+        try await Task.sleep(nanoseconds: 200_000_000)
+
+        // 模拟歌曲1 播放到 50%
+        man.setDuration(2)
+        man.setCurrentTime(1, reason: "test.50%")
+        man.setProgress(0.5)
+        XCTAssertEqual(man.currentTime, 1)
+        XCTAssertEqual(man.progress, 0.5)
+
+        // 切换到歌曲2
+        await man.play(track2, autoPlay: false, reason: "test.song2")
+
+        // 进度必须立即归零
+        XCTAssertEqual(man.currentURL, track2, "currentURL 必须切换到歌曲2")
+        XCTAssertEqual(man.currentTime, 0, "currentTime 必须在切歌后归零")
+        XCTAssertEqual(man.progress, 0, "progress 必须在切歌后归零")
+
+        // 等待旧 item 的异步回调（周期性时间观察者 / 暂停事件）
+        try await Task.sleep(nanoseconds: 800_000_000)
+
+        // 旧进度不得死灰复燃
+        XCTAssertEqual(man.currentTime, 0, "切歌后 currentTime 不得被旧回调覆盖")
+        XCTAssertEqual(man.progress, 0, "切歌后 progress 不得被旧回调覆盖")
+    }
+
+    /// `play(url)` 的语义是"加载并开始播放"：即使再次传入同一 URL，
+    /// 引擎也会重新加载并将进度归零。调用方（如列表选择）若想跳过同一
+    /// 资源，需在调用前自行 guard。
+    func testPlayingSameTrackReloadsAndResetsProgress() async throws {
+        let track = try Self.makeSilentWAV(durationSeconds: 2)
+        defer {
+            try? FileManager.default.removeItem(at: track)
+        }
+
+        let man = MagicPlayMan()
+        await man.play(track, autoPlay: false, reason: "test.load")
+        try await Task.sleep(nanoseconds: 200_000_000)
+
+        man.setDuration(2)
+        man.setCurrentTime(1, reason: "test.50%")
+        man.setProgress(0.5)
+
+        // 再次 play 同一首
+        await man.play(track, autoPlay: false, reason: "test.same-track")
+
+        // 引擎每次 play 都重新加载，进度会归零
+        XCTAssertEqual(man.currentTime, 0, "play() 总是重新加载，currentTime 会被清零")
+        XCTAssertEqual(man.progress, 0, "play() 总是重新加载，progress 会被清零")
+        XCTAssertEqual(man.currentURL, track, "currentURL 仍为同一首歌")
+    }
+
+    /// 切歌后必须发送一次 timeChanged(0, 0) 通知，让 UI 立即刷新进度条。
+    func testSwitchingTracksEmitsTimeUpdateAtZero() async throws {
+        let track1 = try Self.makeSilentWAV(durationSeconds: 2)
+        let track2 = try Self.makeSilentWAV(durationSeconds: 2)
+        defer {
+            try? FileManager.default.removeItem(at: track1)
+            try? FileManager.default.removeItem(at: track2)
+        }
+
+        let man = MagicPlayMan()
+        await man.play(track1, autoPlay: false, reason: "test.song1")
+        try await Task.sleep(nanoseconds: 100_000_000)
+        man.setDuration(2)
+        man.setCurrentTime(1, reason: "test.50%")
+        man.setProgress(0.5)
+
+        var payloads: [(TimeInterval, Double)] = []
+        let observer = NotificationCenter.default.addObserver(
+            forName: .playManTimeUpdate,
+            object: man,
+            queue: nil
+        ) { notification in
+            if let t = notification.userInfo?["currentTime"] as? TimeInterval,
+               let p = notification.userInfo?["progress"] as? Double {
+                payloads.append((t, p))
+            }
+        }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        await man.play(track2, autoPlay: false, reason: "test.song2")
+        try await Task.sleep(nanoseconds: 200_000_000)
+
+        // 至少收到一次 (0, 0) 通知
+        XCTAssertTrue(payloads.contains { $0.0 == 0 && $0.1 == 0 },
+                      "切歌后必须发出 (0,0) 的 timeUpdate 通知，实际收到: \(payloads)")
+    }
+
     // MARK: - Get Properties
 
     func testCurrentErrorReturnsNilWhenNotFailed() {
@@ -717,14 +821,15 @@ final class MagicPlayManAsyncTests: XCTestCase {
         XCTAssertEqual(modes, [.shuffle, .loop])
     }
 
-    private static func makeSilentWAV() throws -> URL {
+    private static func makeSilentWAV(durationSeconds: TimeInterval = 1) throws -> URL {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
             .appendingPathExtension("wav")
         let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)!
         let file = try AVAudioFile(forWriting: url, settings: format.settings)
-        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 44_100)!
-        buffer.frameLength = 44_100
+        let frameCount = AVAudioFrameCount(44_100 * max(durationSeconds, 0.1))
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount)!
+        buffer.frameLength = frameCount
         try file.write(from: buffer)
         return url
     }

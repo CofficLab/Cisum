@@ -1,8 +1,13 @@
-import CisumUIComponents
 import KernelCore
 import LumiUI
+import ProviderAudioLibrary
+import ProviderPlayback
 import ProviderPlugin
+import ProviderScene
 import SwiftUI
+import os
+
+private let cisumDebugLogger = Logger(subsystem: "com.coffic.cisum", category: "root-layout-debug")
 
 @MainActor
 struct CisumRootLayoutView: View {
@@ -12,14 +17,18 @@ struct CisumRootLayoutView: View {
     @State private var isDetailVisible: Bool
     @State private var rememberedHeight: CGFloat = 0
     @State private var autoResizing = false
-    @State private var isPlaybackHeroVisible = true
     let kernel: KernelCoreContainer
 
     init(provider: CisumRootViewProvider, kernel: KernelCoreContainer) {
         self.provider = provider
         self.kernel = kernel
+        // 只在此解析基础设施 Provider（createKernel 早期注册）；
+        // 播放/场景/仓库 Provider 由插件注册，必须等内核启动完成后再绑定
+        //（见 viewModel.attach），否则贡献聚合期间 resolveProvider 会卡死。
         _viewModel = StateObject(wrappedValue: CisumRootLayoutViewModel(
-            pluginProvider: kernel.resolveProvider((any PluginProviding).self)
+            contributions: RootContributionCapabilityAdapter(
+                plugins: kernel.resolveProvider((any PluginProviding).self)
+            )
         ))
         _isDetailVisible = State(initialValue: provider.isContentViewVisible)
     }
@@ -32,24 +41,31 @@ struct CisumRootLayoutView: View {
                 VStack(spacing: 0) {
                     controlArea
                         .frame(height: isDetailVisible
-                            ? (isPlaybackHeroVisible
-                                ? CisumPlayerLayout.controlMinimumHeight
-                                : CisumPlayerLayout.emptyPlayerControlHeight)
+                            ? (viewModel.isPlaybackHeroPresenting
+                                ? AppResponsivePlayerLayoutMetrics.shared.controlMinimumHeight
+                                : AppResponsivePlayerLayoutMetrics.shared.emptyControlHeight)
                             : geometry.size.height)
 
                     if isDetailVisible {
                         contentArea
-                            .frame(minHeight: CisumPlayerLayout.contentMinimumHeight, maxHeight: .infinity)
+                            .frame(minHeight: AppResponsivePlayerLayoutMetrics.shared.contentMinimumHeight, maxHeight: .infinity)
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
 
                     statusArea
                 }
-                .frame(width: layoutWidth(for: geometry), height: geometry.size.height)
-                .offset(x: -horizontalOverflow(for: geometry))
+                .frame(width: layoutWidth(for: geometry), height: layoutHeight(for: geometry))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
-            .environment(\.playbackHeroVisibility, $isPlaybackHeroVisible)
-            .onAppear { handleOnAppear() }
+            .onAppear {
+                handleOnAppear()
+                // 能力在此组装：View 是本能力的组装层，容器不触碰 Provider。
+                viewModel.attach(environment: RootEnvironmentCapabilityAdapter(
+                    playback: kernel.resolveProvider((any PlaybackProviding).self),
+                    scene: kernel.resolveProvider((any SceneProviding).self),
+                    library: kernel.resolveProvider((any AudioLibraryProviding).self)
+                ))
+            }
             .onChange(of: provider.isContentViewHidden) { _, hidden in
                 handleContentViewVisibilityChange(!hidden, geometry: geometry)
             }
@@ -111,9 +127,9 @@ struct CisumRootLayoutView: View {
         rememberedHeight = windowHeight()
         isDetailVisible = provider.isContentViewVisible
         if isDetailVisible, rememberedHeight > 0,
-           CisumPlayerLayout.needsExpandedWindow(for: rememberedHeight) {
+           AppResponsivePlayerLayoutMetrics.shared.needsExpandedWindow(for: rememberedHeight) {
             autoResizing = true
-            setWindowHeight(CisumPlayerLayout.controlMinimumHeight + CisumPlayerLayout.contentMinimumHeight)
+            setWindowHeight(AppResponsivePlayerLayoutMetrics.shared.controlMinimumHeight + AppResponsivePlayerLayoutMetrics.shared.contentMinimumHeight)
         }
     }
 
@@ -123,16 +139,16 @@ struct CisumRootLayoutView: View {
         if !visible, abs(geometry.size.height - rememberedHeight) > 0.5, rememberedHeight > 0 {
             autoResizing = true
             setWindowHeight(rememberedHeight)
-        } else if visible, CisumPlayerLayout.needsExpandedWindow(for: geometry.size.height) {
+        } else if visible, AppResponsivePlayerLayoutMetrics.shared.needsExpandedWindow(for: geometry.size.height) {
             autoResizing = true
-            setWindowHeight(CisumPlayerLayout.controlMinimumHeight + CisumPlayerLayout.contentMinimumHeight)
+            setWindowHeight(AppResponsivePlayerLayoutMetrics.shared.controlMinimumHeight + AppResponsivePlayerLayoutMetrics.shared.contentMinimumHeight)
         }
     }
 
     private func handleGeometryChange(_ newHeight: CGFloat) {
         if !autoResizing { rememberedHeight = windowHeight() }
         autoResizing = false
-        if newHeight <= CisumPlayerLayout.collapsedWindowThresholdHeight {
+        if newHeight <= AppResponsivePlayerLayoutMetrics.shared.secondaryColumnDropHeightThreshold {
             provider.hideContentView()
         }
     }
@@ -150,16 +166,28 @@ struct CisumRootLayoutView: View {
 #if os(macOS)
         let window = contentWindow()
         guard let window else { return geometry.size.width }
-        return min(geometry.size.width, max(0, window.frame.width))
+        let w = min(geometry.size.width, max(0, window.frame.width))
+        cisumDebugLogger.error("LAYOUT-DEBUG geomW=\(geometry.size.width) geomH=\(geometry.size.height) winFrameW=\(window.frame.width) winContentW=\(window.contentLayoutRect.width) winContentH=\(window.contentLayoutRect.height) layoutW=\(w) overflow=\(self.horizontalOverflow(for: geometry)) screenW=\(window.screen?.frame.width ?? -1)")
+        return w
 #else
         geometry.size.width
+#endif
+    }
+
+    private func layoutHeight(for geometry: GeometryProxy) -> CGFloat {
+#if os(macOS)
+        let window = contentWindow()
+        guard let window else { return geometry.size.height }
+        return min(geometry.size.height, max(0, window.contentLayoutRect.height))
+#else
+        geometry.size.height
 #endif
     }
 
     private func horizontalOverflow(for geometry: GeometryProxy) -> CGFloat {
 #if os(macOS)
         guard let window = contentWindow() else { return 0 }
-        return CisumPlayerLayout.horizontalCenteringOffset(
+        return AppResponsivePlayerLayoutMetrics.shared.horizontalCenteringOffset(
             proposedWidth: geometry.size.width,
             visibleWidth: window.frame.width
         )

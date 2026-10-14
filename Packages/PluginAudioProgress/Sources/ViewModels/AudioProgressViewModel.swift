@@ -1,12 +1,11 @@
-import ProviderAudioLike
-import ProviderAudioLibrary
 import AVFoundation
 import Foundation
 import MagicKit
-import MagicPlayMan
+import ProviderAudioLibrary
 import OSLog
-import ProviderScene
+import ProviderAudioLike
 import ProviderPlayback
+import ProviderScene
 import SwiftUI
 import UniformTypeIdentifiers
 import WidgetKit
@@ -19,31 +18,37 @@ import WidgetKit
 /// 由 `AudioProgressPlugin` 入口持有。
 ///
 /// 外部播放状态由 `AudioProgressObserver` 通过事件回写，外部播放操作通过
-/// `PlaybackProviding` 执行。
+/// `PlaybackProgressCapability` 执行（见 Capabilities 目录）。
+///
+/// ## 未收窄的依赖
+/// `audioLike` 仍以闭包形式直接持有 `any AudioLikeProviding`：它只在恢复进度时
+/// 被调用一次（读一次 `isLiked`），无订阅、不持有、不重试，符合 Capabilities
+/// 规范的「不必建」判据。为一次性的同步读取套一层 Adapter 属于仪式成本。
 @MainActor
 final class AudioProgressViewModel: ObservableObject, SuperLog {
     private static let verbose = false
     private static let log = Logger(subsystem: "com.yueyi.cisum", category: "AudioProgress")
     private static let tag = "💾"
 
-    private let playbackProvider: (any PlaybackProviding)?
+    /// 播放与音频库能力（Capabilities 目录收窄），`weak` 持有。
+    private weak var playback: (any PlaybackProgressCapability)?
     private var restoreGeneration = 0
     private var currentScene: AppScene?
     private let audioScene: AppScene
-    private let audioLibrary: @MainActor () -> (any AudioLibraryProviding)?
+    private let library: any ProgressAudioLibraryCapability
     private let audioLike: @MainActor () -> (any AudioLikeProviding)?
     private let saveWidgetData: @Sendable (String, String, Bool, Data?) -> Void
 
     init(
         audioScene: AppScene,
-        playbackProvider: (any PlaybackProviding)?,
-        audioLibrary: @escaping @MainActor () -> (any AudioLibraryProviding)?,
+        playback: (any PlaybackProgressCapability)?,
+        library: any ProgressAudioLibraryCapability,
         audioLike: @escaping @MainActor () -> (any AudioLikeProviding)?,
         saveWidgetData: @escaping @Sendable (String, String, Bool, Data?) -> Void
     ) {
         self.audioScene = audioScene
-        self.playbackProvider = playbackProvider
-        self.audioLibrary = audioLibrary
+        self.playback = playback
+        self.library = library
         self.audioLike = audioLike
         self.saveWidgetData = saveWidgetData
     }
@@ -90,7 +95,7 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
     // MARK: - Restore
 
     private func restorePlaying() {
-        guard let playback = playbackProvider else { return }
+        guard let playback else { return }
         var assetTarget: URL?
         var timeTarget: TimeInterval = 0
         var liked = false
@@ -101,7 +106,7 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
         Task { @MainActor in
             guard isCurrentRestoreRequest(generation) else { return }
 
-            guard let library = audioLibrary() else {
+            guard library.isAvailable else {
                 if Self.verbose {
                     Self.log.error("\(Self.tag)❌ Failed to get AudioRepo")
                 }
@@ -195,14 +200,14 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
         )
     }
 
-    private func setLike(_ liked: Bool, using playback: any PlaybackProviding) {
+    private func setLike(_ liked: Bool, using playback: any PlaybackProgressCapability) {
         let isCurrentlyLiked = playback.currentURL.map { playback.likedAssets.contains($0) } ?? false
         if isCurrentlyLiked != liked {
             playback.toggleCurrentLike()
         }
     }
 
-    private func firstPlayableAudio(in library: any AudioLibraryProviding) async -> URL? {
+    private func firstPlayableAudio(in library: any ProgressAudioLibraryCapability) async -> URL? {
         let urls = await library.allURLs(reason: "AudioProgressViewModel.firstPlayableAudio")
         return urls.first(where: isPlayableAudioURL)
     }
@@ -216,7 +221,7 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
     // MARK: - Playback events
 
     func handlePlayManStateChanged(_ isPlaying: Bool) {
-        guard shouldActivateProgress, let playback = playbackProvider else { return }
+        guard shouldActivateProgress, let playback = playback else { return }
 
         syncToWidget(url: playback.currentURL, isPlaying: isPlaying)
 
@@ -226,7 +231,7 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
     }
 
     func handlePlayManAssetChanged(_ url: URL?) {
-        guard shouldActivateProgress, let playback = playbackProvider else { return }
+        guard shouldActivateProgress, let playback = playback else { return }
 
         syncToWidget(url: url, isPlaying: playback.state == .playing)
         let generation = restoreGeneration
@@ -276,7 +281,7 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
     // MARK: - Widget & persistence
 
     private func syncToWidget(url: URL?, isPlaying: Bool) {
-        guard let playback = playbackProvider else { return }
+        guard let playback else { return }
         guard let url = url else {
             guard AudioProgressPersistencePolicy.shouldApplyWidgetClearResult(currentAsset: playback.currentURL) else {
                 return
@@ -314,7 +319,7 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
     }
 
     private func persistCurrentTime(reason: String) {
-        guard let playback = playbackProvider else { return }
+        guard let playback else { return }
         AudioStateRepo.storeCurrentTime(playback.currentTime)
 
         if Self.verbose {

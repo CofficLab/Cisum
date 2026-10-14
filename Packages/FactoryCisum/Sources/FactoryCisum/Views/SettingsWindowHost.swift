@@ -47,6 +47,7 @@ public struct SettingsWindowHost: View {
         .task {
             await initializeKernel()
         }
+        .environment(\.toastWindowID, AppBootstrap.settingsWindowID)
     }
 
     private func initializeKernel() async {

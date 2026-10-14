@@ -153,14 +153,17 @@ struct PlaybackHeroTests {
     func viewModelUsesPlaybackAndMediaProvidersDirectly() {
         let playback = PlaybackStub()
         let media = MediaStub()
-        let viewModel = PlaybackHeroViewModel(playbackProvider: playback, mediaProvider: media)
+        // ViewModel 以 `weak` 持有能力 Adapter，故测试需自行持有，否则能力会被释放。
+        let playbackCapability = HeroPlaybackCapabilityAdapter(playback: playback)
+        let mediaCapability = HeroMediaCapabilityAdapter(media: media)
+        let viewModel = PlaybackHeroViewModel(playback: playbackCapability, media: mediaCapability)
         #expect(viewModel.currentURL == playback.currentURL)
         #expect(viewModel.state == .paused)
         #expect(viewModel.localizedStateText() == "state:paused")
         _ = viewModel.makeMediaView()
         #expect(media.makeMediaViewCallCount == 1)
 
-        let fallback = PlaybackHeroViewModel(playbackProvider: playback)
+        let fallback = PlaybackHeroViewModel(playback: playbackCapability)
         let failedState = PlaybackStatus.failed(.noAsset)
         fallback.applyStateChanged(failedState)
         #expect(fallback.localizedStateText() == String(describing: failedState))
@@ -173,7 +176,10 @@ struct PlaybackHeroTests {
         playback.currentURL = URL(fileURLWithPath: "/library/current.flac")
         playback.state = .loading(.downloading(0.4))
         let media = MediaStub()
-        let viewModel = PlaybackHeroViewModel(playbackProvider: playback, mediaProvider: media)
+        // ViewModel 以 `weak` 持有能力 Adapter，故测试需自行持有，否则能力会被释放。
+        let playbackCapability = HeroPlaybackCapabilityAdapter(playback: playback)
+        let mediaCapability = HeroMediaCapabilityAdapter(media: media)
+        let viewModel = PlaybackHeroViewModel(playback: playbackCapability, media: mediaCapability)
 
         #expect(viewModel.currentURL == playback.currentURL)
         #expect(viewModel.state == playback.state)
@@ -188,7 +194,7 @@ struct PlaybackHeroTests {
         #expect(viewModel.state == .playing)
         #expect(media.makeMediaViewCallCount == 1)
 
-        let emptyViewModel = PlaybackHeroViewModel(playbackProvider: nil)
+        let emptyViewModel = PlaybackHeroViewModel(playback: nil)
         #expect(emptyViewModel.currentURL == nil)
         #expect(emptyViewModel.state == .idle)
         #expect(emptyViewModel.localizedStateText() == String(describing: PlaybackStatus.idle))
@@ -198,8 +204,14 @@ struct PlaybackHeroTests {
     @Test
     func observerForwardsAssetAndStateButStopsAfterCancellation() {
         let playback = PlaybackStub()
-        let viewModel = PlaybackHeroViewModel(playbackProvider: nil)
-        let observer = PlaybackHeroObserver(playback: playback, viewModel: viewModel)
+        let viewModel = PlaybackHeroViewModel(playback: nil)
+        let playbackCapability = HeroPlaybackCapabilityAdapter(playback: playback)
+        let observer = PlaybackHeroObserver(
+            playback: playbackCapability,
+            library: HeroLibraryCapabilityAdapter(library: nil),
+            scene: HeroSceneCapabilityAdapter(scene: nil),
+            viewModel: viewModel
+        )
         let nextURL = URL(fileURLWithPath: "/library/observer.mp3")
 
         playback.send(.assetChanged(nextURL))
@@ -220,8 +232,22 @@ struct PlaybackHeroTests {
     func emptyRepositoryHidesHeroAndPopulatedLibraryRestoresIt() {
         let library = AudioLibraryStub()
         let scene = SceneStub(currentScene: .audiobooks)
-        let viewModel = PlaybackHeroViewModel(playbackProvider: PlaybackStub(), isMusicSceneActive: false)
-        let observer = PlaybackHeroObserver(playback: nil, library: library, scene: scene, viewModel: viewModel)
+        let playbackStub = PlaybackStub()
+        // 能力 Adapter 以 `weak` 持有 Provider，故 Provider 与 Adapter 都需
+        // 由测试显式持有：临时 `PlaybackStub()` 会立即释放，使 currentURL 变 nil。
+        let playbackCapability = HeroPlaybackCapabilityAdapter(playback: playbackStub)
+        let libraryCapability = HeroLibraryCapabilityAdapter(library: library)
+        let sceneCapability = HeroSceneCapabilityAdapter(scene: scene)
+        let viewModel = PlaybackHeroViewModel(
+            playback: playbackCapability,
+            isMusicSceneActive: false
+        )
+        let observer = PlaybackHeroObserver(
+            playback: playbackCapability,
+            library: libraryCapability,
+            scene: sceneCapability,
+            viewModel: viewModel
+        )
 
         #expect(viewModel.isHeroVisible)
 

@@ -13,13 +13,12 @@ final class BookSettingsObserver: SuperLog {
     nonisolated static let verbose = false
 
     private weak var viewModel: BookSettingsViewModel?
-    private var providerHandle: (any BookProvidingObserverHandle)?
+    private var handle: (any BookSettingsLibraryObserverHandle)?
 
-    init(viewModel: BookSettingsViewModel, provider: any BookProviding) {
+    init(viewModel: BookSettingsViewModel, library: any BookSettingsLibraryCapability) {
         self.viewModel = viewModel
         if Self.verbose { os_log("\(Self.t)👀 BookSettingsObserver 初始化") }
-        providerHandle = provider.addObserver { [weak self] event in
-            guard case .storageLocationChanged = event else { return }
+        handle = library.addObserver { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.viewModel?.handleStorageLocationChanged()
             }
@@ -28,7 +27,7 @@ final class BookSettingsObserver: SuperLog {
 
     func cancel() {
         if Self.verbose { os_log("\(Self.t)🧹 BookSettingsObserver 取消") }
-        providerHandle?.cancel()
-        providerHandle = nil
+        handle?.cancel()
+        handle = nil
     }
 }

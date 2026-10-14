@@ -1,5 +1,4 @@
 import ProviderDocsView
-import CisumUIComponents
 import LumiUI
 import KernelCore
 import SwiftUI
@@ -17,16 +16,16 @@ struct PluginSettingsDetailView: View {
     let plugin: any SuperPlugin
 
     /// 文档视图提供器：按插件 id 匹配 about 条目。
-    let docsProvider: (any DocsViewProviding)?
+    let docs: (any PluginManagerDocsCapability)?
 
     init(
         viewModel: PluginManagementViewModel,
         plugin: any SuperPlugin,
-        docsProvider: (any DocsViewProviding)? = nil
+        docs: (any PluginManagerDocsCapability)? = nil
     ) {
         self.viewModel = viewModel
         self.plugin = plugin
-        self.docsProvider = docsProvider
+        self.docs = docs
     }
 
     var body: some View {
@@ -104,9 +103,9 @@ struct PluginSettingsDetailView: View {
         }
     }
 
-    /// 当前插件贡献的 about 条目（按 id 匹配 `DocsViewProviding.aboutEntries`）。
+    /// 当前插件贡献的 about 条目（经文档能力按 id 匹配）。
     private var aboutEntry: DocsEntry? {
-        docsProvider?.aboutEntries.first(where: { $0.id == plugin.id })
+        docs?.aboutEntry(id: plugin.id)
     }
 
     /// 默认 about 视图：基于 metadata 生成的 Hero + 只读信息区，

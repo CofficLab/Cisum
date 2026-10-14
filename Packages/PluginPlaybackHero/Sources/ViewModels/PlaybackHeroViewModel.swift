@@ -2,7 +2,11 @@ import ProviderPlayback
 import SwiftUI
 import MagicKit
 
-/// 播放封面区域的状态；播放变化由 Observer 转发，媒体视图由 Provider 提供。
+/// 播放封面区域的状态；播放变化由 Observer 转发，媒体视图由能力提供。
+///
+/// 通过 `HeroPlaybackCapability` / `HeroMediaCapability` 读取播放状态与渲染封面
+/// （见 Capabilities 目录），不直接持有内核 `PlaybackProviding` /
+/// `PlaybackMediaProviding`。
 @MainActor
 final class PlaybackHeroViewModel: ObservableObject, SuperLog {
     nonisolated static let verbose = false
@@ -16,16 +20,17 @@ final class PlaybackHeroViewModel: ObservableObject, SuperLog {
         currentURL != nil && !(isMusicSceneActive && isRepositoryEmpty)
     }
 
-    private let mediaProvider: (any PlaybackMediaProviding)?
+    /// 媒体渲染能力（Capabilities 目录收窄），`weak` 持有。
+    private weak var media: (any HeroMediaCapability)?
 
     init(
-        playbackProvider: (any PlaybackProviding)?,
-        mediaProvider: (any PlaybackMediaProviding)? = nil,
+        playback: (any HeroPlaybackCapability)?,
+        media: (any HeroMediaCapability)? = nil,
         isMusicSceneActive: Bool = true
     ) {
-        self.mediaProvider = mediaProvider
-        self.currentURL = playbackProvider?.currentURL
-        self.state = playbackProvider?.state ?? .idle
+        self.media = media
+        self.currentURL = playback?.currentURL
+        self.state = playback?.state ?? .idle
         self.isMusicSceneActive = isMusicSceneActive
     }
 
@@ -46,10 +51,10 @@ final class PlaybackHeroViewModel: ObservableObject, SuperLog {
     }
 
     func makeMediaView() -> AnyView {
-        mediaProvider?.makeMediaView() ?? AnyView(EmptyView())
+        media?.makeMediaView() ?? AnyView(EmptyView())
     }
 
     func localizedStateText() -> String {
-        mediaProvider?.localizedStateText(for: state) ?? String(describing: state)
+        media?.localizedStateText(for: state) ?? String(describing: state)
     }
 }

@@ -1,5 +1,4 @@
 import Foundation
-import CisumUIComponents
 import LumiUI
 import SwiftUI
 

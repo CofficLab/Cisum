@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import SwiftUI
 
@@ -17,7 +16,11 @@ struct ControlView: View {
     var progressView: AnyView? = nil
     var controlButtonsView: AnyView? = nil
     var rightAlbumView: AnyView? = nil
-    @Environment(\.playbackHeroVisibility) private var heroVisibility
+    /// 播放器区呈现状态：由 PluginPlaybackHero 的 Observer 驱动（事件直达），
+    /// 不再经 preference 自底向上传递（该链路会停留在默认值，收起断言恒失败）。
+    @ObservedObject private var heroVisibility = ControlHeroVisibility.shared
+
+    private var isHeroVisible: Bool { heroVisibility.isVisible }
 
     var body: some View {
         GeometryReader { geometry in
@@ -26,7 +29,8 @@ struct ControlView: View {
                     if heroView != nil {
                         heroArea(for: geometry)
                             .frame(maxWidth: .infinity)
-                            .frame(height: heroVisibility.wrappedValue ? heroHeight(for: geometry) : 0, alignment: .top)
+                            .frame(height: isHeroVisible ? heroHeight(for: geometry) : 0, alignment: .top)
+                            .animation(.easeInOut(duration: 0.2), value: isHeroVisible)
                     }
 
                     stateArea
@@ -59,14 +63,9 @@ struct ControlView: View {
             .padding(.horizontal, 0)
             .frame(maxHeight: .infinity)
         }
-        #if os(macOS)
-            .ignoresSafeArea(edges: .horizontal)
-        #else
-            .ignoresSafeArea()
-        #endif
-        .frame(minHeight: heroVisibility.wrappedValue
-            ? CisumPlayerLayout.controlMinimumHeight
-            : CisumPlayerLayout.emptyPlayerControlHeight)
+        .frame(minHeight: isHeroVisible
+            ? AppResponsivePlayerLayoutMetrics.shared.controlMinimumHeight
+            : AppResponsivePlayerLayoutMetrics.shared.emptyControlHeight)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cisum.player.controls")
     }
@@ -109,7 +108,7 @@ struct ControlView: View {
     }
 
     private func stateHeight(for geometry: GeometryProxy) -> CGFloat {
-        CisumPlayerLayout.stateHeight(for: geometry.size.height)
+        AppResponsivePlayerLayoutMetrics.shared.stateHeight(for: geometry.size.height)
     }
 
     private func heroHeight(for geometry: GeometryProxy) -> CGFloat {
@@ -121,13 +120,13 @@ struct ControlView: View {
     }
 
     private func buttonHeight(for geometry: GeometryProxy) -> CGFloat {
-        CisumPlayerLayout.controlButtonHeight(width: geometry.size.width, height: geometry.size.height)
+        AppResponsivePlayerLayoutMetrics.shared.controlButtonHeight(width: geometry.size.width, height: geometry.size.height)
     }
 
     private let progressContentHeight: CGFloat = 18
     private let progressVerticalPadding: CGFloat = 8
 
     private func shouldShowRightAlbum(_ geometry: GeometryProxy) -> Bool {
-        CisumPlayerLayout.shouldShowRightAlbum(width: geometry.size.width)
+        AppResponsivePlayerLayoutMetrics.shared.shouldShowSecondaryColumn(width: geometry.size.width)
     }
 }

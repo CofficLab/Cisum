@@ -1,16 +1,8 @@
 import Foundation
-import CisumUIComponents
 import LumiUI
 import OSLog
 import ProviderBook
 import SwiftUI
-
-public typealias BookProgressURLProvider = @MainActor () -> URL?
-public typealias BookProgressTimeProvider = @MainActor () -> TimeInterval?
-public typealias BookProgressStoreCurrentURL = @MainActor (URL?) -> Void
-public typealias BookProgressStoreCurrentTime = @MainActor (TimeInterval) -> Void
-public typealias BookProgressDiskProvider = @MainActor () -> URL?
-public typealias BookProgressSaveBookState = @MainActor @Sendable (URL, URL, TimeInterval?) async -> Void
 
 enum BookProgressSaveTrigger {
     case currentURLChanged

@@ -16,8 +16,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
-        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.8.0"),
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
@@ -25,14 +24,13 @@ let package = Package(
         .package(name: "KitPlayback", path: "../MagicPlayMan"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(path: "../ProviderAudioNavigation"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.3.4"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.6.0"),
     ],
     targets: [
         .target(
             name: "PluginAudioWidgetControl",
             dependencies: [
                 .product(name: "MagicKit", package: "KitMagic"),
-                .product(name: "CisumUIComponents", package: "KitUIComponents"),
                 .product(name: "LumiUI", package: "LumiUI"),
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),

@@ -1,5 +1,4 @@
 import ProviderDocsView
-import CisumUIComponents
 import LumiUI
 import KernelCore
 import SwiftUI
@@ -19,7 +18,7 @@ struct PluginManagementView: View {
     @LumiTheme private var theme
     /// 文档视图提供器：详情面板按插件 id 匹配 about 条目并展示。
     /// 为 nil 时（宿主未提供 DocsViewProviding）详情面板回退到元信息展示。
-    let docsProvider: (any DocsViewProviding)?
+    let docs: (any PluginManagerDocsCapability)?
 
     @ObservedObject private var viewModel: PluginManagementViewModel
 
@@ -27,8 +26,8 @@ struct PluginManagementView: View {
     @State private var searchText = ""
     @State private var selectedCategory: PluginCategory?
 
-    init(docsProvider: (any DocsViewProviding)? = nil, viewModel: PluginManagementViewModel) {
-        self.docsProvider = docsProvider
+    init(docs: (any PluginManagerDocsCapability)? = nil, viewModel: PluginManagementViewModel) {
+        self.docs = docs
         self.viewModel = viewModel
     }
 
@@ -189,7 +188,7 @@ struct PluginManagementView: View {
     @ViewBuilder
     private var pluginDetailPane: some View {
         if let selectedPlugin {
-            PluginSettingsDetailView(viewModel: viewModel, plugin: selectedPlugin, docsProvider: docsProvider)
+            PluginSettingsDetailView(viewModel: viewModel, plugin: selectedPlugin, docs: docs)
                 .id(viewModel.revision)
         } else {
             AppEmptyState(

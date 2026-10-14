@@ -1,4 +1,3 @@
-import ProviderPlayback
 import Foundation
 import MagicKit
 
@@ -8,20 +7,18 @@ final class LikeButtonObserver: SuperLog {
     nonisolated static let verbose = false
 
     private weak var viewModel: LikeButtonViewModel?
-    private var handle: (any PlaybackProvidingObserverHandle)?
+    private var handle: (any LikeButtonObserverHandle)?
 
-    init(playback: any PlaybackProviding, viewModel: LikeButtonViewModel) {
+    init(playback: any LikeButtonCapability, viewModel: LikeButtonViewModel) {
         self.viewModel = viewModel
         handle = playback.addObserver { [weak self] event in
             switch event {
             case .assetChanged(let url):
                 self?.viewModel?.handleAssetChanged(url)
-            case .likeStatusChanged(_, let liked):
+            case .likeStatusChanged(let liked):
                 self?.viewModel?.handleLikeStatusChanged(liked)
             case .likedAssetsChanged(let assets):
                 self?.viewModel?.handleLikedAssetsChanged(assets)
-            default:
-                break
             }
         }
     }

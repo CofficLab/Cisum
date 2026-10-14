@@ -21,7 +21,9 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
 
     init(storage: any StorageProviding) {
         self.storage = storage
-        storageObserver = AudioStorageObserver(provider: storage) { [weak self] _ in
+        storageObserver = AudioStorageObserver(
+            storage: AudioDataStorageCapabilityAdapter(storage: storage)
+        ) { [weak self] _ in
             self?.invalidateRepository()
         }
     }

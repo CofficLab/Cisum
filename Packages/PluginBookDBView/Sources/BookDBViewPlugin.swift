@@ -8,6 +8,7 @@ import KitAppEvents
 import OSLog
 import ProviderBook
 import ProviderSettingView
+import LumiUI
 import SwiftUI
 import MagicKit
 
@@ -36,6 +37,12 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private var databaseObserver: DBObserver?
     nonisolated(unsafe) private var playbackObserver: PlaybackObserver?
 
+    /// 本插件消费的能力 Adapter。ViewModel / 依赖结构以 `weak` 或不持有
+    /// Adapter，故入口必须显式强持有，否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var bookLibrary: BookLibraryCapabilityAdapter?
+    nonisolated(unsafe) private var gridPlayback: BookLibraryPlaybackCapabilityAdapter?
+    nonisolated(unsafe) private var gridToast: BookLibraryToastCapabilityAdapter?
+
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
         if Self.verbose { os_log("\(Self.t)🔌 onRegister") }
@@ -49,7 +56,10 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             contrib.addTabView(ownerPluginID: id) { reason, demoMode in self.addTabView(reason: reason, demoMode: demoMode) }
-            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
+        }
+        if let settings = kernel.resolveProvider((any SettingViewProviding).self),
+           let entry = makeSettingEntry() {
+            settings.addEntries([entry])
         }
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
@@ -98,12 +108,13 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
         let dependencies = BookDBViewDependencies(
             dbRoot: databaseRootProvider(),
             bookDisk: bookDiskProvider(),
-            bookProvider: provider,
+            bookLibrary: bookLibrary ?? makeBookLibraryCapability(kernel: kernel),
             isDesktop: MagicApp.isDesktop,
             isNotDesktop: MagicApp.isNotDesktop
         )
         let viewModel = resolveViewModel()
         let view = BookDBView(dependencies: dependencies, viewModel: viewModel)
+            .appDebugBadge("Audiobooks Library", alignment: .bottomLeading)
         return (AnyView(view), label)
     }
 
@@ -114,7 +125,7 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
         // 共享同一实例——否则设置页 onAppear 触发重载时，共享状态变化会传播
         // 到主窗口内容区，导致其闪动。
         let settingList = BookListViewModel(
-            bookProvider: self.kernel?.resolveProvider(BookDatabaseProviding.self)
+            bookLibrary: settingDependencies.bookLibrary
         )
         let settingTree = BookTreeViewModel(disk: bookDiskProvider)
         return SettingEntryItem(
@@ -136,7 +147,7 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     private var settingDependencies: BookDBDependencies {
         BookDBDependencies(
-            bookProvider: kernel?.resolveProvider(BookDatabaseProviding.self),
+            bookLibrary: bookLibrary ?? makeBookLibraryCapability(kernel: kernel),
             bookDisk: bookDiskProvider
         )
     }
@@ -160,21 +171,33 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
         }
     }
 
+    /// 组装书库能力：把内核 `BookDatabaseProviding` 收窄为本插件的书库能力。
+    ///
+    /// 数据层插件的 boot 顺序可能晚于本插件的视图贡献请求，此时能力退化为
+    /// 「无书库」；`onReady` 的 `installState` 会重新组装并绑定。
+    @MainActor
+    private func makeBookLibraryCapability(kernel: KernelCoreContainer?) -> BookLibraryCapabilityAdapter {
+        BookLibraryCapabilityAdapter(books: kernel?.resolveProvider(BookDatabaseProviding.self))
+    }
+
     @MainActor
     private func installState(kernel: KernelCoreContainer) {
         guard gridViewModel == nil else { return }
-
         guard let scene = kernel.resolveProvider((any SceneProviding).self) else { return }
         sceneBox.scene = scene
         if Self.verbose { os_log("\(Self.t)🔧 installState") }
 
-        let viewModel = BookGridViewModel(
-            playbackProvider: kernel.resolveProvider((any PlaybackProviding).self),
-            toastProvider: kernel.resolveProvider((any ToastProviding).self)
-        )
-        guard let provider = kernel.resolveProvider(BookDatabaseProviding.self) else { return }
-        let observer = DBObserver(viewModel: viewModel, provider: provider)
-        let playbackObserver = PlaybackObserver(playback: kernel.resolveProvider((any PlaybackProviding).self), viewModel: viewModel)
+        let library = BookLibraryCapabilityAdapter(books: kernel.resolveProvider(BookDatabaseProviding.self))
+        let playback = BookLibraryPlaybackCapabilityAdapter(playback: kernel.resolveProvider((any PlaybackProviding).self))
+        let toast = BookLibraryToastCapabilityAdapter(toast: kernel.resolveProvider((any ToastProviding).self))
+        bookLibrary = library
+        gridPlayback = playback
+        gridToast = toast
+
+        let viewModel = BookGridViewModel(playback: playback, toast: toast)
+        viewModel.bind(library: library)
+        let observer = DBObserver(viewModel: viewModel, library: library)
+        let playbackObserver = PlaybackObserver(playback: playback, viewModel: viewModel)
         gridViewModel = viewModel
         databaseObserver = observer
         self.playbackObserver = playbackObserver
@@ -188,6 +211,8 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
         playbackObserver?.cancel()
         playbackObserver = nil
         gridViewModel = nil
+        gridPlayback = nil
+        gridToast = nil
     }
 
     @MainActor
@@ -195,10 +220,12 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
         if let gridViewModel {
             return gridViewModel
         }
-        let viewModel = BookGridViewModel(
-            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
-            toastProvider: kernel?.resolveProvider((any ToastProviding).self)
-        )
+        let playback = BookLibraryPlaybackCapabilityAdapter(playback: kernel?.resolveProvider((any PlaybackProviding).self))
+        let toast = BookLibraryToastCapabilityAdapter(toast: kernel?.resolveProvider((any ToastProviding).self))
+        gridPlayback = playback
+        gridToast = toast
+        let viewModel = BookGridViewModel(playback: playback, toast: toast)
+        viewModel.bind(library: bookLibrary ?? makeBookLibraryCapability(kernel: kernel))
         gridViewModel = viewModel
         return viewModel
     }

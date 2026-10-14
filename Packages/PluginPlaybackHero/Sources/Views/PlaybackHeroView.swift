@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import SwiftUI
 
@@ -8,7 +7,6 @@ import SwiftUI
 /// 高度不足时只显示标题，否则显示主封面与标题。
 struct PlaybackHeroView: View {
     @ObservedObject private var viewModel: PlaybackHeroViewModel
-    @Environment(\.playbackHeroVisibility) private var heroVisibility
     @LumiTheme private var appTheme
     @LumiMotionPreferenceReader private var motionPreference
 
@@ -55,28 +53,21 @@ struct PlaybackHeroView: View {
                         .frame(height: titleViewHeight)
                         .foregroundStyle(appTheme.textPrimary)
                         .shadow(color: appTheme.background.opacity(0.18), radius: 8, y: 2)
+
+                    // 标题下方**不再**渲染下载状态行：引擎的 `localizedStateText()`
+                    // 在下载态下已自带百分比（如「正在下载 0%」），这里再拼一次
+                    // 前缀就会显示成「0% 正在下载 0%」——同一行两个百分比。
+                    // 下载进度改由封面区的大圆环（cisum.player.download.overlay）独占
+                    // 呈现；该圆环仅在控制区高度 > 450pt 时渲染。
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .onAppear {
-            heroVisibility.wrappedValue = viewModel.isHeroVisible
-        }
-        .onChange(of: viewModel.isHeroVisible) { _, isVisible in
-            withAnimation(.easeInOut(duration: 0.2)) {
-                heroVisibility.wrappedValue = isVisible
-            }
-        }
-        #if os(macOS)
-            .ignoresSafeArea(edges: .horizontal)
-        #else
-            .ignoresSafeArea()
-        #endif
     }
 
     private func shouldShowAlbum(in geometry: GeometryProxy) -> Bool {
-        !CisumPlayerLayout.shouldShowRightAlbum(width: geometry.size.width)
-            && geometry.size.height > CisumPlayerLayout.albumMinimumHeight
+        !AppResponsivePlayerLayoutMetrics.shared.shouldShowSecondaryColumn(width: geometry.size.width)
+            && geometry.size.height > AppResponsivePlayerLayoutMetrics.shared.secondaryColumnMinimumHeight
     }
 
     private func albumHeight(in geometry: GeometryProxy) -> CGFloat {
@@ -84,8 +75,8 @@ struct PlaybackHeroView: View {
     }
 
     private var demoAlbumView: some View {
-        Image.cisumCoffeeReelIcon(useDefaultBackground: false, handleRotation: 0)
-            .cisumShadow3xl()
+        Image.coffeeReelIcon(useDefaultBackground: false, handleRotation: 0)
+            .shadowXxxl()
     }
 
     private var downloadingAlbumView: some View {
@@ -111,16 +102,19 @@ struct PlaybackHeroView: View {
                 Text("\(Int(downloadProgress * 100))%")
                     .font(.system(size: 36, weight: .bold, design: .rounded))
                     .foregroundStyle(appTheme.textPrimary)
+                    .accessibilityIdentifier("cisum.player.download.progress")
                 Text(viewModel.localizedStateText())
                     .font(.system(size: 14))
                     .foregroundStyle(appTheme.textSecondary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
+                    .accessibilityIdentifier("cisum.player.download.state")
             }
             .padding(.horizontal, 24)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(appTheme.elevatedSurface.opacity(0.55))
+        .accessibilityIdentifier("cisum.player.download.overlay")
     }
 
     private var downloadProgress: CGFloat {

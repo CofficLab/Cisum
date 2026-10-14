@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import KernelCore
 import SwiftUI
@@ -31,13 +30,14 @@ public struct WindowMain: View {
             }
         }
         .appThemedAppearance()
+        .environment(\.toastWindowID, AppBootstrap.mainWindowID)
 #if os(macOS)
         .overlay {
             ThemeWindowAppearanceBridge().allowsHitTesting(false)
             MainWindowMinimumSizeBridge(
                 minimumSize: CGSize(
-                    width: CisumPlayerLayout.minimumWindowWidth,
-                    height: CisumPlayerLayout.minimumWindowHeight
+                    width: AppResponsivePlayerLayoutMetrics.shared.minimumWindowSize.width,
+                    height: AppResponsivePlayerLayoutMetrics.shared.minimumWindowSize.height
                 )
             )
             .allowsHitTesting(false)

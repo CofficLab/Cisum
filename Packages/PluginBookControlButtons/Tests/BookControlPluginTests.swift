@@ -555,47 +555,48 @@ import SwiftUI
 
 // MARK: - ViewModel 集成
 
+/// 最小播放能力探针：只保留控制按钮消费的成员。
 @MainActor
-private final class BookControlPlaybackProbe: PlaybackProviding {
+private final class BookControlPlaybackProbe: BookControlPlaybackCapability {
     var currentURL: URL?
     var state: PlaybackStatus = .paused
-    var currentTime: TimeInterval = 0
-    var duration: TimeInterval = 0
-    var progress: Double = 0
-    var likedAssets: Set<URL> = []
     var isPlaying: Bool { state.isPlaying }
-    var hasAsset: Bool { currentURL != nil }
     var playMode: PlaybackMode = .sequence
     var toggleCount = 0
     var togglePlayModeCount = 0
     var resetCount = 0
+    var playedURLs: [URL] = []
 
     func toggle() { toggleCount += 1 }
     func togglePlayMode() { togglePlayModeCount += 1 }
-    func play(_ url: URL) async { currentURL = url }
-    func pause() {}
-    func seek(toProgress progress: Double) {}
-    func seek(toTime time: TimeInterval) {}
-    func next() {}
-    func previous() {}
-    func setPlayMode(_ mode: PlaybackMode) { playMode = mode }
-    func toggleCurrentLike() {}
+    func play(_ url: URL, startTime: TimeInterval?) async {
+        playedURLs.append(url)
+        currentURL = url
+    }
     func reset() async { resetCount += 1 }
-    func addObserver(_ callback: @escaping (PlaybackProvidingEvent) -> Void) -> any PlaybackProvidingObserverHandle {
-        NoopPlaybackProvidingObserverHandle()
+
+    @discardableResult
+    func addObserver(
+        _ callback: @escaping (BookControlPlaybackEvent) -> Void
+    ) -> any BookControlPlaybackObserverHandle {
+        NoopBookControlHandle()
     }
 }
 
 @MainActor
-private final class BookToastProbe: ToastProviding {
-    var errors: [(title: String, message: String)] = []
+private final class NoopBookControlHandle: BookControlPlaybackObserverHandle,
+    BookControlSceneObserverHandle, BookControlLibraryObserverHandle {
+    func cancel() {}
+}
 
-    func show(_ toast: CisumToast) {}
-    func presentError(title: String, message: String) { errors.append((title, message)) }
-    func dismissError() {}
-    func showLoading(title: String, detail: String?) {}
-    func dismissLoading() {}
-    func dismissAll() {}
+/// 最小提示能力探针：记录持久化错误面板。
+@MainActor
+private final class BookToastProbe: BookControlToastCapability {
+    var errors: [(title: String, message: String, sourceWindowID: String?)] = []
+
+    func presentError(title: String, message: String, sourceWindowID: String?) {
+        errors.append((title, message, sourceWindowID))
+    }
 }
 
 @MainActor
@@ -607,7 +608,7 @@ struct BookControlViewModelTests {
         playback.playMode = .shuffle
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackProvider: playback
+            playback: playback
         )
         viewModel.handleSceneChange(.audiobooks)
         #expect(viewModel.isPlaying)
@@ -620,8 +621,8 @@ struct BookControlViewModelTests {
         let toast = BookToastProbe()
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackProvider: nil,
-            toastProvider: toast
+            playback: nil,
+            toast: toast
         )
         viewModel.toggle()
         #expect(!toast.errors.isEmpty)
@@ -632,8 +633,8 @@ struct BookControlViewModelTests {
         let toast = BookToastProbe()
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackProvider: BookControlPlaybackProbe(),
-            toastProvider: toast
+            playback: BookControlPlaybackProbe(),
+            toast: toast
         )
         viewModel.previous()
         #expect(!toast.errors.isEmpty)
@@ -644,7 +645,7 @@ struct BookControlViewModelTests {
         let playback = BookControlPlaybackProbe()
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackProvider: playback
+            playback: playback
         )
         viewModel.handleSceneChange(.audiobooks)
         viewModel.handleStorageLocationDidReset()
@@ -660,7 +661,7 @@ struct BookControlViewModelTests {
         let playback = BookControlPlaybackProbe()
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackProvider: playback
+            playback: playback
         )
         viewModel.handleSceneChange(.music)
         viewModel.handleStorageLocationDidReset()
@@ -674,7 +675,7 @@ struct BookControlViewModelTests {
         playback.currentURL = URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackProvider: playback
+            playback: playback
         )
         viewModel.handleSceneChange(.audiobooks)
         viewModel.handleBookDBDeleted(deletedURLs: [URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")])
@@ -691,7 +692,7 @@ struct BookControlViewModelTests {
         playback.currentURL = URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
-            playbackProvider: playback
+            playback: playback
         )
         viewModel.handleSceneChange(.audiobooks)
         viewModel.handleBookDBDeleted(deletedURLs: [URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")])

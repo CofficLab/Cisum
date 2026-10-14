@@ -1,5 +1,4 @@
 import MagicKit
-import CisumUIComponents
 import LumiUI
 import OSLog
 import SwiftData
@@ -206,7 +205,7 @@ struct AudioList: View, SuperLog {
                 audioListView
 
                 if viewModel.isLoading && viewModel.urls.isEmpty {
-                    AudioDBTips(dependencies: dependencies, variant: .loading)
+                    AudioLibrarySkeletonView()
                 } else if viewModel.urls.isEmpty && !viewModel.isLoading {
                     AudioDBTips(dependencies: dependencies, variant: .empty)
                 }
@@ -223,8 +222,10 @@ struct AudioList: View, SuperLog {
     private var audioListView: some View {
         List {
             Section(header: HStack {
-                Text("Total \(viewModel.totalCount.description)", bundle: .module)
-                    .accessibilityIdentifier("cisum.audio-library.count")
+                if viewModel.totalCount > 0 {
+                    Text("Total \(viewModel.totalCount.description)", bundle: .module)
+                        .accessibilityIdentifier("cisum.audio-library.count")
+                }
                 Spacer()
                 if viewModel.isSyncing {
                     HStack(spacing: 6) {

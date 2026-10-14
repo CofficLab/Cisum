@@ -1,5 +1,4 @@
 import MagicKit
-import CisumUIComponents
 import LumiUI
 import OSLog
 import ProviderBook
@@ -36,7 +35,7 @@ struct BookList: View, SuperLog, SuperThread {
             )
         }
         .task {
-            books = await dependencies.bookProvider?.books(reason: "BookList") ?? []
+            books = await dependencies.bookLibrary?.books(reason: "BookList") ?? []
         }
     }
 }

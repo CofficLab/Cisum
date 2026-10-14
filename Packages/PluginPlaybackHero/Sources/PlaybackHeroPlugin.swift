@@ -3,7 +3,6 @@ import ProviderDocsView
 import ProviderPlayback
 import ProviderAudioLibrary
 import ProviderScene
-import CisumUIComponents
 import LumiUI
 import KernelCore
 import ProviderPlugin
@@ -34,6 +33,12 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
 
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var viewModel: PlaybackHeroViewModel?
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    nonisolated(unsafe) private var playbackCapability: HeroPlaybackCapabilityAdapter?
+    nonisolated(unsafe) private var mediaCapability: HeroMediaCapabilityAdapter?
+    nonisolated(unsafe) private var libraryCapability: HeroLibraryCapabilityAdapter?
+    nonisolated(unsafe) private var sceneCapability: HeroSceneCapabilityAdapter?
     nonisolated(unsafe) private var observer: PlaybackHeroObserver?
 
     @MainActor
@@ -68,6 +73,10 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
         observer?.cancel()
         observer = nil
         viewModel = nil
+        playbackCapability = nil
+        mediaCapability = nil
+        libraryCapability = nil
+        sceneCapability = nil
         self.kernel = nil
     }
 
@@ -81,6 +90,7 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
                 viewModel: viewModel,
                 isDemoMode: kernel?.resolveProvider((any AppStateProviding).self)?.isDemoMode ?? false
             )
+            .appDebugBadge("Playback Cover", alignment: .topTrailing)
         )
     }
 
@@ -89,22 +99,42 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
     public func addRightAlbumView() -> AnyView? {
         installState(kernel: kernel)
         guard let viewModel else { return nil }
-        return AnyView(PlaybackHeroRightAlbumView(viewModel: viewModel))
+        return AnyView(
+            PlaybackHeroRightAlbumView(viewModel: viewModel)
+                .appDebugBadge("Right Album", alignment: .bottomLeading)
+        )
     }
 
     @MainActor
     private func installState(kernel: KernelCoreContainer?) {
         guard viewModel == nil else { return }
-        guard let playback = kernel?.resolveProvider((any PlaybackProviding).self) else { return }
-        let media = kernel?.resolveProvider((any PlaybackMediaProviding).self)
-        let library = kernel?.resolveProvider((any AudioLibraryProviding).self)
-        let scene = kernel?.resolveProvider((any SceneProviding).self)
+        guard let playbackProvider = kernel?.resolveProvider((any PlaybackProviding).self) else { return }
+        let playback = HeroPlaybackCapabilityAdapter(playback: playbackProvider)
+        let media = HeroMediaCapabilityAdapter(
+            media: kernel?.resolveProvider((any PlaybackMediaProviding).self)
+        )
+        let library = HeroLibraryCapabilityAdapter(
+            library: kernel?.resolveProvider((any AudioLibraryProviding).self)
+        )
+        let scene = HeroSceneCapabilityAdapter(
+            scene: kernel?.resolveProvider((any SceneProviding).self)
+        )
+        playbackCapability = playback
+        mediaCapability = media
+        libraryCapability = library
+        sceneCapability = scene
+
         let viewModel = PlaybackHeroViewModel(
-            playbackProvider: playback,
-            mediaProvider: media,
-            isMusicSceneActive: scene.map { $0.currentScene == .music } ?? true
+            playback: playback,
+            media: media,
+            isMusicSceneActive: scene.currentScene == .music
         )
         self.viewModel = viewModel
-        observer = PlaybackHeroObserver(playback: playback, library: library, scene: scene, viewModel: viewModel)
+        observer = PlaybackHeroObserver(
+            playback: playback,
+            library: library,
+            scene: scene,
+            viewModel: viewModel
+        )
     }
 }

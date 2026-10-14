@@ -14,8 +14,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
         .package(path: "../ProviderPlugin"),
-        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.7.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.8.0"),
     ],
     targets: [
         .target(
@@ -23,7 +22,6 @@ let package = Package(
             dependencies: [
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
-                .product(name: "CisumUIComponents", package: "KitUIComponents"),
                 .product(name: "LumiUI", package: "LumiUI"),
             ],
             path: ".",

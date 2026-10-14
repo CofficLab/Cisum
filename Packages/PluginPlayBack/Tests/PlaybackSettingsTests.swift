@@ -98,14 +98,15 @@ private final class SceneObserverHandle: SceneProvidingObserverHandle {
 @MainActor
 struct PlaybackSettingsTests {
     @Test
-    func viewModelWeaklyHoldsPlaybackProvider() throws {
+    func viewModelWeaklyHoldsPlaybackCapability() throws {
         let root = try temporaryRoot()
         defer { try? FileManager.default.removeItem(at: root) }
         var playback: PlaybackStub? = PlaybackStub()
         weak var weakPlayback = playback
         playback?.state = .playing
         let store = PlaybackStateStore(rootDirectory: root)
-        let viewModel = PluginPlayBackSettingsViewModel(store: store, playbackProvider: playback)
+        let capability = PlaybackSettingsCapabilityAdapter(playback: playback)
+        let viewModel = PluginPlayBackSettingsViewModel(store: store, playback: capability)
 
         #expect(viewModel.currentURL == playback?.currentURL)
         #expect(viewModel.isPlaying)
@@ -131,7 +132,10 @@ struct PlaybackSettingsTests {
         playback.state = .playing
         playback.currentTime = 9
         playback.duration = 36
-        let viewModel = PluginPlayBackSettingsViewModel(store: store, playbackProvider: playback)
+        let viewModel = PluginPlayBackSettingsViewModel(
+            store: store,
+            playback: PlaybackSettingsCapabilityAdapter(playback: playback)
+        )
 
         #expect(viewModel.scenes == AppScene.allCases)
         #expect(viewModel.currentURL == playback.currentURL)
@@ -165,7 +169,10 @@ struct PlaybackSettingsTests {
     func playbackObserverForwardsEventsAndStopsAfterCancellation() {
         let playback = PlaybackStub()
         let viewModel = PluginPlayBackSettingsViewModel(store: PlaybackStateStore(rootDirectory: temporaryRootURL()))
-        let observer = PlaybackSettingsPlaybackObserver(playback: playback, viewModel: viewModel)
+        let observer = PlaybackSettingsPlaybackObserver(
+            playback: PlaybackSettingsCapabilityAdapter(playback: playback),
+            viewModel: viewModel
+        )
         let nextURL = URL(fileURLWithPath: "/library/next.mp3")
 
         playback.send(.assetChanged(nextURL))
@@ -191,7 +198,10 @@ struct PlaybackSettingsTests {
         let viewModel = PluginPlayBackSettingsViewModel(
             store: PlaybackStateStore(rootDirectory: temporaryRootURL())
         )
-        let observer = PlaybackSettingsSceneObserver(provider: provider, viewModel: viewModel)
+        let observer = PlaybackSettingsSceneObserver(
+            scene: PlaybackSceneCapabilityAdapter(scene: provider),
+            viewModel: viewModel
+        )
 
         #expect(viewModel.currentScene == .audiobooks)
         provider.setCurrentScene(.music)

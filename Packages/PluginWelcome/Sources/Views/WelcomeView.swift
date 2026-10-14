@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import SwiftUI
 
@@ -52,8 +51,8 @@ public struct WelcomeView: View {
                     updateStorageSelection: updateStorageSelection
                 )
                 .background(.regularMaterial)
-                .cisumRoundedMedium()
-                .cisumShadowSm()
+                .appRoundedMedium()
+                .shadowSm()
 
                 Spacer()
             }

@@ -1,4 +1,3 @@
-import CisumUIComponents
 import MagicKit
 import LumiUI
 import OSLog
@@ -86,7 +85,7 @@ struct ProductsSubscription: View, SuperEvent, SuperLog, SuperThread {
                                         Text(group.name)
                                             .font(.title3)
                                             .fontWeight(.semibold)
-                                            .cisumIf(group.name.isNotEmpty)
+                                            .appIf(group.name.isNotEmpty)
 
                                         Group {
                                             if Self.shouldUseSingularSubscriptionCount(group.subscriptions.count) {
@@ -120,7 +119,7 @@ struct ProductsSubscription: View, SuperEvent, SuperLog, SuperThread {
                         }
                     }
                 }
-                .cisumScrollView()
+                .appScrollView()
             }
         }
         .onAppear(perform: onAppear)

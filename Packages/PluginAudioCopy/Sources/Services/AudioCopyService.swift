@@ -1,6 +1,5 @@
 #if os(macOS)
 import Foundation
-import CisumUIComponents
 import MagicKit
 import LumiUI
 import ProviderAudioLibrary
@@ -14,26 +13,26 @@ public enum AudioCopyService {
     static var worker: CopyWorker?
     static var db: CopyDB?
     static var container: ModelContainer?
-    static var audioDiskProvider: (() -> URL?)?
-    static var audioCountProvider: (() async -> Int)?
-    static var toastProvider: (any ToastProviding)?
+    /// 能力由入口经 `configure` 注入并由静态属性长期持有（视同组装层所有权）；
+    /// 能力内部对 Provider 为惰性解析或 `weak`，静态持有不会延长 Provider 生命周期。
+    static var library: (any AudioCopyLibraryCapability)?
+    static var toast: (any AudioCopyToastCapability)?
     static var copyViewModel: CopyViewModel?
     static var copyObserver: CopyTaskObserver?
 
-    public static func configure(
-        audioDiskProvider: @escaping () -> URL?,
-        audioCountProvider: @escaping () async -> Int,
-        toastProvider: (any ToastProviding)?
+    /// 由插件入口注入能力（能力协议为插件内部类型，故本方法不对外）。
+    static func configure(
+        library: any AudioCopyLibraryCapability,
+        toast: (any AudioCopyToastCapability)?
     ) {
-        Self.audioDiskProvider = audioDiskProvider
-        Self.audioCountProvider = audioCountProvider
-        Self.toastProvider = toastProvider
+        Self.library = library
+        Self.toast = toast
         installCopyState()
     }
 
     static func installCopyState() {
         guard copyViewModel == nil else { return }
-        let viewModel = CopyViewModel(toastProvider: toastProvider)
+        let viewModel = CopyViewModel(toast: toast)
         let observer = CopyTaskObserver(viewModel: viewModel)
         copyViewModel = viewModel
         copyObserver = observer
@@ -100,20 +99,20 @@ public enum AudioCopyService {
     }
 
     static func isOutOfLimit() async -> Bool {
-        guard let audioCountProvider else {
+        guard let library else {
             return false
         }
-        let count = await audioCountProvider()
+        let count = await library.totalCount()
         let pendingCount = await pendingCopyTaskCount()
         return count + pendingCount >= AudioPluginInfo.maxAudioCount && StoreService.tierCached().isFreeVersion
     }
 
     static func allowedTaskCount(requestedTaskCount: Int) async -> Int {
-        guard let audioCountProvider else {
+        guard let library else {
             return requestedTaskCount
         }
 
-        let count = await audioCountProvider()
+        let count = await library.totalCount()
         let pendingCount = await pendingCopyTaskCount()
         return AudioCopyLimitPolicy.allowedTaskCount(
             currentAudioCount: count,
@@ -125,7 +124,7 @@ public enum AudioCopyService {
     }
 
     static func getAudioDisk() -> URL? {
-        audioDiskProvider?()
+        library?.audioDisk
     }
 
     private static func pendingCopyTaskCount() async -> Int {

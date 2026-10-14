@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import Foundation
 import KernelCore
@@ -36,8 +35,8 @@ struct KernelRootView: View {
                         .frame(width: geometry.size.width, height: geometry.size.height)
 #if os(macOS)
                         .frame(
-                            minWidth: CisumPlayerLayout.minimumWindowWidth,
-                            minHeight: CisumPlayerLayout.minimumWindowHeight
+                            minWidth: AppResponsivePlayerLayoutMetrics.shared.minimumWindowSize.width,
+                            minHeight: AppResponsivePlayerLayoutMetrics.shared.minimumWindowSize.height
                         )
 #endif
                 }

@@ -8,7 +8,6 @@ import CisumProviderStorage
 import KernelCore
 import ProviderPlugin
 import KitAppEvents
-import CisumUIComponents
 import LumiUI
 import SwiftUI
 
@@ -36,6 +35,13 @@ public final class AudioProgressPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var progressViewModel: AudioProgressViewModel?
     nonisolated(unsafe) private var progressObserver: AudioProgressObserver?
+
+    /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
+    /// 强持有，否则能力会随装配调用返回而释放。
+    /// `library` 内部惰性解析 Provider，因此可跨 boot 阶段长期复用同一实例。
+    nonisolated(unsafe) private var playbackCapability: PlaybackProgressCapabilityAdapter?
+    nonisolated(unsafe) private var libraryCapability: ProgressAudioLibraryCapabilityAdapter?
+    nonisolated(unsafe) private var environmentCapability: ProgressEnvironmentCapabilityAdapter?
 
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
@@ -92,21 +98,28 @@ public final class AudioProgressPlugin: AsyncSuperPlugin, SuperLog {
               let playback = kernel.resolveProvider((any PlaybackProviding).self) else { return }
         sceneBox.scene = scene
 
+        let playbackCapability = PlaybackProgressCapabilityAdapter(playback: playback)
+        let environment = ProgressEnvironmentCapabilityAdapter(
+            scene: scene,
+            library: kernel.resolveProvider((any AudioLibraryProviding).self),
+            storage: kernel.resolveProvider((any StorageProviding).self)
+        )
+        self.playbackCapability = playbackCapability
+        self.environmentCapability = environment
+
         let viewModel = AudioProgressViewModel(
             audioScene: .music,
-            playbackProvider: playback,
-            audioLibrary: { kernel.resolveProvider((any AudioLibraryProviding).self) },
+            playback: playbackCapability,
+            library: makeLibraryCapability(kernel: kernel),
             audioLike: { kernel.resolveProvider((any AudioLikeProviding).self) },
             saveWidgetData: { title, artist, isPlaying, coverArt in
                 AudioProgressHost.saveWidgetData(title: title, artist: artist, isPlaying: isPlaying, coverArt: coverArt)
             }
         )
         let observer = AudioProgressObserver(
-            scene: scene,
-            playback: playback,
-            library: kernel.resolveProvider((any AudioLibraryProviding).self),
-            storage: kernel.resolveProvider((any StorageProviding).self),
-            viewModel: viewModel,
+            playback: playbackCapability,
+            environment: environment,
+            viewModel: viewModel
         )
         progressViewModel = viewModel
         progressObserver = observer
@@ -117,6 +130,20 @@ public final class AudioProgressPlugin: AsyncSuperPlugin, SuperLog {
         progressObserver?.cancel()
         progressObserver = nil
         progressViewModel = nil
+        playbackCapability = nil
+        environmentCapability = nil
+    }
+
+    /// 组装音频库能力：内部惰性解析内核 Provider，跨 boot 阶段稳定可用。
+    @MainActor
+    private func makeLibraryCapability(kernel: KernelCoreContainer? = nil) -> ProgressAudioLibraryCapabilityAdapter {
+        if let kernel, let libraryCapability { return libraryCapability }
+        let capability = ProgressAudioLibraryCapabilityAdapter {
+            @MainActor [weak self] in
+            (kernel ?? self?.kernel)?.resolveProvider((any AudioLibraryProviding).self)
+        }
+        if kernel != nil { libraryCapability = capability }
+        return capability
     }
 
     /// 返回当前持有的 ViewModel；若尚未安装（启动前或插件被禁用），
@@ -126,10 +153,15 @@ public final class AudioProgressPlugin: AsyncSuperPlugin, SuperLog {
         if let progressViewModel {
             return progressViewModel
         }
+        // 视图贡献可能早于 onReady：此时进度条处于不可用状态，等待后续装配。
+        let playback = PlaybackProgressCapabilityAdapter(
+            playback: kernel?.resolveProvider((any PlaybackProviding).self)
+        )
+        playbackCapability = playback
         let viewModel = AudioProgressViewModel(
             audioScene: .music,
-            playbackProvider: kernel?.resolveProvider((any PlaybackProviding).self),
-            audioLibrary: { self.kernel?.resolveProvider((any AudioLibraryProviding).self) },
+            playback: playback,
+            library: makeLibraryCapability(),
             audioLike: { self.kernel?.resolveProvider((any AudioLikeProviding).self) },
             saveWidgetData: { title, artist, isPlaying, coverArt in
                 AudioProgressHost.saveWidgetData(title: title, artist: artist, isPlaying: isPlaying, coverArt: coverArt)

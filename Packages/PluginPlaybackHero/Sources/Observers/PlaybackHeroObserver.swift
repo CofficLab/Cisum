@@ -1,7 +1,5 @@
-import ProviderPlayback
-import ProviderAudioLibrary
-import ProviderScene
 import MagicKit
+import ProviderControlView
 
 /// 播放封面观察者：汇总播放、音乐仓库与场景事件，驱动封面 ViewModel。
 @MainActor
@@ -10,50 +8,56 @@ final class PlaybackHeroObserver: SuperLog {
     nonisolated static let verbose = false
 
     private weak var viewModel: PlaybackHeroViewModel?
-    private var playbackHandle: (any PlaybackProvidingObserverHandle)?
-    private var libraryHandle: (any AudioLibraryProvidingObserverHandle)?
-    private var sceneHandle: (any SceneProvidingObserverHandle)?
+    private var playbackHandle: (any HeroPlaybackObserverHandle)?
+    private var libraryHandle: (any HeroLibraryObserverHandle)?
+    private var sceneHandle: (any HeroSceneObserverHandle)?
 
     init(
-        playback: (any PlaybackProviding)?,
-        library: (any AudioLibraryProviding)? = nil,
-        scene: (any SceneProviding)? = nil,
+        playback: any HeroPlaybackCapability,
+        library: any HeroLibraryCapability,
+        scene: any HeroSceneCapability,
         viewModel: PlaybackHeroViewModel
     ) {
         self.viewModel = viewModel
-        viewModel.applyMusicSceneActive(scene.map { $0.currentScene == .music } ?? true)
-        playbackHandle = playback?.addObserver { [weak self] event in
+        // 场景 Provider 缺失时不隐藏封面：启动早期场景尚未就绪，
+        // 若按「非音乐库」处理会让封面在整个会话中都不出现。
+        viewModel.applyMusicSceneActive(!scene.isAvailable || scene.currentScene == .music)
+
+        playbackHandle = playback.addObserver { [weak self] event in
             guard let self else { return }
             switch event {
             case .assetChanged(let url):
                 self.viewModel?.applyAssetChanged(url)
+                self.publishHeroVisibility()
             case .stateChanged(let state):
                 self.viewModel?.applyStateChanged(state)
-            default: break
+                self.publishHeroVisibility()
             }
         }
 
-        libraryHandle = library?.addObserver { [weak self] event in
+        libraryHandle = library.addObserver { [weak self] event in
             guard let self else { return }
             switch event {
-            case .repositoryEmpty:
+            case .becameEmpty:
                 self.viewModel?.applyRepositoryEmpty(true)
-            case .synced(let totalCount), .updated(let totalCount), .deleted(_, let totalCount):
-                if totalCount > 0 {
-                    self.viewModel?.applyRepositoryEmpty(false)
-                }
-            case .syncing, .repositoryAvailabilityChanged, .sorting, .sortCompleted:
-                break
+                self.publishHeroVisibility()
+            case .becameNonEmpty:
+                self.viewModel?.applyRepositoryEmpty(false)
+                self.publishHeroVisibility()
             }
         }
 
-        sceneHandle = scene?.addObserver { [weak self] event in
+        sceneHandle = scene.addObserver { [weak self] event in
             guard let self else { return }
-            switch event {
-            case .selectionChanged(let scene):
-                self.viewModel?.applyMusicSceneActive(scene == .music)
-            }
+            guard case .selectionChanged(let newScene) = event else { return }
+            self.viewModel?.applyMusicSceneActive(newScene == .music)
+            self.publishHeroVisibility()
         }
+    }
+
+    /// 把封面呈现状态广播给控制区与根布局（替代失效的 preference 链路）。
+    private func publishHeroVisibility() {
+        ControlHeroVisibility.shared.isVisible = viewModel?.isHeroVisible ?? true
     }
 
     func cancel() {

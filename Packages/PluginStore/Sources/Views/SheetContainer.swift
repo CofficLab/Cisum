@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import SwiftUI
 
@@ -30,22 +29,22 @@ struct SheetContainer<Content: View>: View {
                 .padding(.bottom, 24)
         }
         .background(appTheme.background)
-        .cisumInfinite()
+        .appFillAvailableSpace()
         .ignoresSafeArea()
     }
 
     private var closeButton: some View {
-        Image.cisumClose
+        Image.appClose
             .font(.system(size: 20, weight: .medium))
             .frame(width: 32, height: 32)
             .foregroundStyle(.secondary)
             .background(.regularMaterial, in: Circle())
-            .cisumShadowSm()
-            .cisumButton {
+            .shadowSm()
+            .appPlainButton {
                 dismiss()
             }
             .accessibilityLabel(Self.closeButtonLabel)
             .help(Self.closeButtonLabel)
-            .cisumHoverScale(105)
+            .appHoverScale(1.05)
     }
 }

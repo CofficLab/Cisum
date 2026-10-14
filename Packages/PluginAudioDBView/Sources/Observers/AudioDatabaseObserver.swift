@@ -1,4 +1,3 @@
-import ProviderAudioLibrary
 import MagicKit
 
 /// 音频数据库事件的集中观察者（迁移 Phase 2）。
@@ -14,18 +13,18 @@ final class AudioDatabaseObserver: SuperLog {
     private weak var listViewModel: AudioListViewModel?
     private weak var rootViewModel: AudioDBRootViewModel?
     private weak var dbViewModel: AudioDBViewModel?
-    private var handle: (any AudioLibraryProvidingObserverHandle)?
+    private var handle: (any AudioLibraryObserverHandle)?
 
     init(
         list: AudioListViewModel,
         root: AudioDBRootViewModel?,
         db: AudioDBViewModel?,
-        library: (any AudioLibraryProviding)?
+        library: any AudioLibraryCapability
     ) {
         self.listViewModel = list
         self.rootViewModel = root
         self.dbViewModel = db
-        handle = library?.addObserver { [weak self] event in
+        handle = library.addObserver { [weak self] event in
             switch event {
             case .syncing:
                 self?.listViewModel?.handleDBSyncing()
@@ -35,7 +34,7 @@ final class AudioDatabaseObserver: SuperLog {
             case .updated:
                 self?.listViewModel?.handleDBUpdated()
                 Task { @MainActor in await self?.rootViewModel?.checkAudioRepo() }
-            case .deleted(let urls, _):
+            case .deleted(let urls):
                 self?.listViewModel?.handleDBDeleted(urlsToDelete: urls)
             case .repositoryEmpty:
                 Task { @MainActor in await self?.rootViewModel?.checkAudioRepo() }

@@ -1,7 +1,6 @@
 import AVFoundation
 import Combine
 import Foundation
-import CisumUIComponents
 import LumiUI
 import MagicKit
 import OSLog
@@ -79,7 +78,9 @@ extension MagicPlayMan {
             return
         }
 
-        if url.isDownloaded {
+        // 走下载网关判定（生产实现等价于 hasLocalContent，且优于 isDownloaded：
+        // dataless 文件的 isDownloaded 不可靠），测试注入的替身因此能生效。
+        if ICloudDownloadControl.shared.downloader.hasLocalContent(url) {
             onFinished?()
             return
         }
@@ -179,10 +180,21 @@ extension MagicPlayMan {
                     guard self.cleanupDownloadObservers(for: url) else {
                         return
                     }
-                    self.setState(.failed(.networkError(error.localizedDescription)), reason: "\(reason).\(self.className).downloadAndCache")
+                    self.setState(.failed(Self.playbackFailure(for: error)), reason: "\(reason).\(self.className).downloadAndCache")
                 }
             }
         }
+    }
+
+    /// 把下载错误归类为播放失败态。
+    ///
+    /// iCloud 相关失败单独成态（文案与恢复建议不同），其余归为网络错误。
+    private static func playbackFailure(for error: Error) -> PlaybackState.PlaybackError {
+        if let iCloudError = error as? ICloudDownloadError, iCloudError.isICloudDownloadFailure {
+            return .iCloudDownloadFailed(iCloudError.errorDescription ?? "iCloud")
+        }
+
+        return .networkError(error.localizedDescription)
     }
 
     /// 清理下载监听器
