@@ -7,23 +7,34 @@ struct AudioLibrarySkeletonView: View {
     @LumiTheme private var appTheme
     @State private var isBreathing = false
 
-    /// 骨架行数量，足够撑满常规屏幕高度
-    private let rowCount = 12
+    // MARK: - 布局常量
+
+    /// 顶部留白，和 List 的 section header 高度对齐
+    nonisolated static let topInset: CGFloat = 28
+
+    /// 单行占位高度：40pt 头像 + 上下各 10pt 内边距
+    nonisolated static let rowHeight: CGFloat = 60
+
+    /// 行数上限：避免超高窗口下生成过多占位行（无视觉收益，只增加绘制开销）
+    nonisolated static let maximumRowCount = 20
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // 顶部留白，和 List 的 section header 高度对齐
-            Spacer()
-                .frame(height: 28)
+        GeometryReader { geometry in
+            let rowCount = Self.rowCount(forAvailableHeight: geometry.size.height)
 
-            ForEach(0..<rowCount, id: \.self) { index in
-                skeletonRow(index: index)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .modifier(SkeletonRowTestAnchor(index: index))
+            VStack(alignment: .leading, spacing: 0) {
+                Spacer()
+                    .frame(height: Self.topInset)
+
+                ForEach(0..<rowCount, id: \.self) { index in
+                    skeletonRow(index: index)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .modifier(SkeletonRowTestAnchor(index: index))
+                }
+
+                Spacer()
             }
-
-            Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(appTheme.background.ignoresSafeArea())
@@ -35,6 +46,23 @@ struct AudioLibrarySkeletonView: View {
                 isBreathing = true
             }
         }
+    }
+
+    /// 按可用高度决定骨架行数。
+    ///
+    /// 早期实现把行数写死为 12（总高 `28 + 12 × 60 = 748pt`），不随内容区高度
+    /// 变化。当内容区（窗口高度减去播放控制区）小于 748pt 时，`VStack` 内容溢出，
+    /// 在 `ZStack` 里被**居中**放置，整体上移约一半溢出量：顶部几行藏到播放控制区
+    /// 底下（表现为「列表上方被遮住」），底部几行超出窗口被裁掉。
+    ///
+    /// 因此这里必须由可用高度反推行数，且留至少 1 行，保证内容永不溢出容器。
+    ///
+    /// `nonisolated`：纯计算，不触碰任何 actor 隔离的状态，便于直接单测。
+    nonisolated static func rowCount(forAvailableHeight height: CGFloat) -> Int {
+        guard height.isFinite, height > topInset else { return 1 }
+
+        let fitting = Int((height - topInset) / rowHeight)
+        return min(max(fitting, 1), maximumRowCount)
     }
 
     private func skeletonRow(index: Int) -> some View {
