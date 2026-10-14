@@ -16,7 +16,7 @@ import XCTest
 ///
 /// ⚠️ 已知限制：默认窗口（400x600）下 Hero 下载覆盖层
 /// （cisum.player.download.overlay）不渲染（布局条件要求控制区高度 > 450pt），
-/// 对它的「不存在」断言没有判别力，改由「下载状态行 + 按钮禁用」覆盖。
+/// 对它的「不存在」断言没有判别力，改由「按钮禁用」覆盖。
 class CisumICloudTestBase: CisumUITestBase {
     let seededAudioName = "Cisum-ICloud-Download-Test.wav"
 
@@ -60,28 +60,23 @@ class CisumICloudTestBase: CisumUITestBase {
 final class CisumICloudDownloadTimeoutUITests: CisumICloudTestBase {
     override var icloudMode: String { "timeout" }
 
-    /// 下载态必须有可感知的 UI：标题下方出现下载状态行。
+    /// 标题下方不得出现重复的下载百分比行。
     ///
-    /// 此前默认布局下下载态毫无 UI 呈现（覆盖层受布局条件限制不渲染），
-    /// 该用例驱动「始终可见的状态行」落地。
-    func testDownloadStatusLineVisibleWhileDownloading() throws {
+    /// 该行曾拼成「0% 正在下载 0%」——外层前缀与引擎 `localizedStateText()`
+    /// 自带的百分比各占一个。下载进度改由封面区大圆环独占呈现，故此处断言其不存在。
+    func testNoDuplicateDownloadStatusLineBelowTitle() throws {
         guard waitForSeededTrackReady() else { return }
 
         let statusLine = element(identifier: "cisum.player.download.status")
-        let appeared = statusLine.waitForExistence(timeout: 10)
-        XCTAssertTrue(
-            appeared,
-            "下载等待期间标题下方应显示下载状态行 cisum.player.download.status（当前完全无 UI 呈现）"
-        )
 
-        if appeared {
-            // SwiftUI Text 在 macOS AX 树中文本可能挂在 value（与 cisum.player.title 一致）
-            let text = (statusLine.label.isEmpty ? (statusLine.value as? String ?? "") : statusLine.label)
-            XCTAssertFalse(
-                text.isEmpty,
-                "下载状态行文案不应为空（label=\(statusLine.label) value=\(String(describing: statusLine.value))）"
-            )
-        }
+        // 给下载态一点时间出现：若该行仍被渲染，此处应能捕获到。
+        _ = element(identifier: "cisum.player.title").waitForExistence(timeout: 10)
+        Thread.sleep(forTimeInterval: 2)
+
+        XCTAssertFalse(
+            statusLine.exists,
+            "标题下方不应再渲染下载状态行 cisum.player.download.status（会显示成重复百分比）"
+        )
     }
 
     /// 下载/加载期间播放按钮必须禁用，避免用户点击后静默无响应。
@@ -195,5 +190,95 @@ final class CisumICloudLibraryUITests: CisumUITestBase {
             title.waitForExistence(timeout: 10),
             "音乐库列表项缺少标题标识 cisum.audio-library.item.title"
         )
+    }
+}
+
+// MARK: - 播放按钮下载进度环
+
+/// 播放按钮的下载进度环：用注入的固定进度值验证「圆环 + 中心百分比」。
+///
+/// 进度来源说明：真实进度由 `GlobalDownloadMonitor` 读 iCloud 资源键，在没有
+/// dataless 占位文件的机器上恒为 0，UI 测试无法断言非零百分比。因此新增
+/// `--cisum-ui-testing-download-progress=<0...1>`，在真实 App 进程里把
+/// `getDownloadProgressSnapshot` 覆写成确定值（见 `ICloudDownloadControl`）。
+///
+/// 配合 `timeout` 模式使用：下载永不完成，下载态可稳定停留 8s，足够断言。
+final class CisumPlayerDownloadRingUITests: CisumICloudTestBase {
+    private let injectedProgress = 0.42
+
+    override var icloudMode: String { "timeout" }
+
+    override var additionalLaunchArguments: [String] {
+        super.additionalLaunchArguments
+            + ["--cisum-ui-testing-download-progress=\(injectedProgress)"]
+    }
+
+    /// 下载期间播放按钮位置应出现进度环，且无障碍值等于注入的百分比。
+    func testPlayButtonShowsDownloadRingWithInjectedProgress() throws {
+        guard waitForSeededTrackReady() else { return }
+
+        let ring = element(identifier: "cisum.player.button.download.progress")
+        XCTAssertTrue(
+            ring.waitForExistence(timeout: 10),
+            "下载期间播放按钮位置没有出现进度环 cisum.player.button.download.progress"
+        )
+
+        guard ring.exists else { return }
+
+        // accessibilityValue 承载中心文字的百分比。
+        let value = ring.value as? String ?? ""
+        XCTAssertEqual(
+            value,
+            "\(Int(injectedProgress * 100))%",
+            "进度环显示的百分比与注入值不符：期望 \(Int(injectedProgress * 100))%，实际 \(value)"
+        )
+    }
+
+    /// 进度环不得挤压或溢出窗口——按钮尺寸偏小时中间文字最容易越界。
+    func testDownloadRingStaysInsideWindow() throws {
+        #if os(macOS)
+        guard waitForSeededTrackReady() else { return }
+
+        let ring = element(identifier: "cisum.player.button.download.progress")
+        guard ring.waitForExistence(timeout: 10) else {
+            XCTFail("下载期间没有出现进度环，无法验证其布局")
+            return
+        }
+
+        let window = app.windows["Cisum"].firstMatch
+        guard window.waitForExistence(timeout: 5) else {
+            XCTFail("找不到主窗口，无法验证进度环布局")
+            return
+        }
+
+        assertElementFitsWindow(ring, window: window, description: "播放按钮下载进度环")
+        #endif
+    }
+
+    /// 非下载态不得出现进度环：否则会与播放/暂停图标并存。
+    func testNoDownloadRingWhenNotDownloading() throws {
+        // success 模式：下载很快完成，App 进入稳定播放态。
+        let healthyApp = XCUIApplication()
+        healthyApp.launchArguments += [
+            "--cisum-ui-testing",
+            "--cisum-ui-testing-storage-local",
+            "--cisum-ui-testing-seed-audio", seededAudioName,
+            "--cisum-ui-testing-icloud-download=success",
+        ]
+        healthyApp.launch()
+        XCTAssertTrue(
+            element(identifier: "cisum.kernel.ready").waitForExistence(timeout: 20),
+            "success 模式下 App 未完成启动"
+        )
+
+        let ring = healthyApp.descendants(matching: .any)
+            .matching(identifier: "cisum.player.button.download.progress")
+            .firstMatch
+        XCTAssertFalse(
+            ring.exists,
+            "非下载态不应出现进度环（当前与播放图标并存）"
+        )
+
+        healthyApp.terminate()
     }
 }
