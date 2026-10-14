@@ -1,6 +1,5 @@
 #if os(macOS)
 import Foundation
-import CisumUIComponents
 import MagicKit
 import LumiUI
 import ProviderAudioLibrary

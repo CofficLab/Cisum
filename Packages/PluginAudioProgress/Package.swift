@@ -16,7 +16,6 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
-        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
         .package(url: "https://github.com/CofficLab/LumiUI", from: "1.8.0"),
         .package(path: "../ProviderAudioLibrary"),
         .package(path: "../ProviderAudioLike"),
@@ -34,7 +33,6 @@ let package = Package(
             name: "PluginAudioProgress",
             dependencies: [
                 .product(name: "MagicKit", package: "KitMagic"),
-                .product(name: "CisumUIComponents", package: "KitUIComponents"),
                 .product(name: "LumiUI", package: "LumiUI"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "ProviderAudioLike", package: "ProviderAudioLike"),

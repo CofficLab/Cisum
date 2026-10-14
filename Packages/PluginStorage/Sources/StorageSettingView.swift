@@ -1,5 +1,4 @@
 import MagicKit
-import CisumUIComponents
 import LumiUI
 import OSLog
 import SwiftUI
@@ -27,13 +26,13 @@ public struct StorageSettingView: View, SuperLog {
                         description: viewModel.isICloudAvailable
                             ? String(localized: "Store media files in iCloud Drive", bundle: .module)
                             : String(localized: "iCloud Drive is unavailable", bundle: .module),
-                        icon: .cisumIconCloud,
+                        icon: AppSymbol.cloud,
                         action: viewModel.isICloudAvailable ? {
                             beginMigration(to: .icloud)
                         } : nil
                     ) {
                         if viewModel.location == .icloud {
-                            Image(systemName: .cisumIconCheckmarkSimple)
+                            Image(systemName: AppSymbol.checkmark)
                                 .foregroundColor(.accentColor)
                         } else if !viewModel.isICloudAvailable {
                             Text("Unavailable", bundle: .module)
@@ -48,13 +47,13 @@ public struct StorageSettingView: View, SuperLog {
                         description: viewModel.isLocalStorageAvailable
                             ? String(localized: "Store within app, data will be lost if app is deleted", bundle: .module)
                             : String(localized: "Local storage is unavailable", bundle: .module),
-                        icon: .cisumIconFolder,
+                        icon: AppSymbol.folder,
                         action: viewModel.isLocalStorageAvailable ? {
                             beginMigration(to: .local)
                         } : nil
                     ) {
                         if viewModel.location == .local {
-                            Image(systemName: .cisumIconCheckmarkSimple)
+                            Image(systemName: AppSymbol.checkmark)
                                 .foregroundColor(.accentColor)
                         } else if !viewModel.isLocalStorageAvailable {
                             Text("Unavailable", bundle: .module)
@@ -70,7 +69,7 @@ public struct StorageSettingView: View, SuperLog {
                         title: String(localized: "Open Current Repository", bundle: .module),
                         description: viewModel.storageRoot?.path
                             ?? String(localized: "No storage location set", bundle: .module),
-                        icon: .cisumIconFolder,
+                        icon: AppSymbol.folder,
                         action: viewModel.storageRoot.map { _ in openCurrentRepository }
                     ) {
                         Image(systemName: "arrow.up.forward.square")

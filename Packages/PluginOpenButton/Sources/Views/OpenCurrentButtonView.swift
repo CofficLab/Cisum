@@ -1,7 +1,6 @@
 import MagicKit
 // 系统工具栏会自动加样式，所以用原生 Button 最好，不要用自定义按钮组件。
 
-import CisumUIComponents
 import LumiUI
 import SwiftUI
 
@@ -18,7 +17,7 @@ public struct OpenCurrentButtonView: View, SuperLog {
     public var body: some View {
         Group {
             if let url = viewModel.url, Self.shouldShowOpenButton(for: url) {
-                Button(Self.accessibilityTitle, systemImage: .cisumIconShowInFinder) {
+                Button(Self.accessibilityTitle, systemImage: AppSymbol.showInFinder) {
                     url.openInFinder()
                 }
                 .accessibilityLabel(Text(Self.accessibilityTitle))

@@ -4,7 +4,6 @@ import ProviderToast
 import KernelCore
 import ProviderPlugin
 import KitAppEvents
-import CisumUIComponents
 import LumiUI
 import Foundation
 import ProviderAudioLibrary
@@ -19,7 +18,7 @@ public final class AudioPlugin: AsyncSuperPlugin, SuperLog {
 
     public static let shared = AudioPlugin()
     public let order = 1
-    public let iconName: String = .cisumIconMusicNote
+    public let iconName: String = AppSymbol.musicNote
     public let metadata = PluginMetadata(
         id: String(describing: AudioPlugin.self),
         name: String(localized: String.LocalizationValue(AudioPluginInfo.titleKey), bundle: .module),

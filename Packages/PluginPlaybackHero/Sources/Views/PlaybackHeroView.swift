@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import SwiftUI
 
@@ -75,8 +74,8 @@ struct PlaybackHeroView: View {
     }
 
     private func shouldShowAlbum(in geometry: GeometryProxy) -> Bool {
-        !CisumPlayerLayout.shouldShowRightAlbum(width: geometry.size.width)
-            && geometry.size.height > CisumPlayerLayout.albumMinimumHeight
+        !AppResponsivePlayerLayoutMetrics.shared.shouldShowSecondaryColumn(width: geometry.size.width)
+            && geometry.size.height > AppResponsivePlayerLayoutMetrics.shared.secondaryColumnMinimumHeight
     }
 
     private func albumHeight(in geometry: GeometryProxy) -> CGFloat {
@@ -84,8 +83,8 @@ struct PlaybackHeroView: View {
     }
 
     private var demoAlbumView: some View {
-        Image.cisumCoffeeReelIcon(useDefaultBackground: false, handleRotation: 0)
-            .cisumShadow3xl()
+        Image.coffeeReelIcon(useDefaultBackground: false, handleRotation: 0)
+            .shadowXxxl()
     }
 
     private var downloadingAlbumView: some View {

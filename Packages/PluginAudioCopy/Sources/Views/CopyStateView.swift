@@ -1,6 +1,5 @@
 import MagicKit
 #if os(macOS)
-import CisumUIComponents
 import LumiUI
 import OSLog
 import SwiftData
@@ -70,7 +69,7 @@ struct CopyStateView: View, SuperLog, SuperThread {
                 HStack {
                     Image(systemName: "info.circle")
                     Text(CopyStatePresentation.message(pendingCount: viewModel.pendingCount, failedCount: viewModel.failedCount))
-                    Image.cisumList.cisumButton {
+                    Image.appList.appPlainButton {
                         viewModel.showCopying.toggle()
                     }
                     .accessibilityLabel(CopyStatePresentation.detailsButtonLabel(isShowing: viewModel.showCopying))
@@ -88,7 +87,7 @@ struct CopyStateView: View, SuperLog, SuperThread {
                     CopyList(viewModel: viewModel)
                 }
                 .transition(.opacity.combined(with: .scale))
-                .cisumShadowSm()
+                .shadowSm()
             }
         }
         .onAppear(perform: viewModel.handleAppear)

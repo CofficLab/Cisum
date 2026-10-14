@@ -4,7 +4,6 @@ import KernelCore
 import ProviderPlugin
 import ProviderRootView
 import KitAppEvents
-import CisumUIComponents
 import MagicKit
 import LumiUI
 import SwiftUI

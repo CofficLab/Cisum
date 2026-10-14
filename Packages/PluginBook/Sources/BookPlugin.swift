@@ -3,7 +3,6 @@ import CisumProviderStorage
 import KernelCore
 import ProviderPlugin
 import KitAppEvents
-import CisumUIComponents
 import LumiUI
 import ProviderBook
 import Foundation

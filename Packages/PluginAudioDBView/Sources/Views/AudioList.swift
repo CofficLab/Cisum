@@ -1,5 +1,4 @@
 import MagicKit
-import CisumUIComponents
 import LumiUI
 import OSLog
 import SwiftData

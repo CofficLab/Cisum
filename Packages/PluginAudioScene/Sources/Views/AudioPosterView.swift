@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import SwiftUI
 
@@ -38,7 +37,7 @@ public struct AudioPosterView: View {
                             .fill(iconGradient)
                             .frame(width: 34, height: 34)
                             .overlay(
-                                Image.cisumMusicNote
+                                Image.appMusicNote
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 18, height: 18)

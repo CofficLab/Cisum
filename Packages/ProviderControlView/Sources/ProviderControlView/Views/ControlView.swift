@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import SwiftUI
 
@@ -65,8 +64,8 @@ struct ControlView: View {
             .frame(maxHeight: .infinity)
         }
         .frame(minHeight: isHeroVisible
-            ? CisumPlayerLayout.controlMinimumHeight
-            : CisumPlayerLayout.emptyPlayerControlHeight)
+            ? AppResponsivePlayerLayoutMetrics.shared.controlMinimumHeight
+            : AppResponsivePlayerLayoutMetrics.shared.emptyControlHeight)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cisum.player.controls")
     }
@@ -109,7 +108,7 @@ struct ControlView: View {
     }
 
     private func stateHeight(for geometry: GeometryProxy) -> CGFloat {
-        CisumPlayerLayout.stateHeight(for: geometry.size.height)
+        AppResponsivePlayerLayoutMetrics.shared.stateHeight(for: geometry.size.height)
     }
 
     private func heroHeight(for geometry: GeometryProxy) -> CGFloat {
@@ -121,13 +120,13 @@ struct ControlView: View {
     }
 
     private func buttonHeight(for geometry: GeometryProxy) -> CGFloat {
-        CisumPlayerLayout.controlButtonHeight(width: geometry.size.width, height: geometry.size.height)
+        AppResponsivePlayerLayoutMetrics.shared.controlButtonHeight(width: geometry.size.width, height: geometry.size.height)
     }
 
     private let progressContentHeight: CGFloat = 18
     private let progressVerticalPadding: CGFloat = 8
 
     private func shouldShowRightAlbum(_ geometry: GeometryProxy) -> Bool {
-        CisumPlayerLayout.shouldShowRightAlbum(width: geometry.size.width)
+        AppResponsivePlayerLayoutMetrics.shared.shouldShowSecondaryColumn(width: geometry.size.width)
     }
 }

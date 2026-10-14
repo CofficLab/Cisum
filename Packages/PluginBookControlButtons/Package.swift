@@ -16,7 +16,6 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
-        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
         .package(url: "https://github.com/CofficLab/LumiUI", from: "1.8.0"),
         .package(path: "../ProviderBook"),
         .package(name: "KitPlayback", path: "../MagicPlayMan"),
@@ -32,7 +31,6 @@ let package = Package(
             name: "PluginBookControlButtons",
             dependencies: [
                 .product(name: "MagicKit", package: "KitMagic"),
-                .product(name: "CisumUIComponents", package: "KitUIComponents"),
                 .product(name: "LumiUI", package: "LumiUI"),
                 .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "MagicPlayMan", package: "KitPlayback"),

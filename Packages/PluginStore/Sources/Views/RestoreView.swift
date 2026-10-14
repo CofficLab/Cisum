@@ -1,4 +1,3 @@
-import CisumUIComponents
 import MagicKit
 import LumiUI
 import OSLog
@@ -60,11 +59,11 @@ struct RestoreView: View, SuperEvent, SuperLog, SuperThread {
 
                 // Button area
                 successButtons
-                    .cisumIf(self.restoreState == .success)
+                    .appIf(self.restoreState == .success)
 
                 restoreButton
-                    .cisumIf(self.restoreState == .failed || self.restoreState == .idle)
-            }.cisumVStackCenter()
+                    .appIf(self.restoreState == .failed || self.restoreState == .idle)
+            }.appVStackCenter()
         }
     }
 

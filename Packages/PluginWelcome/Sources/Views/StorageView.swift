@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import SwiftUI
 
@@ -32,7 +31,7 @@ public struct StorageView: View {
                 AppSettingRow(
                     title: String(localized: "iCloud Drive", bundle: .module),
                     description: String(localized: "Files stored in iCloud\nAccessible on other devices\nEnsure sufficient iCloud storage", bundle: .module),
-                    icon: .cisumIconCloud,
+                    icon: AppSymbol.cloud,
                     action: {
                         // Selecting a row only updates the draft; nothing is
                         // persisted until the user taps Continue.
@@ -43,7 +42,7 @@ public struct StorageView: View {
                 ) {
                     HStack {
                         if tempStorageSelection == .icloud {
-                            Image(systemName: .cisumIconCheckmarkSimple)
+                            Image(systemName: AppSymbol.checkmark)
                                 .foregroundColor(.accentColor)
                         } else {
                             Text("Recommended", bundle: .module)
@@ -74,7 +73,7 @@ public struct StorageView: View {
                 AppSettingRow(
                     title: String(localized: "App Local Storage", bundle: .module),
                     description: String(localized: "Stored within the app, data will be lost if app is deleted", bundle: .module),
-                    icon: .cisumIconFolder,
+                    icon: AppSymbol.folder,
                     action: {
                         // Selecting a row only updates the draft; nothing is
                         // persisted until the user taps Continue.
@@ -83,7 +82,7 @@ public struct StorageView: View {
                 ) {
                     HStack {
                         if tempStorageSelection == .local {
-                            Image(systemName: .cisumIconCheckmarkSimple)
+                            Image(systemName: AppSymbol.checkmark)
                                 .foregroundColor(.accentColor)
                         }
                     }

@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import ProviderBook
 import SwiftUI
@@ -85,7 +84,7 @@ struct BookDBTips: View {
         }
         .padding()
         .background(appTheme.surface.opacity(0.85))
-        .cisumRoundedMedium()
+        .appRoundedMedium()
         .shadow(radius: 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

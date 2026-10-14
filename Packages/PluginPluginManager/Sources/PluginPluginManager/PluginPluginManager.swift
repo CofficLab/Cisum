@@ -1,6 +1,5 @@
 import ProviderDocsView
 import KernelCore
-import CisumUIComponents
 import LumiUI
 import ProviderPluginManaging
 import ProviderPluginControl

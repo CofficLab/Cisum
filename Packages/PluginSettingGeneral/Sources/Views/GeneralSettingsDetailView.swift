@@ -1,7 +1,6 @@
 #if canImport(AppKit)
 import AppKit
 #endif
-import CisumUIComponents
 import MagicKit
 import LumiUI
 import ProviderDocsView

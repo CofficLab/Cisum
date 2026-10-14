@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import KernelCore
 import SwiftUI
@@ -37,8 +36,8 @@ public struct WindowMain: View {
             ThemeWindowAppearanceBridge().allowsHitTesting(false)
             MainWindowMinimumSizeBridge(
                 minimumSize: CGSize(
-                    width: CisumPlayerLayout.minimumWindowWidth,
-                    height: CisumPlayerLayout.minimumWindowHeight
+                    width: AppResponsivePlayerLayoutMetrics.shared.minimumWindowSize.width,
+                    height: AppResponsivePlayerLayoutMetrics.shared.minimumWindowSize.height
                 )
             )
             .allowsHitTesting(false)

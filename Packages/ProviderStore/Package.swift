@@ -13,7 +13,6 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
-        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
         .package(url: "https://github.com/CofficLab/LumiUI", from: "1.8.0"),
     ],
     targets: [
@@ -21,7 +20,6 @@ let package = Package(
             name: "ProviderStore",
             dependencies: [
                 .product(name: "MagicKit", package: "KitMagic"),
-                .product(name: "CisumUIComponents", package: "KitUIComponents"),
                 .product(name: "LumiUI", package: "LumiUI"),
             ],
             path: ".",

@@ -16,7 +16,6 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
-        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
         .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.0.1"),
         .package(url: "https://github.com/CofficLab/LumiUI", from: "1.8.0"),
         .package(path: "../ProviderAudioLike"),
@@ -35,7 +34,6 @@ let package = Package(
                 .product(name: "ProviderAudioLike", package: "ProviderAudioLike"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
                 .product(name: "MagicKit", package: "KitMagic"),
-                .product(name: "CisumUIComponents", package: "KitUIComponents"),
                 .product(name: "LumiUI", package: "LumiUI"),
                 .product(name: "ProviderSettingView", package: "LumiSettings"),
                 .product(name: "KernelCore", package: "LumiKernel"),

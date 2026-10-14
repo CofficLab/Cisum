@@ -18,7 +18,6 @@ let package = Package(
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
         .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.0.1"),
         .package(url: "https://github.com/CofficLab/LumiPluginSettingView.git", from: "1.0.2"),
-        .package(name: "KitUIComponents", path: "../CisumUIComponents"),
         .package(name: "PluginRootView", path: "../PluginRootView"),
         .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.6.0"),
         .package(url: "https://github.com/CofficLab/LumiPluginToast.git", from: "1.2.1"),
@@ -77,7 +76,6 @@ let package = Package(
             dependencies: [
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "PluginRootView", package: "PluginRootView"),
-                .product(name: "CisumUIComponents", package: "KitUIComponents"),
                 .product(name: "ProviderTheme", package: "LumiProviders"),
                 .product(name: "LumiThemePack", package: "LumiThemePack"),
                 .product(name: "LumiUI", package: "LumiUI"),

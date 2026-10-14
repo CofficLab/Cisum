@@ -1,4 +1,3 @@
-import CisumUIComponents
 import LumiUI
 import OSLog
 import SwiftUI
@@ -38,7 +37,7 @@ public struct ResetConfirm: View {
                 AppCard(style: .subtle, cornerRadius: 8, showShadow: false) {
                     VStack(spacing: 16) {
                         AppSheetIconHeader(
-                            systemImage: .cisumIconReset,
+                            systemImage: AppSymbol.reset,
                             title: String(localized: "Reset Storage Location", bundle: .module),
                             tint: .orange
                         )
@@ -85,9 +84,9 @@ public struct ResetConfirm: View {
                 ) {
                     performReset()
                 }
-                .cisumIf(!isResetting)
+                .appIf(!isResetting)
             }
-            .cisumVStackCenter()
+            .appVStackCenter()
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 24)
@@ -120,17 +119,17 @@ public struct ResetConfirm: View {
     }
 
     private var closeButton: some View {
-        Image.cisumClose
+        Image.appClose
             .font(.system(size: 20, weight: .medium))
             .frame(width: 32, height: 32)
             .foregroundStyle(.secondary)
             .background(.regularMaterial, in: Circle())
-            .cisumShadowSm()
-            .cisumButton {
+            .shadowSm()
+            .appPlainButton {
                 dismiss()
             }
             .accessibilityLabel(Self.closeButtonLabel)
             .help(Self.closeButtonLabel)
-            .cisumHoverScale(105)
+            .appHoverScale(1.05)
     }
 }

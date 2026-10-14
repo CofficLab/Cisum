@@ -1,6 +1,5 @@
 #if os(macOS)
     import AppKit
-    import CisumUIComponents
 import LumiUI
     import SwiftUI
 
@@ -71,8 +70,8 @@ import LumiUI
             MainWindowMinimumSizeBridge.apply(
                 to: window,
                 minimumSize: CGSize(
-                    width: CisumPlayerLayout.minimumWindowWidth,
-                    height: CisumPlayerLayout.minimumWindowHeight
+                    width: AppResponsivePlayerLayoutMetrics.shared.minimumWindowSize.width,
+                    height: AppResponsivePlayerLayoutMetrics.shared.minimumWindowSize.height
                 )
             )
         }
