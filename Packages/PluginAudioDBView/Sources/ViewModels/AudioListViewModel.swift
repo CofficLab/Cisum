@@ -338,6 +338,11 @@ final class AudioListViewModel: ObservableObject, SuperLog {
 
             let pageSize = self.pageSize
             Task.detached(priority: .background) {
+                // 仅 UI 测试注入：把首屏结果延后返回，让骨架屏有稳定观测窗口。
+                if let delay = AudioLibraryLoadDelayControl.firstPageDelay() {
+                    try? await Task.sleep(for: .seconds(delay))
+                }
+
                 let count = await self.library.totalCount()
                 let urls = await self.library.urls(
                     offset: 0,
