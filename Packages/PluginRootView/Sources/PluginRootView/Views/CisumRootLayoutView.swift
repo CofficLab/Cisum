@@ -148,7 +148,11 @@ struct CisumRootLayoutView: View {
     private func handleGeometryChange(_ newHeight: CGFloat) {
         if !autoResizing { rememberedHeight = windowHeight() }
         autoResizing = false
-        if newHeight <= AppResponsivePlayerLayoutMetrics.shared.secondaryColumnDropHeightThreshold {
+        if RootContentVisibility.shouldHideContentView(
+            isMacOS: RootContentVisibility.hostIsMacOS,
+            newHeight: newHeight,
+            dropThreshold: AppResponsivePlayerLayoutMetrics.shared.secondaryColumnDropHeightThreshold
+        ) {
             provider.hideContentView()
         }
     }
