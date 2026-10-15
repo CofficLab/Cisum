@@ -42,7 +42,8 @@ let package = Package(
         .testTarget(
             name: "FileLogPluginTests",
             dependencies: ["PluginFileLog"],
-            path: "Tests"
+            path: "Tests",
+            exclude: ["TestPlan.md"]
         )
     ]
 )
