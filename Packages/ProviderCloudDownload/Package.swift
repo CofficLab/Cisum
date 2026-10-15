@@ -25,7 +25,8 @@ let package = Package(
         .testTarget(
             name: "ProviderCloudDownloadTests",
             dependencies: ["ProviderCloudDownload"],
-            path: "Tests"
+            path: "Tests",
+            exclude: ["TestPlan.md"]
         ),
     ],
     swiftLanguageModes: [.v5]
