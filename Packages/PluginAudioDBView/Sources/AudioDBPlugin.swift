@@ -138,6 +138,16 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
         guard sceneBox.scene?.currentScene == .music else { return nil }
         guard demoMode == false else { return nil }
 
+        // 如果 `installState` 还没被调（典型场景：PluginPlayBack 在 onReady
+        // 晚于本插件，而 `installState` 历史上要求 `PlaybackProviding` 立即
+        // 就绪，会提前 return，留下 nil listViewModel），则视情节补救：再
+        // 跑一次 `installState` 把最小骨架建好，避免落入 `resolveViewModels`
+        // 的「临时实例」分支——临时实例没装 `AudioDatabaseObserver`，仓库
+        // 同步事件将永远收不到。
+        if listViewModel == nil, let kernel {
+            installState(kernel: kernel)
+        }
+
         let (list, root, db) = resolveViewModels()
         return (
             AnyView(
@@ -274,42 +284,68 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
         // 放在幂等 guard 之前，保证 `onEnable` 重新装配时也会刷新引用。
         sceneBox.scene = kernel.resolveProvider((any SceneProviding).self)
 
-        guard listViewModel == nil else { return }
+        // 不再在 `onReady` 阶段强依赖 `PlaybackProviding`：播放引擎可能比
+        // 本插件晚注册（`PluginPlayBack` 的 `onReady` 可能后跑），但 `addTabView`
+        // 视图请求可能在 `PlaybackProviding` 还没就绪时就到达。如果直接 return，
+        // 后续 `addTabView` 会通过 `resolveViewModels()` 走「临时实例」分支，
+        // 创建的 `AudioListViewModel` 不带 `AudioDatabaseObserver`，
+        // 同步事件永远收不到，仓库列表一直空。
+        //
+        // 因此先建一份仅依赖 `AudioLibraryProviding` 的最小骨架：listViewModel
+        // 立刻存在、`AudioDatabaseObserver` 也装上；`PlaybackProviding` 在
+        // `onEnable` 阶段被注入时（`installSettingsState` 之类的回调），下次
+        // `installState` 重跑会更新 `playback` 字段，listViewModel 的能力
+        // 也能补齐。
+        if listViewModel == nil {
+            let libraryCapability = makeLibraryCapability()
+            let playbackCapability = kernel.resolveProvider((any PlaybackProviding).self)
+                .map { AudioLibraryPlaybackCapabilityAdapter(playback: $0) }
+            let toastCapability = AudioLibraryToastCapabilityAdapter(
+                toast: kernel.resolveProvider((any ToastProviding).self)
+            )
+            playback = playbackCapability
+            toast = toastCapability
 
-        guard let playbackProvider = kernel.resolveProvider((any PlaybackProviding).self) else { return }
-        let libraryCapability = makeLibraryCapability()
-        let playbackCapability = AudioLibraryPlaybackCapabilityAdapter(playback: playbackProvider)
-        let toastCapability = AudioLibraryToastCapabilityAdapter(
-            toast: kernel.resolveProvider((any ToastProviding).self)
-        )
-        playback = playbackCapability
-        toast = toastCapability
+            let list = AudioListViewModel(
+                library: libraryCapability,
+                playback: playbackCapability,
+                download: makeDownloadCapability(),
+                toast: toastCapability
+            )
+            let root = AudioDBRootViewModel(
+                library: libraryCapability,
+                showDBView: { kernel.resolveProvider((any AppStateProviding).self)?.showDBView() ?? () }
+            )
+            let db = AudioDBViewModel()
+            let observer = AudioDatabaseObserver(
+                list: list,
+                root: root,
+                db: db,
+                library: libraryCapability
+            )
+            if let playbackCapability {
+                playbackObserver = AudioDBPlaybackObserver(playback: playbackCapability, viewModel: list)
+            }
+            downloadObserver = CloudDownloadObserver(download: makeDownloadCapability(), viewModel: list)
 
-        let list = AudioListViewModel(
-            library: libraryCapability,
-            playback: playbackCapability,
-            download: makeDownloadCapability(),
-            toast: toastCapability
-        )
-        let root = AudioDBRootViewModel(
-            library: libraryCapability,
-            showDBView: { kernel.resolveProvider((any AppStateProviding).self)?.showDBView() ?? () }
-        )
-        let db = AudioDBViewModel()
-        let observer = AudioDatabaseObserver(
-            list: list,
-            root: root,
-            db: db,
-            library: libraryCapability
-        )
-        let playbackObserver = AudioDBPlaybackObserver(playback: playbackCapability, viewModel: list)
+            listViewModel = list
+            rootViewModel = root
+            dbViewModel = db
+            databaseObserver = observer
+        }
 
-        listViewModel = list
-        rootViewModel = root
-        dbViewModel = db
-        databaseObserver = observer
-        self.playbackObserver = playbackObserver
-        downloadObserver = CloudDownloadObserver(download: makeDownloadCapability(), viewModel: list)
+        // 即便已在 onReady 阶段建好骨架，仍在每次进入时刷新一次播放能力，
+        // 让延迟就绪的 `PlaybackProviding` 也能补上。
+        if playback == nil, let playbackProvider = kernel.resolveProvider((any PlaybackProviding).self) {
+            let capability = AudioLibraryPlaybackCapabilityAdapter(playback: playbackProvider)
+            playback = capability
+            // listViewModel 还没建好的情况下，`installState` 内的骨架创建会
+            // 在下一段（`if listViewModel == nil` 块）里附带上 playbackObserver。
+            // 这里只在 listViewModel 已有时补 observer，避免提前创建。
+            if let list = listViewModel {
+                playbackObserver = AudioDBPlaybackObserver(playback: capability, viewModel: list)
+            }
+        }
 
         _ = resolveSceneState()
     }
