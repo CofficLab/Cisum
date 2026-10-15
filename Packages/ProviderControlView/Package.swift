@@ -28,7 +28,8 @@ let package = Package(
         .testTarget(
             name: "ProviderControlViewTests",
             dependencies: ["ProviderControlView"],
-            path: "Tests"
+            path: "Tests",
+            exclude: ["TestPlan.md"]
         ),
     ],
     swiftLanguageModes: [.v5]

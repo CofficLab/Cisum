@@ -226,6 +226,22 @@ struct ProviderStoreTests {
         #expect(active?.expiresAt == now.addingTimeInterval(60))
     }
 
+    @Test(arguments: [Product.ProductType.autoRenewable, .nonRenewable])
+    func unknownProductsCannotExtendPaidEntitlements(type: Product.ProductType) {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let active = StoreState.EntitlementSnapshot(
+            productID: "com.yueyi.cisum.pro.monthly", productType: .autoRenewable,
+            expirationDate: now.addingTimeInterval(100))
+        let unknown = StoreState.EntitlementSnapshot(
+            productID: "unknown.subscription", productType: type,
+            expirationDate: now.addingTimeInterval(10_000))
+        for entries in [[active, unknown], [unknown, active]] {
+            #expect(StoreState.detectedPurchaseInfo(from: entries, now: now)
+                == PurchaseInfo(tier: .pro, expiresAt: now.addingTimeInterval(100)))
+        }
+        #expect(StoreState.detectedPurchaseInfo(from: [unknown], now: now) == .none)
+    }
+
     @Test
     func entitlementCalibrationKeepsHighestTierAndLatestValidExpiration() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
@@ -311,9 +327,87 @@ struct ProviderStoreTests {
 
     @Test
     func storeStateClearResetsToNone() {
-        StoreState.clear()
-        #expect(StoreState.cachedPurchaseInfo().tier == .none)
+        withPreservedPurchaseCache { _ in
+            StoreState.clear()
+            #expect(StoreState.cachedPurchaseInfo().tier == .none)
+        }
     }
+
+    @Test(arguments: [SubscriptionTier.none, .pro, .ultimate])
+    func purchaseInfoCodablePreservesOptionalExpiration(tier: SubscriptionTier) throws {
+        for expiry in [Optional<Date>.none, Optional(Date(timeIntervalSince1970: 1_800_000_000))] {
+            let info = PurchaseInfo(tier: tier, expiresAt: expiry)
+            #expect(try JSONDecoder().decode(PurchaseInfo.self, from: JSONEncoder().encode(info)) == info)
+            if expiry == nil {
+                #expect(info.effectiveTier == .none)
+                #expect(info.isExpired)
+            }
+        }
+    }
+
+    @Test
+    func nonRenewableExpirationBoundaryIsStrict() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        for delta in [-1.0, 0, 1] {
+            let expiry = now.addingTimeInterval(delta)
+            let info = StoreState.nonRenewableEntitlementInfo(
+                productID: "com.yueyi.cisum.pro.day.7", expirationDate: expiry, now: now)
+            #expect((info != nil) == (delta > 0))
+            if delta > 0 { #expect(info?.expiresAt == expiry) }
+        }
+    }
+
+    @Test
+    func subscriptionSelectionHandlesDuplicateProductsGraceAndBillingRetry() {
+        let id = "com.yueyi.cisum.pro.monthly"
+        let products = [product(id: id, price: 5), product(id: id, price: 7)]
+        for state in [RenewalState.inGracePeriod, .inBillingRetryPeriod, .subscribed] {
+            let statuses = [status(.revoked, productID: id), status(state, productID: id),
+                            status(.subscribed, productID: id)]
+            #expect(StoreService.highestActiveSubscriptionStatusIndex(
+                subscriptions: products, statuses: statuses) == 1)
+        }
+        #expect(StoreService.highestActiveSubscriptionStatusIndex(subscriptions: products,
+            statuses: [status(.expired, productID: id), status(.revoked, productID: id)]) == nil)
+    }
+
+    @Test
+    func cachedAccessorsReflectCurrentDataAndRejectInvalidCache() {
+        withPreservedPurchaseCache { defaults in
+            let active = PurchaseInfo(tier: .ultimate, expiresAt: .distantFuture)
+            StoreState.update(entitlement: active)
+            #expect(StoreService.cachedPurchaseInfo() == active)
+            #expect(StoreService.tierCached() == .ultimate)
+            #expect(StoreService.expiresAtCached() == .distantFuture)
+
+            let expired = PurchaseInfo(tier: .pro, expiresAt: .distantPast)
+            StoreState.update(entitlement: expired)
+            #expect(StoreService.cachedPurchaseInfo() == expired)
+            #expect(StoreService.tierCached() == .none)
+            #expect(StoreService.expiresAtCached() == .distantPast)
+
+            let invalidValues: [Any] = ["not data", Data("{}".utf8), Data("{\"tier\":999}".utf8)]
+            for invalid in invalidValues {
+                defaults.set(invalid, forKey: "store.purchase")
+                #expect(StoreService.cachedPurchaseInfo() == .none)
+                #expect(StoreService.tierCached() == .none)
+                #expect(StoreService.expiresAtCached() == nil)
+            }
+        }
+    }
+}
+
+private func withPreservedPurchaseCache(_ body: (UserDefaults) -> Void) {
+    let defaults = UserDefaults.standard
+    let keys = ["store.purchase", "store.lastCheckedAt"]
+    let previous = keys.map { defaults.object(forKey: $0) }
+    defer {
+        for (key, value) in zip(keys, previous) {
+            if let value { defaults.set(value, forKey: key) }
+            else { defaults.removeObject(forKey: key) }
+        }
+    }
+    body(defaults)
 }
 
 private func product(

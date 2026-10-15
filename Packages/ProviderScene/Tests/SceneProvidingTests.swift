@@ -44,6 +44,26 @@ struct SceneProvidingTests {
     }
 
     @Test
+    func accessibilityIdentifiersRemainStableAndUnique() {
+        #expect(AppScene.allCases.map(\.accessibilityID) == ["music", "audiobooks"])
+        #expect(Set(AppScene.allCases.map(\.accessibilityID)).count == AppScene.allCases.count)
+        #expect(AppScene.allCases.sorted { $0.order < $1.order } == [.music, .audiobooks])
+    }
+
+    @Test(arguments: [("\"Music Library\"", AppScene.music), ("\"Audiobooks\"", AppScene.audiobooks)])
+    func legacyJSONDecodesWithoutMigration(json: String, expected: AppScene) throws {
+        #expect(try JSONDecoder().decode(AppScene.self, from: Data(json.utf8)) == expected)
+        #expect(try JSONEncoder().encode(expected) == Data(json.utf8))
+    }
+
+    @Test(arguments: ["\"music\"", "\"audiobooks\"", "\"removed-scene\"", "\"\"", "null", "0"])
+    func invalidPersistedScenesDoNotSilentlySelectMusic(json: String) {
+        #expect(throws: DecodingError.self) {
+            try JSONDecoder().decode(AppScene.self, from: Data(json.utf8))
+        }
+    }
+
+    @Test
     func kernelSceneAccessorResolvesRegisteredProvider() throws {
         let kernel = KernelCoreContainer()
 

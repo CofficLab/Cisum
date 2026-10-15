@@ -3,6 +3,51 @@ import ProviderBook
 import Testing
 @testable import ProviderBookData
 
+@MainActor
+private final class BookProviderStub: BookProviding {
+    var bookDisk: URL? { nil }
+    var isAvailable: Bool { false }
+    func totalCount() async -> Int { 0 }
+}
+
+@MainActor @Test
+func defaultBookObserverUsesNoopFallback() {
+    let provider: any BookProviding = BookProviderStub()
+    let handle = provider.addObserver { _ in
+        Issue.record("默认书籍观察者不应收到事件")
+    }
+    #expect(handle is NoopBookProvidingObserverHandle)
+    handle.cancel()
+    handle.cancel()
+}
+
+@MainActor @Test
+func explicitBookNoopSupportsRepeatedCancellation() {
+    let handle: any BookProvidingObserverHandle = NoopBookProvidingObserverHandle()
+    handle.cancel()
+    handle.cancel()
+}
+
+@Test
+func playbackStateDTOTransportsOptionalFieldsAcrossTasks() async {
+    let url = URL(fileURLWithPath: "/有声书/第一章.m4b")
+    let values = [
+        BookPlaybackStateDTO(currentURL: nil, time: nil),
+        BookPlaybackStateDTO(currentURL: url, time: nil),
+        BookPlaybackStateDTO(currentURL: nil, time: 0),
+        BookPlaybackStateDTO(currentURL: url, time: 12.5),
+    ]
+    let received = await Task.detached { values }.value
+    #expect(received == values)
+    #expect(received[0].currentURL == nil && received[0].time == nil)
+    #expect(received[3].currentURL == url && received[3].time == 12.5)
+    for a in received.indices {
+        for b in received.indices {
+            #expect((received[a] == received[b]) == (a == b))
+        }
+    }
+}
+
 // MARK: - BookSettingRepo
 
 /// UserDefaults 与 NSUbiquitousKeyValueStore 是进程级全局状态，
@@ -12,9 +57,25 @@ struct BookSettingRepoTests {
     private static let urlKey = "com.bookplugin.currentBookURL"
     private static let timeKey = "com.bookplugin.currentBookTime"
 
-    private func clearDefaults() {
-        UserDefaults.standard.removeObject(forKey: Self.urlKey)
-        UserDefaults.standard.removeObject(forKey: Self.timeKey)
+    private func isolatePreferences() -> () -> Void {
+        let defaults = UserDefaults.standard
+        let cloud = NSUbiquitousKeyValueStore.default
+        let keys = [Self.urlKey, Self.timeKey]
+        let localValues = keys.map { defaults.object(forKey: $0) }
+        let cloudValues = keys.map { cloud.object(forKey: $0) }
+        for key in keys {
+            defaults.removeObject(forKey: key)
+            cloud.removeObject(forKey: key)
+        }
+        return {
+            for (index, key) in keys.enumerated() {
+                if let value = localValues[index] { defaults.set(value, forKey: key) }
+                else { defaults.removeObject(forKey: key) }
+                if let value = cloudValues[index] { cloud.set(value, forKey: key) }
+                else { cloud.removeObject(forKey: key) }
+            }
+            cloud.synchronize()
+        }
     }
 
     @Test
@@ -73,6 +134,42 @@ struct BookSettingRepoTests {
     }
 
     @Test
+    func storedTimeDistinguishesStoredZeroFromMissingLocalValue() {
+        #expect(BookSettingRepo.storedTime(
+            localObject: NSNumber(value: 0), localDouble: 0, cloudString: "99"
+        ) == 0)
+        for localDouble in [0.0, 42.0] {
+            #expect(BookSettingRepo.storedTime(
+                localObject: nil, localDouble: localDouble, cloudString: "99"
+            ) == 99)
+            #expect(BookSettingRepo.storedTime(
+                localObject: nil, localDouble: localDouble, cloudString: "0"
+            ) == 0)
+            #expect(BookSettingRepo.storedTime(
+                localObject: nil, localDouble: localDouble, cloudString: nil
+            ) == nil)
+        }
+    }
+
+    @Test
+    func storedTimeValidatesNonFiniteLocalValuesAndCloudBoundaries() {
+        let invalidLocalValues: [TimeInterval] = [-1, .nan, .infinity, -.infinity]
+        let invalidCloudValues: [String?] = [nil, "", "abc", "-1", "nan", "inf", "-inf"]
+        for localValue in invalidLocalValues {
+            #expect(BookSettingRepo.storedTime(
+                localObject: NSNumber(value: localValue),
+                localDouble: localValue, cloudString: "12.5"
+            ) == 12.5)
+            for cloudValue in invalidCloudValues {
+                #expect(BookSettingRepo.storedTime(
+                    localObject: NSNumber(value: localValue),
+                    localDouble: localValue, cloudString: cloudValue
+                ) == nil)
+            }
+        }
+    }
+
+    @Test
     func normalizedTimeForStorageFiltersNonFiniteAndNonPositive() {
         #expect(BookSettingRepo.normalizedTimeForStorage(.nan) == 0)
         #expect(BookSettingRepo.normalizedTimeForStorage(.infinity) == 0)
@@ -83,8 +180,8 @@ struct BookSettingRepoTests {
 
     @Test
     func storeAndGetCurrentURLRoundTrips() {
-        clearDefaults()
-        defer { clearDefaults() }
+        let restore = isolatePreferences()
+        defer { restore() }
 
         let url = URL(fileURLWithPath: "/books/a.mp3")
         BookSettingRepo.storeCurrent(url)
@@ -93,8 +190,8 @@ struct BookSettingRepoTests {
 
     @Test
     func storeNilCurrentURLClearsIt() {
-        clearDefaults()
-        defer { clearDefaults() }
+        let restore = isolatePreferences()
+        defer { restore() }
 
         BookSettingRepo.storeCurrent(URL(fileURLWithPath: "/books/a.mp3"))
         BookSettingRepo.storeCurrent(nil)
@@ -104,8 +201,8 @@ struct BookSettingRepoTests {
 
     @Test
     func storeAndGetCurrentTimeRoundTrips() {
-        clearDefaults()
-        defer { clearDefaults() }
+        let restore = isolatePreferences()
+        defer { restore() }
 
         BookSettingRepo.storeCurrentTime(90)
         #expect(BookSettingRepo.getCurrentTime() == 90)
@@ -113,8 +210,8 @@ struct BookSettingRepoTests {
 
     @Test
     func getCurrentTimeReturnsNilWhenNothingStored() {
-        clearDefaults()
-        defer { clearDefaults() }
+        let restore = isolatePreferences()
+        defer { restore() }
         #expect(BookSettingRepo.getCurrentTime() == nil)
     }
 }

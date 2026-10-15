@@ -32,7 +32,8 @@ let package = Package(
         .testTarget(
             name: "ProviderStoreTests",
             dependencies: ["ProviderStore"],
-            path: "Tests"
+            path: "Tests",
+            exclude: ["TestPlan.md"]
         ),
     ],
     swiftLanguageModes: [.v5]

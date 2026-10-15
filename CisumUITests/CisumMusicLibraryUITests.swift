@@ -41,45 +41,50 @@ final class CisumMusicLibraryUITests: CisumUITestBase {
     func testMusicLibraryContentFitsCompactWindow() throws {
         #if os(macOS)
         app.activate()
+        #endif
         try ensureMusicScene()
-        let window = app.windows["Cisum"]
+        let window = mainWindow
         let scene = element(identifier: "cisum.scene.music")
         XCTAssertTrue(scene.waitForExistence(timeout: 10), "音乐仓库场景未出现")
+
+        #if os(macOS)
         XCTAssertLessThanOrEqual(window.frame.width, 460, "测试启动窗口不处于紧凑宽度")
-        assertMusicPlayerControlsFit(window: window)
-        #else
-        throw XCTSkip("窗口尺寸响应式布局测试仅 macOS 支持")
         #endif
+
+        assertMusicPlayerControlsFit(window: window)
     }
 
     func testMusicLibraryFileRowFitsCompactWindow() throws {
         #if os(macOS)
         app.activate()
+        #endif
         try ensureMusicScene()
-        let window = app.windows["Cisum"]
-        XCTAssertTrue(window.waitForExistence(timeout: 10), "主窗口未出现，无法检查音乐列表布局")
+        let window = mainWindow
+        XCTAssertTrue(window.waitForExistence(timeout: 10), "主容器未出现，无法检查音乐列表布局")
 
         let track = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", layoutRegressionAudioName)).firstMatch
         XCTAssertTrue(track.waitForExistence(timeout: 30), "UI 测试种子音频未出现在音乐仓库：\(layoutRegressionAudioName)")
         let trackFrame = track.frame
         XCTAssertTrue(
             window.frame.insetBy(dx: -2, dy: -2).contains(trackFrame),
-            "音乐文件列表行超出主窗口：label=\(track.label), element=\(trackFrame), window=\(window.frame)"
+            "音乐文件列表行超出主容器：label=\(track.label), element=\(trackFrame), window=\(window.frame)"
         )
         XCTAssertTrue(track.label.contains(layoutRegressionAudioName), "音乐文件列表行的可访问性标签缺少完整文件名")
-        #else
-        throw XCTSkip("音乐列表窗口布局回归仅在 macOS UI 测试中覆盖")
-        #endif
     }
 
-    #if os(macOS)
+    /// 播放器控制按钮必须完整落在可见边界内。
+    ///
+    /// 跨平台：macOS 校验主窗口，iOS 校验整屏（安全区内）。
     private func assertMusicPlayerControlsFit(window: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
         let labels = ["More", "Previous", "Play", "Next", "Playback mode"]
         for label in labels {
             let button = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
             XCTAssertTrue(button.waitForExistence(timeout: 10), "播放器按钮「\(label)」未稳定出现")
+            #if os(macOS)
             assertElementFitsWindow(button, window: window, description: "播放器按钮「\(label)」", file: file, line: line)
+            #else
+            assertElementFitsScreen(button, description: "播放器按钮「\(label)」", file: file, line: line)
+            #endif
         }
     }
-    #endif
 }

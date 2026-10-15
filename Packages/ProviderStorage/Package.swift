@@ -24,7 +24,8 @@ let package = Package(
         .testTarget(
             name: "ProviderStorageTests",
             dependencies: ["CisumProviderStorage"],
-            path: "Tests"
+            path: "Tests",
+            exclude: ["TestPlan.md"]
         ),
     ],
     swiftLanguageModes: [.v5]

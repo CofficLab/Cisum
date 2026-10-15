@@ -110,6 +110,16 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
 
     /// Creates a deterministic audio entry inside the app sandbox so UI tests
     /// can exercise the repository list without driving the system file picker.
+    ///
+    /// The generated file is a real 16-bit PCM WAV (see `UITestAudioSeedTone.makeWAV`),
+    /// not a placeholder byte: playback regressions such as "progress advances while
+    /// playing" and "switching tracks resets progress to zero" need the engine to
+    /// actually decode a stream. Tests that only care about list layout are
+    /// unaffected, since the filename and directory are unchanged.
+    ///
+    /// Pass several names to seed a multi-track repository:
+    /// `--cisum-ui-testing-seed-audio first.wav,second.wav`.
+    /// A trailing `--cisum-ui-testing-seed-duration <seconds>` sets the tone length.
     @MainActor
     private func seedUITestAudioIfRequested() {
         #if DEBUG
@@ -119,14 +129,31 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
               let provider = libraryProvider,
               let disk = provider.audioDisk else { return }
 
-        let name = arguments[index + 1]
-        guard name.lowercased().hasSuffix(".wav") else { return }
+        // Comma-separated names allow multi-track seeding (switch-track regressions);
+        // a bare single name keeps the original behaviour.
+        let names = arguments[index + 1]
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && $0.lowercased().hasSuffix(".wav") }
+        guard !names.isEmpty else { return }
 
-        let url = disk.appendingPathComponent(name, isDirectory: false)
-        do {
-            try Data([0]).write(to: url, options: .atomic)
-        } catch {
-            os_log(.error, "❌ UI test audio seed failed: \(error.localizedDescription)")
+        // Optional duration override: `--cisum-ui-testing-seed-duration <seconds>`.
+        // Long tones let progress-based assertions observe a moving value.
+        var duration: TimeInterval = UITestAudioSeedTone.defaultDuration
+        if let durationIndex = arguments.firstIndex(of: "--cisum-ui-testing-seed-duration"),
+           arguments.indices.contains(durationIndex + 1),
+           let parsed = TimeInterval(arguments[durationIndex + 1]), parsed > 0 {
+            duration = parsed
+        }
+
+        for name in names {
+            let url = disk.appendingPathComponent(name, isDirectory: false)
+            do {
+                let data = UITestAudioSeedTone.makeWAV(duration: duration)
+                try data.write(to: url, options: .atomic)
+            } catch {
+                os_log(.error, "❌ UI test audio seed failed for \(name): \(error.localizedDescription)")
+            }
         }
         #endif
     }
@@ -140,9 +167,18 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
               let provider = libraryProvider,
               let disk = provider.audioDisk else { return }
 
-        let url = disk.appendingPathComponent(arguments[index + 1], isDirectory: false)
-        try? FileManager.default.removeItem(at: url)
-        await provider.sync(urls: [], verbose: false, isFirst: true)
+        // Mirror the comma-separated seeding so every seeded name is cleaned up.
+        let names = arguments[index + 1]
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && $0.lowercased().hasSuffix(".wav") }
+
+        for name in names {
+            try? FileManager.default.removeItem(at: disk.appendingPathComponent(name, isDirectory: false))
+        }
+        if !names.isEmpty {
+            await provider.sync(urls: [], verbose: false, isFirst: true)
+        }
         #endif
     }
 

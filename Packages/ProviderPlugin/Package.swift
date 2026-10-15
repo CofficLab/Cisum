@@ -34,8 +34,10 @@ let package = Package(
             dependencies: [
                 "ProviderPlugin",
                 .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "LumiUI", package: "LumiUI"),
             ],
-            path: "Tests"
+            path: "Tests",
+            exclude: ["TestPlan.md"]
         ),
     ],
     swiftLanguageModes: [.v5]

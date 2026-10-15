@@ -13,6 +13,18 @@ class CisumUITestBase: XCTestCase {
         ["--cisum-ui-testing", "--cisum-ui-testing-storage-local"]
     }
 
+    /// 主容器元素：macOS 是名为 `Cisum` 的可调整窗口，iOS 是整个屏幕窗口。
+    ///
+    /// 跨平台布局回归统一用它作为「可见边界」，从而让同一份断言在两个平台上
+    /// 复用，无需各自维护 `#if os(macOS)` 分支。
+    var mainWindow: XCUIElement {
+        #if os(macOS)
+        app.windows["Cisum"]
+        #else
+        app.windows.firstMatch
+        #endif
+    }
+
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
@@ -206,6 +218,62 @@ class CisumUITestBase: XCTestCase {
             NSPredicate(format: "label CONTAINS %@ OR value CONTAINS %@", $0, $0)
         }
         return app.staticTexts.matching(NSCompoundPredicate(orPredicateWithSubpredicates: predicates)).firstMatch
+    }
+    #endif
+
+    #if !os(macOS)
+    /// iOS 版「元素必须完整落在可见屏幕内」断言。
+    ///
+    /// 与 macOS 的 `assertElementFitsWindow` 对称：iOS 没有可调整大小的窗口，
+    /// 唯一边界就是 `app.windows.firstMatch`（整屏）。用于替代原先被
+    /// `#else throw XCTSkip("仅 macOS 支持")` 短路的响应式布局回归。
+    ///
+    /// - Parameters:
+    ///   - element: 被检查的元素。
+    ///   - description: 断言失败信息中使用的元素描述。
+    ///   - slop: 允许的容差（pt）。用于吸收异步布局与安全区计算的取整误差。
+    func assertElementFitsScreen(
+        _ element: XCUIElement,
+        description: String,
+        slop: CGFloat = 2,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(element.exists, "\(description)未渲染", file: file, line: line)
+        XCTAssertGreaterThan(element.frame.width, 0, "\(description)没有有效宽度", file: file, line: line)
+        XCTAssertGreaterThan(element.frame.height, 0, "\(description)没有有效高度", file: file, line: line)
+
+        let screen = app.windows.firstMatch.frame
+        XCTAssertTrue(
+            screen.insetBy(dx: -slop, dy: -slop).contains(element.frame),
+            "\(description)超出屏幕：id=\(element.identifier), label=\(element.label), value=\(element.value ?? "nil"), element=\(element.frame), screen=\(screen)",
+            file: file,
+            line: line
+        )
+    }
+
+    /// iOS 触控热区回归：按钮必须满足 HIG 最小 44×44pt。
+    ///
+    /// macOS 的对应断言写在 `CisumPlayerUITests` 内且随该用例一起跳过，
+    /// 这里抽成基类能力，供 iOS 侧直接复用。
+    func assertButtonHasMinimumTapTarget(
+        _ button: XCUIElement,
+        description: String,
+        minimum: CGFloat = 44,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(button.exists, "\(description)未渲染", file: file, line: line)
+        XCTAssertGreaterThanOrEqual(
+            button.frame.width, minimum,
+            "\(description)触控热区宽度低于 \(Int(minimum))pt：frame=\(button.frame)",
+            file: file, line: line
+        )
+        XCTAssertGreaterThanOrEqual(
+            button.frame.height, minimum,
+            "\(description)触控热区高度低于 \(Int(minimum))pt：frame=\(button.frame)",
+            file: file, line: line
+        )
     }
     #endif
 

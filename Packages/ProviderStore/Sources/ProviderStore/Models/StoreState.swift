@@ -71,6 +71,8 @@ final class StoreState: ObservableObject, SuperLog {
         var detectedExpiration: Date?
 
         for entitlement in entitlements {
+            // 不授予付费等级的商品也不能延长其他商品的权益期限。
+            guard StoreService.tier(for: entitlement.productID) > .none else { continue }
             switch entitlement.productType {
             case .autoRenewable:
                 let tier = StoreService.tier(for: entitlement.productID)

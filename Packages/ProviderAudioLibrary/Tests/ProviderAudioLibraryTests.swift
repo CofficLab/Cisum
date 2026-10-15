@@ -31,11 +31,17 @@ func audioLibraryDefaultObserverReturnsNoopHandle() {
 }
 
 @Test
-func unavailableLibraryErrorIsTransportSafe() {
-    let error = AudioLibraryProvidingError.unavailable
-    guard case .unavailable = error else {
-        Issue.record("Expected the unavailable library error")
-        return
+func unavailableLibraryErrorIsTransportSafe() async {
+    let task = Task.detached { () throws -> Void in
+        throw AudioLibraryProvidingError.unavailable
+    }
+    do {
+        try await task.value
+        Issue.record("应保留跨任务传递的 unavailable 错误")
+    } catch AudioLibraryProvidingError.unavailable {
+        // 跨并发边界后仍可精确匹配领域错误。
+    } catch {
+        Issue.record("错误类型发生变化：\(error)")
     }
 }
 
@@ -107,4 +113,66 @@ func audioStorageDiagnosticsHasNoFailureWhenRepositoryIsReady() {
     #expect(diagnostics.failureReason == nil)
     #expect(diagnostics.summary.contains("storageRoot = /Users/test/Documents/Cisum"))
     #expect(diagnostics.summary.contains("dbDirName = \(AudioPluginInfo.effectiveDBDirName)"))
+}
+
+@Test(arguments: ["local", "custom"])
+func nonCloudStorageDoesNotRequireCloudAvailability(location: String) {
+    let diagnostics = AudioStorageDiagnostics(
+        storageLocationRaw: location, isICloudAvailable: false, hasUsableStorageLocation: true,
+        cloudContainer: nil, cloudDocuments: nil, localDocuments: nil,
+        storageRoot: "/音频", audioDisk: "/音频/audios", dbDirName: "audios"
+    )
+    #expect(diagnostics.failureReason == nil)
+    #expect(!diagnostics.summary.contains("failureReason"))
+    #expect(diagnostics.summary.split(separator: "\n").count == 9)
+}
+
+@Test
+func diagnosticsSummaryIncludesEveryFieldAndNilPlaceholder() {
+    let diagnostics = AudioStorageDiagnostics(
+        storageLocationRaw: nil, isICloudAvailable: false, hasUsableStorageLocation: false,
+        cloudContainer: nil, cloudDocuments: nil, localDocuments: "/本地 Documents",
+        storageRoot: nil, audioDisk: nil, dbDirName: "audios_debug"
+    )
+    #expect(diagnostics.summary == """
+    StorageLocation(raw) = nil
+    hasUsableStorageLocation = false
+    isICloudAvailable = false
+    cloudContainer = nil
+    cloudDocuments = nil
+    localDocuments = /本地 Documents
+    storageRoot = nil
+    audioDisk = nil
+    dbDirName = audios_debug
+    failureReason = Storage location is not set. Go to Storage settings and choose iCloud or Local.
+    """)
+}
+
+@Test(arguments: [
+    (Optional<String>.none, Optional<String>.none, "Storage root could not be resolved for location 'icloud'."),
+    (Optional("/cloud"), Optional<String>.none, "Audio repository directory could not be created at storage root."),
+    (Optional("/cloud"), Optional("/cloud/audios"), Optional<String>.none),
+])
+func cloudDiagnosticsContinuePastResolvedContainer(root: String?, disk: String?, reason: String?) {
+    let diagnostics = AudioStorageDiagnostics(
+        storageLocationRaw: "icloud", isICloudAvailable: true, hasUsableStorageLocation: true,
+        cloudContainer: "/container", cloudDocuments: "/cloud", localDocuments: nil,
+        storageRoot: root, audioDisk: disk, dbDirName: "audios"
+    )
+    #expect(diagnostics.failureReason == reason)
+    #expect(diagnostics.summary.contains("cloudContainer = /container"))
+    #expect(diagnostics.summary.contains("cloudDocuments = /cloud"))
+}
+
+@Test
+func deletionEventPreservesURLsAndCountAcrossTaskBoundary() async {
+    let urls = [URL(fileURLWithPath: "/音频/a b.mp3"), URL(fileURLWithPath: "/音频/c.flac")]
+    let event = AudioLibraryProvidingEvent.deleted(urls: urls, totalCount: 7)
+    let received = await Task.detached { event }.value
+    guard case .deleted(let receivedURLs, let totalCount) = received else {
+        Issue.record("应收到 deleted 事件")
+        return
+    }
+    #expect(receivedURLs == urls)
+    #expect(totalCount == 7)
 }
