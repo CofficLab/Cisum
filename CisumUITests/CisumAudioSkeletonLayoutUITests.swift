@@ -33,10 +33,11 @@ final class CisumAudioSkeletonLayoutUITests: CisumUITestBase {
     func testLoadingSkeletonStaysInsideMusicLibraryContentArea() throws {
         #if os(macOS)
         app.activate()
+        #endif
         try ensureMusicScene()
 
-        let window = app.windows["Cisum"]
-        XCTAssertTrue(window.waitForExistence(timeout: 20), "主窗口未出现，无法检查骨架屏布局")
+        let window = mainWindow
+        XCTAssertTrue(window.waitForExistence(timeout: 20), "主容器未出现，无法检查骨架屏布局")
 
         let firstRow = skeletonRow(0)
         XCTAssertTrue(
@@ -77,9 +78,6 @@ final class CisumAudioSkeletonLayoutUITests: CisumUITestBase {
             contentBottom + 1,
             "骨架屏底部被窗口裁切：末行 index=\(bottomMost.index), row=\(bottomMost.element.frame), window=\(window.frame), visibleRows=\(rows.count)"
         )
-        #else
-        throw XCTSkip("骨架屏窗口布局回归仅在 macOS UI 测试中覆盖")
-        #endif
     }
 
     /// 定位第 `index` 行骨架。

@@ -27,18 +27,24 @@ final class CisumAudiobooksUITests: CisumUITestBase {
     func testAudiobooksContentFitsCompactWindow() throws {
         #if os(macOS)
         app.activate()
+        #endif
         try ensureAudiobooksScene()
-        let window = app.windows["Cisum"]
+        let window = mainWindow
         let scene = element(identifier: "cisum.scene.audiobooks")
         XCTAssertTrue(scene.waitForExistence(timeout: 10), "有声书仓库场景未出现")
-        XCTAssertLessThanOrEqual(window.frame.width, 460, "测试启动窗口不处于紧凑宽度")
 
-        let emptyStateTitle = text(containing: ["Drop audiobook folders here to add them", "将有声书文件夹拖到这里可添加"])
-        let supportedFormats = text(containing: ["Supported formats:", "支持的格式"])
+        // 空状态文案在 iOS 上同样是回归对象（长文案在窄屏易被截断），
+        // 用跨平台的 `element(containingAny:)` 定位，不依赖 macOS 专属的 `text(containing:)`。
+        let emptyStateTitle = element(containingAny: ["Drop audiobook folders here to add them", "将有声书文件夹拖到这里可添加"])
+        let supportedFormats = element(containingAny: ["Supported formats:", "支持的格式"])
+
+        #if os(macOS)
+        XCTAssertLessThanOrEqual(window.frame.width, 460, "测试启动窗口不处于紧凑宽度")
         assertElementFitsWindow(emptyStateTitle, window: window, description: "有声书空状态标题")
         assertElementFitsWindow(supportedFormats, window: window, description: "有声书支持格式说明")
         #else
-        throw XCTSkip("窗口尺寸响应式布局测试仅 macOS 支持")
+        assertElementFitsScreen(emptyStateTitle, description: "有声书空状态标题")
+        assertElementFitsScreen(supportedFormats, description: "有声书支持格式说明")
         #endif
     }
 }
