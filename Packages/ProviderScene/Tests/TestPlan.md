@@ -47,13 +47,21 @@ ProviderScene 管理应用「场景」(音乐库 / 有声书)的激活切换与�
 | 9 | 能力 | restoreCurrentScene 无记录时回落首个场景 | 具体实现 | 空记录调用恢复 | `currentScene == scenes.first` | P1 | ❌ 缺失 | - |
 | 10 | 事件 | selectionChanged 事件在切换后广播 | 具体实现 | 注册观察者后切换 | 回调收到 `.selectionChanged` | P1 | ❌ 缺失 | - |
 
-> 说明:本包仅提供协议与默认 noop 观察者;用例 8-10 依赖场景 Provider 的具体实现(位于宿主/内核装配层)。
+> 本包仅提供协议与默认 noop 观察者；用例 8-10 依赖 PluginScene 的具体实现，仍标为本包缺失，不用替身行为代替实现验证。8 个测试方法已在 macOS 运行，iOS 未实跑。以下仅统计清单场景，不是源码覆盖率。
+
+### 新增边界用例
+
+| ID | 类别 | 描述 | 优先级 | 状态 | 测试方法 |
+|----|------|------|------|------|----------|
+| 11 | 无障碍 | accessibilityID 稳定且唯一，排序与显示顺序一致 | P0 | ✅ 已覆盖 | `accessibilityIdentifiersRemainStableAndUnique` |
+| 12 | 兼容 | 硬编码历史 JSON 可直接读取，编码格式保持不变 | P0 | ✅ 已覆盖 | `legacyJSONDecodesWithoutMigration` |
+| 13 | 解码 | 机器标识、未知值和非字符串 JSON 不静默回落场景 | P1 | ✅ 已覆盖 | `invalidPersistedScenesDoNotSilentlySelectMusic` |
 
 ## 覆盖率统计
 
-- P0: 已覆盖 6 / 6
-- P1: 已覆盖 1 / 4
-- **合计: 7 / 10**
+- P0: 已覆盖 8 / 8
+- P1: 已覆盖 2 / 5
+- **合计: 10 / 13**
 
 ## 优先级说明
 
