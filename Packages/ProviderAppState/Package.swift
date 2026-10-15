@@ -23,7 +23,8 @@ let package = Package(
         .testTarget(
             name: "ProviderAppStateTests",
             dependencies: ["ProviderAppState"],
-            path: "Tests"
+            path: "Tests",
+            exclude: ["TestPlan.md"]
         ),
     ],
     swiftLanguageModes: [.v5]

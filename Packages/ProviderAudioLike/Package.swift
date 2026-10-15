@@ -22,7 +22,8 @@ let package = Package(
         .testTarget(
             name: "ProviderAudioLikeTests",
             dependencies: ["ProviderAudioLike"],
-            path: "Tests"
+            path: "Tests",
+            exclude: ["TestPlan.md"]
         ),
     ],
     swiftLanguageModes: [.v5]

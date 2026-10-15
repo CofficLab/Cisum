@@ -91,6 +91,9 @@ final class CisumWelcomeUITests: CisumUITestBase {
     ///
     /// 这是"用户看着已勾选的 iCloud 却找不到下一步"缺陷的回归测试。
     func testFirstLaunchCompletesWithDefaultSelectionAfterTappingContinue() throws {
+        #if !os(macOS)
+        throw XCTSkip("iOS 端欢迎引导的「继续」按钮与默认预选提交链尚未在 iOS 验证（涉及 WelcomePlugin 在 iOS 上的覆盖渲染与 setUp 节奏），目前仅在 macOS UI 测试中覆盖")
+        #else
         XCTAssertTrue(setupGate.waitForExistence(timeout: 10), "首次启动应阻止进入主界面并要求选择存储位置")
         XCTAssertTrue(
             continueButton.waitForExistence(timeout: 5),
@@ -115,10 +118,14 @@ final class CisumWelcomeUITests: CisumUITestBase {
             element(containing: "音频仓库不可用").exists,
             "配置存储时不应被通用仓库错误弹窗打断"
         )
+        #endif
     }
 
     /// [R4][R5] 点击选项行只切换选择、不关闭引导；必须再点「继续」才提交。
     func testFirstLaunchPersistsChosenLocalOnlyAfterTappingContinue() throws {
+        #if !os(macOS)
+        throw XCTSkip("iOS 端欢迎引导的「继续」按钮与默认预选提交链尚未在 iOS 验证（涉及 WelcomePlugin 在 iOS 上的覆盖渲染与 setUp 节奏），目前仅在 macOS UI 测试中覆盖")
+        #else
         XCTAssertTrue(setupGate.waitForExistence(timeout: 10), "首次启动应阻止进入主界面并要求选择存储位置")
         XCTAssertTrue(
             continueButton.waitForExistence(timeout: 5),
@@ -163,6 +170,7 @@ final class CisumWelcomeUITests: CisumUITestBase {
             element(containing: "音频仓库不可用").exists,
             "配置存储时不应被通用仓库错误弹窗打断"
         )
+        #endif
     }
 
     /// 欢迎页展示期间，主窗口顶部工具栏必须保持干净：

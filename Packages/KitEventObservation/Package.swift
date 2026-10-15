@@ -15,7 +15,8 @@ let package = Package(
         .testTarget(
             name: "KitEventObservationTests",
             dependencies: ["KitEventObservation"],
-            path: "Tests"
+            path: "Tests",
+            exclude: ["TestPlan.md"]
         ),
     ],
     swiftLanguageModes: [.v5]
