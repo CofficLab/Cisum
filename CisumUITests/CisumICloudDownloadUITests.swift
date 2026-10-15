@@ -23,6 +23,17 @@ class CisumICloudTestBase: CisumUITestBase {
     /// 由子类指定的下载模式（success / timeout / offline）。
     var icloudMode: String { "timeout" }
 
+    /// iOS 模拟器无系统文件选择器，iCloud 下载注入依赖 macOS 的系统选择器
+    /// 入口或真机账户。CI 模拟器无法复现「占位未下载」状态，本组测试在 iOS
+    /// 上显式跳过。macOS 走原始 system file picker 路径。
+    override func setUpWithError() throws {
+        #if !os(macOS)
+        throw XCTSkip("iCloud 下载 UI 行为依赖系统文件选择器，暂不在 iOS UI 测试中覆盖")
+        #else
+        try super.setUpWithError()
+        #endif
+    }
+
     override var additionalLaunchArguments: [String] {
         super.additionalLaunchArguments
             + [

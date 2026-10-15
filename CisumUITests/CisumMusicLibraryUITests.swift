@@ -17,15 +17,25 @@ final class CisumMusicLibraryUITests: CisumUITestBase {
         try ensureMusicScene()
         XCTAssertTrue(element(identifier: "cisum.scene.music").waitForExistence(timeout: 10))
 
-        let header = element(labelBeginsWith: ["Total", "共"])
-        let reading = element(anyLabelOf: ["Reading repository", "正在读取仓库"])
-        let emptyState = element(anyLabelOf: [
-            "Drop music files here to add them",
-            "将音乐文件拖到这里可添加",
-            "Music repository is empty",
-            "歌曲仓库为空",
-        ])
-        XCTAssertTrue(header.exists || reading.exists || emptyState.exists, "音乐仓库列表既无表头统计，也未显示读取中或空状态")
+        // 表头 / 读取中 / 空状态是首屏异步加载的产物：iOS 上后台 SwiftData
+        // 首次扫描比 macOS 慢，单次即时断言会稳定踩在加载窗口里。用 10s 的
+        // 轮询等待任一状态出现，超时才判定失败。
+        let candidates = [
+            element(labelBeginsWith: ["Total", "共"]),
+            element(anyLabelOf: ["Reading repository", "正在读取仓库"]),
+            element(anyLabelOf: [
+                "Drop music files here to add them",
+                "将音乐文件拖到这里可添加",
+                "Music repository is empty",
+                "歌曲仓库为空",
+            ]),
+        ]
+        let deadline = Date().addingTimeInterval(10)
+        while Date() < deadline {
+            if candidates.contains(where: { $0.exists }) { return }
+            Thread.sleep(forTimeInterval: 0.25)
+        }
+        XCTFail("音乐仓库列表既无表头统计，也未显示读取中或空状态")
     }
 
     func testMusicLibraryContentFitsCompactWindow() throws {
