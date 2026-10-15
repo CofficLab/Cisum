@@ -39,12 +39,24 @@ ProviderPlayback 定义播放服务能力契约:播放状态、快照、导航�
 
 > 说明:`PlaybackProvidingEvent` 各语义 case 与 `PlaybackMediaProviding` 由播放插件的具体实现驱动,本包提供契约与通用 store;用例 8-9 需在实现侧或跨包集成测试补齐。
 
+### 新增边界用例
+
+| ID | 描述 | 优先级 | 状态 | 测试方法 |
+|----|------|------|------|----------|
+| 10 | 全部状态及加载子状态的三个标志保持一致 | P0 | ✅ 已覆盖 | `everyStatusHasConsistentFlags` |
+| 11 | 快照不随 Provider 后续变化，重新读取反映新状态与空资源 | P0 | ✅ 已覆盖 | `snapshotsAreIndependentValuesAndRefreshFromProvider` |
+| 12 | 分发中新增观察者从下一事件开始接收 | P1 | ✅ 已覆盖 | `observersAddedDuringDeliveryStartWithNextEvent` |
+| 13 | 句柄不保活 store，store 释放后可重复取消 | P1 | ✅ 已覆盖 | `observerHandleDoesNotRetainStore` |
+| 14 | 11 种语义事件经真实 store 投递保持负载和顺序，取消后不投递 | P1 | ✅ 已覆盖 | `semanticEventPayloadsSurviveStoreDelivery` |
+
+> 用例 14 只验证 store 传输，不代替用例 8 的播放器操作触发验证。12 个测试方法已在 macOS 运行，iOS 未实跑。统计仅表示清单场景，不是源码覆盖率。
+
 ## 覆盖率统计
 
-- P0: 已覆盖 6 / 6
-- P1: 已覆盖 1 / 2
+- P0: 已覆盖 8 / 8
+- P1: 已覆盖 4 / 5
 - P2: 已覆盖 0 / 1
-- **合计: 7 / 9**
+- **合计: 12 / 14**
 
 ## 优先级说明
 

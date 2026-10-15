@@ -121,6 +121,122 @@ struct ProviderPlaybackTests {
         #expect(PlaybackMode.allCases.map(\.rawValue) == ["sequence", "loop", "shuffle", "repeatAll"])
     }
 
+    @Test(arguments: [
+        (PlaybackStatus.idle, false, false, false),
+        (.willPlay, false, false, false), (.playing, true, false, false),
+        (.paused, false, false, false), (.stopped, false, false, false),
+        (.failed(.iCloudDownloadFailed("offline")), false, false, false),
+        (.loading(.connecting), false, true, false),
+        (.loading(.preparing), false, true, false),
+        (.loading(.buffering), false, true, false),
+        (.loading(.downloading(0)), false, true, true),
+        (.loading(.downloading(1)), false, true, true),
+    ])
+    func everyStatusHasConsistentFlags(state: PlaybackStatus, playing: Bool, loading: Bool, downloading: Bool) {
+        #expect(state.isPlaying == playing)
+        #expect(state.isLoading == loading)
+        #expect(state.isDownloading == downloading)
+    }
+
+    @Test
+    func snapshotsAreIndependentValuesAndRefreshFromProvider() {
+        let provider = StubPlaybackProvider()
+        let before = provider.snapshot
+        provider.state = .idle
+        provider.currentURL = nil
+        provider.currentTime = 0
+        provider.duration = 0
+        provider.progress = 0
+        provider.playMode = .loop
+        provider.likedAssets = []
+        let after = provider.snapshot
+        #expect(before.currentTime == 12)
+        #expect(before.hasAsset)
+        #expect(before.likedAssets.count == 1)
+        #expect(after == PlaybackSnapshot(state: .idle, currentURL: nil, currentTime: 0,
+                                         duration: 0, progress: 0, playMode: .loop, likedAssets: []))
+        #expect(!after.hasAsset)
+        #expect(!after.isPlaying)
+        #expect(before != after)
+    }
+
+    @Test
+    func observersAddedDuringDeliveryStartWithNextEvent() {
+        let store = PlaybackObserverStore<Int>()
+        var received: [Int] = []
+        var added: PlaybackObserverStoreHandle<Int>?
+        let first = store.add { _ in
+            if added == nil { added = store.add { received.append($0) } }
+        }
+        store.send(1)
+        #expect(received.isEmpty)
+        store.send(2)
+        #expect(received == [2])
+        first.cancel()
+        added?.cancel()
+        store.send(3)
+        #expect(received == [2])
+    }
+
+    @Test
+    func observerHandleDoesNotRetainStore() {
+        var store: PlaybackObserverStore<Int>? = PlaybackObserverStore()
+        weak var weakStore: PlaybackObserverStore<Int>?
+        weakStore = store
+        let handle: any PlaybackProvidingObserverHandle = store!.add { _ in }
+        store = nil
+        #expect(weakStore == nil)
+        handle.cancel()
+        handle.cancel()
+    }
+
+    @Test
+    func semanticEventPayloadsSurviveStoreDelivery() {
+        let store = PlaybackObserverStore<PlaybackProvidingEvent>()
+        let url = URL(fileURLWithPath: "/library/a b.mp3")
+        let snapshot = StubPlaybackProvider().snapshot
+        let failure = PlaybackNavigationFailure(direction: .previous, reason: "没有上一首")
+        var cases: [String] = []
+        let handle = store.add { event in
+            switch event {
+            case .snapshotChanged(let value):
+                #expect(value == snapshot); cases.append("snapshot")
+            case .stateChanged(let value):
+                #expect(value == .failed(.networkError("offline"))); cases.append("state")
+            case .assetChanged(let value):
+                #expect(value == nil); cases.append("asset")
+            case .timeChanged(let time, let progress):
+                #expect(time == 12); #expect(progress == 0.25); cases.append("time")
+            case .durationChanged(let value):
+                #expect(value == 48); cases.append("duration")
+            case .playModeChanged(let value):
+                #expect(value == .repeatAll); cases.append("mode")
+            case .likedAssetsChanged(let value):
+                #expect(value == [url]); cases.append("likes")
+            case .likeStatusChanged(let asset, let liked):
+                #expect(asset == url); #expect(!liked); cases.append("like")
+            case .previousRequested(let value):
+                #expect(value == url); cases.append("previous")
+            case .nextRequested(let value):
+                #expect(value == url); cases.append("next")
+            case .navigationFailed(let value):
+                #expect(value == failure); cases.append("failure")
+            }
+        }
+        let events: [PlaybackProvidingEvent] = [
+            .snapshotChanged(snapshot), .stateChanged(.failed(.networkError("offline"))),
+            .assetChanged(nil), .timeChanged(currentTime: 12, progress: 0.25),
+            .durationChanged(48), .playModeChanged(.repeatAll), .likedAssetsChanged([url]),
+            .likeStatusChanged(asset: url, isLiked: false), .previousRequested(url),
+            .nextRequested(url), .navigationFailed(failure),
+        ]
+        events.forEach(store.send)
+        #expect(cases == ["snapshot", "state", "asset", "time", "duration", "mode", "likes", "like", "previous", "next", "failure"])
+        handle.cancel()
+        events.forEach(store.send)
+        #expect(cases.count == events.count)
+    }
+
     @Test
     func providerDefaultsBuildSnapshotAndForwardTimedPlay() async {
         let provider = StubPlaybackProvider()
