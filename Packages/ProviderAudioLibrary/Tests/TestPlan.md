@@ -38,7 +38,7 @@ ProviderAudioLibrary 定义音频库能力契约(读取、同步、删除、排�
 | ID | 类别 | 描述 | 前置条件 | 操作步骤 | 预期结果 | 优先级 | 状态 | 测试方法 |
 |----|------|------|----------|----------|----------|------|------|----------|
 | 1 | 观察者 | 默认 addObserver 返回 NoopHandle 且可重复 cancel | 未实现观察者协议的替身 | addObserver → cancel ×2 | 返回 NoopHandle,不崩溃 | P0 | ✅ 已覆盖 | `audioLibraryDefaultObserverReturnsNoopHandle` |
-| 2 | 错误 | `.unavailable` 错误可构造并模式匹配（未验证跨并发边界传递） | - | 构造并模式匹配 | 保持 `.unavailable` | P1 | ✅ 已覆盖 | `unavailableLibraryErrorIsTransportSafe` |
+| 2 | 错误 | `.unavailable` 跨并发边界保留类型 | - | detached task 抛出，调用端捕获 | 精确匹配 `.unavailable` | P1 | ✅ 已覆盖 | `unavailableLibraryErrorIsTransportSafe` |
 | 3 | 元信息 | `effectiveDBDirName` 依构建配置切换;扩展名与上限稳定 | - | 检查 DEBUG/Release 分支 | 目录名正确,扩展名列表与 `maxAudioCount>0` | P0 | ✅ 已覆盖 | `audioPluginInfoUsesBuildSpecificRepositoryDirectory` |
 | 4 | 诊断 | 仓库不可用时逐环节给出正确 `failureReason` 与 summary | - | 5 组缺失环节用例 | 命中对应人类可读原因,summary 含 `failureReason` | P0 | ✅ 已覆盖 | `audioStorageDiagnosticsExplainsUnavailableRepository` |
 | 5 | 诊断 | 仓库就绪时 `failureReason == nil` 且 summary 完整 | - | 提供完整链路 | nil,summary 含 storageRoot/dbDirName | P0 | ✅ 已覆盖 | `audioStorageDiagnosticsHasNoFailureWhenRepositoryIsReady` |
@@ -48,11 +48,22 @@ ProviderAudioLibrary 定义音频库能力契约(读取、同步、删除、排�
 
 > 说明:协议数据/事件路径(用例 6-8)由音频数据插件的具体实现承担,本包提供契约、诊断与默认 noop 观察者兜底。
 
+### 新增边界用例
+
+| ID | 描述 | 优先级 | 状态 | 测试方法 |
+|----|------|------|------|----------|
+| 9 | 本地与自定义存储不依赖 iCloud，就绪摘要不含失败行 | P0 | ✅ 已覆盖 | `nonCloudStorageDoesNotRequireCloudAvailability` |
+| 10 | 摘要全部字段、顺序、nil 占位与 Unicode 路径完整 | P1 | ✅ 已覆盖 | `diagnosticsSummaryIncludesEveryFieldAndNilPlaceholder` |
+| 11 | iCloud 容器已解析后区分根路径缺失、仓库缺失与就绪 | P0 | ✅ 已覆盖 | `cloudDiagnosticsContinuePastResolvedContainer` |
+| 12 | deleted 事件跨任务保留 URL 顺序与剩余数量 | P1 | ✅ 已覆盖 | `deletionEventPreservesURLsAndCountAcrossTaskBoundary` |
+
+> 9 个测试方法已在 macOS Debug 运行，iOS/Release 未实跑。事件传输测试不代替真实仓库删除与广播测试。统计仅表示清单场景，不是源码覆盖率。
+
 ## 覆盖率统计
 
-- P0: 已覆盖 4 / 4
-- P1: 已覆盖 1 / 4
-- **合计: 5 / 8**
+- P0: 已覆盖 6 / 6
+- P1: 已覆盖 3 / 6
+- **合计: 9 / 12**
 
 ## 优先级说明
 
