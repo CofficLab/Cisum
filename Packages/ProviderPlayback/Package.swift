@@ -28,7 +28,8 @@ let package = Package(
         .testTarget(
             name: "ProviderPlaybackTests",
             dependencies: ["ProviderPlayback"],
-            path: "Tests"
+            path: "Tests",
+            exclude: ["TestPlan.md"]
         )
     ],
     swiftLanguageModes: [.v5]
