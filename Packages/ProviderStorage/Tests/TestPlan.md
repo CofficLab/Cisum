@@ -52,21 +52,23 @@ ProviderStorage 定义应用持久化存储位置能力,统一描述数据可落
 | 1 | 枚举 | 各 case 的展示属性与持久化 rawValue 稳定 | - | 检查 `rawValue` / `emojiTitle` / `emoji` / `title` / `description` | 返回预设字符串 | P0 | ✅ 已覆盖 | `storageLocationPresentationAndPersistedValueRemainStable` |
 | 2 | 枚举 | Codable 往返一致 | - | encode → decode | 等于原值 | P0 | ✅ 已覆盖 | `storageLocationPresentationAndPersistedValueRemainStable` |
 | 3 | 枚举 | 历史 rawValue 可解码(向后兼容) | - | 用 `"icloud"`/`"local"`/`"custom"` 解码 | 映射到对应 case | P0 | ✅ 已覆盖 | `storageLocationDecodesLegacyRawValues` |
-| 4 | 协议 | 默认 addObserver 返回 NoopHandle | 未实现协议的替身 | 调 `addObserver { _ in }` | 返回 `NoopStorageProvidingObserverHandle` | P0 | ❌ 缺失 | - |
-| 5 | 协议 | NoopHandle 可重复取消 | - | 调 `cancel()` 两次 | 不崩溃 | P0 | ❌ 缺失 | - |
+| 4 | 协议 | 默认 addObserver 返回 NoopHandle | 未实现观察者方法的替身 | 调 `addObserver { _ in }` | 返回 `NoopStorageProvidingObserverHandle` | P0 | ✅ 已覆盖 | `defaultStorageObserverUsesNoopFallback` |
+| 5 | 协议 | NoopHandle 可重复取消 | - | 调 `cancel()` 两次 | 不崩溃 | P0 | ✅ 已覆盖 | `explicitStorageNoopSupportsRepeatedCancellation` |
 | 6 | 事件 | `locationChanged` 事件携带新位置 | - | 发送 `.locationChanged(.icloud)` | 观察者收到对应位置 | P1 | ❌ 缺失 | - |
 | 7 | 能力 | `storageRoot(for:)` 依位置解析根 URL | 具体实现 | 传入 `.local` / `.icloud` | 返回对应根 URL,不可用时 nil | P1 | ❌ 缺失 | - |
 | 8 | 能力 | `databaseFile(name:)` 生成 `<name>/<name>.db` 并按需建目录 | 具体实现 | 调用并检查父目录 | 返回文件 URL 且目录已创建 | P1 | ❌ 缺失 | - |
 | 9 | 能力 | `pluginDataDirectory(for:)` 返回插件专属目录 | 具体实现 | 传入 pluginID | 返回 `<databaseRoot>/<pluginID>/` | P1 | ❌ 缺失 | - |
 | 10 | 能力 | `setStorageLocation` 持久化并广播事件 | 具体实现 | 设置位置后订阅 | 事件被广播且配置持久化 | P1 | ❌ 缺失 | - |
+| 11 | 解码 | 拒绝未知值、错误大小写及非字符串 JSON | - | 解码六种非法负载 | 抛出 DecodingError | P0 | ✅ 已覆盖 | `storageLocationRejectsInvalidPersistedValues` |
+| 12 | 枚举 | 选项顺序稳定且未知 rawValue 不回落 | - | 检查 allCases 和未知值 | 顺序 icloud/local/custom，未知值 nil | P1 | ✅ 已覆盖 | `storageLocationCaseOrderRemainsStable` |
 
-> 说明：用例 4-5 可直接在本包用协议替身和 NoopHandle 验证；用例 6-10 涉及具体存储实现。后者的“缺失”仅表示本包未覆盖，未审计其他包的集成测试。
+> 用例 6-10 涉及具体存储实现，仍标为本包缺失；协议替身不用于证明持久化或事件广播。6 个测试方法已在 macOS 运行，iOS 未实跑。以下仅统计清单场景，不是源码覆盖率。
 
 ## 覆盖率统计
 
-- P0: 已覆盖 3 / 5
-- P1: 已覆盖 0 / 5
-- **合计: 3 / 10**
+- P0: 已覆盖 6 / 6
+- P1: 已覆盖 1 / 6
+- **合计: 7 / 12**
 
 ## 优先级说明
 
