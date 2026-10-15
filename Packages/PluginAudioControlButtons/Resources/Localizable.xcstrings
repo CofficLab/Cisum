@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%lld%%" : {
+
+    },
     "Basic Operations" : {
       "localizations" : {
         "en" : {
@@ -236,6 +239,9 @@
           }
         }
       }
+    },
+    "Downloading" : {
+
     },
     "Invalid audio URL" : {
       "localizations" : {
