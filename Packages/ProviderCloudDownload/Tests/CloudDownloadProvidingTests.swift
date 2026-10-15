@@ -102,6 +102,14 @@ struct CloudDownloadProvidingTests {
         #expect(received.isEmpty)
     }
 
+    @Test
+    func missingFileSnapshotDoesNotReportCompletedDownload() {
+        let file = FileManager.default.temporaryDirectory
+            .appendingPathComponent("missing-download-\(UUID().uuidString).mp3")
+        #expect(!FileManager.default.fileExists(atPath: file.path))
+        #expect(UbiquitousDownloadQuery().progressSnapshot(for: file) == 0)
+    }
+
     /// 快照兜底：普通本地文件不是 iCloud 項目，应立即判为完成。
     @Test
     func snapshotTreatsNonICloudFileAsComplete() {

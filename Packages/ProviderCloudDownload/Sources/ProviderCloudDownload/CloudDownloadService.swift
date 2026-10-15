@@ -193,10 +193,12 @@ final class UbiquitousDownloadQuery: @unchecked Sendable {
             .ubiquitousItemDownloadingStatusKey,
             .ubiquitousItemIsDownloadingKey,
             percentKey,
-        ]) else { return 1 }
+        ]) else { return 0 }
 
         // 非 iCloud 文件不参与下载，直接视为完成。
-        guard values.isUbiquitousItem == true else { return 1 }
+        guard values.isUbiquitousItem == true else {
+            return FileManager.default.fileExists(atPath: url.path) ? 1 : 0
+        }
 
         // `.current` 表示内容已在本地，与 kit 的快照口径保持一致。
         if values.ubiquitousItemDownloadingStatus == .current { return 1 }
