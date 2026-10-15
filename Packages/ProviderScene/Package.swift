@@ -36,7 +36,8 @@ let package = Package(
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
             ],
-            path: "Tests"
+            path: "Tests",
+            exclude: ["TestPlan.md"]
         ),
     ],
     swiftLanguageModes: [.v5]
