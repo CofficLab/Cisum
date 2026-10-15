@@ -2,6 +2,13 @@ import Foundation
 import Testing
 @testable import ProviderCloudDownload
 
+private final class MetadataItemStub: NSMetadataItem {
+    var pathValue: Any?
+    override func value(forAttribute key: String) -> Any? {
+        key == NSMetadataItemPathKey ? pathValue : "intro.mp3"
+    }
+}
+
 /// 身份键策略：查询结果与订阅 URL 必须用同一把尺子比对。
 struct CloudDownloadIdentityTests {
     @Test
@@ -22,9 +29,22 @@ struct CloudDownloadIdentityTests {
     @Test
     func keyFromItemNormalizesTheSameWayAsKeyFromURL() {
         // 两侧归一化结果一致，是「能匹配上」的前提。
-        let url = URL(fileURLWithPath: "/tmp/dir/intro.mp3")
+        let path = "/tmp/目录/./sub/../intro song.mp3"
+        let url = URL(fileURLWithPath: path)
+        let item = MetadataItemStub()
+        item.pathValue = path
+        #expect(CloudDownloadIdentity.key(for: item) == CloudDownloadIdentity.key(for: url))
+        #expect(CloudDownloadIdentity.key(for: item) == "/tmp/目录/intro song.mp3")
+    }
 
-        #expect(CloudDownloadIdentity.key(for: url) == URL(fileURLWithPath: "/tmp/dir/intro.mp3").standardizedFileURL.path)
+    @Test
+    func itemWithoutValidPathNeverFallsBackToFilename() {
+        let item = MetadataItemStub()
+        #expect(CloudDownloadIdentity.key(for: item) == nil)
+        item.pathValue = 42
+        #expect(CloudDownloadIdentity.key(for: item) == nil)
+        item.pathValue = URL(fileURLWithPath: "/tmp/intro.mp3")
+        #expect(CloudDownloadIdentity.key(for: item) == nil)
     }
 }
 
@@ -54,6 +74,23 @@ struct CloudDownloadProgressPolicyTests {
     @Test
     func mergedNormalizesBothSides() {
         #expect(CloudDownloadProgressPolicy.merged(current: .nan, incoming: 0.4) == 0.4)
+    }
+
+    @Test
+    func progressPolicyPreservesBoundsAndMonotonicityAcrossBoundaryMatrix() {
+        let samples: [(value: Double, expected: Double)] = [
+            (-.infinity, 0), (.nan, 0), (.infinity, 0), (-10, 0),
+            (0, 0), (0.25, 0.25), (0.75, 0.75), (1, 1), (10, 1),
+        ]
+        for current in samples {
+            #expect(CloudDownloadProgressPolicy.normalized(current.value) == current.expected)
+            for incoming in samples {
+                let merged = CloudDownloadProgressPolicy.merged(current: current.value, incoming: incoming.value)
+                #expect(merged == max(current.expected, incoming.expected))
+                #expect(merged.isFinite && (0...1).contains(merged))
+                #expect(CloudDownloadProgressPolicy.merged(current: merged, incoming: incoming.value) == merged)
+            }
+        }
     }
 }
 
@@ -87,19 +124,34 @@ struct CloudDownloadProvidingTests {
 
     /// 生产实现：订阅即建连，取消后不再收到事件。
     @Test
-    func serviceForwardsEventsToSubscribersUntilCancelled() async throws {
+    func serviceForwardsEventsToSubscribersUntilCancelled() {
         let service = CloudDownloadService()
+        let url = URL(fileURLWithPath: "/tmp/目录/intro.mp3")
         var received: [Double] = []
-
+        var otherReceived: [Double] = []
         let handle = service.addObserver { event in
-            if case let .progressChanged(_, progress) = event {
+            if case let .progressChanged(eventURL, progress) = event {
+                #expect(eventURL == url)
                 received.append(progress)
             }
         }
+        let other = service.addObserver { event in
+            if case let .progressChanged(eventURL, progress) = event {
+                #expect(eventURL == url)
+                otherReceived.append(progress)
+            }
+        }
+        service.handle(.init(url: url, progress: 0.4))
+        #expect(received == [0.4])
         handle.cancel()
-
-        // 取消后不应再收到任何事件（CI 无 iCloud 下载，期望恒为空）。
-        #expect(received.isEmpty)
+        handle.cancel()
+        service.handle(.init(url: url, progress: 2))
+        service.handle(.init(url: url, progress: .nan))
+        #expect(received == [0.4])
+        #expect(otherReceived == [0.4, 1, 0])
+        other.cancel()
+        service.handle(.init(url: url, progress: 0.8))
+        #expect(otherReceived == [0.4, 1, 0])
     }
 
     @Test

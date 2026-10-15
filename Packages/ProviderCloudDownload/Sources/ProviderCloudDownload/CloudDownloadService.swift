@@ -29,7 +29,7 @@ public final class CloudDownloadService: CloudDownloadProviding, @unchecked Send
         }
     }
 
-    private func handle(_ entry: UbiquitousDownloadQuery.Entry) {
+    func handle(_ entry: UbiquitousDownloadQuery.Entry) {
         let progress = CloudDownloadProgressPolicy.normalized(entry.progress)
         eventObservers.send(.progressChanged(url: entry.url, progress: progress))
     }
