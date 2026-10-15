@@ -33,12 +33,20 @@ ProviderStore 封装 StoreKit 2 内购与订阅能力:商品抓取与分组、�
 | 15 | 服务 | `fetchAllProducts` / `fetchAllSubscriptionGroups` 真实 StoreKit 抓取与分组 | P2 | ❌ 缺失 | - (依赖 StoreKit 运行环境/测试配额) |
 | 16 | 服务 | `purchase(_:)` 购买流程、`inspectSubscriptionStatus`、`bootstrap` 交易监听 | P2 | ❌ 缺失 | - (依赖真实交易/沙盒环境) |
 
+### 回归用例
+
+| ID | 描述 | 优先级 | 状态 | 测试方法 |
+|----|------|------|------|----------|
+| 17 | 未映射商品不能延长付费权益；覆盖自动/非自动续订及输入顺序 | P0 | ✅ 已覆盖 | `unknownProductsCannotExtendPaidEntitlements` |
+
+> 用例 17 修复前会把已知商品 100 秒的期限扩展为未知商品的 10000 秒；修复后忽略不授予付费等级的商品。
+
 ## 覆盖率统计
 
-- P0: 已覆盖 8 / 8
+- P0: 已覆盖 9 / 9
 - P1: 已覆盖 5 / 5
 - P2: 已覆盖 1 / 3
-- **合计: 14 / 16**（15-16 尚未覆盖，可使用 StoreKit Testing / 沙盒验证，无需真实付费）
+- **合计: 15 / 17**（15-16 尚未覆盖，可使用 StoreKit Testing / 沙盒验证，无需真实付费）
 
 ## 优先级说明
 

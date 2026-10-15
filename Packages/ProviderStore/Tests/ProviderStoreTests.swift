@@ -226,6 +226,22 @@ struct ProviderStoreTests {
         #expect(active?.expiresAt == now.addingTimeInterval(60))
     }
 
+    @Test(arguments: [Product.ProductType.autoRenewable, .nonRenewable])
+    func unknownProductsCannotExtendPaidEntitlements(type: Product.ProductType) {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let active = StoreState.EntitlementSnapshot(
+            productID: "com.yueyi.cisum.pro.monthly", productType: .autoRenewable,
+            expirationDate: now.addingTimeInterval(100))
+        let unknown = StoreState.EntitlementSnapshot(
+            productID: "unknown.subscription", productType: type,
+            expirationDate: now.addingTimeInterval(10_000))
+        for entries in [[active, unknown], [unknown, active]] {
+            #expect(StoreState.detectedPurchaseInfo(from: entries, now: now)
+                == PurchaseInfo(tier: .pro, expiresAt: now.addingTimeInterval(100)))
+        }
+        #expect(StoreState.detectedPurchaseInfo(from: [unknown], now: now) == .none)
+    }
+
     @Test
     func entitlementCalibrationKeepsHighestTierAndLatestValidExpiration() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
