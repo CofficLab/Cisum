@@ -41,12 +41,23 @@ ProviderStore 封装 StoreKit 2 内购与订阅能力:商品抓取与分组、�
 
 > 用例 17 修复前会把已知商品 100 秒的期限扩展为未知商品的 10000 秒；修复后忽略不授予付费等级的商品。
 
+### 新增边界用例
+
+| ID | 描述 | 优先级 | 状态 | 测试方法 |
+|----|------|------|------|----------|
+| 18 | 三种权益等级的可选到期时间 Codable 往返，nil 不授予权益 | P0 | ✅ 已覆盖 | `purchaseInfoCodablePreservesOptionalExpiration` |
+| 19 | 非续订到期时间严格大于 now，覆盖前/等于/后三个边界 | P0 | ✅ 已覆盖 | `nonRenewableExpirationBoundaryIsStrict` |
+| 20 | 重复商品 ID、宽限期、重试期与同级首项选择 | P1 | ✅ 已覆盖 | `subscriptionSelectionHandlesDuplicateProductsGraceAndBillingRetry` |
+| 21 | 公开缓存读取反映更新和过期，错误类型/缺字段/未知等级回落 | P0 | ✅ 已覆盖 | `cachedAccessorsReflectCurrentDataAndRejectInvalidCache` |
+
+> 24 个测试方法已在 macOS 运行，iOS 未实跑。缓存测试串行运行并恢复原始 UserDefaults 两个键；不调用 StoreKit 购买或联网抓取。统计仅表示清单场景，不是源码覆盖率。
+
 ## 覆盖率统计
 
-- P0: 已覆盖 9 / 9
-- P1: 已覆盖 5 / 5
+- P0: 已覆盖 12 / 12
+- P1: 已覆盖 6 / 6
 - P2: 已覆盖 1 / 3
-- **合计: 15 / 17**（15-16 尚未覆盖，可使用 StoreKit Testing / 沙盒验证，无需真实付费）
+- **合计: 19 / 21**（15-16 尚未覆盖，可使用 StoreKit Testing / 沙盒验证，无需真实付费）
 
 ## 优先级说明
 
