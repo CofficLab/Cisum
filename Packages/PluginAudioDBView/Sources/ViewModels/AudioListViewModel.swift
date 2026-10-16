@@ -72,13 +72,18 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     private let isDesktop: Bool
     private weak var toast: (any AudioLibraryToastCapability)?
 
+    /// 存储配置状态（Capabilities 目录收窄）。仅用于区分「首启尚未配置存储」
+    /// 与「仓库真的打不开」：前者必须静默，否则模态错误弹窗会盖住首启引导。
+    private let storage: (any AudioLibraryStorageCapability)?
+
     init(
         library: any AudioLibraryCapability,
         playback: (any AudioLibraryPlaybackCapability)? = nil,
         download: (any CloudDownloadCapability)? = nil,
         reasonTag: String = "AudioListViewModel",
         isDesktop: Bool? = nil,
-        toast: (any AudioLibraryToastCapability)? = nil
+        toast: (any AudioLibraryToastCapability)? = nil,
+        storage: (any AudioLibraryStorageCapability)? = nil
     ) {
         self.library = library
         self.playback = playback
@@ -86,6 +91,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         self.reasonTag = reasonTag
         self.isDesktop = isDesktop ?? Self.defaultIsDesktop
         self.toast = toast
+        self.storage = storage
     }
 
     /// 非桌面平台（用于显示「添加」按钮等布局差异）。
@@ -322,17 +328,14 @@ final class AudioListViewModel: ObservableObject, SuperLog {
 
         Task { @MainActor in
             guard library.isAvailable else {
-                isLoading = false
-                hasSuccessfullyLoadedRepository = false
-                toast?.error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
-                return
-            }
-            guard library.isAvailable else {
                 // During first-run onboarding there is intentionally no storage
                 // root yet. The welcome gate explains the required action; a
-                // generic repository error toast would obscure that guidance.
+                // generic repository error toast is a modal notice that would
+                // cover the guide and swallow its taps, so stay silent until a
+                // storage location actually exists.
                 isLoading = false
                 hasSuccessfullyLoadedRepository = false
+                presentLoadFailureIfNeeded()
                 return
             }
 
@@ -378,7 +381,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         Task { @MainActor in
             guard library.isAvailable else {
                 isLoadingMore = false
-                toast?.error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
+                presentLoadFailureIfNeeded()
                 return
             }
 
@@ -466,13 +469,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                 isLoading = false
                 isLoadingMore = false
                 hasSuccessfullyLoadedRepository = false
-                toast?.error(String(localized: "Refresh failed: audio repository is unavailable", bundle: .module))
-                return
-            }
-            guard library.isAvailable else {
-                isLoading = false
-                isLoadingMore = false
-                hasSuccessfullyLoadedRepository = false
+                presentRefreshFailureIfNeeded()
                 return
             }
 
@@ -531,6 +528,27 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     }
 
     // MARK: - Helpers
+
+    /// 首次加载失败时按需提示。
+    ///
+    /// 首启引导尚未配置存储位置时静默处理：欢迎层已经在解释原因，而错误弹窗
+    /// 是模态遮罩，会盖住引导并吞掉「继续」按钮的点击。
+    private func presentLoadFailureIfNeeded() {
+        guard AudioRepositoryUnavailablePolicy.shouldPresentErrorNotice(
+            hasUsableStorageLocation: storage?.hasUsableStorageLocation ?? false,
+            isRepositoryAvailable: false
+        ) else { return }
+        toast?.error(String(localized: "Load failed: audio repository is unavailable", bundle: .module))
+    }
+
+    /// 刷新失败时按需提示，规则同 `presentLoadFailureIfNeeded`。
+    private func presentRefreshFailureIfNeeded() {
+        guard AudioRepositoryUnavailablePolicy.shouldPresentErrorNotice(
+            hasUsableStorageLocation: storage?.hasUsableStorageLocation ?? false,
+            isRepositoryAvailable: false
+        ) else { return }
+        toast?.error(String(localized: "Refresh failed: audio repository is unavailable", bundle: .module))
+    }
 
     private func setSelection(_ newValue: URL?) {
         selection = newValue
