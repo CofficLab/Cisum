@@ -240,4 +240,20 @@ final class CisumConfiguredWelcomeUITests: CisumUITestBase {
     func testExistingStorageSkipsWelcomeGuide() {
         XCTAssertFalse(element(identifier: "cisum.welcome.storage.setup").waitForExistence(timeout: 2), "已有有效存储位置时不应重复展示首次启动引导")
     }
+
+    /// 已有存储位置（引导不展示）时，工具栏必须正常存在。
+    ///
+    /// 抑制工具栏容易，**恢复才是容易出错的一侧**：一旦引导关闭时没有归还
+    /// 工具栏，它会永久消失。本用例从「引导压根不展示」的入口验证恢复路径，
+    /// 不依赖点击「继续」——该交互当前受另一个已知缺陷（提交后引导不关闭）阻塞。
+    func testToolbarIsPresentWhenWelcomeGuideIsNotShown() {
+        XCTAssertTrue(
+            element(identifier: "cisum.settings.button").waitForExistence(timeout: 15),
+            "引导未展示时设置按钮应可见：工具栏被错误地永久隐藏了"
+        )
+        XCTAssertTrue(
+            element(identifier: "cisum.scene.switcher").waitForExistence(timeout: 10),
+            "引导未展示时场景切换器应可见：工具栏被错误地永久隐藏了"
+        )
+    }
 }

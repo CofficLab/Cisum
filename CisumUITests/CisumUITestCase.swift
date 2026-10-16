@@ -226,16 +226,12 @@ class CisumUITestBase: XCTestCase {
     /// NSToolbar 上的独立 item，也要覆盖 SwiftUI `.toolbar` 贡献进去的
     /// `ToolbarItem` / `ToolbarItemGroup`（后者在 AX 树里同样是 toolbar
     /// 的后代，因此统一走 descendants 查询）。
-    func interactiveToolbarControls(
-        in window: XCUIElement,
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) -> [String] {
+    ///
+    /// 工具栏整体不存在等价于「没有任何控件」，返回空数组而非判失败：
+    /// 隐藏整条工具栏是正确的修复形态，不应因此报错。
+    func interactiveToolbarControls(in window: XCUIElement) -> [String] {
         let toolbar = window.toolbars.firstMatch
-        guard toolbar.exists else {
-            XCTFail("工具栏不存在，无法断言「工具栏为空」", file: file, line: line)
-            return []
-        }
+        guard toolbar.exists else { return [] }
 
         let queries: [(String, XCUIElementQuery)] = [
             ("button", toolbar.descendants(matching: .button)),

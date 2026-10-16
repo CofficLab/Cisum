@@ -41,6 +41,10 @@ public final class WelcomePlugin: AsyncSuperPlugin, SuperLog {
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
         kernel.resolveProvider((any RootViewProviding).self)?.removeOverlays(ids: [Self.storageSetupOverlayID])
+        // 引导不再存在，必须归还工具栏，否则根视图会一直停在无工具栏态。
+        welcomeRootChromeCapability?.restoreIfNeeded()
+        welcomeRootChromeCapability = nil
+        welcomeStorageCapability = nil
     }
 
     @MainActor
@@ -57,6 +61,10 @@ public final class WelcomePlugin: AsyncSuperPlugin, SuperLog {
     /// 本插件消费的能力 Adapter。Overlay 的 StateObject 强持有能力，
     /// 入口同样持有以满足组装层所有权约定（Capabilities 规范第 5 条）。
     nonisolated(unsafe) private var welcomeStorageCapability: WelcomeStorageCapabilityAdapter?
+
+    /// 根视图外观能力（引导期抑制工具栏）。入口强持有以满足组装层所有权约定
+    /// （Capabilities 规范第 5 条）：Overlay 只经能力写状态，不直接持有适配器。
+    nonisolated(unsafe) private var welcomeRootChromeCapability: WelcomeRootChromeCapabilityAdapter?
 
     /// OnReady 阶段（Storage 服务已注册）将 `WelcomePluginHost` 桥接到内核
     /// `StorageProviding`。
@@ -76,10 +84,12 @@ public final class WelcomePlugin: AsyncSuperPlugin, SuperLog {
             }
         )
 
-        kernel.resolveProvider((any RootViewProviding).self)?.addOverlays([
+        guard let root = kernel.resolveProvider((any RootViewProviding).self) else { return }
+        root.addOverlays([
             RootOverlayItem(id: Self.storageSetupOverlayID, order: 9_000) { content in
                 WelcomeStorageSetupOverlay(
                     storage: self.welcomeStorageCapability(for: storage),
+                    chrome: self.welcomeRootChromeCapability(for: root),
                     content: content
                 )
             }
@@ -94,6 +104,17 @@ public final class WelcomePlugin: AsyncSuperPlugin, SuperLog {
         if let welcomeStorageCapability { return welcomeStorageCapability }
         let capability = WelcomeStorageCapabilityAdapter(storage: storage)
         welcomeStorageCapability = capability
+        return capability
+    }
+
+    /// 组装根视图外观能力（幂等）：入口持有，Overlay 经能力抑制/恢复工具栏。
+    @MainActor
+    private func welcomeRootChromeCapability(
+        for root: any RootViewProviding
+    ) -> WelcomeRootChromeCapabilityAdapter {
+        if let welcomeRootChromeCapability { return welcomeRootChromeCapability }
+        let capability = WelcomeRootChromeCapabilityAdapter(root: root)
+        welcomeRootChromeCapability = capability
         return capability
     }
 
