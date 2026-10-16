@@ -165,36 +165,56 @@ final class CisumWelcomeUITests: CisumUITestBase {
         )
     }
 
-    /// 欢迎页展示期间，主窗口顶部工具栏必须保持干净：
-    /// 不允许出现任何按钮、弹出菜单等可交互控件（引导期间工具栏不应暴露功能入口）。
-    func testWelcomeGuideKeepsTopToolbarFreeOfControls() throws {
+    /// [R8] 选择媒体存储位置界面**不应出现顶部工具栏**。
+    ///
+    /// 复现的缺陷：引导（`cisum.welcome.storage.setup`）只是覆盖在根视图之上的
+    /// overlay，而顶部工具栏由内层 `CisumRootLayoutView.toolbar` 无条件贡献，
+    /// 于是首启选择存储位置时窗口顶部依然挂着设置按钮、场景切换器等功能入口。
+    ///
+    /// 分两层断言：
+    /// 1. 具体的工具栏功能入口（设置按钮 / 场景切换器）不应存在；
+    /// 2. 整个工具栏不应留下任何可交互控件。
+    func testStorageSetupScreenHidesTopToolbar() throws {
         XCTAssertTrue(setupGate.waitForExistence(timeout: 10), "首次启动应展示存储引导")
 
-#if os(macOS)
-        let window = app.windows.firstMatch
-        XCTAssertTrue(window.waitForExistence(timeout: 5), "主窗口未出现")
-
-        // 工具栏本身可以不存在（等价于没有任何控件）；存在时必须为空。
-        let toolbar = window.toolbars.firstMatch
-        guard toolbar.exists else { return }
-
-        var offenders: [String] = []
-        let controlQueries: [(String, XCUIElementQuery)] = [
-            ("button", toolbar.descendants(matching: .button)),
-            ("popUpButton", toolbar.descendants(matching: .popUpButton)),
-            ("menu", toolbar.descendants(matching: .menu)),
-            ("menuItem", toolbar.descendants(matching: .menuItem)),
+        let knownToolbarEntries: [(String, String)] = [
+            ("cisum.settings.button", "设置按钮"),
+            ("cisum.scene.switcher", "场景切换器"),
         ]
-        for (kind, query) in controlQueries {
-            for index in 0..<query.count {
-                let control = query.element(boundBy: index)
-                offenders.append("\(kind) \"\(control.label)\" \(control.frame)")
+        var leakedEntries: [String] = []
+        for (identifier, name) in knownToolbarEntries {
+            if element(identifier: identifier).exists {
+                leakedEntries.append("\(name)(\(identifier))")
             }
         }
-
         XCTAssertTrue(
-            offenders.isEmpty,
-            "欢迎页顶部工具栏不应有任何按钮/控件，但发现了 \(offenders.count) 个：\(offenders.joined(separator: ", "))"
+            leakedEntries.isEmpty,
+            "选择媒体存储位置时不应显示顶部工具栏，但工具栏入口仍然可见：\(leakedEntries.joined(separator: ", "))"
+        )
+
+#if os(macOS)
+        let window = app.windows["Cisum"]
+        XCTAssertTrue(window.waitForExistence(timeout: 5), "主窗口未出现")
+
+        let controls = interactiveToolbarControls(in: window)
+        XCTAssertTrue(
+            controls.isEmpty,
+            "选择媒体存储位置时顶部工具栏不应有任何控件，但发现 \(controls.count) 个：\(controls.joined(separator: " | "))"
+        )
+#else
+        // iOS 没有 NSToolbar，等价约束是：引导为全屏覆盖层，
+        // 主界面的工具栏/导航入口既不可见也不可命中。
+        let sceneSwitcher = element(identifier: "cisum.scene.switcher")
+        if sceneSwitcher.exists {
+            sceneSwitcher.tap()
+            XCTAssertFalse(
+                element(identifier: "cisum.scene.option.music").waitForExistence(timeout: 2),
+                "选择媒体存储位置时场景切换器仍可点击，用户能在未配置存储前切换场景"
+            )
+        }
+        XCTAssertFalse(
+            element(identifier: "cisum.kernel.startup-error").exists,
+            "选择媒体存储位置时不应出现启动错误屏"
         )
 #endif
     }

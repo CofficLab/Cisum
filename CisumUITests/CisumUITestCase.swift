@@ -219,6 +219,46 @@ class CisumUITestBase: XCTestCase {
         }
         return app.staticTexts.matching(NSCompoundPredicate(orPredicateWithSubpredicates: predicates)).firstMatch
     }
+
+    /// 快照窗口顶部工具栏中的全部可交互控件。
+    ///
+    /// 供「某状态下工具栏必须完全干净」这类回归使用：既要覆盖
+    /// NSToolbar 上的独立 item，也要覆盖 SwiftUI `.toolbar` 贡献进去的
+    /// `ToolbarItem` / `ToolbarItemGroup`（后者在 AX 树里同样是 toolbar
+    /// 的后代，因此统一走 descendants 查询）。
+    func interactiveToolbarControls(
+        in window: XCUIElement,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) -> [String] {
+        let toolbar = window.toolbars.firstMatch
+        guard toolbar.exists else {
+            XCTFail("工具栏不存在，无法断言「工具栏为空」", file: file, line: line)
+            return []
+        }
+
+        let queries: [(String, XCUIElementQuery)] = [
+            ("button", toolbar.descendants(matching: .button)),
+            ("popUpButton", toolbar.descendants(matching: .popUpButton)),
+            ("menuButton", toolbar.descendants(matching: .menuButton)),
+            ("menu", toolbar.descendants(matching: .menu)),
+            ("menuItem", toolbar.descendants(matching: .menuItem)),
+            ("comboBox", toolbar.descendants(matching: .comboBox)),
+            ("checkBox", toolbar.descendants(matching: .checkBox)),
+            ("toggle", toolbar.descendants(matching: .toggle)),
+        ]
+
+        var controls: [String] = []
+        for (kind, query) in queries {
+            for index in 0..<query.count {
+                let control = query.element(boundBy: index)
+                controls.append(
+                    "\(kind) id=\(control.identifier) label=\"\(control.label)\" frame=\(control.frame)"
+                )
+            }
+        }
+        return controls
+    }
     #endif
 
     #if !os(macOS)
