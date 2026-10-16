@@ -186,7 +186,8 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
             playback: playback,
             toast: AudioLibraryToastCapabilityAdapter(
                 toast: self.kernel?.resolveProvider((any ToastProviding).self)
-            )
+            ),
+            storage: makeStorageCapability()
         )
         let settingTree = AudioTreeViewModel(disk: audioDiskProvider)
         settingPlaybackObserver = AudioDBPlaybackObserver(playback: playback, viewModel: settingList)
@@ -243,8 +244,18 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
         return capability
     }
 
-    /// 组装 iCloud 下载进度能力：内部惰性解析内核 Provider。
+    /// 组装存储配置能力：供列表区分「首启未配置存储」与「仓库真的打不开」。
     ///
+    /// 与其它能力一致按需新建（只在创建 ViewModel 时调用），不缓存：
+    /// 适配器内部对 Provider 已是 `weak`，缓存没有收益。
+    @MainActor
+    private func makeStorageCapability() -> AudioLibraryStorageCapabilityAdapter {
+        AudioLibraryStorageCapabilityAdapter(
+            storage: kernel?.resolveProvider((any StorageProviding).self)
+        )
+    }
+
+    /// 组装 iCloud 下载进度能力：内部惰性解析内核 Provider。
     /// 与音频库能力一样持惰性闭包——本插件的视图贡献可能早于 Provider 注册，
     /// 快照引用会让进度能力永久失效。
     @MainActor
@@ -310,7 +321,8 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
                 library: libraryCapability,
                 playback: playbackCapability,
                 download: makeDownloadCapability(),
-                toast: toastCapability
+                toast: toastCapability,
+                storage: makeStorageCapability()
             )
             let root = AudioDBRootViewModel(
                 library: libraryCapability,
@@ -389,7 +401,8 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
             playback: playback,
             toast: AudioLibraryToastCapabilityAdapter(
                 toast: kernel?.resolveProvider((any ToastProviding).self)
-            )
+            ),
+            storage: makeStorageCapability()
         )
         let root = AudioDBRootViewModel(library: libraryCapability, showDBView: {})
         let db = AudioDBViewModel()

@@ -75,14 +75,18 @@ struct CisumRootLayoutView: View {
         }
         .appThemedAppearance()
         .toolbar {
-            ToolbarItem(placement: .navigation) {
-                provider.toolbarView ?? AnyView(EmptyView())
-            }
-            if !viewModel.toolbarButtons.isEmpty {
-                ToolbarItemGroup(placement: .cancellationAction) {
-                    Spacer()
-                    ForEach(Array(viewModel.toolbarButtons.enumerated()), id: \.offset) { _, item in
-                        item.view
+            // 引导层（如首启存储选择）会通过根视图契约隐藏工具栏：
+            // 抑制而非遮挡——工具栏是真实控件，必须停止贡献才真正消失。
+            if !provider.isToolbarViewHidden {
+                ToolbarItem(placement: .navigation) {
+                    provider.toolbarView ?? AnyView(EmptyView())
+                }
+                if !viewModel.toolbarButtons.isEmpty {
+                    ToolbarItemGroup(placement: .cancellationAction) {
+                        Spacer()
+                        ForEach(Array(viewModel.toolbarButtons.enumerated()), id: \.offset) { _, item in
+                            item.view
+                        }
                     }
                 }
             }
@@ -148,7 +152,11 @@ struct CisumRootLayoutView: View {
     private func handleGeometryChange(_ newHeight: CGFloat) {
         if !autoResizing { rememberedHeight = windowHeight() }
         autoResizing = false
-        if newHeight <= AppResponsivePlayerLayoutMetrics.shared.secondaryColumnDropHeightThreshold {
+        if RootContentVisibility.shouldHideContentView(
+            isMacOS: RootContentVisibility.hostIsMacOS,
+            newHeight: newHeight,
+            dropThreshold: AppResponsivePlayerLayoutMetrics.shared.secondaryColumnDropHeightThreshold
+        ) {
             provider.hideContentView()
         }
     }

@@ -32,6 +32,12 @@ let package = Package(
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
             ]
         ),
+        .testTarget(
+            name: "PluginRootViewTests",
+            dependencies: ["PluginRootView"],
+            path: "Tests",
+            exclude: ["TestPlan.md"]
+        ),
     ],
     swiftLanguageModes: [.v5]
 )
