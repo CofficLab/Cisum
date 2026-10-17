@@ -48,18 +48,23 @@
 | 12 | 行为 | Reload applies only latest generation | P0 | ✅ 已覆盖 | `AudioLikePluginTests.swift` | `reloadAppliesOnlyLatestGeneration` |
 | 13 | 行为 | Scene change activation gates like saving | P0 | ✅ 已覆盖 | `AudioLikePluginTests.swift` | `sceneChangeActivationGatesLikeSaving` |
 | 14 | 视图模型 | Observer forwards scene selection to view model | P2 | ✅ 已覆盖 | `AudioLikePluginTests.swift` | `observerForwardsSceneSelectionToViewModel` |
+| 15 | 模型 | AudioLikeModel 初始化器保留全部字段 | P0 | ✅ 已覆盖 | `AudioLikePluginTests.swift` | `initializerPreservesProvidedFields` |
+| 16 | 模型 | AudioLikeModel 默认状态符合预期初始值 | P0 | ✅ 已覆盖 | `AudioLikePluginTests.swift` | `defaultsMatchExpectedInitialState` |
+| 17 | 错误 | AudioLikeRepoError 每个 case 的 localizedDescription 非空 | P1 | ✅ 已覆盖 | `AudioLikePluginTests.swift` | `everyCaseHasNonEmptyLocalizedDescription` |
+| 18 | 视图模型 | 场景激活后 unlike 路径同样被持久化 | P0 | ✅ 已覆盖 | `AudioLikePluginTests.swift` | `unlikePathIsPersistedWhenActive` |
+| 19 | 视图模型 | 切到非目标场景后后续的喜欢变化被停用 | P0 | ✅ 已覆盖 | `AudioLikePluginTests.swift` | `deactivationStopsSubsequentLikeChanges` |
 
 ## 覆盖率统计
 
-- P0: 10 / 10 ✅
-- P1: 3 / 3 ✅
+- P0: 14 / 14 ✅
+- P1: 4 / 4 ✅
 - P2: 1 / 1 ✅
 
-**总计: 14 / 14**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
+**总计: 19 / 19**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
 
 ## 测试文件
 
-- `AudioLikePluginTests.swift` — 14 条用例
+- `AudioLikePluginTests.swift` — 19 条用例
 
 ## 优先级说明
 

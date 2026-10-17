@@ -426,6 +426,130 @@ struct AudioLikeViewModelTests {
     }
 }
 
+// MARK: - 数据层与错误类型
+
+@MainActor
+struct AudioLikeModelTests {
+    @Test
+    func initializerPreservesProvidedFields() {
+        let url = URL(fileURLWithPath: "/tmp/audio/track.mp3")
+        let model = AudioLikeModel(
+            audioId: "audio-id-1",
+            url: url,
+            title: "Track",
+            liked: true
+        )
+
+        #expect(model.audioId == "audio-id-1")
+        #expect(model.url == url)
+        #expect(model.title == "Track")
+        #expect(model.liked == true)
+    }
+
+    @Test
+    func defaultsMatchExpectedInitialState() {
+        let model = AudioLikeModel(audioId: "only-id", url: nil)
+
+        #expect(model.liked == false)
+        #expect(model.url == nil)
+        #expect(model.title == nil)
+        // createdAt / updatedAt 应在最近几秒内，验证 init 已赋初值。
+        let now = Date()
+        #expect(abs(model.createdAt.timeIntervalSince(now)) < 2)
+        #expect(abs(model.updatedAt.timeIntervalSince(now)) < 2)
+    }
+}
+
+@MainActor
+struct AudioLikeRepoErrorTests {
+    @Test
+    func everyCaseHasNonEmptyLocalizedDescription() {
+        let cases: [AudioLikeRepoError] = [
+            .containerNotAvailable,
+            .databaseURLNotConfigured,
+        ]
+        for error in cases {
+            #expect((error.errorDescription ?? "").isEmpty == false)
+        }
+    }
+}
+
+/// 扩展 AudioLikeRepositoryProbe，使其同时支持 unlike 路径的断言。
+@MainActor
+private final class AudioLikeRepositoryRecordingProbe: AudioLikeRepositoryCapability {
+    struct SaveRecord: Equatable {
+        let audioId: String
+        let liked: Bool
+        let url: URL?
+        let title: String?
+    }
+
+    var records: [SaveRecord] = []
+    var likedItems: [AudioLikeItem] = []
+
+    func allLiked() async -> [AudioLikeItem] { likedItems }
+
+    func updateLikeStatus(
+        audioId: String,
+        liked: Bool,
+        url: URL?,
+        title: String?
+    ) async throws {
+        records.append(SaveRecord(audioId: audioId, liked: liked, url: url, title: title))
+    }
+}
+
+@MainActor
+struct AudioLikeViewModelUnlikeTests {
+    @Test
+    func unlikePathIsPersistedWhenActive() async throws {
+        let repository = AudioLikeRepositoryRecordingProbe()
+        let viewModel = AudioLikeViewModel(
+            isPlaybackAvailable: true,
+            repository: repository
+        )
+
+        viewModel.handleSceneChange(.music, targetScene: .music)
+
+        let url = URL(fileURLWithPath: "/tmp/audio/unliked.mp3")
+        viewModel.handleLikeStatusChanged(asset: url, liked: true)
+        viewModel.handleLikeStatusChanged(asset: url, liked: false)
+
+        for _ in 0..<50 where repository.records.count < 2 {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(repository.records.count == 2)
+        #expect(repository.records[0].liked == true)
+        #expect(repository.records[1].liked == false)
+        #expect(repository.records[0].audioId == url.absoluteString)
+        #expect(repository.records[1].audioId == url.absoluteString)
+    }
+
+    @Test
+    func deactivationStopsSubsequentLikeChanges() async throws {
+        let repository = AudioLikeRepositoryRecordingProbe()
+        let viewModel = AudioLikeViewModel(
+            isPlaybackAvailable: true,
+            repository: repository
+        )
+
+        viewModel.handleSceneChange(.music, targetScene: .music)
+        let url = URL(fileURLWithPath: "/tmp/audio/active.mp3")
+        viewModel.handleLikeStatusChanged(asset: url, liked: true)
+        for _ in 0..<50 where repository.records.isEmpty {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(repository.records.count == 1)
+
+        // 切到非目标场景 → 停用
+        viewModel.handleSceneChange(.audiobooks, targetScene: .music)
+        viewModel.handleLikeStatusChanged(asset: URL(fileURLWithPath: "/tmp/audio/inactive.mp3"), liked: true)
+        try await Task.sleep(for: .milliseconds(30))
+
+        #expect(repository.records.count == 1)
+    }
+}
+
 @MainActor
 private final class PlaybackProbeStub: PlaybackProviding {
     var state: PlaybackStatus = .idle
