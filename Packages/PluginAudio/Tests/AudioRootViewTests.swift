@@ -143,3 +143,40 @@ struct AudioStorageObserverTests {
         #expect(true)
     }
 }
+
+// MARK: - AudioPlugin 元数据
+
+@MainActor
+struct AudioPluginMetadataTests {
+    @Test
+    func pluginExposesStableIdentityAndPresentation() {
+        let plugin = AudioPlugin.shared
+
+        #expect(plugin.id == "AudioPlugin")
+        #expect(plugin.order == 1)
+        #expect(plugin.iconName == "music.note")
+    }
+
+    @Test
+    func metadataCarriesExpectedLocalizationAndStage() {
+        let metadata = AudioPlugin.shared.metadata
+
+        #expect(metadata.id == "AudioPlugin")
+        #expect(metadata.name == "Music")
+        #expect(metadata.description == "Audio playback")
+        #expect(metadata.version == "1.0.0")
+        #expect(metadata.category == .feature)
+        #expect(metadata.stage == .stable)
+        #expect(metadata.policy == .disabled)
+        #expect(metadata.permissions.isEmpty)
+    }
+
+    @Test
+    func pluginReexportsInfoConstants() {
+        #expect(AudioPlugin.maxAudioCount == 100)
+        #expect(AudioPlugin.supportedExtensions.contains("mp3"))
+        #expect(AudioPlugin.supportedExtensions.contains("m4a"))
+        #expect(AudioPlugin.supportedExtensions.contains("flac"))
+        #expect(AudioPlugin.dbDirName == "audios" || AudioPlugin.dbDirName == "audios_debug")
+    }
+}

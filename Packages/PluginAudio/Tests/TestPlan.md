@@ -34,18 +34,21 @@
 | 5 | 行为 | Storage location change produces new notice | P0 | ✅ 已覆盖 | `AudioRootViewTests.swift` | `storageLocationChangeProducesNewNotice` |
 | 6 | 观察者 | Observer drives reload on storage events | P0 | ✅ 已覆盖 | `AudioRootViewTests.swift` | `observerDrivesReloadOnStorageEvents` |
 | 7 | 观察者 | Observer cancellation is idempotent | P1 | ✅ 已覆盖 | `AudioRootViewTests.swift` | `observerCancellationIsIdempotent` |
+| 8 | 元数据 | Plugin exposes stable identity and presentation | P1 | ✅ 已覆盖 | `AudioRootViewTests.swift` | `pluginExposesStableIdentityAndPresentation` |
+| 9 | 元数据 | Metadata carries expected localization and stage | P1 | ✅ 已覆盖 | `AudioRootViewTests.swift` | `metadataCarriesExpectedLocalizationAndStage` |
+| 10 | 元数据 | Plugin re-exports info constants | P1 | ✅ 已覆盖 | `AudioRootViewTests.swift` | `pluginReexportsInfoConstants` |
 
 ## 覆盖率统计
 
 - P0: 3 / 3 ✅
-- P1: 4 / 4 ✅
+- P1: 7 / 7 ✅
 - P2: 0 / 0
 
-**总计: 7 / 7**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
+**总计: 10 / 10**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
 
 ## 测试文件
 
-- `AudioRootViewTests.swift` — 7 条用例
+- `AudioRootViewTests.swift` — 10 条用例
 
 ## 优先级说明
 
