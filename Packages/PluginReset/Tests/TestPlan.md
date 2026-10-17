@@ -34,18 +34,19 @@
 | 1 | 插件 | Plugin info exports registration metadata | P0 | ✅ 已覆盖 | `ResetPluginTests.swift` | `pluginInfoExportsRegistrationMetadata` |
 | 2 | 行为 | Reset sheet only allows dismiss before reset starts | P1 | ✅ 已覆盖 | `ResetPluginTests.swift` | `resetSheetOnlyAllowsDismissBeforeResetStarts` |
 | 3 | 行为 | Reset icon buttons expose readable labels | P1 | ✅ 已覆盖 | `ResetPluginTests.swift` | `resetIconButtonsExposeReadableLabels` |
+| 4 | 元数据 | SystemPlugin exposes stable identity and metadata | P1 | ✅ 已覆盖 | `ResetPluginTests.swift` | `systemPluginExposesStableIdentityAndMetadata` |
 
 ## 覆盖率统计
 
 - P0: 1 / 1 ✅
-- P1: 2 / 2 ✅
+- P1: 3 / 3 ✅
 - P2: 0 / 0
 
-**总计: 3 / 3**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
+**总计: 4 / 4**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
 
 ## 测试文件
 
-- `ResetPluginTests.swift` — 3 条用例
+- `ResetPluginTests.swift` — 4 条用例
 
 ## 优先级说明
 
