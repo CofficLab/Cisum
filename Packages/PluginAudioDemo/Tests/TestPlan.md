@@ -32,18 +32,19 @@
 | 1 | 插件 | Plugin metadata is stable | P0 | ✅ 已覆盖 | `AudioDemoPluginTests.swift` | `pluginMetadataIsStable` |
 | 2 | 行为 | Demo audio files are available | P0 | ✅ 已覆盖 | `AudioDemoPluginTests.swift` | `demoAudioFilesAreAvailable` |
 | 3 | 行为 | Audio demo stable index handles extreme hashes | P0 | ✅ 已覆盖 | `AudioDemoPluginTests.swift` | `audioDemoStableIndexHandlesExtremeHashes` |
+| 4 | 元数据 | AudioDemoPlugin exposes stable identity and metadata | P1 | ✅ 已覆盖 | `AudioDemoPluginTests.swift` | `audioDemoPluginExposesStableIdentityAndMetadata` |
 
 ## 覆盖率统计
 
 - P0: 3 / 3 ✅
-- P1: 0 / 0
+- P1: 1 / 1 ✅
 - P2: 0 / 0
 
-**总计: 3 / 3**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
+**总计: 4 / 4**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
 
 ## 测试文件
 
-- `AudioDemoPluginTests.swift` — 3 条用例
+- `AudioDemoPluginTests.swift` — 4 条用例
 
 ## 优先级说明
 
