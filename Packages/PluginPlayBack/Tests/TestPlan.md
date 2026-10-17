@@ -43,18 +43,19 @@
 | 9 | 行为 | Scene specific record takes priority and purges coexisting legacy value | P0 | ✅ 已覆盖 | `PlaybackStateStoreTests.swift` | `sceneSpecificRecordTakesPriorityAndPurgesCoexistingLegacyValue` |
 | 10 | 状态 | Missing or malformed state returns nil | P1 | ✅ 已覆盖 | `PlaybackStateStoreTests.swift` | `missingOrMalformedStateReturnsNil` |
 | 11 | 行为 | Write failure does not escape into playback | P1 | ✅ 已覆盖 | `PlaybackStateStoreTests.swift` | `writeFailureDoesNotEscapeIntoPlayback` |
+| 12 | 元数据 | PluginPlayBack exposes stable identity and metadata | P1 | ✅ 已覆盖 | `PlaybackSettingsTests.swift` | `pluginPlayBackExposesStableIdentityAndMetadata` |
 
 ## 覆盖率统计
 
 - P0: 5 / 5 ✅
-- P1: 4 / 4 ✅
+- P1: 5 / 5 ✅
 - P2: 2 / 2 ✅
 
-**总计: 11 / 11**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
+**总计: 12 / 12**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
 
 ## 测试文件
 
-- `PlaybackSettingsTests.swift` — 5 条用例
+- `PlaybackSettingsTests.swift` — 6 条用例
 - `PlaybackStateStoreTests.swift` — 6 条用例
 
 ## 优先级说明
