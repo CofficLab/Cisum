@@ -342,8 +342,9 @@ struct AudioLibraryProviderTests {
 
         let library = try #require(kernel.resolveProvider((any AudioLibraryProviding).self))
         let navigation = try #require(kernel.resolveProvider((any AudioTrackNavigationProviding).self))
-        for _ in 0..<100 where await library.totalCount() == 0 {
-            try await Task.sleep(nanoseconds: 20_000_000)
+        for _ in 0 ..< 100 {
+            if await library.totalCount() >= 1 { break }
+            try await Task.sleep(for: .milliseconds(20))
         }
 
         #expect(await library.totalCount() == 1)
@@ -439,8 +440,9 @@ struct AudioLibraryProviderTests {
 
         let library = try #require(kernel.resolveProvider((any AudioLibraryProviding).self))
         let navigation = try #require(kernel.resolveProvider((any AudioTrackNavigationProviding).self))
-        for _ in 0..<100 where await library.totalCount() == 0 {
-            try await Task.sleep(nanoseconds: 20_000_000)
+        for _ in 0 ..< 100 {
+            if await library.totalCount() >= 1 { break }
+            try await Task.sleep(for: .milliseconds(20))
         }
 
         #expect(await library.contains(audioURL))
