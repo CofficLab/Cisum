@@ -38,3 +38,7 @@ Package.resolved
 .zcode/
 temp/
 *.log
+
+# Python 缓存
+__pycache__/
+*.pyc
