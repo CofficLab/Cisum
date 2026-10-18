@@ -51,9 +51,22 @@ python3 scripts/coverage_lib.py file-report temp/coverage/MagicKit.json  # 逐�
 
 | 包 | 现象 | 根因 |
 |---|---|---|
+| `PluginRootView` | **编译失败**，无覆盖率数据 | `CisumRootLayoutView.swift:198` 调用 `AppResponsivePlayerLayoutMetrics.shared.horizontalCenteringOffset(...)`，但当前 LumiUI 版本中该类型是 `struct`（无 `.shared`），且 `horizontalCenteringOffset` 方法**根本不存在**。属生产代码引用了未合入的 API |
 | `PluginAudioDBView` | 2 个测试失败（改动前即失败） | `loadInitial` 用 `Task.detached(priority: .background)` 调 `@MainActor` 库能力，测试轮询主线程时后台任务被饿死，`isLoading` 永不落位。需生产侧修复 |
-| `PluginAudioDBData` | 测试失败 | 未逐项排查 |
-| `PluginRootView` | 无覆盖率数据 | 未逐项排查 |
+
+已修复的历史 flaky：
+
+- `PluginAudioDBData`：轮询循环写成 `for _ in 0..<100 where await library.totalCount() == 0`，
+  `where` 条件在每轮循环前求值，条件翻转即退出循环，语义正确但极易被误改。
+  已改为显式 `if <目标达成> { break }`，连跑 3 次稳定通过。
+- `KitEventObservation`：`EventObserverStore` 用 `Dictionary` 存回调导致投递顺序随机（5 次挂 4 次），
+  已改为有序数组。
+
+### 1.3 依赖结构风险（待确认）
+
+多个包编译的 Provider / LumiUI 等模块来自 `.build/checkouts/` 下的**外部 git 依赖**，
+而仓库内同时存在同名本地 `Packages/Provider*`。若 App target 实际链接本地版本，
+则针对 checkout 编译产物的测试可能未覆盖真正出货的代码。**建议尽早确认。**
 
 
 ## 2. 关键结论（与此前版本不同）
