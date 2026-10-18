@@ -18,8 +18,8 @@ python3 scripts/coverage_lib.py file-report temp/coverage/MagicKit.json  # 逐�
 
 ## 1. 覆盖率现状（实测）
 
-- 参与统计：**56 个包**，其中 **55 个**成功产出覆盖率（`PluginRootView` 无覆盖率数据）
-- **平均行覆盖率：43.19%**
+- 参与统计：**56 个包**，其中 **53 个**成功产出覆盖率
+- **平均行覆盖率：44.31%**
 
 分布呈现明显的**分层特征**：
 
@@ -27,8 +27,34 @@ python3 scripts/coverage_lib.py file-report temp/coverage/MagicKit.json  # 逐�
 |---|---|---|---|
 | Provider 层 | `ProviderAudioLike` `ProviderCloud` `ProviderDevice` `ProviderPlayback` `ProviderPlugin` `ProviderScene` `ProviderStorage` | **100%** | 纯协议与状态逻辑，无 UI，天然易测 |
 | 强逻辑包 | `PluginBookDBData` `PluginPlaybackProgress` `PluginAudioDBData` | 71%~94% | 业务规则密集 |
-| 插件包（主体） | `PluginAudio*` `PluginBook*` | 5%~45% | View / ViewModel 为主，视图体难进单测 |
-| 垫底 | `PluginReset` `PluginStore` `PluginAudioDemo` | 2%~5% | 装配与注册逻辑，几乎未测 |
+| 插件包（主体） | `PluginAudio*` `PluginBook*` | 10%~45% | View / ViewModel 为主，视图体难进单测 |
+| 垫底 | `PluginReset` `PluginStore` `PluginAudioDemo` | 5%~18% | 装配与注册逻辑 |
+
+### 1.1 关于「视图代码」的口径（重要，勿误读）
+
+全量代码按是否含 `View`/`About`/`Manual` 字样拆分：
+
+| 类别 | 总行数 | 未覆盖 | 覆盖率 |
+|---|---|---|---|
+| 视图类 | 30488 | 26109 | **14.4%** |
+| 非视图（逻辑） | 28700 | 16406 | **42.8%** |
+| 合计 | 59188 | 42515 | **28.2%** |
+
+两个口径差了一倍以上，原因就是**视图占了全部可执行行的 51.5%**。
+因此「44.31%」这个总体值受视图拖累；只看逻辑层是 42.8%。
+
+给纯 SwiftUI 声明式视图写单测（断言「视图里有这个 Text」）几乎不发现真实缺陷，
+但会推高数字。本项目的取舍是：**优先给视图里的分支逻辑抽 `*Presentation` / `*Policy`
+纯函数再测**（如 `AudioDBSettingPresentation`），而不是直接断言视图结构。
+
+### 1.2 已知的非测试失败
+
+| 包 | 现象 | 根因 |
+|---|---|---|
+| `PluginAudioDBView` | 2 个测试失败（改动前即失败） | `loadInitial` 用 `Task.detached(priority: .background)` 调 `@MainActor` 库能力，测试轮询主线程时后台任务被饿死，`isLoading` 永不落位。需生产侧修复 |
+| `PluginAudioDBData` | 测试失败 | 未逐项排查 |
+| `PluginRootView` | 无覆盖率数据 | 未逐项排查 |
+
 
 ## 2. 关键结论（与此前版本不同）
 
