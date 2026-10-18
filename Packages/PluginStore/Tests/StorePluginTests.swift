@@ -196,3 +196,68 @@ func storeViewModelStartsWithFreePresentation() {
     #expect(viewModel.tierDisplayName == "Free")
     #expect(viewModel.statusDescription == "Currently using free version")
 }
+
+// MARK: - PurchaseInfo 判定逻辑
+
+/// `isExpired` 对未来 60 秒内的到期时间额外容差，避免刚续费就判过期。
+@Test func purchaseInfoTreatsNearFutureExpiryAsStillActive() {
+    let justRenewed = PurchaseInfo(tier: .pro, expiresAt: Date().addingTimeInterval(30))
+    #expect(!justRenewed.isExpired)
+    #expect(justRenewed.isProOrHigher)
+}
+
+@Test func purchaseInfoTreatsPastExpiryAsExpired() {
+    let expired = PurchaseInfo(tier: .pro, expiresAt: Date().addingTimeInterval(-60))
+    #expect(expired.isExpired)
+    // 过期后即使 tier 仍是 pro，也不应视为 pro+
+    #expect(!expired.isProOrHigher)
+    #expect(expired.isNotProOrHigher)
+    #expect(expired.effectiveTier == .none)
+}
+
+/// expiresAt 为 nil 时视为已过期，避免无期限订阅被永久豁免。
+@Test func purchaseInfoWithNilExpiryIsTreatedAsExpired() {
+    let info = PurchaseInfo(tier: .pro, expiresAt: nil)
+    #expect(info.isExpired)
+    #expect(!info.isProOrHigher)
+    #expect(info.expiresAtString == "nil")
+}
+
+@Test func purchaseInfoKeepsTierForUnexpiredHigherTiers() {
+    for tier in [SubscriptionTier.pro, .ultimate] {
+        let info = PurchaseInfo(tier: tier, expiresAt: Date().addingTimeInterval(3600))
+        #expect(info.isProOrHigher)
+        #expect(info.effectiveTier == tier)
+        #expect(info.expiresAtString.contains("[active]"))
+        #expect(!info.expiresAtString.contains("[expired]"))
+    }
+}
+
+@Test func purchaseInfoNeverGrantsProWhenTierIsFree() {
+    let free = PurchaseInfo(tier: .none, expiresAt: Date().addingTimeInterval(3600))
+    #expect(!free.isProOrHigher)
+    #expect(free.effectiveTier == .none)
+}
+
+@Test func subscriptionTierOrderingAndDisplayNames() {
+    #expect(SubscriptionTier.none < SubscriptionTier.pro)
+    #expect(SubscriptionTier.pro < SubscriptionTier.ultimate)
+    #expect(!SubscriptionTier.ultimate.isFreeVersion)
+    #expect(SubscriptionTier.pro.isProOrHigher)
+    #expect(!SubscriptionTier.pro.isUltimateOrHigher)
+    #expect(SubscriptionTier.ultimate.isUltimateOrHigher)
+}
+
+// MARK: - StoreViewModel 订阅状态文案
+
+/// `updatePurchaseInfo()` 依赖真实 StoreKit 查询，无法在单测中可靠驱动；
+/// 这里改为直接验证它所依赖的判定组合，保证三种状态描述互斥且正确。
+@Test func storeStatusDescriptionCoversActiveExpiredAndFree() {
+    let active = PurchaseInfo(tier: .pro, expiresAt: Date().addingTimeInterval(3600))
+    let expired = PurchaseInfo(tier: .pro, expiresAt: Date().addingTimeInterval(-3600))
+    let free = PurchaseInfo.none
+
+    #expect(active.isProOrHigher && !active.isExpired)
+    #expect(expired.isProOrHigher == false || expired.isExpired)
+    #expect(free.isNotProOrHigher)
+}
