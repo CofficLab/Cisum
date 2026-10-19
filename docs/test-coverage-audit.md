@@ -51,8 +51,26 @@ python3 scripts/coverage_lib.py file-report temp/coverage/MagicKit.json  # 逐�
 
 | 包 | 现象 | 根因 |
 |---|---|---|
-| `PluginRootView` | **编译失败**，无覆盖率数据 | `CisumRootLayoutView.swift:198` 调用 `AppResponsivePlayerLayoutMetrics.shared.horizontalCenteringOffset(...)`，但当前 LumiUI 版本中该类型是 `struct`（无 `.shared`），且 `horizontalCenteringOffset` 方法**根本不存在**。属生产代码引用了未合入的 API |
-| `PluginAudioDBView` | 2 个测试失败（改动前即失败） | `loadInitial` 用 `Task.detached(priority: .background)` 调 `@MainActor` 库能力，测试轮询主线程时后台任务被饿死，`isLoading` 永不落位。需生产侧修复 |
+| （已解除）`PluginRootView` | 曾**编译失败**，无覆盖率数据 | `CisumRootLayoutView.swift:198` 调用 `AppResponsivePlayerLayoutMetrics.shared.horizontalCenteringOffset(...)`，当时 LumiUI 中该方法尚未合入。**已解决**：当前 checkout 的 LumiUI 已提供该 API，`swift build` 通过 |
+| （已解除）`PluginAudioDBView` | 曾有 2 个测试失败 | `loadInitial` 用 `Task.detached(priority: .background)` 调 `@MainActor` 库能力，测试轮询主线程时后台任务被饿死，`isLoading` 永不落位。**现已无法复现**，全量 118 个测试通过 |
+
+### 1.2.1 本轮修复（iCloud 下载进度环闪烁）
+
+根因是一条跨包的因果链，`NSMetadataQuery` 把每次下载百分比推送都算作目录变更：
+
+1. `ICloudDirectoryMonitor.handleQueryUpdate` 把物化进度变化与成员变化混在一起透传；
+2. 库同步因此在下载期间被百分比频率反复触发，抛出 `synced` / `updated`；
+3. `AudioDatabaseObserver` 转发后 `AudioListViewModel` 刷新当前页；
+4. 旧实现在刷新路径上调 `downloadStore.removeAll()`，把刚播报的进度抹掉。
+
+修复分两层：
+
+- `ICloudDirectoryMonitor` 新增 `IdentityLedger`，以「路径是否在基线内」区分成员变化与物化进度，
+  并在 `deliverInitialScan` 后用完整快照重置基线，避免启动期文件被误判为新增。
+- `CloudDownloadProgressStore` 明确所有权：进度只随文件删除而消亡，列表刷新无权清空；
+  删除 `retainOnly(_:)` 这个「按可见集合裁剪」的原语，`removeAll()` 仅保留给存储切换。
+
+回归测试：`ICloudDirectoryMonitorIdentityLedgerTests`（10 个）、`CloudDownloadProgressSurvivesDatabaseRefreshTests`（5 个）。
 
 已修复的历史 flaky：
 
