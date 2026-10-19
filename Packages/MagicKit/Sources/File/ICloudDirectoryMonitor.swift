@@ -261,6 +261,95 @@ public final class ICloudDirectoryMonitor: SuperLog {
 
     // MARK: - Private Methods - Event Handlers
 
+    /// 已知文件的身份集合，用于区分「成员变化」与「内容物化变化」。
+    ///
+    /// 线程安全性：`NSMetadataQueryDidUpdate` 在 `processingQueue` / 主队列上送达，
+    /// 而 `deliverInitialScan` 在 `initialScanQueue` 上首发快照，因此用锁保护。
+    private let knownIdentities = IdentityLedger()
+
+    /// `NSMetadataQuery` 的 `changedItems` 混合了两种本质不同的语义：
+    ///
+    /// 1. **成员变化**——文件进入 / 离开目录 / 被重命名。库的内容确实变了，
+    ///    调用方必须重扫。
+    /// 2. **物化进度变化**——`PercentDownloaded`、`IsDownloading` 随每次 iCloud
+    ///    百分比推送而刷新。文件一直都在，既没出现也没消失，只是内容正在落盘。
+    ///
+    /// 两者都落在同一个 `changedItems` 里，而调用方（音频库同步）只有一种理解。
+    /// 不分流的话，一个 69 MB 文件在下载期间每推进 1% 就会触发一次全量库重扫：
+    /// 既无必要，又把「目录内容变了」这个真正的信号淹没在噪音里。
+    ///
+    /// 判据只有一条：**这个身份我们此前没见过**。见过的，说明它早已在库里，
+    /// 此次变化只能是物化进度。
+    private func partitionMembershipChanges(_ items: [NSMetadataItem]) -> [NSMetadataItem] {
+        let pairs = items.compactMap { item in
+            Self.identity(of: item, normalizedPath: normalizedPath).map { (item, $0) }
+        }
+        guard !pairs.isEmpty else { return [] }
+
+        let fresh = Set(knownIdentities.insertNew(pairs.map(\.1)))
+        return pairs.compactMap { fresh.contains($0.1) ? $0.0 : nil }
+    }
+
+    /// 条目的身份键：完整路径（重命名会改变它，故能同时覆盖新增与重命名）。
+    private static func identity(of item: NSMetadataItem, normalizedPath: String) -> String? {
+        let fsName = item.value(forAttribute: NSMetadataItemFSNameKey) as? String
+        guard let fsName, !fsName.isEmpty, !fsName.hasSuffix(".DS_Store") else {
+            return nil
+        }
+
+        guard let itemPath = item.value(forAttribute: NSMetadataItemPathKey) as? String,
+              itemPath.hasPrefix(normalizedPath),
+              itemPath.count > normalizedPath.count else {
+            return nil
+        }
+
+        return itemPath
+    }
+
+    /// 已知身份集合的线程安全包装。
+    ///
+    /// 批量接口 `insertNew(_:)` 而非逐个 `insertIfNew(_:)`：后者会让同一批
+    /// `changedItems` 里彼此不同的路径互相影响判定语义，也让调用方难以断言
+    /// 「本批里究竟哪些是新的」。批量一次判定，结果确定且可测。
+    final class IdentityLedger {
+        private let lock = NSLock()
+        private var identities: Set<String> = []
+
+        /// 判定 `candidates` 中此前未见过的那些，并把它们记入基线。
+        ///
+        /// - Returns: 本批中确属新成员的子集（保持 `candidates` 的顺序与去重）。
+        @discardableResult
+        func insertNew(_ candidates: [String]) -> [String] {
+            lock.lock()
+            defer { lock.unlock() }
+
+            var fresh: [String] = []
+            var addedInThisBatch: Set<String> = []
+            for candidate in candidates {
+                guard !addedInThisBatch.contains(candidate) else { continue }
+                if identities.insert(candidate).inserted {
+                    addedInThisBatch.insert(candidate)
+                    fresh.append(candidate)
+                }
+            }
+            return fresh
+        }
+
+        /// 用一次完整快照重置基线，避免启动期的条目被误判为「新增」。
+        func reset(to identities: Set<String>) {
+            lock.lock()
+            defer { lock.unlock() }
+            self.identities = identities
+        }
+
+        /// 当前基线中的身份数量；供测试与诊断使用。
+        var count: Int {
+            lock.lock()
+            defer { lock.unlock() }
+            return identities.count
+        }
+    }
+
     private func handleQueryUpdate(_ notification: Notification) {
         guard let query = notification.object as? NSMetadataQuery, query === self.query else {
             return
@@ -279,8 +368,15 @@ public final class ICloudDirectoryMonitor: SuperLog {
         let changedItems = filterItems(rawChangedItems)
         let deletedItems = filterItems(rawDeletedItems)
 
+        // 下载进度更新走独立通道：它不改变目录内容，不应惊动库同步。
         handleDownloadProgress(changedItems)
-        processResults(isInitial: false, changedItems: changedItems, deletedItems: deletedItems)
+
+        // 只有真正的新成员才通知调用方重扫目录。
+        processResults(
+            isInitial: false,
+            changedItems: partitionMembershipChanges(changedItems),
+            deletedItems: deletedItems
+        )
     }
 
     private func handleQueryFinished(_ notification: Notification) {
@@ -321,6 +417,13 @@ public final class ICloudDirectoryMonitor: SuperLog {
             do {
                 let urls = try Self.scanDirectoryContents(at: self.directoryURL)
                 self.didDeliverInitialScan = true
+
+                // 以首次快照作为「已知成员」基线。否则启动时就已经躺在目录里的
+                // 每个文件，都会在 NSMetadataQuery 首次推更新时被误判为「新增」，
+                // 引发一次多余的全量重扫——而且 iCloud 文件往往正处于下载中，
+                // 这个误判会每来一次更新就复发一次。
+                self.knownIdentities.reset(to: Set(urls.map(\.path)))
+
                 self.onChange(urls, true, nil)
             } catch {
                 // Keep the delivery flag unset so a later metadata-query
