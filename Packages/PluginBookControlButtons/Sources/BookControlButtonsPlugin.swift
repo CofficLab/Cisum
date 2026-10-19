@@ -1,4 +1,3 @@
-import ProviderRootView
 import ProviderScene
 import ProviderDocsView
 import ProviderToast
@@ -11,6 +10,7 @@ import KitAppEvents
 import MagicKit
 import OSLog
 import ProviderBook
+import ProviderAppState
 import SwiftUI
 
 @MainActor
@@ -109,7 +109,11 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
         return AnyView(
             BookControlButtonsView(viewModel: viewModel) { [weak self] in
                 guard let kernel = self?.kernel else { return }
-                kernel.resolveProvider((any RootViewProviding).self)?.toggleContentView()
+                // 走显隐服务而不是直接 toggleContentView()：内容区显隐有唯一真源
+                // （AppState，落盘），直接改根视图的内存态会让这次操作不落盘，
+                // 且在内存态与落盘态分叉时得到「点了没反应」的按钮。
+                kernel.resolveProvider((any ContentViewVisibilityProviding).self)?
+                    .toggleContentView()
             }
             .appDebugBadge("Book Controls", alignment: .bottomLeading)
         )

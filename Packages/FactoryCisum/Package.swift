@@ -157,6 +157,7 @@ let package = Package(
                 .product(name: "ProviderRootView", package: "LumiProviders"),
                 .product(name: "ProviderControlView", package: "ProviderControlView"),
                 .product(name: "ProviderContentView", package: "LumiProviders"),
+                .product(name: "ProviderAppState", package: "ProviderAppState"),
             ],
             path: "Tests"
         ),

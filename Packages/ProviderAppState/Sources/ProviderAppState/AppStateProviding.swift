@@ -65,6 +65,14 @@ public protocol AppStateProviding: AnyObject, ObservableObject {
     /// 切换数据库视图显隐。
     func toggleDBView()
 
+    /// 显式设置数据库视图显隐，并持久化。
+    ///
+    /// 与 `showDBView()` / `hideDBView()` 等价，区别在于可以显式指定目标态。
+    /// 「取反」类操作必须显式指定目标，而不能依赖调用方自己去读一个可能过期的值：
+    /// 落盘态与用户当前实际看到的显隐可能短暂不一致（例如桌面端窗口高度自适应
+    /// 只改了内存态），此时按落盘值取反会让操作「点了没反应」。
+    func setDBView(_ visible: Bool)
+
     /// 更新导入状态。
     func setImporting(_ importing: Bool)
 
@@ -86,6 +94,16 @@ public extension AppStateProviding {
     @discardableResult
     func addObserver(_ callback: @escaping (AppStateProvidingEvent) -> Void) -> any AppStateProvidingObserverHandle {
         NoopAppStateProvidingObserverHandle()
+    }
+
+    /// 默认实现：把显式目标态映射到既有的 show / hide 语义，
+    /// 使既有实现（测试替身等）无需改动即可满足新契约。
+    func setDBView(_ visible: Bool) {
+        if visible {
+            showDBView()
+        } else {
+            hideDBView()
+        }
     }
 }
 

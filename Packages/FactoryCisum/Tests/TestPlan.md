@@ -16,6 +16,7 @@
 - `DeviceService`
 - `SettingsWindowHost`
 - `WindowMain`
+- `ContentViewVisibilityCoordinator` - 内容区显隐的协调器（`ContentViewVisibilityProviding` 的实现）
 
 ### README 中的测试说明（摘自 `README.md`）
 
@@ -46,17 +47,39 @@
 | 6 | 行为 | Kernel exposes cloud download progress provider | P0 | ✅ 已覆盖 | `FactoryCisumTests.swift` | `kernelExposesCloudDownloadProgressProvider` |
 | 7 | 行为 | Kernel exposes shared theme settings navigation item | P0 | ✅ 已覆盖 | `FactoryCisumTests.swift` | `kernelExposesSharedThemeSettingsNavigationItem` |
 
+### 内容区显隐协调回归（ID 8–17，来源 `Tests/ContentViewVisibilityCoordinatorTests.swift`）
+
+> 背景：iOS 上「打开只剩播放控制区、没有音乐库」的另一条路径是**显隐真源割裂**。
+> 落盘偏好（`AppStateProviding`）与内存态（`RootViewProviding`）只在启动时单向连通，
+> 于是出现：旧缺陷写坏的落盘值让每次冷启动都空播放器；「更多」按钮只改内存态导致
+> 用户显式选择重启后丢失；两者分叉时按钮按落盘值取反 → 点了没反应。
+> 协调器把 `AppStateProviding` 确立为唯一真源，下表逐条锁定。
+
+| ID | 类别 | 描述 | 优先级 | 状态 | 测试文件 | 测试方法 |
+|----|------|------|--------|------|----------|----------|
+| 8 | 回归 | 启动时把落盘态投影到根视图（隐藏） | P0 | ✅ 已覆盖 | `ContentViewVisibilityCoordinatorTests.swift` | `startProjectsPersistedVisibilityOntoRoot` |
+| 9 | 回归 | 启动时把落盘态投影到根视图（可见） | P0 | ✅ 已覆盖 | `ContentViewVisibilityCoordinatorTests.swift` | `startProjectsVisibleStateOntoRoot` |
+| 10 | 回归 | 真源变更必须投影到根视图 | P0 | ✅ 已覆盖 | `ContentViewVisibilityCoordinatorTests.swift` | `appStateChangeIsProjectedOntoRoot` |
+| 11 | 行为 | 停止同步后不再投影 | P1 | ✅ 已覆盖 | `ContentViewVisibilityCoordinatorTests.swift` | `stopStopsProjection` |
+| 12 | 回归 | 「更多」收起内容区必须落盘 | P0 | ✅ 已覆盖 | `ContentViewVisibilityCoordinatorTests.swift` | `toggleHidesContentAndPersistsTheChoice` |
+| 13 | 回归 | 「更多」展开内容区必须落盘为可见 | P0 | ✅ 已覆盖 | `ContentViewVisibilityCoordinatorTests.swift` | `toggleShowsContentAndPersistsTheChoice` |
+| 14 | 行为 | 显式设置同时落盘并立即生效 | P1 | ✅ 已覆盖 | `ContentViewVisibilityCoordinatorTests.swift` | `setVisiblePersistsExplicitChoice` |
+| 15 | 回归 | 内存态被外部收起时「更多」仍能带回内容区 | P0 | ✅ 已覆盖 | `ContentViewVisibilityCoordinatorTests.swift` | `toggleRestoresContentHiddenOutsideAppState` |
+| 16 | 回归 | 落盘态隐藏时「更多」按实际可见性收起 | P0 | ✅ 已覆盖 | `ContentViewVisibilityCoordinatorTests.swift` | `toggleHidesContentWhenPersistedStateIsHidden` |
+| 17 | 集成 | 内核装配后必须能解析到显隐服务 | P0 | ✅ 已覆盖 | `ContentViewVisibilityCoordinatorTests.swift` | `kernelRegistersContentVisibilityService` |
+
 ## 覆盖率统计
 
-- P0: 5 / 5 ✅
-- P1: 1 / 1 ✅
+- P0: 13 / 13 ✅
+- P1: 2 / 2 ✅
 - P2: 1 / 1 ✅
 
-**总计: 7 / 7**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
+**总计: 16 / 16**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
 
 ## 测试文件
 
 - `FactoryCisumTests.swift` — 7 条用例
+- `ContentViewVisibilityCoordinatorTests.swift` — 10 条用例
 
 ## 优先级说明
 

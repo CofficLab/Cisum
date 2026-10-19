@@ -10,7 +10,13 @@ ProviderAppState 提供应用级状态管理服务,包括 Demo 模式、数据�
 - `AppStateProvidingObserverHandle` - 观察者句柄协议
 - `NoopAppStateProvidingObserverHandle` - 默认空实现
 - `BasicAppStateService` - `AppStateProviding` 的真实实现（UserDefaults 持久化 DB 视图可见性，幂等广播状态事件）
+- `ContentViewVisibilityProviding` - 内容区显隐服务契约（落盘真源与根视图之间的唯一入口）
 - 扩展: `EventObserverHandle` 遵循 `AppStateProvidingObserverHandle`
+
+> **持久化键说明**：内容区显隐落盘在 `UI.ContentViewVisible`。
+> 历史键 `UI.ShowDB` **不再读取**——旧值可能来自用户主动收起，也可能来自已知缺陷
+> （p4.4.3 之前的 iOS 几何规则、重构前的桌面 `UIRepo`）写坏，两者无法区分；
+> 沿用旧键会让「升级后每次冷启动只剩空播放器」永久成立。
 
 ## 公开 API
 
@@ -40,6 +46,7 @@ ProviderAppState 提供应用级状态管理服务,包括 Demo 模式、数据�
 - `hideDBView()` - 隐藏数据库视图
 - `closeDBView()` - 关闭数据库视图
 - `toggleDBView()` - 切换数据库视图显隐
+- `setDBView(_ visible: Bool)` - 显式设置数据库视图显隐并持久化（默认实现映射到 show / hide）
 - `setImporting(_ importing: Bool)` - 设置导入状态
 - `setDragOperation(_ active: Bool)` - 设置拖放状态
 - `appendStateMessage(_ message: String)` - 追加状态消息
@@ -49,6 +56,14 @@ ProviderAppState 提供应用级状态管理服务,包括 Demo 模式、数据�
 ### NoopAppStateProvidingObserverHandle
 - `init()` - 初始化
 - `cancel()` - 取消观察 (幂等)
+
+### ContentViewVisibilityProviding (协议)
+- `isContentViewVisible: Bool` - 内容区当前是否可见（以用户实际看到的状态为准）
+- `setContentViewVisible(_ visible: Bool)` - 显式设置内容区显隐（落盘 + 立即生效）
+- `toggleContentView()` - 显式切换内容区显隐（目标态按**当前实际可见性**取反）
+
+> 实现位于 `FactoryCisum`（组合根，唯一同时知道落盘真源与根视图的地方）；
+> 插件只依赖本契约，不依赖任何其他插件的实现包。
 
 ## 测试用例清单
 
@@ -77,27 +92,30 @@ ProviderAppState 提供应用级状态管理服务,包括 Demo 模式、数据�
 
 | ID | 类别 | 描述 | 前置条件 | 操作步骤 | 预期结果 | 状态 | 测试方法 |
 |----|------|------|----------|----------|----------|------|----------|
-| 18 | 持久化 | 偏好未设置时 DB 视图默认可见，且不落盘 | 独立 `UserDefaults` suite | 构造服务并读 `isDBViewVisible` | 为 `true`，且 `UI.ShowDB` 键不存在 | ✅ 已覆盖 | `dbViewDefaultsVisibleWhenPreferenceIsUnset` |
-| 19 | 持久化 | 偏好显式为 false 时恢复为隐藏 | 预置 `UI.ShowDB = false` | 构造服务 | `isDBViewVisible == false` | ✅ 已覆盖 | `dbViewRestoresExplicitlyHiddenPreference` |
+| 18 | 持久化 | 偏好未设置时 DB 视图默认可见，且不落盘 | 独立 `UserDefaults` suite | 构造服务并读 `isDBViewVisible` | 为 `true`，且 `UI.ContentViewVisible` 键不存在 | ✅ 已覆盖 | `dbViewDefaultsVisibleWhenPreferenceIsUnset` |
+| 19 | 持久化 | 偏好显式为 false 时恢复为隐藏 | 预置 `UI.ContentViewVisible = false` | 构造服务 | `isDBViewVisible == false` | ✅ 已覆盖 | `dbViewRestoresExplicitlyHiddenPreference` |
 | 20 | 幂等 | Demo 模式重复切换仅广播状态变化的事件 | 已注册观察者 | `enterDemoMode()` ×2、`exitDemoMode()` ×2 | 状态为 false，事件序列恰为 `[.demoModeChanged(true), .demoModeChanged(false)]` | ✅ 已覆盖 | `demoModeToggleIsIdempotentAndBroadcasts` |
 | 21 | 持久化 | DB 视图切换同时更新内存状态与 UserDefaults | 已注册观察者 | `showDBView()` → `hideDBView()` | 内存与落盘一致；广播 `.dbViewVisibilityChanged` | ✅ 已覆盖 | `dbViewTogglePersistsAndBroadcasts` |
 | 22 | 幂等 | 重复 show / 重复 close 不产生额外事件 | 已注册观察者 | `showDBView()` ×2、`closeDBView()` ×2 | 事件序列仅 2 条，不重复广播 | ✅ 已覆盖 | `dbViewToggleIgnoresNoopCalls` |
 | 23 | 广播 | 导入与拖放状态仅在实际变化时广播 | 已注册观察者 | 交替设置 importing / dragging 含重复值 | 重复赋值不广播，事件序列精确匹配 | ✅ 已覆盖 | `importingAndDroppingBroadcastOnlyOnChange` |
 | 24 | 状态消息 | 状态消息追加、累积与清空的广播序列 | 已注册观察者 | 追加 "first"、"second"，再清空两次 | 最终为空串；广播 `first` → `first\nsecond` → `""` | ✅ 已覆盖 | `stateMessagesAppendClearAndBroadcast` |
+| 25 | 回归 | 旧键 `UI.ShowDB` 的值不得被继承 | 预置 `UI.ShowDB = false` | 构造服务 | `isDBViewVisible == true`（旧值可能是已知缺陷写坏的） | ✅ 已覆盖 | `legacyShowDBPreferenceIsNotInherited` |
+| 26 | 持久化 | `setDBView(_:)` 显式写入目标态并落盘 | 独立 suite + 观察者 | `setDBView(false)` → `setDBView(true)` → 重复 `setDBView(true)` | 内存与落盘一致；重复写入不产生额外事件 | ✅ 已覆盖 | `setDBViewPersistsExplicitTargetState` |
 
 > `AppStateProvidingEvent` 未实现 `Equatable`，上述用例通过按 case 匹配的模式断言事件序列
-> （见 `BasicAppStateServiceTests.assertEvents`）。ID 20–24 的持久化断言使用标准
-> `UserDefaults`，测试套件在 `init`/`deinit` 中保存并还原 `UI.ShowDB` 原值。
+> （见 `BasicAppStateServiceTests.assertEvents`）。ID 18–26 的持久化断言全部使用**独立的
+> `UserDefaults` suite**：内容区显隐是有状态的偏好，共享 `.standard` 会让用例的执行顺序
+> 决定结果（早期版本用 `.standard` + 全局还原来绕过，顺序一变就会假失败）。
 
 ## 覆盖率统计
 
 - P0 (核心功能): 6/6 ✅
 - P1 (边界情况): 11/11 ✅
-- P2 (集成场景): 7/7 ✅
+- P2 (集成场景): 9/9 ✅
 
-**总计: 24/24 (100%)**
+**总计: 26/26 (100%)**
 
-> ID 18–24 为 `BasicAppStateService` 的实现级回归用例，故计入 P2（集成场景）。
+> ID 18–26 为 `BasicAppStateService` 的实现级回归用例，故计入 P2（集成场景）。
 
 ## 优先级说明
 

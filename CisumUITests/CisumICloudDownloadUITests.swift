@@ -273,6 +273,7 @@ final class CisumPlayerDownloadRingUITests: CisumICloudTestBase {
         healthyApp.launchArguments += [
             "--cisum-ui-testing",
             "--cisum-ui-testing-storage-local",
+            "-UI.ContentViewVisible", "YES",
             "--cisum-ui-testing-seed-audio", seededAudioName,
             "--cisum-ui-testing-icloud-download=success",
         ]

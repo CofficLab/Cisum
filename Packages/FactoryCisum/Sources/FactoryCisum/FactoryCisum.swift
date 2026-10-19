@@ -134,8 +134,15 @@ public enum CisumBuilder: SuperLog {
         CisumThemeBridge.install(themeProvider, in: kernel)
 
         // 3.5 视图 Provider 已在启动前注册，确保根覆盖层可以参与 makeRootView。
-        kernel.resolveProvider((any RootViewProviding).self)?
-            .setContentViewVisible(appState.isDBViewVisible)
+        //     内容区显隐由 ContentViewVisibilityCoordinator 统一协调：
+        //     AppState 是唯一真源（只有用户显式操作才写它），根视图是它的投影。
+        //     历史上的双向割裂会造成「冷启动只剩空播放器」与「更多按钮点了没反应」。
+        if let root = kernel.resolveProvider((any RootViewProviding).self) {
+            let visibility = ContentViewVisibilityCoordinator(appState: appState, root: root)
+            visibility.start()
+            try kernel.registerProvider((any ContentViewVisibilityProviding).self, visibility)
+            contentVisibilityCoordinators[ObjectIdentifier(kernel)] = visibility
+        }
 
         // 4. 订阅插件变更
         subscribeToPluginChanges(kernel: kernel)
@@ -312,11 +319,13 @@ public enum CisumBuilder: SuperLog {
 
     private static var pluginManagerObserverHandles: [ObjectIdentifier: any PluginManagingObserverHandle] = [:]
     private static var sceneObserverHandles: [ObjectIdentifier: any SceneProvidingObserverHandle] = [:]
+    private static var contentVisibilityCoordinators: [ObjectIdentifier: ContentViewVisibilityCoordinator] = [:]
 
     private static func cancelObservers(for kernel: KernelCoreContainer) {
         let id = ObjectIdentifier(kernel)
         pluginManagerObserverHandles.removeValue(forKey: id)?.cancel()
         sceneObserverHandles.removeValue(forKey: id)?.cancel()
+        contentVisibilityCoordinators.removeValue(forKey: id)?.stop()
     }
 }
 

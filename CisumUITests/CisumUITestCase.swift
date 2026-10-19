@@ -9,8 +9,16 @@ import XCTest
 /// - 设置入口测试仅适用于 macOS，其他平台显式跳过而非失败。
 class CisumUITestBase: XCTestCase {
     var app: XCUIApplication!
+
+    /// 启动参数。
+    ///
+    /// `-UI.ContentViewVisible YES` 通过 UserDefaults 的**参数域**强制内容区可见。
+    /// 参数域的优先级高于持久化域，因此整条 UI 测试链路对「内容区显隐」是
+    /// 封闭的：任何用例收起过内容区都不会污染后续用例的启动状态。
+    /// 需要验证「落盘偏好真正生效」的用例必须另起一个**不带该参数**的 App 实例
+    /// （见 `CisumContentVisibilityUITests`）。
     var additionalLaunchArguments: [String] {
-        ["--cisum-ui-testing", "--cisum-ui-testing-storage-local"]
+        ["--cisum-ui-testing", "--cisum-ui-testing-storage-local", "-UI.ContentViewVisible", "YES"]
     }
 
     /// 主容器元素：macOS 是名为 `Cisum` 的可调整窗口，iOS 是整个屏幕窗口。

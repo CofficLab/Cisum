@@ -41,6 +41,11 @@ PluginRootView 通过插件生命周期装配 Cisum 的根视图：`CisumRootVie
 > （ID 1–4，锁定 `RootContentVisibility` 的平台隔离）。ID 5–7 依赖真实窗口、内核装配或
 > 事件替身，超出纯函数单测范围，标注为 ❌ 缺失而非虚假打勾。
 
+> 内容区**显隐协调**（落盘真源 ↔ 根视图投影、用户显式切换、内存态/落盘态分歧恢复）
+> 不在本包：它同时依赖 `AppStateProviding` 与 `RootViewProviding`，属于组合根职责，
+> 契约在 `ProviderAppState`、实现在 `FactoryCisum`，用例见
+> `Packages/FactoryCisum/Tests/ContentViewVisibilityCoordinatorTests.swift`。
+
 ## 覆盖率统计
 
 - P0: 已覆盖 2 / 2

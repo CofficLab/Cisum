@@ -13,13 +13,13 @@ Playback control buttons plugin for Cisum. It injects the bottom control button 
   - Uses `PlaybackProviding` and `AudioTrackNavigationProviding` directly.
   - `ControlButtonsPlaybackRequestPolicy` — generation-based policy that decides whether a late navigation result still applies to the current asset.
   - `PluginControlButtonsAboutView` / `PluginControlButtonsManualView` — docs entries.
-- **Plugin registration**: Registers with ID `AudioControlButtonsPlugin`. `onBootAsync` contributes `addControlButtonsView()` to `PluginContributionProviding`. `onReadyAsync` resolves `PlaybackProviding` and `SceneProviding` (throwing the shared kernel's typed `providerNotFound` error if missing), plus optional `AudioTrackNavigationProviding` and `ToastProviding`, then builds the view model and observer. The view's "more" button toggles the content view via `RootViewProviding`.
+- **Plugin registration**: Registers with ID `AudioControlButtonsPlugin`. `onBootAsync` contributes `addControlButtonsView()` to `PluginContributionProviding`. `onReadyAsync` resolves `PlaybackProviding` and `SceneProviding` (throwing the shared kernel's typed `providerNotFound` error if missing), plus optional `AudioTrackNavigationProviding` and `ToastProviding`, then builds the view model and observer. The view's "more" button toggles the content view via `ContentViewVisibilityProviding` (resolved from the kernel), so the collapse/expand choice is persisted and stays consistent across launches.
 - **Workflow / data flow**:
   1. At boot the control-buttons view is contributed; at ready, Providers are resolved and the observer starts listening.
   2. The view model reflects playback state (playing/paused, current play mode) and only activates when the current scene is `.music`.
   3. Next/Previous resolve a URL through `AudioTrackNavigationProviding`, then ask `PlaybackProviding` to play it. At list boundaries without repeat-all, the user is shown an error toast instead of silently failing; with repeat-all, navigation wraps to first/last.
   4. Scene changes bump a generation so in-flight navigation results are discarded; deletion of the currently-playing asset resets playback, while deletion of an unrelated asset is ignored. Failures are de-duplicated per failure identity.
-- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderPlayback`, `ProviderAudioNavigation`, `ProviderScene`, `ProviderDocsView`, `ProviderRootView`, `ProviderToast`.
+- **Dependencies** (from `Package.swift`): `MagicKit`, `CisumUIComponents`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderPlayback`, `ProviderAudioNavigation`, `ProviderScene`, `ProviderAppState`, `ProviderDocsView`, `ProviderToast`.
 
 ## Testing Logic
 
