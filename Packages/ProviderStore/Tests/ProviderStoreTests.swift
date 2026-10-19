@@ -519,3 +519,48 @@ func nonRenewableEntitlementRequiresFutureExpiration() {
         now: now
     ) == nil)
 }
+
+// MARK: - StoreKit 校验结果解包
+
+/// verified 结果应原样返回，不得篡改载荷。
+@Test func checkVerifiedUnwrapsVerifiedPayload() throws {
+    let payload = "safe-value"
+    let result = VerificationResult<String>.verified(payload)
+    #expect(try StoreService.checkVerified(result) == payload)
+}
+
+/// `checkVerified` 的 unverified 分支无法在单测中覆盖：
+/// `VerificationResult<T>.VerificationError` 没有公开构造器，
+/// 只能由 StoreKit 在真实验签失败时产生。
+/// 这里改为锁定「唯一可构造的分支必须成功解包」，避免该函数被误改成静默吞错。
+@Test func checkVerifiedOnlyExposesVerifiedBranchInUnitTests() throws {
+    // 泛型约束：函数必须对任意可验签类型可用
+    func roundTrip<T>(_ value: T) throws -> T {
+        try StoreService.checkVerified(VerificationResult<T>.verified(value))
+    }
+
+    #expect(try roundTrip(42) == 42)
+    #expect(try roundTrip("id") == "id")
+    #expect(try roundTrip([1, 2, 3]) == [1, 2, 3])
+}
+
+@Test func storeErrorMessagesRemainUserReadable() {
+    #expect(StoreError.failedVerification.errorDescription?.isEmpty == false)
+    #expect(StoreError.canNotGetProducts.errorDescription?.isEmpty == false)
+
+    // 未知商品 ID 不应被当成订阅权益
+    #expect(StoreService.tier(for: "definitely.not.a.product") == .none)
+}
+
+/// 无订阅状态时应回退到 `distantPast`（即视为已过期），而不是 `now`，
+/// 否则一次查询失败就会让用户被误判为付费用户。
+@Test func computeExpirationDateFallsBackToDistantPastWithoutStatus() {
+    let fallback = StoreService.computeExpirationDate(from: nil)
+    #expect(fallback == Date.distantPast)
+    #expect(fallback < Date(timeIntervalSince1970: 0))
+}
+
+@Test func storeTransactionListenerStartsOnlyOnce() {
+    #expect(StoreService.shouldStartTransactionListener(isStarted: false))
+    #expect(!StoreService.shouldStartTransactionListener(isStarted: true))
+}

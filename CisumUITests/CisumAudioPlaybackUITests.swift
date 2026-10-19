@@ -26,7 +26,7 @@ final class CisumAudioPlaybackUITests: CisumUITestBase {
     override var additionalLaunchArguments: [String] {
         var arguments = super.additionalLaunchArguments
         #if os(macOS)
-        arguments += ["-StorageLocation", "local", "-UI.ShowDB", "YES"]
+        arguments += ["-StorageLocation", "local"]
         #else
         // iOS：注入两份种子音频，让「切歌」用例有两个可切换条目。
         // 逗号分隔的多名称由 AudioDBDataPlugin 解析；显式时长保证进度断言有观察窗口。

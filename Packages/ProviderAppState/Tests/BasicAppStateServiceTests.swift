@@ -5,16 +5,19 @@ import Testing
 
 /// `BasicAppStateService` 的确定性回归：状态切换必须幂等、持久化 DB 视图
 /// 可见性，并向观察者广播精确的事件。
+///
+/// 所有涉及内容区显隐的用例都使用**独立的 `UserDefaults` suite**：
+/// 显隐是有状态的持久化偏好，共享 `.standard` 会让用例的执行顺序决定结果
+/// （早期版本用 `.standard` + 全局还原来绕过，顺序一变就会假失败）。
 @Suite @MainActor final class BasicAppStateServiceTests {
-    private static let showDBKey = "UI.ShowDB"
-    private let savedShowDB: Bool
+    private static let showDBKey = "UI.ContentViewVisible"
+    /// 已弃用的历史键：只读不写，且**不得**被继承为当前显隐状态。
+    private static let legacyShowDBKey = "UI.ShowDB"
 
-    init() {
-        savedShowDB = UserDefaults.standard.bool(forKey: Self.showDBKey)
-    }
-
-    deinit {
-        UserDefaults.standard.set(savedShowDB, forKey: Self.showDBKey)
+    /// 独立的偏好存储；调用方负责在用例结束时移除持久化域。
+    private func makeDefaults() -> (defaults: UserDefaults, suiteName: String) {
+        let suiteName = "BasicAppStateServiceTests.\(UUID().uuidString)"
+        return (UserDefaults(suiteName: suiteName)!, suiteName)
     }
 
     /// 按 case 模式匹配断言事件序列（`AppStateProvidingEvent` 无 Equatable）。
@@ -65,6 +68,44 @@ import Testing
         #expect(!service.isDBViewVisible)
     }
 
+    /// 旧键 `"UI.ShowDB"` 的值可能来自已知缺陷（iOS 几何规则误收起、重构前桌面
+    /// `UIRepo`）而不是用户意图，无法与「用户主动收起」区分。
+    /// 若继承它，升级后每次冷启动都只剩空播放器且用户无从恢复。
+    @Test func legacyShowDBPreferenceIsNotInherited() {
+        let suiteName = "BasicAppStateServiceTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set(false, forKey: Self.legacyShowDBKey)
+
+        let service = BasicAppStateService(defaults: defaults)
+
+        #expect(service.isDBViewVisible)
+        #expect(defaults.object(forKey: Self.showDBKey) == nil)
+    }
+
+    @Test func setDBViewPersistsExplicitTargetState() {
+        let suiteName = "BasicAppStateServiceTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let service = BasicAppStateService(defaults: defaults)
+        var events: [AppStateProvidingEvent] = []
+        let handle = service.addObserver { events.append($0) }
+
+        service.setDBView(false)
+        #expect(service.isDBViewVisible == false)
+        #expect(defaults.object(forKey: Self.showDBKey) as? Bool == false)
+
+        service.setDBView(true)
+        #expect(service.isDBViewVisible == true)
+        #expect(defaults.object(forKey: Self.showDBKey) as? Bool == true)
+
+        // 幂等：重复写入同一目标不产生额外事件。
+        service.setDBView(true)
+        assertEvents(events, equals: [.dbViewVisibilityChanged(false), .dbViewVisibilityChanged(true)])
+        handle.cancel()
+    }
+
     @Test func demoModeToggleIsIdempotentAndBroadcasts() {
         let service = BasicAppStateService()
         var events: [AppStateProvidingEvent] = []
@@ -81,24 +122,34 @@ import Testing
     }
 
     @Test func dbViewTogglePersistsAndBroadcasts() {
-        let service = BasicAppStateService()
+        let (defaults, suiteName) = makeDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        // 显式预置为隐藏，让「显式 → 隐藏 → 显式」的每一次变化都真实发生，
+        // 避免默认值让首次调用成为空操作。
+        defaults.set(false, forKey: Self.showDBKey)
+
+        let service = BasicAppStateService(defaults: defaults)
         var events: [AppStateProvidingEvent] = []
         let handle = service.addObserver { events.append($0) }
 
         service.showDBView()
         #expect(service.isDBViewVisible == true)
-        #expect(UserDefaults.standard.bool(forKey: Self.showDBKey) == true)
+        #expect(defaults.object(forKey: Self.showDBKey) as? Bool == true)
 
         service.hideDBView()
         #expect(service.isDBViewVisible == false)
-        #expect(UserDefaults.standard.bool(forKey: Self.showDBKey) == false)
+        #expect(defaults.object(forKey: Self.showDBKey) as? Bool == false)
 
         assertEvents(events, equals: [.dbViewVisibilityChanged(true), .dbViewVisibilityChanged(false)])
         handle.cancel()
     }
 
     @Test func dbViewToggleIgnoresNoopCalls() {
-        let service = BasicAppStateService()
+        let (defaults, suiteName) = makeDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set(false, forKey: Self.showDBKey)
+
+        let service = BasicAppStateService(defaults: defaults)
         var events: [AppStateProvidingEvent] = []
         let handle = service.addObserver { events.append($0) }
 

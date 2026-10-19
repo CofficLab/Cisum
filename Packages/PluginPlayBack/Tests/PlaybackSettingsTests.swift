@@ -9,6 +9,22 @@ import Testing
 @testable import PluginPlayBack
 
 @MainActor
+@Test func pluginPlayBackExposesStableIdentityAndMetadata() {
+    let plugin = PluginPlayBack.shared
+
+    #expect(plugin.id == "PluginPlayBack")
+    #expect(plugin.order == 12)
+    #expect(plugin.iconName == "play.circle")
+    #expect(plugin.metadata.id == "PluginPlayBack")
+    #expect(plugin.metadata.name == "Play")
+    #expect(plugin.metadata.version == "1.0.0")
+    #expect(plugin.metadata.category == .system)
+    #expect(plugin.metadata.stage == .stable)
+    #expect(plugin.metadata.policy == .alwaysOn)
+    #expect(plugin.metadata.permissions.isEmpty)
+}
+
+@MainActor
 private final class PlaybackStub: PlaybackProviding {
     var state: PlaybackStatus = .paused
     var currentURL: URL? = URL(fileURLWithPath: "/library/current.mp3")

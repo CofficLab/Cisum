@@ -90,20 +90,42 @@ struct CloudDownloadProgressStoreTests {
         #expect(store.reloadToken(for: b) == 0)
     }
 
+    /// 进度是文件的属性，不随列表刷新而失效。
+    ///
+    /// 列表刷新曾用 `removeAll()` 清空进度，导致进行中的下载被抹成「未下载」，
+    /// 进度环闪一下又退回未下载图标，直到下一条进度事件到达才恢复。
+    /// 容器不再提供任何按可见集合裁剪的原语：这里断言清空是唯一能丢弃记录的路径。
     @Test
-    func retainOnlyDropsEntriesNoLongerDisplayed() {
+    func progressSurvivesUnrelatedListActivity() {
         let store = CloudDownloadProgressStore()
-        let visible = tempURL("visible.mp3")
-        let scrolledAway = tempURL("scrolled.mp3")
-        store.apply(visible, progress: 0.5)
-        store.apply(scrolledAway, progress: 1)
+        let downloading = tempURL("downloading.mp3")
+        let alsoDownloading = tempURL("also.mp3")
+        store.apply(downloading, progress: 0.42)
+        store.apply(alsoDownloading, progress: 0.7)
 
-        store.retainOnly([visible])
+        // 别的文件被删除，不应牵连这两个进行中的下载。
+        store.remove([tempURL("unrelated.mp3")])
+        #expect(store.progress(for: downloading) { 0 } == 0.42)
+        #expect(store.progress(for: alsoDownloading) { 0 } == 0.7)
 
-        #expect(store.progress(for: visible) { 0 } == 0.5)
-        #expect(store.progress(for: scrolledAway) { 0 } == 0)
-        // 重载标记同样清理，避免已移除文件长期占用。
-        #expect(store.reloadToken(for: scrolledAway) == 0)
+        // 翻页/刷新不再触碰容器：容器对此无感，进度自然保持。
+        #expect(store.hasActiveDownloads)
+    }
+
+    /// 全量清空后重新下载会被当作首次完成，缩略图仍需重载。
+    @Test
+    func removeAllResetsCompletionHistoryForFullResets() {
+        let store = CloudDownloadProgressStore()
+        let url = tempURL("reset.mp3")
+
+        store.apply(url, progress: 1)
+        #expect(store.reloadToken(for: url) == 1)
+
+        // 仅存储切换等「文件身份失效」场景才允许全量清空。
+        store.removeAll()
+
+        #expect(store.progress(for: url) { 0 } == 0)
+        #expect(store.reloadToken(for: url) == 0)
     }
 
     /// 列表 URL 与事件 URL 经由不同路径表示同一文件时必须命中同一条记录。

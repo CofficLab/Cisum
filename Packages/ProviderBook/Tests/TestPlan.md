@@ -21,6 +21,7 @@ ProviderBook 定义有声书库的跨插件契约,并拆成两个产品:
 | B-05 | 协议 | 默认 `addObserver` 返回 `NoopBookProvidingObserverHandle`；默认句柄与显式创建句柄均可重复 cancel | P0 | ✅ 已覆盖 | `defaultBookObserverUsesNoopFallback` / `explicitBookNoopSupportsRepeatedCancellation` |
 | B-06 | 事件 | `BookProvidingEvent` 各 case(librarySyncing/librarySynced/libraryChanged/libraryDeleted/playbackStateChanged/storageLocationChanged)由实现广播 | P1 | ❌ 缺失（依赖插件具体实现，默认 Noop 测试不验证广播） | - |
 | B-07 | DTO | `BookPlaybackStateDTO` 的可选 URL/时间组合、相等性及跨任务传输保持值完整 | P0 | ✅ 已覆盖 | `playbackStateDTOTransportsOptionalFieldsAcrossTasks` |
+| B-08 | 错误 | `BookModelError` 各 case(deleteFailed/dbNotFound)提供非空 `errorDescription` | P1 | ✅ 已覆盖 | `bookModelErrorProvidesDescriptions` |
 
 ### 数据层(ProviderBookData)
 
@@ -47,12 +48,14 @@ ProviderBook 定义有声书库的跨插件契约,并拆成两个产品:
 | D-19 | 偏好 | 当前书籍 URL/时间的存取往返,nil 清除,无记录返回 nil | P0 | ✅ 已覆盖 | `storeAndGetCurrentURLRoundTrips` / `storeNilCurrentURLClearsIt` / `storeAndGetCurrentTimeRoundTrips` / `getCurrentTimeReturnsNilWhenNothingStored` |
 | D-20 | 偏好 | 本地已存 0 优先于云端；缺失本地记录时忽略 double 默认值，云端 0 有效、无值返回 nil | P0 | ✅ 已覆盖 | `storedTimeDistinguishesStoredZeroFromMissingLocalValue` |
 | D-21 | 偏好 | 本地负值/NaN/正负无穷回落合法云端；云端缺失、空字符串、非数字、负值和非有限值均拒绝 | P0 | ✅ 已覆盖 | `storedTimeValidatesNonFiniteLocalValuesAndCloudBoundaries` |
+| D-22 | 配置 | `BookConfig.getDBUrl`/`getCoverFolderUrl` 构建正确的子目录路径 | P1 | ✅ 已覆盖 | `bookConfigBuildsCorrectPaths` |
+| D-23 | 工具 | `URL.ensureDirectory()` 创建不存在的目录、替换同名文件、保留已存在的目录 | P0 | ✅ 已覆盖 | `ensureDirectoryCreatesDirectoryAndReplacesFile` |
 
 ## 覆盖率统计
 
-- 契约层:6 / 7（缺 B-06）
-- 数据层:21 / 21（仅指本表已列出的场景，不代表整个数据层全覆盖）
-- **合计: 27 / 28**（场景清单统计，不是源码行/分支覆盖率）
+- 契约层:7 / 8（缺 B-06）
+- 数据层:23 / 23（仅指本表已列出的场景，不代表整个数据层全覆盖）
+- **合计: 30 / 31**（场景清单统计，不是源码行/分支覆盖率）
 
 ## 优先级说明
 
@@ -73,7 +76,7 @@ ProviderBook 定义有声书库的跨插件契约,并拆成两个产品:
 swift test --package-path Packages/ProviderBook --disable-automatic-resolution
 ```
 
-本轮 macOS Debug 验证：36 个测试通过；iOS 与 Release 配置未运行。构建仍有基线已存在的多 target 未处理源码文件警告。
+本轮 macOS Debug 验证：39 个测试通过；iOS 与 Release 配置未运行。构建仍有基线已存在的多 target 未处理源码文件警告。
 
 偏好读写测试在串行 suite 中执行，备份并恢复本地及 iCloud 键值存储的两个书籍偏好键；这些测试仍调用系统键值存储，不代表验证了真实跨设备同步。新增时间边界测试只调用纯函数。
 

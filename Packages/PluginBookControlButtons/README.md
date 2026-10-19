@@ -47,7 +47,7 @@ into the player control area, but only while the app is in the audiobooks scene.
   the active scene.
 - **Dependencies:** `MagicKit`, `CisumUIComponents`, `ProviderBook`,
   `MagicPlayMan`, `KernelCore (LumiKernel), ProviderPlugin, KitAppEvents`, `ProviderDocsView`, `ProviderScene`,
-  `ProviderPlayback`, `ProviderRootView`, `ProviderToast`.
+  `ProviderPlayback`, `ProviderAppState`, `ProviderToast`.
 
 ## Testing Logic
 

@@ -286,7 +286,13 @@ struct AudioDBSettingView: View, SuperLog {
 
     private var list: some View {
         List {
-            if viewModel.isLoading && viewModel.urls.isEmpty {
+            switch AudioDBSettingPresentation.listState(
+                isLoading: viewModel.isLoading,
+                isLoadingMore: viewModel.isLoadingMore,
+                urlCount: viewModel.urls.count,
+                hasError: false
+            ) {
+            case .loading:
                 HStack {
                     Spacer()
                     ProgressView()
@@ -294,13 +300,13 @@ struct AudioDBSettingView: View, SuperLog {
                     Spacer()
                 }
                 .listRowBackground(Color.clear)
-            } else if viewModel.urls.isEmpty && !viewModel.isLoading {
+            case .empty:
                 AppEmptyState(
                     icon: "music.note",
                     title: String(localized: "Music repository is empty", bundle: .module)
                 )
                 .listRowBackground(Color.clear)
-            } else {
+            case .error, .content:
                 ForEach(Array(viewModel.urls.enumerated()), id: \.element) { index, url in
                     row(url: url)
                         .listRowBackground(Color.clear)
@@ -316,7 +322,10 @@ struct AudioDBSettingView: View, SuperLog {
                 }
             }
 
-            if viewModel.isLoadingMore && !viewModel.urls.isEmpty {
+            if AudioDBSettingPresentation.shouldShowLoadingMoreIndicator(
+                isLoadingMore: viewModel.isLoadingMore,
+                urlCount: viewModel.urls.count
+            ) {
                 HStack {
                     Spacer()
                     ProgressView()

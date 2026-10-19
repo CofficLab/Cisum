@@ -41,6 +41,7 @@ ProviderAudioLike 提供音频收藏能力的 DTO 和协议定义。不包含具
 | 3 | 数据结构 | AudioLikeItem 初始化器正确设置所有属性 | - | 创建 item 并检查所有属性 | 所有属性正确设置 | ✅ 已覆盖 | `audioLikeItemInitializerSetsAllProperties` |
 | 4 | 数据结构 | AudioLikeItem 支持可选的 url | - | 创建 url 为 nil 的 item | url 为 nil | ✅ 已覆盖 | `audioLikeItemSupportsOptionalURL` |
 | 5 | 数据结构 | AudioLikeItem 支持可选的 title | - | 创建 title 为 nil 的 item | title 为 nil | ✅ 已覆盖 | `audioLikeItemSupportsOptionalTitle` |
+| 5b | 数据结构 | AudioLikeItem 支持 url 与 title 同时为 nil | - | 创建两个可选值均为 nil 的 item | url 与 title 均为 nil，audioId / liked 仍正确 | ✅ 已覆盖 | `audioLikeItemSupportsBothOptionalsAsNil` |
 | 6 | 数据结构 | AudioLikeItem 的 Equatable 实现 | - | 比较两个相同和不同的 item | 相等比较正确 | ✅ 已覆盖 | `audioLikeItemEquatableWhenEqual`, `audioLikeItemEquatableWhenAudioIdDiffers`, `audioLikeItemEquatableWhenLikedDiffers`, `audioLikeItemEquatableWhenURLDiffers`, `audioLikeItemEquatableWhenTitleDiffers` |
 | 7 | 数据结构 | AudioLikeItem 的 Sendable 特性 | - | 在不同 actor 间传递 item | 无编译警告 | ✅ 已覆盖 | `audioLikeItemIsSendable` |
 | 8 | 协议 | AudioLikeProviding 协议方法签名 | - | 检查协议定义 | 方法签名正确 | ✅ 已覆盖 | `audioLikeProvidingProtocolMethodsExist` |
@@ -48,10 +49,10 @@ ProviderAudioLike 提供音频收藏能力的 DTO 和协议定义。不包含具
 ## 覆盖率统计
 
 - P0 (核心功能): 3/3 ✅
-- P1 (边界情况): 4/4 ✅
+- P1 (边界情况): 5/5 ✅
 - P2 (集成场景): 1/1 ✅
 
-**总计: 8/8 (100%)**
+**总计: 9/9 (100%)**
 
 ## 优先级说明
 

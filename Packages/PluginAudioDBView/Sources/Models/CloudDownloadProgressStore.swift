@@ -8,7 +8,7 @@ import Combine
 /// 也就不受 `AudioList` 上 `.equatable()` 的短路影响——这正是把进度环拆成
 /// 独立子视图要解决的问题。
 ///
-/// 只负责三件事：按身份键记录进度、提供查询、按已删除 / 已离开列表的文件清理。
+/// 只负责三件事：按身份键记录进度、提供查询、清理已删除文件的记录。
 /// 不持有 Provider、不发起订阅——那是 `CloudDownloadCapability` 与 Observer 的职责。
 ///
 /// ## 为什么用字符串键而不是 `URL`
@@ -16,6 +16,23 @@ import Combine
 /// 列表里的 URL 来自数据库索引，事件里的 URL 来自 `NSMetadataQuery`，两者可能经由
 /// 符号链接等路径表示同一文件。直接以 `URL` 作字典键会导致「订阅上了却查不到」，
 /// 进度环永不出现。统一走 `AudioListFileIdentity.canonicalIdentity` 归一。
+///
+/// ## 所有权：这是文件的状态，不是列表的状态
+///
+/// 记录一条进度的前提是「这个文件正在下载」，与它当前是否被列表显示**无关**。
+/// 因此本容器的条目只随两件事消亡：
+///
+/// 1. 文件被删除——由 `AudioDatabaseObserver` 的删除事件驱动 `remove(_:)`。
+/// 2. 本进程生命周期结束。
+///
+/// 列表刷新（翻页、数据库 `synced`/`updated`、排序）**无权**清空它。那类调用
+/// 过去用的是 `removeAll()`，等价于宣称「刷新之后我对世界上所有文件一无所知」，
+/// 于是下载域被迫重新播报已经报过的进度：进度环刚出现就被抹掉，等下一条事件
+/// 再出现——表现为「闪一下进度又退回未下载图标」的循环。
+///
+/// 同理这里没有 `retainOnly(_:)` 一类的「按可见集合裁剪」原语：容器的键只来自
+/// iCloud 主动推送的下载事件，规模是 O(本次会话内下载过的文件数)，与列表长度
+/// 无关，不存在需要裁剪的无界增长。
 @MainActor
 final class CloudDownloadProgressStore: ObservableObject {
     /// 文件身份 → 下载进度（`0...1`）。
@@ -74,20 +91,10 @@ final class CloudDownloadProgressStore: ObservableObject {
         return Self.clamp(snapshot())
     }
 
-    /// 清理不再显示的文件，避免状态容器随翻页 / 删除无界增长。
-    ///
-    /// 只保留仍在 `activeURLs` 中的条目；调用方在列表重载或删除后传入当前可见集合。
-    func retainOnly(_ activeURLs: [URL]) {
-        let activeKeys = Set(activeURLs.map(AudioListFileIdentity.canonicalIdentity(for:)))
-        if progresses.keys.contains(where: { !activeKeys.contains($0) }) {
-            progresses = progresses.filter { activeKeys.contains($0.key) }
-        }
-        if completionTokens.keys.contains(where: { !activeKeys.contains($0) }) {
-            completionTokens = completionTokens.filter { activeKeys.contains($0.key) }
-        }
-    }
-
     /// 清理已删除文件的进度与重载标记。
+    ///
+    /// 这是**唯一**的单条清理入口：删除事件由 `AudioDatabaseObserver` 转发而来，
+    /// 是外部世界明确告知「这个文件不复存在」的信号。
     func remove(_ urls: [URL]) {
         guard !urls.isEmpty else { return }
         for url in urls {
@@ -97,6 +104,10 @@ final class CloudDownloadProgressStore: ObservableObject {
         }
     }
 
+    /// 全量清空。
+    ///
+    /// 仅供存储位置切换、插件重装这类**文件身份本身失效**的场景使用——
+    /// 此时旧路径下的记录已指向不存在的对象。列表刷新绝不应走这里。
     func removeAll() {
         progresses.removeAll()
         completionTokens.removeAll()

@@ -532,3 +532,116 @@ struct AudioDBViewModelSortTests {
         #expect(!db.isSorting)
     }
 }
+
+// MARK: - 下载进度与数据库刷新的解耦
+
+/// 回归：iCloud 下载期间，进度环曾反复「闪一下进度 → 退回未下载图标」。
+///
+/// 成因是一条真实的因果链：
+/// `NSMetadataQuery` 把每次下载百分比推送都算作目录变更 → 库同步发出
+/// `synced`/`updated` → `AudioDatabaseObserver` 转发 → ViewModel 刷新当前页 →
+/// 旧实现在这里 `downloadStore.removeAll()`，把刚播报的进度抹掉。
+///
+/// 这里锁定的是修复后的所有权约定：**数据库刷新不得影响下载进度**。
+@MainActor
+struct CloudDownloadProgressSurvivesDatabaseRefreshTests {
+    private func tempURL(_ name: String) -> URL {
+        URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("cisum-dl-\(name)")
+    }
+
+    /// 核心回归：`synced` / `updated` 事件不得抹掉进行中的下载进度。
+    @Test
+    func databaseSyncEventsDoNotClearInFlightDownloadProgress() async throws {
+        let library = AudioLibraryProbe()
+        let list = AudioListViewModel(library: library)
+        let observer = AudioDatabaseObserver(list: list, root: nil, db: nil, library: library)
+        defer { observer.cancel() }
+
+        let url = tempURL("in-flight.wav")
+        list.applyDownloadProgress(url: url, progress: 0.42)
+
+        // 下载期间，`NSMetadataQuery` 会因百分比变化反复触发目录同步事件。
+        library.emit(.syncing)
+        library.emit(.synced)
+        try await Task.sleep(for: .milliseconds(50))
+        library.emit(.syncing)
+        library.emit(.updated)
+        try await Task.sleep(for: .milliseconds(50))
+
+        // 进度必须原封不动：这是「闪一下」的判据。
+        #expect(list.downloadStore.progress(for: url) { 0 } == 0.42)
+        #expect(list.downloadStore.hasActiveDownloads)
+    }
+
+    /// 列表重载（当前页刷新）同样不得清空进度。
+    @Test
+    func currentPageReloadKeepsDownloadProgress() async throws {
+        let library = AudioLibraryProbe()
+        let list = AudioListViewModel(library: library)
+        let observer = AudioDatabaseObserver(list: list, root: nil, db: nil, library: library)
+        defer { observer.cancel() }
+
+        let url = tempURL("reload.wav")
+        list.applyDownloadProgress(url: url, progress: 0.77)
+
+        list.handleDBSynced()
+        try await Task.sleep(for: .milliseconds(80))
+
+        #expect(list.downloadStore.progress(for: url) { 0 } == 0.77)
+    }
+
+    /// 反复刷新也不应退化——旧实现每刷新一次就丢一次。
+    @Test
+    func repeatedRefreshesNeverErodeProgress() async throws {
+        let library = AudioLibraryProbe()
+        let list = AudioListViewModel(library: library)
+        let observer = AudioDatabaseObserver(list: list, root: nil, db: nil, library: library)
+        defer { observer.cancel() }
+
+        let url = tempURL("erode.wav")
+        list.applyDownloadProgress(url: url, progress: 0.3)
+
+        for _ in 0..<10 {
+            library.emit(.updated)
+            try await Task.sleep(for: .milliseconds(10))
+        }
+
+        #expect(list.downloadStore.progress(for: url) { 0 } == 0.3)
+    }
+
+    /// 删除事件仍然必须清理进度——所有权约定要双向成立，不能矫枉过正。
+    @Test
+    func deletionStillClearsProgress() {
+        let library = AudioLibraryProbe()
+        let list = AudioListViewModel(library: library)
+        let observer = AudioDatabaseObserver(list: list, root: nil, db: nil, library: library)
+        defer { observer.cancel() }
+
+        let deleted = tempURL("deleted.wav")
+        list.applyDownloadProgress(url: deleted, progress: 0.5)
+        #expect(list.downloadStore.hasActiveDownloads)
+
+        library.emit(.deleted(urls: [deleted]))
+
+        #expect(list.downloadStore.progress(for: deleted) { 0 } == 0)
+        #expect(!list.downloadStore.hasActiveDownloads)
+    }
+
+    /// 存储位置切换会让文件身份失效，此时全量清空仍是正确的。
+    @Test
+    func repositoryAvailabilityChangeResetsProgress() async throws {
+        let library = AudioLibraryProbe()
+        let list = AudioListViewModel(library: library)
+        let observer = AudioDatabaseObserver(list: list, root: nil, db: nil, library: library)
+        defer { observer.cancel() }
+
+        let url = tempURL("rehomed.wav")
+        list.applyDownloadProgress(url: url, progress: 0.6)
+
+        library.emit(.repositoryAvailabilityChanged)
+        try await Task.sleep(for: .milliseconds(50))
+
+        // 旧路径下的记录已指向不存在的对象，刷新时清空是预期行为。
+        #expect(list.downloadStore.progress(for: url) { 0 } == 0)
+    }
+}

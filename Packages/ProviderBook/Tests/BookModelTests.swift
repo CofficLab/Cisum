@@ -124,3 +124,61 @@ func bookPluginErrorsProvideDescriptionsAndRecoveryHints() {
     }
     #expect(BookPluginError.initialization(reason: "database unavailable").errorDescription?.contains("database unavailable") == true)
 }
+
+// MARK: - BookModelError
+
+@Test
+func bookModelErrorProvidesDescriptions() {
+    let errors: [BookModelError] = [.deleteFailed, .dbNotFound]
+
+    for error in errors {
+        #expect(error.errorDescription?.isEmpty == false)
+    }
+    #expect(BookModelError.deleteFailed.errorDescription == "Delete failed")
+    #expect(BookModelError.dbNotFound.errorDescription == "BookModel: DB not found")
+}
+
+// MARK: - BookConfig
+
+@Test
+func bookConfigBuildsCorrectPaths() {
+    let rootURL = URL(fileURLWithPath: "/test/root")
+
+    let dbURL = BookConfig.getDBUrl(dbRootURL: rootURL)
+    let coverURL = BookConfig.getCoverFolderUrl(dbRootURL: rootURL)
+
+    #expect(dbURL.path == "/test/root/books_db/books.db")
+    #expect(coverURL.path == "/test/root/books_cover")
+}
+
+// MARK: - URL.ensureDirectory
+
+@Test
+func ensureDirectoryCreatesDirectoryAndReplacesFile() throws {
+    let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("BookConfigTests-\(UUID())")
+    defer { try? FileManager.default.removeItem(at: tempDir) }
+
+    // Test 1: Creates directory when it doesn't exist
+    let newDir = tempDir.appendingPathComponent("new")
+    let result = try newDir.ensureDirectory()
+    var isDir: ObjCBool = false
+    #expect(FileManager.default.fileExists(atPath: newDir.path, isDirectory: &isDir))
+    #expect(isDir.boolValue)
+    #expect(result == newDir)
+
+    // Test 2: Replaces file with directory
+    let fileURL = tempDir.appendingPathComponent("file")
+    try "test".write(to: fileURL, atomically: true, encoding: .utf8)
+    let result2 = try fileURL.ensureDirectory()
+    #expect(FileManager.default.fileExists(atPath: fileURL.path, isDirectory: &isDir))
+    #expect(isDir.boolValue)
+    #expect(result2 == fileURL)
+
+    // Test 3: Keeps existing directory
+    let existingDir = tempDir.appendingPathComponent("existing")
+    try FileManager.default.createDirectory(at: existingDir, withIntermediateDirectories: true)
+    let result3 = try existingDir.ensureDirectory()
+    #expect(FileManager.default.fileExists(atPath: existingDir.path, isDirectory: &isDir))
+    #expect(isDir.boolValue)
+    #expect(result3 == existingDir)
+}

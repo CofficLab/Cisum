@@ -311,8 +311,11 @@ final class AudioListViewModel: ObservableObject, SuperLog {
 
     /// Storage configuration changed; re-open the repository instead of leaving
     /// the first-run unavailable state cached in the list.
+    ///
+    /// 换存储根意味着旧路径下的文件身份全部失效，因此走
+    /// `refreshWithInvalidatedFiles`，而不是普通的列表刷新。
     func handleRepositoryAvailabilityChanged() {
-        refresh(reason: "Repository availability changed")
+        refreshWithInvalidatedFiles(reason: "Repository availability changed")
     }
 
     // MARK: - Loading
@@ -435,11 +438,30 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         loadCurrentPageData(reason: reason)
     }
 
-    /// 全量重置并刷新。
-    private func refresh(reason: String) {
+    /// 全量重置并刷新，且**文件身份已失效**（存储位置切换）。
+    ///
+    /// 这是唯一会连带清空文件级旁路状态的场景：换了存储根之后，旧路径下的进度
+    /// 与文件大小记录指向的是别处的、甚至不存在的对象，继续保留才是错的。
+    private func refreshWithInvalidatedFiles(reason: String) {
         AudioItemFileSizeCache.removeAll()
         downloadStore.removeAll()
 
+        resetListState(reason: reason)
+    }
+
+    /// 全量重置并刷新，**文件级状态继续有效**（排序完成、库内文件数量变化）。
+    ///
+    /// 刻意**不**清空 `downloadStore`：下载进度是文件的事实，与列表排布无关。
+    /// 在此清空会让每次数据库刷新都丢掉已知进度，迫使上游重新播报，
+    /// 表现为进度环闪一下又退回未下载图标。
+    private func refresh(reason: String) {
+        AudioItemFileSizeCache.removeAll()
+
+        resetListState(reason: reason)
+    }
+
+    /// 只重置列表自身的分页与加载状态。
+    private func resetListState(reason: String) {
         loadGeneration += 1
         currentPage = 0
         hasMore = true
@@ -451,9 +473,12 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     }
 
     /// 重载当前页数据以刷新已加载内容。
+    ///
+    /// 同 `refresh(reason:)`：数据库 `synced` / `updated` 在 iCloud 下载期间会随
+    /// 百分比变化高频触发（`NSMetadataQuery` 把每次进度更新都算作目录变更），
+    /// 在此清空进度即等于让进度环以刷新频率反复闪烁。
     private func loadCurrentPageData(reason: String) {
         AudioItemFileSizeCache.removeAll()
-        downloadStore.removeAll()
 
         loadGeneration += 1
         let generation = loadGeneration
