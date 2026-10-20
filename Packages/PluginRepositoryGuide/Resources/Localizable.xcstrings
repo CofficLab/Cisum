@@ -253,34 +253,6 @@
         }
       }
     },
-    "Put your music in the repository" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Put your music in the repository"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "把音乐放进仓库"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "把音樂放進倉庫"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "把音樂放進倉庫"
-          }
-        }
-      }
-    },
     "Repository Access" : {
       "localizations" : {
         "en" : {
