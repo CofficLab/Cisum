@@ -121,6 +121,23 @@ struct ControlGuideSlotTests {
         }
     }
 
+    /// 位图里是否出现指定颜色（按分量区间匹配，避开抗锯齿与色彩管理带来的偏差）。
+    private func containsColor(
+        _ data: Data,
+        red: ClosedRange<Int>,
+        green: ClosedRange<Int>,
+        blue: ClosedRange<Int>
+    ) -> Bool {
+        for index in stride(from: 0, to: data.count - 3, by: 4) {
+            if red.contains(Int(data[index])),
+               green.contains(Int(data[index + 1])),
+               blue.contains(Int(data[index + 2])) {
+                return true
+            }
+        }
+        return false
+    }
+
     @Test
     func activeSlotRendersGuideAtTop() throws {
         try withHeroHidden {
@@ -143,6 +160,31 @@ struct ControlGuideSlotTests {
             let guidePixel = try pixel(control, x: 100, y: guideY)
             let guide = try #require(guidePixel)
             #expect(guide.red > 200 && guide.green < 60)
+        }
+    }
+
+    @Test
+    func activeSlotHidesTheProgressSection() throws {
+        try withHeroHidden {
+            let slot = ControlGuideSlot(
+                guideView: AnyView(Color.red)
+            )
+            let control = ControlView(
+                stateViews: { [] },
+                stateMessage: { "" },
+                isDemoMode: false,
+                progressView: AnyView(Color.blue),
+                guideSlot: slot
+            )
+
+            // 引导未激活：进度区照常呈现。
+            let withProgress = try pixels(control)
+            #expect(containsColor(withProgress, red: 0...80, green: 0...200, blue: 180...255))
+
+            // 引导激活 = 仓库为空：没有可播的曲目，进度区连同它的高度一起收掉。
+            slot.isActive = true
+            let withoutProgress = try pixels(control)
+            #expect(!containsColor(withoutProgress, red: 0...80, green: 0...200, blue: 180...255))
         }
     }
 

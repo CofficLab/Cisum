@@ -71,7 +71,7 @@ struct ControlView: View {
                         .frame(height: stateHeight(for: geometry))
                         .frame(maxWidth: .infinity)
 
-                    if progressView != nil {
+                    if showsProgressSection {
                         progressArea
                             .frame(height: progressContentHeight)
                             .padding(.horizontal)
@@ -112,6 +112,17 @@ struct ControlView: View {
         guard observedGuideSlot.isActive else { return false }
         guard !isHeroVisible else { return false }
         return geometry.size.height >= Self.guideMinimumHeight
+    }
+
+    /// 进度区是否呈现。
+    ///
+    /// 引导激活意味着「音乐仓库是空的」——没有可播的曲目，进度条也就没有
+    /// 进度可言。这时连同它占的高度一起收掉，而不是留一条空荡荡的槽。
+    ///
+    /// 用引导插槽的激活态当信号，是因为它已经带上了「音乐场景 + 仓库为空」
+    /// 两个前提：切到有声书场景时插槽不激活，那边的播放进度照常显示。
+    private var showsProgressSection: Bool {
+        progressView != nil && !observedGuideSlot.isActive
     }
 
     @ViewBuilder
@@ -162,7 +173,7 @@ struct ControlView: View {
 
     private func heroHeight(for geometry: GeometryProxy) -> CGFloat {
         let reservedHeight = stateHeight(for: geometry)
-            + (progressView == nil ? 0 : progressContentHeight + progressVerticalPadding * 2)
+            + (showsProgressSection ? progressContentHeight + progressVerticalPadding * 2 : 0)
             + (controlButtonsView == nil ? 0 : buttonHeight(for: geometry))
 
         return max(0, geometry.size.height - reservedHeight)
