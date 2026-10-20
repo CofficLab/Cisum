@@ -109,6 +109,8 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
     @ObservedObject var viewModel: BookGridViewModel
     let dependencies: BookDBViewDependencies
     let requestImport: @MainActor @Sendable () -> Void
+    /// 是否正有文件被拖到仓库视图上方：用于高亮拖放目标。
+    var isDropping: Bool = false
 
     /// Total book count.
     var total: Int { viewModel.books.count }
@@ -121,11 +123,13 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
     init(
         viewModel: BookGridViewModel,
         dependencies: BookDBViewDependencies,
-        requestImport: @escaping @MainActor @Sendable () -> Void
+        requestImport: @escaping @MainActor @Sendable () -> Void,
+        isDropping: Bool = false
     ) {
         self._viewModel = ObservedObject(wrappedValue: viewModel)
         self.dependencies = dependencies
         self.requestImport = requestImport
+        self.isDropping = isDropping
     }
 
     var body: some View {
@@ -133,7 +137,12 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
             if viewModel.isLoading {
                 BookDBTips(dependencies: dependencies, requestImport: requestImport, variant: .loading)
             } else if total == 0 {
-                BookDBTips(dependencies: dependencies, requestImport: requestImport, variant: .empty)
+                BookDBTips(
+                    dependencies: dependencies,
+                    requestImport: requestImport,
+                    variant: .empty,
+                    isDropping: isDropping
+                )
             } else {
                 VStack(spacing: 0) {
                     HStack {
