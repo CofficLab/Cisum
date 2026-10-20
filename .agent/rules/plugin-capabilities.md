@@ -127,7 +127,7 @@ let viewModel = MyViewModel(capability: capability)
 - 一次性同步读取的闭包（如恢复进度时读一次 `isLiked`）、纯诊断快照（如
   `AudioStorageDiagnosticsFactory`）—— 不订阅、不持有、不重试
 - 组装层 View 中「`resolveProvider` 后立刻包成 Adapter」的调用 —— View 在此角色等同入口
-  （如 `PluginRootView/CisumRootLayoutView`），但必须在调用点注释说明组装层身份
+  （如 `PluginRootView/RootLayoutView`），但必须在调用点注释说明组装层身份
 
 ---
 
@@ -214,7 +214,7 @@ done
 - 插件入口 `*Plugin.swift` / `*Manager.swift`（组装层）
 - `AudioStorageDiagnosticsFactory`（一次性诊断快照）
 - `AudioProgressViewModel` 的 `audioLike` 闭包（恢复时一次性读取）
-- `CisumRootLayoutView`（组装层 View，`resolveProvider` 后立即包成 Adapter）
+- `RootLayoutView`（组装层 View，`resolveProvider` 后立即包成 Adapter）
 
 ### 回归
 
