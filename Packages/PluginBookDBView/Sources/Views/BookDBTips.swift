@@ -84,8 +84,8 @@ struct BookDBTips: View {
         }
         .padding()
         .background(appTheme.surface.opacity(0.85))
-        .appRoundedMedium()
-        .shadow(radius: 8)
+        // 空状态铺满整个内容区，圆角会在窗口左右上角露出背景缺口，
+        // 因此这里保持直角；阴影只用于衬托圆角卡片，一并去掉。
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
