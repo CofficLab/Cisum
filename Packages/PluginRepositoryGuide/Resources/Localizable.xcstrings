@@ -57,6 +57,62 @@
         }
       }
     },
+    "Brand Header" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brand Header"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "品牌区"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "品牌區"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "品牌區"
+          }
+        }
+      }
+    },
+    "Brand Header: the app icon and a welcome line take the place of the album cover." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brand Header: the app icon and a welcome line take the place of the album cover."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "品牌区：app 图标和一句欢迎语，顶替专辑封面的位置。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "品牌區：app 圖示和一句歡迎語，頂替專輯封面的位置。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "品牌區：app 圖示和一句歡迎語，頂替專輯封面的位置。"
+          }
+        }
+      }
+    },
     "Core Capabilities" : {
       "localizations" : {
         "en" : {
@@ -225,90 +281,6 @@
         }
       }
     },
-    "Points at the ⋯ button that opens the repository." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Points at the ⋯ button that opens the repository."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "指向展开仓库视图的「⋯」按钮。"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "指向展開倉庫視圖的「⋯」按鈕。"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "指向展開倉庫視圖的「⋯」按鈕。"
-          }
-        }
-      }
-    },
-    "Repository Access" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Repository Access"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "找到仓库"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "找到倉庫"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "找到倉庫"
-          }
-        }
-      }
-    },
-    "Repository Access: the guide points at the ⋯ button that opens the repository view." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Repository Access: the guide points at the ⋯ button that opens the repository view."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "找到仓库：引导指向展开仓库视图的「⋯」按钮。"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "找到倉庫：引導指向展開倉庫視圖的「⋯」按鈕。"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "找到倉庫：引導指向展開倉庫視圖的「⋯」按鈕。"
-          }
-        }
-      }
-    },
     "Repository Guide" : {
       "localizations" : {
         "en" : {
@@ -393,6 +365,34 @@
         }
       }
     },
+    "Shows the app icon and a welcome line where the album cover would be." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows the app icon and a welcome line where the album cover would be."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在专辑封面该出现的位置，放上 app 图标和一句欢迎语。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在專輯封面該出現的位置，放上 app 圖示和一句歡迎語。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在專輯封面該出現的位置，放上 app 圖示和一句歡迎語。"
+          }
+        }
+      }
+    },
     "Start using Cisum" : {
       "localizations" : {
         "en" : {
@@ -417,34 +417,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開始使用 Cisum"
-          }
-        }
-      }
-    },
-    "Tap the ⋯ button below to open the repository" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tap the ⋯ button below to open the repository"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "点下方的「⋯」打开音乐仓库"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "點下方的「⋯」打開音樂倉庫"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "點下方的「⋯」打開音樂倉庫"
           }
         }
       }

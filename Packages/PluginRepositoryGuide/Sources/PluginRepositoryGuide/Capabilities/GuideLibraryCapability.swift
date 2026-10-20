@@ -1,12 +1,10 @@
 import Foundation
 import ProviderAudioLibrary
 
-/// 引导关心的仓库事件：只保留「仓库空 / 需要复核」这一位语义。
+/// 引导关心的仓库信号：仓库内容变化，需要复核一次结论。
 @MainActor
 enum GuideLibraryEvent {
-    /// 仓库为空（权威信号）。
-    case repositoryEmpty
-    /// 仓库事件发生，需要复核计数。
+    /// 仓库状态可能已变化（扫描完成、文件增删、仓库位置变更）。
     case changed
 }
 
@@ -20,26 +18,14 @@ protocol GuideLibraryObserverHandle: AnyObject {
 /// 引导所需的最小仓库能力。
 ///
 /// 内核 `AudioLibraryProviding` 的读写、排序、分页能力本插件均不消费，
-/// 只保留三件事：仓库目录与支持格式（导入用）、可用性与计数（判断空仓库用）、
-/// 以及把复制进来的文件并入索引。
+/// 只保留一件事：**仓库是否确认为空**。这个结论由数据层给出——它知道仓库
+/// 扫完了没有（没扫过时计数同样是 0，那是「还不知道」而不是「是空的」）。
 @MainActor
 protocol GuideLibraryCapability: AnyObject {
-    /// 当前音频文件所在的目录；未配置时为 `nil`。
-    var audioDisk: URL? { get }
+    /// 音乐仓库是否确认为空。
+    var isRepositoryEmpty: Bool { get }
 
-    /// 当前实现支持导入的文件扩展名。
-    var supportedExtensions: [String] { get }
-
-    /// 音频库是否已准备好访问。
-    var isAvailable: Bool { get }
-
-    /// 当前音频库中的项目数量。
-    func totalCount() async -> Int
-
-    /// 将文件系统扫描结果同步到音频库。
-    func sync(urls: [URL]) async
-
-    /// 订阅仓库变更；返回句柄需自行 `cancel()`。
+    /// 订阅仓库变化；返回句柄需自行 `cancel()`。
     @discardableResult
     func addObserver(
         _ callback: @escaping (GuideLibraryEvent) -> Void
@@ -67,17 +53,7 @@ final class GuideLibraryCapabilityAdapter: GuideLibraryCapability {
         self.resolve = resolve
     }
 
-    var audioDisk: URL? { resolve()?.audioDisk }
-    var supportedExtensions: [String] { resolve()?.supportedExtensions ?? [] }
-    var isAvailable: Bool { resolve()?.isAvailable ?? false }
-
-    func totalCount() async -> Int {
-        await resolve()?.totalCount() ?? 0
-    }
-
-    func sync(urls: [URL]) async {
-        await resolve()?.sync(urls: urls, verbose: false, isFirst: false)
-    }
+    var isRepositoryEmpty: Bool { resolve()?.isRepositoryEmpty ?? false }
 
     @discardableResult
     func addObserver(
@@ -101,18 +77,12 @@ final class GuideLibraryCapabilityAdapter: GuideLibraryCapability {
         callback: @escaping (GuideLibraryEvent) -> Void
     ) -> GuideLibraryObserverHandleBox {
         let handle = library.addObserver { [weak self] event in
+            // 任何仓库事件都只意味着「可能变了」——结论由消费方重新读取，
+            // 不在这里替数据层解释计数。
             switch event {
-            case .repositoryEmpty:
-                // 权威信号：仓库确认为空。
-                callback(.repositoryEmpty)
-            case .synced, .updated, .deleted:
-                // 其余事件只作为「需要复核计数」的信号。
+            case .syncing, .synced, .updated, .deleted, .repositoryEmpty,
+                 .repositoryAvailabilityChanged, .sorting, .sortCompleted:
                 callback(.changed)
-            case .repositoryAvailabilityChanged:
-                // Provider 重新就绪：把之前没订阅上的回调补上。
-                self?.flushPending(using: library)
-            case .syncing, .sorting, .sortCompleted:
-                break
             }
         }
         return GuideLibraryObserverHandleBox(cancelAction: handle.cancel)

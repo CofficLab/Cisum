@@ -1,13 +1,17 @@
 # PluginRepositoryGuide
 
-First-run guide shown when the repository is empty.
+Empty-repository guide: the brand block shown when the music repository has no content.
 
 ## Responsibilities
 
-- Provide the guide view (brand area + drop target) to the player control area via `ControlViewProviding.setGuideSlot`.
-- Drive the guide's activation from repository events: lit when the repository is confirmed empty, dimmed otherwise.
-- Keep the guide scoped to the music scene, and let the import flow share `KitAudioRepositoryImport` with the repository view.
+- Provide the guide view (app icon + welcome line) to the player control area via `ControlViewProviding.setGuideSlot`. The block sits where the album cover and track title would be, so the player does not look hollow while the repository is empty.
+- Drive the guide's activation from the repository verdict: lit when the repository is confirmed empty, dimmed otherwise.
+- Keep the guide scoped to the music scene.
 
-The plugin depends only on providers (`ProviderControlView`, `ProviderAudioLibrary`,
-`ProviderScene`, `ProviderToast`) and `KitAudioRepositoryImport`; it never depends on
-another plugin.
+Where the repository view is opened is **not** this plugin's business: the "more" button carries that hint itself (`PluginAudioControlButtons.MoreButtonGuidanceView`), so the guide does not draw a second, fake "⋯" button.
+
+The plugin depends only on providers (`ProviderControlView`, `ProviderAudioLibrary`, `ProviderScene`, `ProviderDocsView`); it never depends on another plugin.
+
+## Notes
+
+- "The repository is empty" is a conclusion the data layer owns: `AudioLibraryProviding.isRepositoryEmpty` is only `true` after a scan has confirmed the repository holds no audio. An unscanned repository also counts zero files, which is "not known yet", not "empty".

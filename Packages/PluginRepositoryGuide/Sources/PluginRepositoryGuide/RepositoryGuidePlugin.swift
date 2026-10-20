@@ -10,8 +10,12 @@ import SwiftUI
 
 /// 空仓库引导插件：仓库为空时，向播放控制区注入引导视图（`setGuideSlot`）。
 ///
-/// 引导只负责「怎么开始」：品牌区 + 拖放框。它不知道自己服务的是哪个仓库域，
-/// 仓库是否为空由观察者按业务事件判定——插件层只提供引导位与呈现内容。
+/// 引导只负责「仓库空着的时候，播放器顶上摆什么」：品牌区（app 图标 + 一句
+/// 欢迎语），摆在真实播放器的封面与标题位上。仓库视图在哪打开由「⋯」按钮
+/// 自己提示，本插件不重复教——两个入口说同一件事只会让人发愣。
+///
+/// 它不知道自己服务的是哪个仓库域，仓库是否为空由观察者按业务事件判定——
+/// 插件层只提供引导位与呈现内容。
 @MainActor
 public final class RepositoryGuidePlugin: AsyncSuperPlugin, SuperLog {
     public let id = String(describing: RepositoryGuidePlugin.self)

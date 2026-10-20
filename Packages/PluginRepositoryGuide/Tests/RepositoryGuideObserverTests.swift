@@ -28,18 +28,11 @@ private final class GuideObserverRegistry {
     }
 }
 
-/// 最小仓库探针：可广播仓库事件并返回计数。
+/// 最小仓库探针：结论由探针给出（数据层负责「扫完了没有」）。
 @MainActor
 private final class GuideLibraryProbe: GuideLibraryCapability {
-    var audioDisk: URL?
-    var supportedExtensions: [String] = ["mp3"]
-    var isAvailable: Bool = true
-    var totalCountValue = 0
+    var isRepositoryEmpty = false
     private let registry = GuideObserverRegistry()
-
-    func totalCount() async -> Int { totalCountValue }
-
-    func sync(urls: [URL]) async {}
 
     func emit(_ event: GuideLibraryEvent) {
         registry.emit(event)
@@ -119,14 +112,16 @@ struct RepositoryGuideObserverTests {
     }
 
     @Test
-    func repositoryEmptyEventActivatesGuide() {
+    func emptyRepositoryActivatesGuide() {
         let probe = GuideLibraryProbe()
         let sceneProbe = GuideSceneProbe()
         let slot = makeSlot()
         let observer = RepositoryGuideObserver(slot: slot, library: probe, scene: sceneProbe)
 
         #expect(!slot.isActive)
-        probe.emit(.repositoryEmpty)
+
+        probe.isRepositoryEmpty = true
+        probe.emit(.changed)
         #expect(slot.isActive)
 
         observer.cancel()
@@ -134,55 +129,33 @@ struct RepositoryGuideObserverTests {
     }
 
     @Test
-    func repositoryBecomesNonEmptyTurnsGuideOff() async throws {
+    func repositoryBecomesNonEmptyTurnsGuideOff() {
         let probe = GuideLibraryProbe()
         let sceneProbe = GuideSceneProbe()
         let slot = makeSlot()
         let observer = RepositoryGuideObserver(slot: slot, library: probe, scene: sceneProbe)
 
-        probe.emit(.repositoryEmpty)
+        probe.isRepositoryEmpty = true
+        probe.emit(.changed)
         #expect(slot.isActive)
 
-        probe.totalCountValue = 1
+        probe.isRepositoryEmpty = false
         probe.emit(.changed)
-        try? await Task.sleep(nanoseconds: 50_000_000)
         #expect(!slot.isActive)
 
         observer.cancel()
     }
 
     @Test
-    func zeroCountAfterSyncRelightsGuide() async throws {
+    func unknownRepositoryKeepsGuideHidden() {
+        // 数据层没给出结论（仓库还没扫过）时，不该点亮引导。
         let probe = GuideLibraryProbe()
         let sceneProbe = GuideSceneProbe()
         let slot = makeSlot()
         let observer = RepositoryGuideObserver(slot: slot, library: probe, scene: sceneProbe)
 
-        probe.totalCountValue = 1
+        probe.isRepositoryEmpty = false
         probe.emit(.changed)
-        try? await Task.sleep(nanoseconds: 50_000_000)
-        #expect(!slot.isActive)
-
-        probe.totalCountValue = 0
-        probe.emit(.changed)
-        try? await Task.sleep(nanoseconds: 50_000_000)
-        #expect(slot.isActive)
-
-        observer.cancel()
-    }
-
-    @Test
-    func unavailableLibraryKeepsGuideStateUnchanged() async throws {
-        let probe = GuideLibraryProbe()
-        probe.isAvailable = false
-        let sceneProbe = GuideSceneProbe()
-        let slot = makeSlot()
-        let observer = RepositoryGuideObserver(slot: slot, library: probe, scene: sceneProbe)
-
-        probe.totalCountValue = 0
-        probe.emit(.changed)
-        try? await Task.sleep(nanoseconds: 50_000_000)
-        // Provider 未就绪时的 0 计数不代表「仓库为空」，不能误点亮引导。
         #expect(!slot.isActive)
 
         observer.cancel()
@@ -196,7 +169,27 @@ struct RepositoryGuideObserverTests {
         let slot = makeSlot()
         let observer = RepositoryGuideObserver(slot: slot, library: probe, scene: sceneProbe)
 
-        probe.emit(.repositoryEmpty)
+        probe.isRepositoryEmpty = true
+        probe.emit(.changed)
+        #expect(!slot.isActive)
+
+        observer.cancel()
+    }
+
+    @Test
+    func sceneChangeReevaluatesActivation() {
+        let probe = GuideLibraryProbe()
+        let sceneProbe = GuideSceneProbe()
+        let slot = makeSlot()
+        let observer = RepositoryGuideObserver(slot: slot, library: probe, scene: sceneProbe)
+
+        probe.isRepositoryEmpty = true
+        probe.emit(.changed)
+        #expect(slot.isActive)
+
+        // 切到有声书场景：引导必须熄灭。
+        sceneProbe.currentScene = .audiobooks
+        sceneProbe.emit(.selectionChanged(scene: .audiobooks))
         #expect(!slot.isActive)
 
         observer.cancel()

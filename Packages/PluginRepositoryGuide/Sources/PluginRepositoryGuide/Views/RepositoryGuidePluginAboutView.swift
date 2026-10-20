@@ -22,7 +22,7 @@ struct RepositoryGuidePluginAboutView: View {
             LandingSection(title: String(localized: "Core Capabilities", bundle: .module), icon: "sparkles") {
                 LandingFeatureGrid(items: [
                     .init(icon: "music.note", tint: theme.primary, title: String(localized: "Empty Repository", bundle: .module), description: String(localized: "Appears only when the repository is empty.", bundle: .module)),
-                    .init(icon: "ellipsis", tint: theme.info, title: String(localized: "Repository Access", bundle: .module), description: String(localized: "Points at the ⋯ button that opens the repository.", bundle: .module)),
+                    .init(icon: "app.badge", tint: theme.info, title: String(localized: "Brand Header", bundle: .module), description: String(localized: "Shows the app icon and a welcome line where the album cover would be.", bundle: .module)),
                 ], minColumnWidth: 180)
             }
             .landingAppear(delay: 0.05)
