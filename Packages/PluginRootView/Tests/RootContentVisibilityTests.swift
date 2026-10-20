@@ -3,7 +3,7 @@ import Testing
 @testable import PluginRootView
 
 /// 复现并锁定 p4.4.3 iOS「打开后音乐库被隐藏、只剩浮在中央的空播放器」的根因：
-/// `CisumRootLayoutView.handleGeometryChange` 里的「窗口变矮就收起副栏」规则本是
+/// `RootLayoutView.handleGeometryChange` 里的「窗口变矮就收起副栏」规则本是
 /// macOS 桌面行为，却未做平台隔离，导致 iOS 启动/旋转期间根视图瞬时上报的小高度
 /// 把内容区永久收起（且无自动恢复路径）。
 ///

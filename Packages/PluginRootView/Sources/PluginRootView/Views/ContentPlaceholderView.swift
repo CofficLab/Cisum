@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct CisumContentPlaceholderView: View {
+struct ContentPlaceholderView: View {
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: "music.note.list")

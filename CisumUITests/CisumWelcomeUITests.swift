@@ -168,7 +168,7 @@ final class CisumWelcomeUITests: CisumUITestBase {
     /// [R8] 选择媒体存储位置界面**不应出现顶部工具栏**。
     ///
     /// 复现的缺陷：引导（`cisum.welcome.storage.setup`）只是覆盖在根视图之上的
-    /// overlay，而顶部工具栏由内层 `CisumRootLayoutView.toolbar` 无条件贡献，
+    /// overlay，而顶部工具栏由内层 `RootLayoutView.toolbar` 无条件贡献，
     /// 于是首启选择存储位置时窗口顶部依然挂着设置按钮、场景切换器等功能入口。
     ///
     /// 分两层断言：
