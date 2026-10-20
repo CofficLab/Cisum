@@ -41,7 +41,7 @@ struct FactoryCisumTests {
     @Test
     func mainViewAssemblyInjectsControlAndContentProviders() throws {
         let kernel = KernelCoreContainer()
-        let root = CisumRootViewProvider(kernel: kernel)
+        let root = RootViewProvider(kernel: kernel)
         let control = DefaultControlViewProvider()
         let content = DefaultContentViewProvider()
         try kernel.registerProvider((any RootViewProviding).self, root)

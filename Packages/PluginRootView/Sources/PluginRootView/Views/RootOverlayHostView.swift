@@ -4,14 +4,14 @@ import SwiftUI
 
 /// Observes overlay contributions and rebuilds their wrapper chain.
 @MainActor
-struct CisumRootOverlayHostView: View {
-    @ObservedObject var provider: CisumRootViewProvider
+struct RootOverlayHostView: View {
+    @ObservedObject var provider: RootViewProvider
     let kernel: KernelCoreContainer
     @State private var revision = 0
     @State private var observer: (any RootViewObserverHandle)?
 
     var body: some View {
-        var root = AnyView(CisumRootLayoutView(provider: provider, kernel: kernel))
+        var root = AnyView(RootLayoutView(provider: provider, kernel: kernel))
         for overlay in provider.overlays {
             root = overlay.wrap(root)
         }

@@ -4,7 +4,7 @@ import SwiftUI
 
 /// Uses LumiProviders' shared root-view state with Cisum's own player layout.
 @MainActor
-public final class CisumRootViewProvider: DefaultRootViewProviding {
+public final class RootViewProvider: DefaultRootViewProviding {
     private weak var kernel: KernelCoreContainer?
 
     public init(kernel: KernelCoreContainer) {
@@ -14,6 +14,6 @@ public final class CisumRootViewProvider: DefaultRootViewProviding {
 
     public override func makeRootView() -> AnyView {
         guard let kernel else { return AnyView(EmptyView()) }
-        return AnyView(CisumRootOverlayHostView(provider: self, kernel: kernel))
+        return AnyView(RootOverlayHostView(provider: self, kernel: kernel))
     }
 }

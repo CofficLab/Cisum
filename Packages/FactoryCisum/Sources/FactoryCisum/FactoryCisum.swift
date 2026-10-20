@@ -88,7 +88,7 @@ public enum CisumBuilder: SuperLog {
         // RootView provider is installed through the same plugin lifecycle as
         // Lumi. Keep it ahead of feature plugins so overlays can resolve it
         // during their own boot phase.
-        let plugins: [any SuperPlugin] = [CisumRootViewPlugin()] + factory.makePlugins()
+        let plugins: [any SuperPlugin] = [RootViewPlugin()] + factory.makePlugins()
 
         // 2. 注册基础设施 Provider
         let appState = BasicAppStateService()
@@ -117,7 +117,7 @@ public enum CisumBuilder: SuperLog {
         try kernel.registerProvider((any ToastProviding).self, defaultToast)
 
         // Other view providers are infrastructure. RootViewProviding itself is
-        // owned by CisumRootViewPlugin and registered through plugin lifecycle.
+        // owned by RootViewPlugin and registered through plugin lifecycle.
         try registerViewProviders(into: kernel)
 
         // 设置契约：由远程 LumiSettings 提供；PluginSettingView 外壳插件随后

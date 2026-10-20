@@ -3,7 +3,7 @@ import SwiftUI
 
 /// 根布局状态容器：插件贡献区（工具栏 / 状态区）与播放封面呈现态。
 @MainActor
-final class CisumRootLayoutViewModel: ObservableObject {
+final class RootLayoutViewModel: ObservableObject {
     /// 插件贡献能力（Capabilities 目录收窄）。
     ///
     /// **强持有**：贡献能力由 View 在创建本容器时组装，本容器是它唯一的所有者

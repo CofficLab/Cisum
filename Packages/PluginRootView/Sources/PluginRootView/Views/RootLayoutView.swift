@@ -10,22 +10,22 @@ import os
 private let cisumDebugLogger = Logger(subsystem: "com.coffic.cisum", category: "root-layout-debug")
 
 @MainActor
-struct CisumRootLayoutView: View {
-    @ObservedObject var provider: CisumRootViewProvider
+struct RootLayoutView: View {
+    @ObservedObject var provider: RootViewProvider
     @ObservedObject private var themeRegistry = LumiUIThemeRegistry.shared
-    @StateObject private var viewModel: CisumRootLayoutViewModel
+    @StateObject private var viewModel: RootLayoutViewModel
     @State private var isDetailVisible: Bool
     @State private var rememberedHeight: CGFloat = 0
     @State private var autoResizing = false
     let kernel: KernelCoreContainer
 
-    init(provider: CisumRootViewProvider, kernel: KernelCoreContainer) {
+    init(provider: RootViewProvider, kernel: KernelCoreContainer) {
         self.provider = provider
         self.kernel = kernel
         // 只在此解析基础设施 Provider（createKernel 早期注册）；
         // 播放/场景/仓库 Provider 由插件注册，必须等内核启动完成后再绑定
         //（见 viewModel.attach），否则贡献聚合期间 resolveProvider 会卡死。
-        _viewModel = StateObject(wrappedValue: CisumRootLayoutViewModel(
+        _viewModel = StateObject(wrappedValue: RootLayoutViewModel(
             contributions: RootContributionCapabilityAdapter(
                 plugins: kernel.resolveProvider((any PluginProviding).self)
             )
@@ -103,7 +103,7 @@ struct CisumRootLayoutView: View {
         if let controlView = provider.controlView {
             controlView
         } else {
-            CisumContentPlaceholderView()
+            ContentPlaceholderView()
         }
     }
 
@@ -112,7 +112,7 @@ struct CisumRootLayoutView: View {
         if let contentView = provider.contentView {
             contentView
         } else {
-            CisumContentPlaceholderView()
+            ContentPlaceholderView()
         }
     }
 

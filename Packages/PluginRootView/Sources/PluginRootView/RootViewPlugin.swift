@@ -3,7 +3,7 @@ import ProviderRootView
 
 /// Registers Cisum's player root provider through the Kernel plugin lifecycle.
 @MainActor
-public final class CisumRootViewPlugin: SuperPlugin {
+public final class RootViewPlugin: SuperPlugin {
     public static let pluginID = "com.coffic.cisum.plugin.root-view"
 
     public let id = "com.coffic.cisum.plugin.root-view"
@@ -17,14 +17,18 @@ public final class CisumRootViewPlugin: SuperPlugin {
         policy: .alwaysOn
     )
 
-    private var provider: CisumRootViewProvider?
+    private var provider: RootViewProvider?
 
     public init() {}
 
     public func onBoot(kernel: KernelCoreContainer) throws {
-        let provider = CisumRootViewProvider(kernel: kernel)
+        // Create the provider bound to this kernel instance.
+        let provider = RootViewProvider(kernel: kernel)
+        // Remove any previously registered root view provider to avoid a duplicate registration error.
         kernel.unregisterProvider((any RootViewProviding).self)
+        // Publish the provider so the app can resolve the Cisum player layout.
         try kernel.registerProvider((any RootViewProviding).self, provider)
+        // Keep a strong reference; the plugin owns the provider's lifetime and releases it on shutdown.
         self.provider = provider
     }
 
