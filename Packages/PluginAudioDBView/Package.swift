@@ -16,6 +16,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
+        .package(path: "../KitAudioRepositoryImport"),
         .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.0.1"),
         .package(url: "https://github.com/CofficLab/LumiUI", from: "1.8.0"),
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
@@ -34,6 +35,7 @@ let package = Package(
             name: "PluginAudioDBView",
             dependencies: [
                 .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "KitAudioRepositoryImport", package: "KitAudioRepositoryImport"),
                 .product(name: "LumiUI", package: "LumiUI"),
                 .product(name: "ProviderSettingView", package: "LumiSettings"),
                 .product(name: "KernelCore", package: "LumiKernel"),
@@ -63,6 +65,7 @@ let package = Package(
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
+                .product(name: "KitAudioRepositoryImport", package: "KitAudioRepositoryImport"),
             ],
             path: "Tests"
         )

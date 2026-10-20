@@ -1,7 +1,6 @@
 import ProviderAppState
 import ProviderAudioLibrary
 import ProviderCloudDownload
-import ProviderControlView
 import ProviderScene
 import ProviderDocsView
 import ProviderPlayback
@@ -59,12 +58,6 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
 
     /// 导入控制器：仓库视图的拖放与文件选择器共用同一套导入流程。
     nonisolated(unsafe) private var importer: AudioRepositoryImporter?
-
-    /// 空仓库引导插槽（顶部引导视图），注入播放控制区。
-    nonisolated(unsafe) private var guideSlot: ControlGuideSlot?
-
-    /// 引导激活态观察者：仓库变空时点亮引导，变非空时熄灭。
-    nonisolated(unsafe) private var guideObserver: AudioRepositoryGuideObserver?
 
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
@@ -371,39 +364,6 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
         }
 
         _ = resolveSceneState()
-
-        installGuideSlot(kernel: kernel)
-    }
-
-    /// 装配「空仓库引导」：顶部引导视图，注入播放控制区。
-    ///
-    /// 引导只在**仓库为空**时激活；激活态由 `AudioRepositoryGuideObserver`
-    /// 依据仓库事件驱动——引导视图自己不知道业务状态，只负责把话说清楚。
-    ///
-    /// 插槽实例在插件生命周期内保持同一份：控制区在装配时按值捕获插槽，
-    /// 换实例会让已渲染的控制区失去引导。
-    @MainActor
-    private func installGuideSlot(kernel: KernelCoreContainer) {
-        if guideSlot == nil {
-            let slot = ControlGuideSlot(
-                guideView: AnyView(
-                    AudioRepositoryGuideView(importer: resolveImporter())
-                )
-            )
-            guideSlot = slot
-            kernel.resolveProvider((any ControlViewProviding).self)?.setGuideSlot(slot)
-        }
-
-        if guideObserver == nil, let guideSlot {
-            // 场景能力由 resolveSceneState 一并创建（幂等）。
-            _ = resolveSceneState()
-            guard let sceneCapability else { return }
-            guideObserver = AudioRepositoryGuideObserver(
-                slot: guideSlot,
-                library: makeLibraryCapability(),
-                scene: sceneCapability
-            )
-        }
     }
 
     /// 导入控制器（幂等）：仓库视图的拖放与文件选择器共用同一实例，导入行为保持一致。
@@ -451,10 +411,6 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
         playback = nil
         toast = nil
         settingPlayback = nil
-        guideObserver?.cancel()
-        guideObserver = nil
-        guideSlot?.isActive = false
-        guideSlot = nil
         importer = nil
     }
 

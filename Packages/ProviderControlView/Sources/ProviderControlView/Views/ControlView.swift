@@ -16,17 +16,51 @@ struct ControlView: View {
     var progressView: AnyView? = nil
     var controlButtonsView: AnyView? = nil
     var rightAlbumView: AnyView? = nil
+    /// 空仓库引导插槽（顶部引导视图）。
+    var guideSlot: ControlGuideSlot? = nil
+    /// 引导插槽的观察者：激活态变化时控制区需要重新排布（引导占顶部、控件沉底）。
+    @ObservedObject private var observedGuideSlot: ControlGuideSlot
     /// 播放器区呈现状态：由 PluginPlaybackHero 的 Observer 驱动（事件直达），
     /// 不再经 preference 自底向上传递（该链路会停留在默认值，收起断言恒失败）。
     @ObservedObject private var heroVisibility = ControlHeroVisibility.shared
 
     private var isHeroVisible: Bool { heroVisibility.isVisible }
 
+    @MainActor
+    init(
+        stateViews: @escaping @MainActor () -> [AnyView],
+        stateMessage: @escaping @MainActor () -> String,
+        isDemoMode: Bool,
+        heroView: AnyView? = nil,
+        stateView: AnyView? = nil,
+        progressView: AnyView? = nil,
+        controlButtonsView: AnyView? = nil,
+        rightAlbumView: AnyView? = nil,
+        guideSlot: ControlGuideSlot? = nil
+    ) {
+        self.stateViews = stateViews
+        self.stateMessage = stateMessage
+        self.isDemoMode = isDemoMode
+        self.heroView = heroView
+        self.stateView = stateView
+        self.progressView = progressView
+        self.controlButtonsView = controlButtonsView
+        self.rightAlbumView = rightAlbumView
+        self.guideSlot = guideSlot
+        _observedGuideSlot = ObservedObject(wrappedValue: guideSlot ?? .inactive)
+    }
+
     var body: some View {
         GeometryReader { geometry in
+            let showsGuide = shouldShowGuide(in: geometry)
+
             HStack(spacing: 0) {
                 VStack(spacing: 0) {
-                    if heroView != nil {
+                    if showsGuide {
+                        // 空仓库引导：占据顶部主要区域，把播放控件压到底部。
+                        guideArea
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if heroView != nil {
                         heroArea(for: geometry)
                             .frame(maxWidth: .infinity)
                             .frame(height: isHeroVisible ? heroHeight(for: geometry) : 0, alignment: .top)
@@ -68,6 +102,21 @@ struct ControlView: View {
             : AppResponsivePlayerLayoutMetrics.shared.emptyControlHeight)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cisum.player.controls")
+    }
+
+    /// 呈现空仓库引导的条件：插槽已激活、封面区未呈现、控制区高度足够。
+    ///
+    /// 封面区与引导互斥：仓库为空时不会存在「正在呈现封面」的状态，两者同时
+    /// 成立会让两者争抢剩余高度（引导要 `maxHeight: .infinity`，封面要固定高度）。
+    private func shouldShowGuide(in geometry: GeometryProxy) -> Bool {
+        guard observedGuideSlot.isActive else { return false }
+        guard !isHeroVisible else { return false }
+        return geometry.size.height >= Self.guideMinimumHeight
+    }
+
+    @ViewBuilder
+    private var guideArea: some View {
+        observedGuideSlot.guideView
     }
 
     @ViewBuilder
@@ -125,6 +174,13 @@ struct ControlView: View {
 
     private let progressContentHeight: CGFloat = 18
     private let progressVerticalPadding: CGFloat = 8
+
+    /// 呈现空仓库引导所需的最小控制区高度。
+    ///
+    /// 内容区展开时控制区只有 150pt（`emptyControlHeight`），塞不下引导面板；
+    /// 此时保持原样——引导不出现，播放控件照常呈现。只有仓库视图收起、
+    /// 控制区占满窗口时，顶部才有足够空间承载引导。
+    static let guideMinimumHeight: CGFloat = 320
 
     private func shouldShowRightAlbum(_ geometry: GeometryProxy) -> Bool {
         AppResponsivePlayerLayoutMetrics.shared.shouldShowSecondaryColumn(width: geometry.size.width)

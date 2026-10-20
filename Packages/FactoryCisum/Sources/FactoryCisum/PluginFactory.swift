@@ -31,6 +31,7 @@ import PluginPlayBack
 import PluginPlaybackHero
 import PluginPluginManager
 import PluginPlaybackProgress
+import PluginRepositoryGuide
 import PluginReset
 import PluginScene
 import PluginSettingGeneral
@@ -119,6 +120,7 @@ public struct DefaultPluginFactory: PluginFactory {
             PlaybackHeroPlugin.shared,
             AudioControlButtonsPlugin.shared,
             PlaybackProgressPlugin.shared,
+            RepositoryGuidePlugin.shared,
             WelcomePlugin.shared,
         ] as [any SuperPlugin])
 

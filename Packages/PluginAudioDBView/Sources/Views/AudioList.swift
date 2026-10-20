@@ -1,5 +1,6 @@
 import MagicKit
 import LumiUI
+import KitAudioRepositoryImport
 import OSLog
 import SwiftData
 import SwiftUI
@@ -7,23 +8,7 @@ import ProviderAudioLibrary
 
 enum AudioListFileIdentity {
     static func canonicalIdentity(for url: URL) -> String {
-        guard url.isFileURL else {
-            return url.standardized.absoluteString
-        }
-
-        if isDanglingSymlink(url) {
-            return url.standardizedFileURL.path
-        }
-
-        return url.resolvingSymlinksInPath().standardizedFileURL.path
-    }
-
-    private static func isDanglingSymlink(_ url: URL) -> Bool {
-        guard (try? url.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink) == true else {
-            return false
-        }
-
-        return !FileManager.default.fileExists(atPath: url.path)
+        AudioRepositoryFileIdentity.canonicalIdentity(for: url)
     }
 }
 
