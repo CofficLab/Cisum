@@ -16,7 +16,7 @@ struct RepositoryGuidePluginManualView: View {
             ManualSectionHeader(number: 2, title: String(localized: "Core Capabilities", bundle: .module))
             ManualBulletList(items: [
                 .init(String(localized: "Empty Repository: the guide appears only when the repository is confirmed empty.", bundle: .module)),
-                .init(String(localized: "Drop To Import: dropped music files are copied into the repository and indexed.", bundle: .module)),
+                .init(String(localized: "Repository Access: the guide points at the ⋯ button that opens the repository view.", bundle: .module)),
             ])
 
             ManualSectionHeader(number: 3, title: String(localized: "Notes", bundle: .module))

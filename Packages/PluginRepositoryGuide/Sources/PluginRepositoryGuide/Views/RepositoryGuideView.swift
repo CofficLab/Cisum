@@ -1,36 +1,29 @@
 import LumiUI
 import SwiftUI
-import UniformTypeIdentifiers
 
 /// 空仓库引导面板。
 ///
 /// 呈现时机：仓库为空、且仓库视图收起（控制区占满窗口）时，出现在窗口顶部
-/// 主要区域。只讲「怎么开始」——品牌区 + 一个醒目的拖放框；怎么打开仓库目录、
-/// 怎么用「添加」导入属于操作说明，交给各处已有的入口，不在这里重复。
+/// 主要区域。
 ///
-/// 拖放目标：窗口任意位置都可拖入，本面板把拖放区显式画出来，让新用户知道
-/// 「拖到这里」是可行的。
+/// 引导只做一件事：告诉用户**仓库视图在哪**——控制按钮组最左边那颗「⋯」
+/// 就是展开/收起仓库视图的开关，引导面板就贴在它上方。
+///
+/// **刻意不提示拖放**：拖放是仓库视图的能力。在引导里教「把文件拖进来」，
+/// 会让用户以为引导面板能接文件，反而不知道真正的拖放入口在仓库视图里。
 struct RepositoryGuideView: View {
     @LumiTheme private var appTheme
-    @ObservedObject private var importer: RepositoryGuideImporter
-
-    init(importer: RepositoryGuideImporter) {
-        self._importer = ObservedObject(wrappedValue: importer)
-    }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                header
-                dropZone
-            }
-            .padding(.horizontal, 22)
-            .padding(.top, 10)
-            .padding(.bottom, 14)
-            .frame(maxWidth: .infinity)
+        VStack(spacing: 16) {
+            header
+            Spacer(minLength: 0)
+            repositoryHint
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .scrollIndicators(.never)
+        .padding(.horizontal, 22)
+        .padding(.top, 10)
+        .padding(.bottom, 14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - 区块
@@ -51,7 +44,7 @@ struct RepositoryGuideView: View {
                 .font(.system(size: 19, weight: .bold))
                 .foregroundStyle(appTheme.textPrimary)
 
-            Text(String(localized: "Put your music in the repository, and Cisum takes it from there", bundle: .module))
+            Text(String(localized: "Put your music in the repository", bundle: .module))
                 .font(.system(size: 12.5))
                 .foregroundStyle(appTheme.textSecondary)
                 .multilineTextAlignment(.center)
@@ -60,39 +53,36 @@ struct RepositoryGuideView: View {
         .frame(maxWidth: .infinity)
     }
 
-    private var dropZone: some View {
-        VStack(spacing: 7) {
-            Image(systemName: "tray.and.arrow.down")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(appTheme.primary)
-                .frame(width: 34, height: 34)
-                .background(Circle().fill(appTheme.primary.opacity(0.12)))
+    /// 指向控制按钮组里的「⋯」按钮——它按下就会展开仓库视图。
+    private var repositoryHint: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "chevron.down")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(appTheme.textTertiary)
 
-            Text(String(localized: "Drop music files here", bundle: .module))
-                .font(.system(size: 13.5, weight: .semibold))
-                .foregroundStyle(appTheme.textPrimary)
+            // 和控制按钮组里那颗「⋯」长得一模一样，方便用户一眼对上。
+            Image(systemName: "ellipsis")
+                .font(.system(size: 19, weight: .semibold))
+                .foregroundStyle(appTheme.textSecondary)
+                .frame(width: 40, height: 40)
+                .background(Circle().fill(DesignTokens.Material.glassUltra))
+                .overlay(
+                    Circle()
+                        .stroke(appTheme.textSecondary.opacity(0.12), lineWidth: 1)
+                )
+                .shadow(
+                    color: DesignTokens.Shadow.subtle,
+                    radius: 4,
+                    y: 1
+                )
 
-            Text(String(localized: "You can also drop them anywhere in the window", bundle: .module))
-                .font(.system(size: 11.5))
+            Text(String(localized: "Tap the ⋯ button below to open the repository", bundle: .module))
+                .font(.system(size: 13))
                 .foregroundStyle(appTheme.textSecondary)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
-        .padding(.horizontal, 12)
-        .background {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(appTheme.surface.opacity(importer.isDropping ? 0.75 : 0.42))
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(
-                    appTheme.primary.opacity(importer.isDropping ? 0.7 : 0.3),
-                    style: StrokeStyle(lineWidth: 1.5, dash: [6, 4])
-                )
-        }
-        .contentShape(Rectangle())
-        .onDrop(of: [UTType.fileURL], isTargeted: $importer.isDropping, perform: importer.handleDrop)
-        .accessibilityIdentifier("cisum.repository.guide.dropzone")
+        .accessibilityIdentifier("cisum.repository.guide.hint")
     }
 }

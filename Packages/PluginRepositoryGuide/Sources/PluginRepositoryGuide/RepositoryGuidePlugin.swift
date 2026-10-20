@@ -6,7 +6,6 @@ import ProviderControlView
 import ProviderDocsView
 import ProviderPlugin
 import ProviderScene
-import ProviderToast
 import SwiftUI
 
 /// 空仓库引导插件：仓库为空时，向播放控制区注入引导视图（`setGuideSlot`）。
@@ -39,16 +38,12 @@ public final class RepositoryGuidePlugin: AsyncSuperPlugin, SuperLog {
     /// 否则能力会随装配调用返回而释放。
     nonisolated(unsafe) private var libraryCapability: GuideLibraryCapabilityAdapter?
     nonisolated(unsafe) private var sceneCapability: GuideSceneCapabilityAdapter?
-    nonisolated(unsafe) private var toastCapability: GuideToastCapabilityAdapter?
 
     /// 引导插槽（顶部引导视图），注入播放控制区。
     ///
     /// 插槽实例在插件生命周期内保持同一份：控制区在装配时按值捕获插槽，
     /// 换实例会让已渲染的控制区失去引导。
     nonisolated(unsafe) private var guideSlot: ControlGuideSlot?
-
-    /// 导入控制器：引导里的拖放导入与仓库视图共用同一套机械流程。
-    nonisolated(unsafe) private var importer: RepositoryGuideImporter?
 
     /// 引导激活态观察者：仓库变空时点亮引导，变非空时熄灭。
     nonisolated(unsafe) private var guideObserver: RepositoryGuideObserver?
@@ -88,18 +83,11 @@ public final class RepositoryGuidePlugin: AsyncSuperPlugin, SuperLog {
         let scene = GuideSceneCapabilityAdapter(
             scene: kernel.resolveProvider((any SceneProviding).self)
         )
-        let toast = GuideToastCapabilityAdapter(
-            toast: kernel.resolveProvider((any ToastProviding).self)
-        )
         libraryCapability = library
         sceneCapability = scene
-        toastCapability = toast
-
-        let importer = RepositoryGuideImporter(library: library, toast: toast)
-        self.importer = importer
 
         let slot = ControlGuideSlot(
-            guideView: AnyView(RepositoryGuideView(importer: importer))
+            guideView: AnyView(RepositoryGuideView())
         )
         guideSlot = slot
         kernel.resolveProvider((any ControlViewProviding).self)?.setGuideSlot(slot)
@@ -118,9 +106,7 @@ public final class RepositoryGuidePlugin: AsyncSuperPlugin, SuperLog {
         guideObserver = nil
         guideSlot?.isActive = false
         guideSlot = nil
-        importer = nil
         libraryCapability = nil
         sceneCapability = nil
-        toastCapability = nil
     }
 }

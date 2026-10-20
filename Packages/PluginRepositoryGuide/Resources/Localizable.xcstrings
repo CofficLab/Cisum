@@ -85,93 +85,6 @@
         }
       }
     },
-    "Drop music files here" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Drop music files here"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "把音乐文件拖到这里"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "把音樂檔案拖到這裡"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "把音樂檔案拖到這裡"
-          }
-        }
-      }
-    },
-    "Drop music files onto the guide to import them." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Drop music files onto the guide to import them."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "把音乐文件拖到引导区即可导入。"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "把音樂檔案拖到引導區即可匯入。"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "把音樂檔案拖到引導區即可匯入。"
-          }
-        }
-      }
-    },
-    "Drop To Import" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Drop To Import"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "拖放导入"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "拖放匯入"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "拖放匯入"
-          }
-        }
-      }
-    },
-    "Drop To Import: dropped music files are copied into the repository and indexed." : {
-
-    },
     "Empty Repository" : {
       "localizations" : {
         "en" : {
@@ -201,116 +114,29 @@
       }
     },
     "Empty Repository: the guide appears only when the repository is confirmed empty." : {
-
-    },
-    "Import failed: %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Import failed: %@"
+            "value" : "Empty Repository: the guide appears only when the repository is confirmed empty."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "导入失败：%@"
+            "value" : "空仓库：只有仓库确认为空时，引导才会出现。"
           }
         },
         "zh-Hant-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "導入失敗：%@"
+            "value" : "空倉庫：只有倉庫確認為空時，引導才會出現。"
           }
         },
         "zh-Hant-TW" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "匯入失敗：%@"
-          }
-        }
-      }
-    },
-    "Import failed: audio repository is unavailable" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import failed: audio repository is unavailable"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导入失败：音频仓库不可用"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "導入失敗：音頻倉庫不可用"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "匯入失敗：音訊倉庫不可用"
-          }
-        }
-      }
-    },
-    "Import is already in progress" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import is already in progress"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在导入，请稍候"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在導入，請稍候"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在匯入，請稍候"
-          }
-        }
-      }
-    },
-    "No files were added" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No files were added"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有添加文件"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "沒有添加文件"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "沒有新增檔案"
+            "value" : "空倉庫：只有倉庫確認為空時，引導才會出現。"
           }
         }
       }
@@ -371,34 +197,6 @@
         }
       }
     },
-    "Permission to access the original file was denied" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permission to access the original file was denied"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有权限访问原始文件"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "沒有權限訪問原始文件"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "沒有許可權訪問原始檔案"
-          }
-        }
-      }
-    },
     "Plugin" : {
       "localizations" : {
         "en" : {
@@ -427,30 +225,114 @@
         }
       }
     },
-    "Put your music in the repository, and Cisum takes it from there" : {
+    "Points at the ⋯ button that opens the repository." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Put your music in the repository, and Cisum takes it from there"
+            "value" : "Points at the ⋯ button that opens the repository."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "把音乐放进仓库，剩下的交给 Cisum"
+            "value" : "指向展开仓库视图的「⋯」按钮。"
           }
         },
         "zh-Hant-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "把音樂放進倉庫，剩下的交給 Cisum"
+            "value" : "指向展開倉庫視圖的「⋯」按鈕。"
           }
         },
         "zh-Hant-TW" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "把音樂放進倉庫，剩下的交給 Cisum"
+            "value" : "指向展開倉庫視圖的「⋯」按鈕。"
+          }
+        }
+      }
+    },
+    "Put your music in the repository" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Put your music in the repository"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把音乐放进仓库"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把音樂放進倉庫"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把音樂放進倉庫"
+          }
+        }
+      }
+    },
+    "Repository Access" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repository Access"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找到仓库"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找到倉庫"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找到倉庫"
+          }
+        }
+      }
+    },
+    "Repository Access: the guide points at the ⋯ button that opens the repository view." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repository Access: the guide points at the ⋯ button that opens the repository view."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找到仓库：引导指向展开仓库视图的「⋯」按钮。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找到倉庫：引導指向展開倉庫視圖的「⋯」按鈕。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找到倉庫：引導指向展開倉庫視圖的「⋯」按鈕。"
           }
         }
       }
@@ -512,60 +394,29 @@
       }
     },
     "Shows a short guide at the top of the player control area when the repository is empty." : {
-
-    },
-    "Some dropped files could not be loaded" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Some dropped files could not be loaded"
+            "value" : "Shows a short guide at the top of the player control area when the repository is empty."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分拖放的文件无法加载"
+            "value" : "仓库为空时，在播放控制区顶部显示一段简短引导。"
           }
         },
         "zh-Hant-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分拖放的文件無法加載"
+            "value" : "倉庫為空時，在播放控制區頂部顯示一段簡短引導。"
           }
         },
         "zh-Hant-TW" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分拖放的檔案無法載入"
-          }
-        }
-      }
-    },
-    "Some files were skipped because they are not supported audio files" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Some files were skipped because they are not supported audio files"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "部分文件已跳过，因为它们不是受支持的音频文件"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "部分文件已跳過，因為它們不是受支持的音頻文件"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "部分檔案已跳過，因為它們不是受支援的音訊檔案"
+            "value" : "倉庫為空時，在播放控制區頂部顯示一段簡短引導。"
           }
         }
       }
@@ -598,39 +449,89 @@
         }
       }
     },
-    "Storage location is unavailable" : {
+    "Tap the ⋯ button below to open the repository" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Storage location is unavailable"
+            "value" : "Tap the ⋯ button below to open the repository"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "存储位置不可用"
+            "value" : "点下方的「⋯」打开音乐仓库"
           }
         },
         "zh-Hant-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "存儲位置不可用"
+            "value" : "點下方的「⋯」打開音樂倉庫"
           }
         },
         "zh-Hant-TW" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "儲存位置不可用"
+            "value" : "點下方的「⋯」打開音樂倉庫"
           }
         }
       }
     },
     "The guide is hidden once the repository has content." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The guide is hidden once the repository has content."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仓库里有内容之后，引导就会隐藏。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "倉庫裡有內容之後，引導就會隱藏。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "倉庫裡有內容之後，引導就會隱藏。"
+          }
+        }
+      }
     },
     "The guide is injected into the player control area via ControlViewProviding." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The guide is injected into the player control area via ControlViewProviding."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "引导通过 ControlViewProviding 注入播放控制区。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "引導透過 ControlViewProviding 注入播放控制區。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "引導透過 ControlViewProviding 注入播放控制區。"
+          }
+        }
+      }
     },
     "Type" : {
       "localizations" : {
@@ -684,34 +585,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "版本"
-          }
-        }
-      }
-    },
-    "You can also drop them anywhere in the window" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You can also drop them anywhere in the window"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "也可以直接拖到窗口的任意位置"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "也可以直接拖到視窗的任意位置"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "也可以直接拖到視窗的任意位置"
           }
         }
       }
