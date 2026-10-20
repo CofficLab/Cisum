@@ -1,46 +1,34 @@
-import Combine
 import MagicKit
 import OSLog
 import SwiftUI
 
 /// iCloud 下载进度环。
 ///
-/// **独立观察 `CloudDownloadProgressStore`，不参与 `AudioList` 对整行的
-/// `.equatable()` 短路**：`AudioItemView` 的相等判断只比较 `url`，因此任何经由
-/// `AudioListViewModel` 传入的进度都会被判为「无变化」而丢弃。本视图改为直接订阅
-/// 进度容器，绕开该短路。
+/// **取代封面显示进度，而不是叠在封面之上**：iCloud 文件在下载完成前本地并不存在，
+/// `AvatarView` 此时渲染的是错误态（红色感叹号），半透明的进度环压不住底下那层
+/// 红色，列表里就会出现「进度环 + 红色感叹号」这种自相矛盾的画面。改由
+/// `AudioItemAvatarView` 在下载期间**只**渲染本视图，下载完成后再让位给封面。
 ///
-/// 覆盖在头像之上：下载进行中时取代封面显示进度，完成后自动让位给封面。
+/// 进度值由调用方给出（`AudioItemAvatarView` 直接观察进度容器后传入），
+/// 因此本视图不再自行订阅，也不参与 `AudioList` 对整行的 `.equatable()` 短路。
 struct AudioDownloadProgressRing: View {
-    /// 进度状态源；直接观察它即可获得更新，无需父视图传值。
-    @ObservedObject private var store: CloudDownloadProgressStore
-    private let url: URL
-    private let size: CGSize
-    private let backgroundColor: Color
-
-    /// 当前进度；`nil` 表示该文件没有进行中的下载（此时不渲染任何内容）。
-    private var progress: Double? {
-        let value = store.progress(for: url) { 1 }
-        guard value > 0, value < 1 else { return nil }
-        return value
-    }
+    /// 下载进度，范围 `0...1`。
+    let progress: Double
+    let size: CGSize
+    let backgroundColor: Color
 
     init(
-        store: CloudDownloadProgressStore,
-        url: URL,
+        progress: Double,
         size: CGSize = CGSize(width: 40, height: 40),
         backgroundColor: Color = .blue.opacity(0.1)
     ) {
-        self.store = store
-        self.url = url
+        self.progress = progress
         self.size = size
         self.backgroundColor = backgroundColor
     }
 
     var body: some View {
-        if let progress {
-            ring(progress: progress)
-        }
+        ring(progress: progress)
     }
 
     private func ring(progress: Double) -> some View {

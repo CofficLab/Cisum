@@ -144,20 +144,23 @@
 | 101 | 行为 | Reload token does not double count repeated completion | P0 | ✅ 已覆盖 | `CloudDownloadProgressStoreTests.swift` | `reloadTokenDoesNotDoubleCountRepeatedCompletion` |
 | 102 | 行为 | Reload token allows repeat after eviction | P0 | ✅ 已覆盖 | `CloudDownloadProgressStoreTests.swift` | `reloadTokenAllowsRepeatAfterEviction` |
 | 103 | 观察者 | Progress change publishes to observers | P0 | ✅ 已覆盖 | `CloudDownloadProgressStoreTests.swift` | `progressChangePublishesToObservers` |
+| 104 | 行为 | 只有进行中的进度才渲染进度环 | P0 | ✅ 已覆盖 | `AudioItemAvatarPolicyTests.swift` | `activeProgressOnlyForInFlightDownloads` / `activeProgressIsNilWhenNotDownloading` / `activeProgressRejectsOutOfRangeValues` |
+| 105 | 行为 | 头像重建标记随下载完成次数变化 | P0 | ✅ 已覆盖 | `AudioItemAvatarPolicyTests.swift` | `avatarIdentityChangesWithReloadToken` |
 
 ## 覆盖率统计
 
-- P0: 55 / 55 ✅
+- P0: 57 / 57 ✅
 - P1: 45 / 45 ✅
 - P2: 3 / 3 ✅
 
-**总计: 103 / 103**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
+**总计: 105 / 105**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
 
 ## 测试文件
 
 - `AudioDBViewCoverageTests.swift` — 22 条用例
 - `AudioDBViewPluginSceneTests.swift` — 2 条用例
 - `AudioDBViewPluginTests.swift` — 56 条用例
+- `AudioItemAvatarPolicyTests.swift` — 4 条用例
 - `AudioLibrarySkeletonViewTests.swift` — 6 条用例
 - `AudioRepositoryUnavailablePolicyTests.swift` — 4 条用例
 - `CloudDownloadProgressStoreTests.swift` — 13 条用例

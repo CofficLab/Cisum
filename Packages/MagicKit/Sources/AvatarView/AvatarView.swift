@@ -78,18 +78,20 @@ public struct AvatarView: View, SuperLog {
         self.size = size
         self.verbose = verbose
 
-        // 计算初始错误状态
-        let initialError: ViewError? = {
-            if url.isFileURL && url.isNotFileExist {
-                return .fileNotFound
-            } else if !url.isFileURL && !url.isNetworkURL {
-                return .invalidURL
-            }
-            return nil
-        }()
-
         // 一次性初始化 StateObject，避免访问未安装的 property wrapper
-        _state = StateObject(wrappedValue: ViewState(error: initialError))
+        _state = StateObject(wrappedValue: ViewState(error: Self.initialError(for: url)))
+    }
+
+    /// 初判的错误状态。
+    ///
+    /// 只登记**无需 I/O 就能判定**的错误：URL 根本不是文件也不是网络地址。
+    ///
+    /// 「文件不存在」不能在这里下结论——iCloud 占位文件在下载完成前本地并不存在，
+    /// 但它并不是错误，缩略图生成器会把它解析成「云端未下载」图标。把占位文件
+    /// 判成错误会让红色感叹号压在任何下载态下面，真正的结论交给缩略图加载。
+    static func initialError(for url: URL) -> ViewError? {
+        guard !url.isFileURL, !url.isNetworkURL else { return nil }
+        return .invalidURL
     }
 
     // MARK: - Body
@@ -111,16 +113,18 @@ public struct AvatarView: View, SuperLog {
                     size: size,
                     backgroundColor: backgroundColor
                 )
-            } else if let error = state.error {
-                ErrorView(
-                    error: error,
-                    url: url,
+            } else if !state.isResolved {
+                // 结论未出（正在解析缩略图）：先给加载态，
+                // 不要把「初判的文件不存在」当成错误画成红色感叹号。
+                LoadingView(
                     shape: shape,
                     size: size,
                     backgroundColor: backgroundColor
                 )
-            } else if state.isLoading {
-                LoadingView(
+            } else if let error = state.error {
+                ErrorView(
+                    error: error,
+                    url: url,
                     shape: shape,
                     size: size,
                     backgroundColor: backgroundColor
@@ -166,10 +170,15 @@ extension AvatarView {
         // 使用后台任务队列
         await Task.detached(priority: .utility) { [hasThumbnail] in
             if hasThumbnail && capturedUrl.checkIsDownloaded() {
+                await capturedState.setResolved(true)
                 return
             }
 
             if capturedUrl.checkIsDownloading(verbose: false) {
+                // 下载中：文件还没落到本地，这是正常状态而不是错误。
+                // 撤掉错误状态，否则红色感叹号会叠在下载进度环上。
+                await capturedState.setError(nil)
+                await capturedState.setResolved(true)
                 return
             }
 
@@ -209,6 +218,7 @@ extension AvatarView {
             }
 
             await capturedState.setLoading(false)
+            await capturedState.setResolved(true)
         }.value
     }
 
@@ -272,10 +282,19 @@ extension AvatarView {
         // 下载进度监控
         await setupDownloadMonitor(verbose: self.verbose)
 
-        // 加载缩略图
-        if state.error == nil, state.thumbnail == nil {
+        // 加载缩略图：只要还没有封面就加载。
+        // 「文件不存在」不能作为跳过条件——iCloud 占位文件在下载完成前本地并不存在，
+        // 但它并不是错误；缩略图生成器会把它解析成「云端未下载」图标。
+        if state.thumbnail == nil, !Self.isPermanentFailure(state.error) {
             await loadThumbnail()
         }
+    }
+
+    /// URL 根本不是文件也不是网络地址时，缩略图无从生成，不必再试。
+    private static func isPermanentFailure(_ error: Error?) -> Bool {
+        guard let viewError = error as? ViewError else { return false }
+        if case .invalidURL = viewError { return true }
+        return false
     }
 
     /// 处理视图消失时的事件

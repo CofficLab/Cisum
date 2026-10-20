@@ -12,6 +12,13 @@ extension AvatarView {
         /// 错误状态
         @Published public var error: Error?
 
+        /// 是否已有结论（封面 / 云端未下载图标 / 确实出错）。
+        ///
+        /// 「文件不存在」只是初判：iCloud 占位文件在下载完成前本地并不存在，
+        /// 但它并不是错误——缩略图生成器能把它解析成「云端未下载」图标。
+        /// 没有这个标记，视图会在结论出来之前先把红色感叹号画出来。
+        @Published public var isResolved = false
+
         /// 加载状态
         @Published public var isLoading = false
 
@@ -33,6 +40,7 @@ extension AvatarView {
             isSystemIcon = false
             error = nil
             isLoading = false
+            isResolved = false
             autoDownloadProgress = 0
         }
 
@@ -44,6 +52,11 @@ extension AvatarView {
         /// 设置错误状态
         public func setError(_ error: Error?) {
             self.error = error
+        }
+
+        /// 标记已有结论：此后才允许渲染错误态。
+        public func setResolved(_ resolved: Bool) {
+            self.isResolved = resolved
         }
 
         /// 设置缩略图
