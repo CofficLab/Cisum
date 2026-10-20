@@ -82,8 +82,11 @@ struct CisumRootLayoutView: View {
                     provider.toolbarView ?? AnyView(EmptyView())
                 }
                 if !viewModel.toolbarButtons.isEmpty {
+                    // 这里不能放 Spacer()：iOS 26 起 ToolbarItemGroup 会把整组内容收进
+                    // 一颗 Liquid Glass 胶囊，组内的弹性 Spacer 会把胶囊撑宽、
+                    // 把按钮推到胶囊尾端，于是图标左边留下一段空白玻璃。
+                    // macOS 工具栏不需要它（按钮本就靠右），去掉对两端都无影响。
                     ToolbarItemGroup(placement: .cancellationAction) {
-                        Spacer()
                         ForEach(Array(viewModel.toolbarButtons.enumerated()), id: \.offset) { _, item in
                             item.view
                         }
