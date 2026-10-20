@@ -393,6 +393,62 @@
         }
       }
     },
+    "Empty Repository Guide" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empty Repository Guide"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空仓库引导"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空倉庫引導"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空倉庫引導"
+          }
+        }
+      }
+    },
+    "Empty Repository Guide: the More button carries a hint that points at the empty repository." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empty Repository Guide: the More button carries a hint that points at the empty repository."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空仓库引导：「更多」按钮自带提示，指向空着的仓库。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空倉庫引導：「更多」按鈕自帶提示，指向空著的倉庫。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空倉庫引導：「更多」按鈕自帶提示，指向空著的倉庫。"
+          }
+        }
+      }
+    },
     "Invalid audio URL" : {
       "localizations" : {
         "en" : {
@@ -445,6 +501,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "更多：顯示或隱藏根檢視的內容檢視。"
+          }
+        }
+      }
+    },
+    "Music repository is empty. Tap here to add music." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music repository is empty. Tap here to add music."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音乐仓库是空的，点这里添加音乐。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂倉庫是空的，按這裡加入音樂。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂倉庫是空的，按這裡加入音樂。"
           }
         }
       }
@@ -1061,6 +1145,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放器底部的控制按鈕組。"
+          }
+        }
+      }
+    },
+    "The More button shows a hint when the music repository is empty." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The More button shows a hint when the music repository is empty."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音乐仓库为空时，「更多」按钮会显示提示气泡。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂倉庫為空時，「更多」按鈕會顯示提示氣泡。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂倉庫為空時，「更多」按鈕會顯示提示氣泡。"
           }
         }
       }

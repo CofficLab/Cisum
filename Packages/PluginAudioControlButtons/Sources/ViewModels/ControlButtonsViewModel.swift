@@ -24,6 +24,11 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
     /// 图标变淡，叠加标题下方状态行被移除后完全看不出在下载。
     @Published private(set) var downloadProgress: Double?
     @Published private(set) var playMode: PlaybackMode = .sequence
+    /// 音乐仓库是否为空：为空时「⋯」按钮给出引导，提示用户去仓库添加音乐。
+    @Published private(set) var isRepositoryEmpty = false
+    /// 内容区（音乐仓库）当前是否可见：可见时不再显示引导——用户已经能看到
+    /// 仓库自己的空态页面。
+    @Published private(set) var isContentViewVisible = false
     /// 播放、导航与提示能力（Capabilities 目录收窄），`weak` 持有。
     private weak var playback: (any PlaybackControlCapability)?
     private weak var navigation: (any TrackNavigationCapability)?
@@ -61,6 +66,26 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
 
     var shouldActivateControl: Bool {
         currentScene == targetScene
+    }
+
+    /// 是否应该展示空仓库引导：仓库为空，且仓库视图还没有展开。
+    var shouldShowRepositoryGuidance: Bool {
+        isRepositoryEmpty && !isContentViewVisible
+    }
+
+    /// 接收仓库空/非空结论。
+    func applyRepositoryState(_ event: RepositoryStateEvent) {
+        switch event {
+        case .empty:
+            isRepositoryEmpty = true
+        case .filled:
+            isRepositoryEmpty = false
+        }
+    }
+
+    /// 接收内容区显隐变化。
+    func applyContentVisibility(_ visible: Bool) {
+        isContentViewVisible = visible
     }
 
     func applyStateChanged(_ state: PlaybackStatus) {

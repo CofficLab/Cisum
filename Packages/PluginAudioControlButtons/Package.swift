@@ -55,6 +55,8 @@ let package = Package(
             dependencies: [
                 "PluginAudioControlButtons",
                 .product(name: "ProviderAudioNavigation", package: "ProviderAudioNavigation"),
+                .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+                .product(name: "ProviderAppState", package: "ProviderAppState"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback")
             ],
             path: "Tests"

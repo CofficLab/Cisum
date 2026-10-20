@@ -24,6 +24,7 @@ struct PluginControlButtonsAboutView: View {
                     .init(icon: "backward.end.fill", tint: theme.primary, title: String(localized: "Track Switching", bundle: .module), description: String(localized: "Quickly switches between previous and next tracks.", bundle: .module)),
                     .init(icon: "playpause.fill", tint: theme.info, title: String(localized: "Playback Control", bundle: .module), description: String(localized: "Plays and pauses the current track.", bundle: .module)),
                     .init(icon: "repeat", tint: theme.success, title: String(localized: "Play Mode", bundle: .module), description: String(localized: "Cycles through sequential, repeat, and other modes.", bundle: .module)),
+                    .init(icon: "ellipsis", tint: theme.info, title: String(localized: "Empty Repository Guide", bundle: .module), description: String(localized: "The More button shows a hint when the music repository is empty.", bundle: .module)),
                 ], minColumnWidth: 180)
             }
             .landingAppear(delay: 0.05)

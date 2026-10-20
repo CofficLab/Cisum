@@ -19,6 +19,7 @@ struct PluginControlButtonsManualView: View {
                 .init(String(localized: "Playback Control: plays and pauses the current track.", bundle: .module)),
                 .init(String(localized: "Play Mode: switches between sequential, repeat, and other modes.", bundle: .module)),
                 .init(String(localized: "More: show or hide the content view of the root view.", bundle: .module)),
+                .init(String(localized: "Empty Repository Guide: the More button carries a hint that points at the empty repository.", bundle: .module)),
             ])
 
             ManualSectionHeader(number: 3, title: String(localized: "Basic Operations", bundle: .module))
