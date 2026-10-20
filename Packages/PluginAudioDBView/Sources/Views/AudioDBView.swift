@@ -65,7 +65,11 @@ public struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
             if isDemoMode {
                 EmptyView()
             } else {
-                AudioList(viewModel: listViewModel, dependencies: viewDependencies)
+                AudioList(
+                    viewModel: listViewModel,
+                    dependencies: viewDependencies,
+                    isDropping: importer.isDropping
+                )
             }
         }
         .overlay(alignment: .center) {

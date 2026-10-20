@@ -175,24 +175,27 @@ struct AudioList: View, SuperLog {
 
     @ObservedObject var viewModel: AudioListViewModel
     let dependencies: AudioDBDependencies
+    /// 是否正有文件被拖到仓库视图上方：用于高亮拖放目标。
+    var isDropping: Bool = false
     @LumiTheme private var appTheme
 
-    init(viewModel: AudioListViewModel, dependencies: AudioDBDependencies) {
+    init(viewModel: AudioListViewModel, dependencies: AudioDBDependencies, isDropping: Bool = false) {
         self._viewModel = ObservedObject(wrappedValue: viewModel)
         self.dependencies = dependencies
+        self.isDropping = isDropping
     }
 
     var body: some View {
         ZStack {
             if viewModel.isConfirmedRepositoryEmpty {
-                AudioDBTips(dependencies: dependencies, variant: .empty)
+                AudioDBTips(dependencies: dependencies, variant: .empty, isDropping: isDropping)
             } else {
                 audioListView
 
                 if viewModel.isLoading && viewModel.urls.isEmpty {
                     AudioLibrarySkeletonView()
                 } else if viewModel.urls.isEmpty && !viewModel.isLoading {
-                    AudioDBTips(dependencies: dependencies, variant: .empty)
+                    AudioDBTips(dependencies: dependencies, variant: .empty, isDropping: isDropping)
                 }
             }
         }
