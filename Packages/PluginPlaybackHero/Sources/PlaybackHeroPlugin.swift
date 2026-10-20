@@ -90,7 +90,7 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
                 viewModel: viewModel,
                 isDemoMode: kernel?.resolveProvider((any AppStateProviding).self)?.isDemoMode ?? false
             )
-            .appDebugBadge("Playback Cover", alignment: .topTrailing)
+            // .appDebugBadge("Playback Cover", alignment: .topTrailing)
         )
     }
 
@@ -101,7 +101,7 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
         guard let viewModel else { return nil }
         return AnyView(
             PlaybackHeroRightAlbumView(viewModel: viewModel)
-                .appDebugBadge("Right Album", alignment: .bottomLeading)
+                // .appDebugBadge("Right Album", alignment: .bottomLeading)
         )
     }
 

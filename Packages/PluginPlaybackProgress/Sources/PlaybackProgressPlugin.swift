@@ -83,7 +83,7 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
         guard let viewModel else { return nil }
         return AnyView(
             PlaybackProgressView(viewModel: viewModel)
-                .appDebugBadge("Progress Bar", alignment: .bottomLeading)
+                // .appDebugBadge("Progress Bar", alignment: .bottomLeading)
         )
     }
 

@@ -114,7 +114,7 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
         )
         let viewModel = resolveViewModel()
         let view = BookDBView(dependencies: dependencies, viewModel: viewModel)
-            .appDebugBadge("Audiobooks Library", alignment: .bottomLeading)
+            // .appDebugBadge("Audiobooks Library", alignment: .bottomLeading)
         return (AnyView(view), label)
     }
 

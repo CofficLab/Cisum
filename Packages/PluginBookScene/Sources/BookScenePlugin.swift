@@ -83,7 +83,7 @@ public final class BookScenePlugin: AsyncSuperPlugin, SuperLog {
     public func addPosterView() -> AnyView? {
         AnyView(
             BookScenePluginPosterView(setCurrentScene: setSceneAction ?? { _ in })
-                .appDebugBadge("Audiobooks", alignment: .bottomLeading)
+                // .appDebugBadge("Audiobooks", alignment: .bottomLeading)
         )
     }
 

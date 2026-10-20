@@ -145,7 +145,7 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
                 kernel.resolveProvider((any ContentViewVisibilityProviding).self)?
                     .toggleContentView()
             }
-            .appDebugBadge("Audio Controls", alignment: .bottomTrailing)
+            // .appDebugBadge("Audio Controls", alignment: .bottomTrailing)
         )
     }
 
