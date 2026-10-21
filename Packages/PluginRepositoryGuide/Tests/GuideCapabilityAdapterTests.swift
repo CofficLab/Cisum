@@ -16,6 +16,8 @@ struct GuideLibraryCapabilityAdapterTests {
     @MainActor
     private final class AudioLibraryStub: AudioLibraryProviding {
         var isRepositoryEmpty = true
+        /// 已建立的观察者数量——用于确定性地判断「适配器是否补上了订阅」。
+        private(set) var observerCount = 0
         private var observers: [UUID: (AudioLibraryProvidingEvent) -> Void] = [:]
 
         var audioDisk: URL? { nil }
@@ -37,6 +39,7 @@ struct GuideLibraryCapabilityAdapterTests {
         ) -> any AudioLibraryProvidingObserverHandle {
             let id = UUID()
             observers[id] = callback
+            observerCount += 1
             return StubAudioLibraryHandle { [weak self] in
                 self?.observers.removeValue(forKey: id)
             }
@@ -61,17 +64,40 @@ struct GuideLibraryCapabilityAdapterTests {
         }
     }
 
-    /// 装 Provider 的盒子：让解析闭包能在不重建适配器的前提下换掉 Provider。
+    /// 装 Provider 的盒子：让解析闭包能在不重建适配器的前提下换掉 Provider，
+    /// 同时记录解析次数——用于确定性地等待「重试已用尽」而不是靠猜时长。
     @MainActor
     private final class LibraryBox {
         var library: AudioLibraryStub?
+        private(set) var resolveCount = 0
+
+        func resolve() -> AudioLibraryStub? {
+            resolveCount += 1
+            return library
+        }
+    }
+
+    /// 等待条件成立。
+    ///
+    /// 适配器的补订阅重试按固定间隔在主 actor 上排队，投递时刻受负载影响；
+    /// 这里轮询直到条件成立或超时，避免用固定 sleep 造成偶发失败。
+    private func waitUntil(
+        timeout: TimeInterval = 10,
+        _ condition: @MainActor () -> Bool
+    ) async throws -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if condition() { return true }
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        return condition()
     }
 
     /// 「是否为空」必须每次都重新解析 Provider：数据层稍后就绪时结论要立刻生效。
     @Test
     func repositoryEmptinessIsResolvedOnEveryRead() {
         let box = LibraryBox()
-        let adapter = GuideLibraryCapabilityAdapter { box.library }
+        let adapter = GuideLibraryCapabilityAdapter { box.resolve() }
 
         // Provider 未就绪时不能断言「空」——那是「还不知道」。
         #expect(!adapter.isRepositoryEmpty)
@@ -114,7 +140,7 @@ struct GuideLibraryCapabilityAdapterTests {
     @Test
     func pendingObserverIsSubscribedWhenProviderAppearsLater() async throws {
         let box = LibraryBox()
-        let adapter = GuideLibraryCapabilityAdapter { box.library }
+        let adapter = GuideLibraryCapabilityAdapter { box.resolve() }
 
         var changes = 0
         let handle = adapter.addObserver { _ in changes += 1 }
@@ -123,8 +149,9 @@ struct GuideLibraryCapabilityAdapterTests {
         let library = AudioLibraryStub()
         box.library = library
 
-        // 等待适配器的补订阅重试（间隔 200ms）跑完。
-        try await Task.sleep(nanoseconds: 400_000_000)
+        // 等到适配器真的把待订阅回调接到 Provider 上。
+        let subscribed = try await waitUntil { library.observerCount > 0 }
+        #expect(subscribed)
 
         library.send(.synced(totalCount: 0))
         #expect(changes == 1)
@@ -135,7 +162,7 @@ struct GuideLibraryCapabilityAdapterTests {
     @Test
     func cancelledPendingObserverIsNeverSubscribed() async throws {
         let box = LibraryBox()
-        let adapter = GuideLibraryCapabilityAdapter { box.library }
+        let adapter = GuideLibraryCapabilityAdapter { box.resolve() }
 
         var changes = 0
         let handle = adapter.addObserver { _ in changes += 1 }
@@ -143,24 +170,29 @@ struct GuideLibraryCapabilityAdapterTests {
 
         let library = AudioLibraryStub()
         box.library = library
+        // 等待重试轮次走过（取消后重试会因「没有待订阅回调」提前结束，
+        // 因此这里只需等一小段时间确认没有补订阅发生）。
         try await Task.sleep(nanoseconds: 400_000_000)
 
         library.send(.synced(totalCount: 0))
         #expect(changes == 0)
+        #expect(library.observerCount == 0)
     }
 
     /// 重试次数用尽后仍然不补订阅：Provider 始终不就绪时，待订阅回调就一直待着。
     ///
-    /// 适配器最多重试 10 次、每次间隔 200ms，因此这里等待超过 2s 让重试走完。
+    /// 适配器最多重试 10 次；`resolveCount` 记录解析次数——初次解析 1 次 +
+    /// 重试 10 次 = 11 次，第 11 次解析之后重试循环才真正走完。
     @Test
     func pendingObserverStaysPendingAfterRetriesAreExhausted() async throws {
         let box = LibraryBox()
-        let adapter = GuideLibraryCapabilityAdapter { box.library }
+        let adapter = GuideLibraryCapabilityAdapter { box.resolve() }
 
         var changes = 0
         let handle = adapter.addObserver { _ in changes += 1 }
 
-        try await Task.sleep(nanoseconds: 3_000_000_000)
+        let exhausted = try await waitUntil { box.resolveCount >= 11 }
+        #expect(exhausted)
 
         // 重试已经用尽：此后 Provider 才出现也不会再补订阅。
         let library = AudioLibraryStub()
@@ -168,6 +200,7 @@ struct GuideLibraryCapabilityAdapterTests {
         library.send(.synced(totalCount: 0))
 
         #expect(changes == 0)
+        #expect(library.observerCount == 0)
         handle.cancel()
     }
 }
