@@ -57,4 +57,12 @@ final class PlaybackHeroViewModel: ObservableObject, SuperLog {
     func localizedStateText() -> String {
         media?.localizedStateText(for: state) ?? String(describing: state)
     }
+
+    /// 下载态的纯文案标签（不含百分比）。
+    ///
+    /// Hero 圆环中心已单独显示百分比，底部小字只保留「正在下载」，
+    /// 避免同一屏出现两个百分比。
+    func localizedDownloadingLabel() -> String {
+        media?.localizedDownloadingLabel() ?? HeroFallbackText.downloading
+    }
 }

@@ -36,6 +36,7 @@ ProviderPlayback 定义播放服务能力契约:播放状态、快照、导航�
 | 7 | 协议 | 协议默认扩展构建 snapshot 并转发定时播放 | 实现必需成员的替身 | 读 snapshot,调 `play(_:startTime:)`/`reset` | snapshot 字段与替身一致;定时播放回落到 `play(_:)` | P0 | ✅ 已覆盖 | `providerDefaultsBuildSnapshotAndForwardTimedPlay` |
 | 8 | 事件 | 各 `PlaybackProvidingEvent` case 承载正确负载 | 具体实现 | 触发 `stateChanged`/`timeChanged`/`likeStatusChanged` 等 | 事件字段与操作一致 | P1 | ❌ 缺失 | - |
 | 9 | 能力 | `PlaybackMediaProviding` 返回媒体视图与本地化状态文本 | 具体实现 | 调 `makeMediaView`/`localizedStateText` | 返回非空视图与文案 | P2 | ❌ 缺失 | - |
+| 10 | 能力 | `PlaybackMediaProviding` 的下载标签默认实现剥离尾部百分比 | 状态文案为「正在下载 14%」的替身 | 调 `localizedDownloadingLabel` | 返回「正在下载」,不含 `%` | P1 | ✅ 已覆盖 | `downloadingLabelStripsTrailingPercentage` |
 
 > 说明:`PlaybackProvidingEvent` 各语义 case 与 `PlaybackMediaProviding` 由播放插件的具体实现驱动,本包提供契约与通用 store;用例 8-9 需在实现侧或跨包集成测试补齐。
 
