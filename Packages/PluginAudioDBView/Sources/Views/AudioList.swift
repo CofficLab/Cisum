@@ -118,6 +118,20 @@ enum AudioListDeletionPolicy {
     }
 }
 
+/// 统计表头（「共 N」所在行）的展示策略。
+enum AudioListHeaderPolicy {
+    /// 表头最右侧是否展示「添加」按钮（导入入口）。
+    ///
+    /// - Parameter hasContent: 仓库列表是否已有内容。
+    ///
+    /// 说明：非空仓库在桌面端过去只能靠拖放入库，表头没有任何可点击的
+    /// 导入入口，用户必须把文件拖进窗口才能补充音频。只要列表有内容，
+    /// 表头最右侧就常驻「添加」按钮，且与平台无关（iOS / macOS 一致）。
+    static func shouldShowAddButton(hasContent: Bool) -> Bool {
+        hasContent
+    }
+}
+
 enum AudioListSelectionPolicy {
     static func shouldApplySelection(
         currentGeneration: Int,
@@ -225,10 +239,18 @@ struct AudioList: View, SuperLog {
                     }
                 }
 
-                if viewModel.isNotDesktop {
+                // 导入入口：仓库已有内容时，表头最右侧常驻「添加」按钮，
+                // 用户点开系统文件选择器即可把文件加入仓库。
+                // 桌面端过去只提供拖放，非空仓库没有任何可点击的导入入口。
+                if AudioListHeaderPolicy.shouldShowAddButton(
+                    hasContent: viewModel.totalCount > 0 || !viewModel.urls.isEmpty
+                ) {
                     BtnAdd(dependencies: dependencies)
                         .font(.title2)
                         .labelStyle(.iconOnly)
+                        .accessibilityIdentifier("cisum.audio-library.add")
+                        .accessibilityLabel(Text("Add", bundle: .module))
+                        .help(Text("Add", bundle: .module))
                 }
             }, content: {
                 ForEach(Array(viewModel.urls.enumerated()), id: \.element) { index, url in
