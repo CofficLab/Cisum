@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Testing
 @testable import ProviderPlayback
 
@@ -258,5 +259,39 @@ struct ProviderPlaybackTests {
         #expect(provider.playedURLs == [timedURL])
         #expect(provider.state == .paused)
         #expect(provider.currentURL == URL(fileURLWithPath: "/library/current.mp3"))
+    }
+
+    /// 下载标签的默认实现：从下载态状态文案里剥离尾部百分比。
+    ///
+    /// Hero 圆环中心已单独显示百分比，底部小字必须只有「正在下载」，
+    /// 否则同一屏出现两个百分比（历史上曾拼成「0% 正在下载 0%」）。
+    @Test
+    func downloadingLabelStripsTrailingPercentage() {
+        let provider = StubMediaProvider()
+
+        #expect(provider.localizedStateText(for: .loading(.downloading(0.14))) == "正在下载 14%")
+        #expect(provider.localizedDownloadingLabel() == "正在下载")
+        #expect(!provider.localizedDownloadingLabel().contains("%"))
+
+        // 状态文案本身不带百分比时，原样返回，不误伤尾部的普通词。
+        provider.downloadingText = "正在下载"
+        #expect(provider.localizedDownloadingLabel() == "正在下载")
+    }
+}
+
+/// 下载态文案的替身：模拟引擎的「文案 + 百分比」格式。
+@MainActor
+private final class StubMediaProvider: PlaybackMediaProviding {
+    var downloadingText = "正在下载 14%"
+
+    func makeMediaView() -> AnyView { AnyView(EmptyView()) }
+
+    func localizedStateText(for state: PlaybackStatus) -> String {
+        switch state {
+        case .loading(.downloading):
+            return downloadingText
+        default:
+            return "state:\(String(describing: state))"
+        }
     }
 }

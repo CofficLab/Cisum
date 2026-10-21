@@ -103,7 +103,10 @@ struct PlaybackHeroView: View {
                     .font(.system(size: 36, weight: .bold, design: .rounded))
                     .foregroundStyle(appTheme.textPrimary)
                     .accessibilityIdentifier("cisum.player.download.progress")
-                Text(viewModel.localizedStateText())
+                // 底部小字只写「正在下载」：圆环中心已单独显示百分比，
+                // 这里再带百分比就会同一屏出现两个百分比
+                // （历史上曾拼成「0% 正在下载 0%」）。
+                Text(viewModel.localizedDownloadingLabel())
                     .font(.system(size: 14))
                     .foregroundStyle(appTheme.textSecondary)
                     .lineLimit(2)

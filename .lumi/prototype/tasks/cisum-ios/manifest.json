@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "id": "cisum-ios",
+  "title": "Cisum iOS",
+  "style": "hiFi",
+  "device": {
+    "kind": "iPhone15Pro",
+    "width": 393,
+    "height": 852,
+    "scale": 3
+  },
+  "screens": [
+    {
+      "id": "01-now-playing",
+      "title": "正在播放",
+      "order": 0,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "02-music-library",
+      "title": "音乐库",
+      "order": 1,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "03-audiobooks",
+      "title": "有声书库",
+      "order": 2,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "04-empty-repository",
+      "title": "空仓库引导",
+      "order": 3,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "05-scene-switcher",
+      "title": "场景切换",
+      "order": 4,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "06-welcome-storage",
+      "title": "选择存储位置",
+      "order": 5,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "07-settings",
+      "title": "设置",
+      "order": 6,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    }
+  ],
+  "startScreenID": "01-now-playing",
+  "createdAt": "2026-10-21T01:00:00Z",
+  "updatedAt": "2026-10-21T01:00:00Z"
+}

@@ -78,6 +78,27 @@ final class PlaybackDownloadProgressProviderTests: XCTestCase {
         )
     }
 
+    /// Hero 底部小字的下载标签必须是不带百分比的纯文案。
+    ///
+    /// Hero 圆环中心已单独显示百分比（如 14%），底部小字再带百分比就会出现
+    /// 「正在下载 14%」这样的重复信息。
+    func testDownloadingLabelIsPlainTextWithoutPercentage() {
+        let man = MagicPlayMan()
+        let provider = PlaybackProvider(playback: man)
+
+        let label = provider.localizedDownloadingLabel()
+        XCTAssertFalse(label.isEmpty, "下载标签不应为空")
+        XCTAssertFalse(
+            label.contains("%"),
+            "下载标签「\(label)」不应带百分比：Hero 圆环中心已单独显示百分比"
+        )
+        XCTAssertEqual(
+            label,
+            man.localization.downloading,
+            "下载标签应取引擎本地化里的「正在下载」，而不是带百分比的状态文案"
+        )
+    }
+
     // MARK: - Helpers
 
     private static func makeTemporaryAudioFile() throws -> URL {

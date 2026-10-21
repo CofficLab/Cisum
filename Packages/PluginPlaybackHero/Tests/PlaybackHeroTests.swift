@@ -56,6 +56,11 @@ private final class MediaStub: PlaybackMediaProviding {
     func localizedStateText(for state: PlaybackStatus) -> String {
         "state:\(String(describing: state))"
     }
+
+    /// 引擎侧的下载标签是纯文案（不含百分比），此处与真实实现保持一致。
+    func localizedDownloadingLabel() -> String {
+        "downloading"
+    }
 }
 
 @MainActor
@@ -168,6 +173,29 @@ struct PlaybackHeroTests {
         fallback.applyStateChanged(failedState)
         #expect(fallback.localizedStateText() == String(describing: failedState))
         _ = fallback.makeMediaView()
+    }
+
+    /// Hero 圆环底部小字只显示「正在下载」，不带百分比。
+    ///
+    /// 圆环中心已单独显示百分比（如 14%），底部小字若复用带百分比的状态文案
+    /// 会变成「正在下载 14%」，同一屏出现两个百分比。
+    @Test
+    func downloadLabelCarriesNoPercentage() {
+        let playback = PlaybackStub()
+        playback.state = .loading(.downloading(0.14))
+        let media = MediaStub()
+        // ViewModel 以 `weak` 持有能力 Adapter，故测试需自行持有，否则能力会被释放。
+        let playbackCapability = HeroPlaybackCapabilityAdapter(playback: playback)
+        let mediaCapability = HeroMediaCapabilityAdapter(media: media)
+        let viewModel = PlaybackHeroViewModel(playback: playbackCapability, media: mediaCapability)
+
+        #expect(viewModel.localizedDownloadingLabel() == "downloading")
+        #expect(!viewModel.localizedDownloadingLabel().contains("%"))
+
+        // 引擎缺席时回落到插件自带的本地化文案，同样不带百分比。
+        let fallback = PlaybackHeroViewModel(playback: playbackCapability)
+        #expect(!fallback.localizedDownloadingLabel().isEmpty)
+        #expect(!fallback.localizedDownloadingLabel().contains("%"))
     }
 
     @Test
