@@ -149,18 +149,20 @@
 | 106 | 行为 | 仓库有文件且未选择时自动选中第一项 | P0 | ✅ 已覆盖 | `AudioDBViewCoverageTests.swift` | `selectsFirstFileWhenRepositoryHasFilesAndNothingIsSelected` |
 | 107 | 行为 | 仓库为空时不自动选中 | P1 | ✅ 已覆盖 | `AudioDBViewCoverageTests.swift` | `doesNotSelectAnythingWhenRepositoryIsEmpty` |
 | 108 | 行为 | 已有选中项时不覆盖为第一项 | P0 | ✅ 已覆盖 | `AudioDBViewCoverageTests.swift` | `keepsExistingSelectionInsteadOfOverwritingItWithFirstFile` |
+| 109 | 行为 | 自动选中时把首曲加载进播放器，使封面区有当前曲目 | P0 | ✅ 已覆盖 | `AudioDBViewCoverageTests.swift` | `loadsFirstFileIntoPlayerSoHeroHasACurrentTrack` |
+| 110 | 行为 | 播放器已有当前曲目时不兜底加载 | P0 | ✅ 已覆盖 | `AudioDBViewCoverageTests.swift` | `doesNotLoadAnythingWhenPlayerAlreadyHasACurrentTrack` |
 
 ## 覆盖率统计
 
-- P0: 59 / 59 ✅
+- P0: 61 / 61 ✅
 - P1: 46 / 46 ✅
 - P2: 3 / 3 ✅
 
-**总计: 108 / 108**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
+**总计: 110 / 110**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
 
 ## 测试文件
 
-- `AudioDBViewCoverageTests.swift` — 25 条用例
+- `AudioDBViewCoverageTests.swift` — 27 条用例
 - `AudioDBViewPluginSceneTests.swift` — 2 条用例
 - `AudioDBViewPluginTests.swift` — 56 条用例
 - `AudioItemAvatarPolicyTests.swift` — 4 条用例

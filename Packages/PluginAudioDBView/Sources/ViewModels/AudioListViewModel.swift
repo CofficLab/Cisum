@@ -571,6 +571,10 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     /// 判定放在 `AudioListAutoSelectionPolicy`：
     /// - 已有选中项（用户选过，或正在播放）时不动，避免覆盖用户意图；
     /// - 列表为空时不选，避免把空仓库标成「已选中」。
+    ///
+    /// 选中之外还要让播放器**加载**该文件（只加载、不自动播放）：播放器的
+    /// `currentURL` 才是封面与标题的数据源，只改列表的 `selection` 的话，
+    /// 播放区会因「无当前曲目」而收起（封面区高度归零），用户看到的是一片空白。
     private func autoSelectFirstIfNeeded() {
         guard AudioListAutoSelectionPolicy.shouldAutoSelectFirst(
             selection: selection,
@@ -580,6 +584,13 @@ final class AudioListViewModel: ObservableObject, SuperLog {
 
         guard let first = AudioListAutoSelectionPolicy.firstAutoSelectableURL(displayedURLs: urls) else { return }
         setSelection(first)
+
+        // 播放能力缺席时仅更新选中态：封面区是否为空是播放器的既有状态，
+        // 不应因为兜底逻辑而引入副作用。
+        guard let playback else { return }
+        Task { @MainActor in
+            await playback.load(first)
+        }
     }
 
     private func deleteFiles(

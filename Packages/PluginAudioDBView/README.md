@@ -35,6 +35,7 @@ The audio database viewer plugin. It provides the browsable "Music Repository" c
   - `AudioStorageDiagnosticsFactory`: reads storage root and builds the audio disk path, falling back when storage is missing.
   - `AudioTreeBuilder`: scans files and folders (directories first, hidden and unsupported files skipped), returns empty for a missing directory, case-insensitive extension checks, and `AudioTreeNode` computed properties.
   - Scene regression: the music tab is contributed only with the live scene provider resolved at `onReady`, scene switches gate contribution, and duplicate scene registration throws until unregistered.
+  - Auto-selection: when the repository has files and nothing is selected, the first file is selected **and loaded into the player** (without auto-playing) so the hero area has a current track; an existing current track is never overwritten.
 - **Running tests**:
   ```bash
   cd /Users/angel/Code/Coffic/Cisum/Packages/PluginAudioDBView
