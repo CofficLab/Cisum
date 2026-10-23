@@ -127,7 +127,12 @@ final class UbiquitousDownloadQuery: @unchecked Sendable {
         lastPublished.removeAll()
     }
 
-    private func handle(_ notification: Notification, onChange: @escaping (Entry) -> Void) {
+    /// 处理一次查询更新通知。
+    ///
+    /// 可见性为 internal（而非 private）以便单元测试用桩 `NSMetadataQuery` 驱动
+    /// 本方法：真机上的 `NSMetadataQuery` 结果集不可注入，而这里的完成信号去重与
+    /// 单调合并正是最需要被验证的不变式。行为未作任何改动。
+    func handle(_ notification: Notification, onChange: @escaping (Entry) -> Void) {
         guard let query = notification.object as? NSMetadataQuery else { return }
         // 更新期间禁用，避免遍历结果集时又被新更新打断。
         query.disableUpdates()

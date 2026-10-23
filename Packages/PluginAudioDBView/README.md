@@ -11,7 +11,7 @@ The audio database viewer plugin. It provides the browsable "Music Repository" c
   - View models: `AudioListViewModel` (paginated list + playback), `AudioDBRootViewModel`, `AudioDBViewModel`, `AudioTreeViewModel`.
   - Models/state: `AudioTreeNode`, `AudioTreeBuilder`, `AudioDBDependencies`, `AudioDBSceneState`, `AudioStorageDiagnosticsFactory`.
   - Observers: `AudioDatabaseObserver` (library events → list/root/db), `AudioDBPlaybackObserver` (playback events → list), `AudioDBSceneObserver` (scene gate).
-  - Policies: `AudioListLoadPolicy` (pagination/generation/dedup), `AudioListDeletionPolicy`, `AudioDeletePlaybackPolicy`, `AudioItemFileSize*` policies.
+  - Policies: `AudioListLoadPolicy` (pagination/generation/dedup), `AudioListDeletionPolicy`, `AudioListHeaderPolicy` (header import entry), `AudioDeletePlaybackPolicy`, `AudioItemFileSize*` policies.
 - **Plugin registration**: Registers with ID `AudioDBViewPlugin`. `onBootAsync` contributes a tab view (`addTabView`, labeled "Music Repository", only when the current scene is `.music` and not in demo mode) and a settings navigation item (`addSettingNavigationItem`, id `"audiodb"`). `onReadyAsync` assembles view models and observers — deliberately resolving `SceneProviding` at ready (not boot) because the scene provider instance is replaced by `ScenePlugin` during its own `onReady`.
 - **Workflow / data flow**:
   1. The root/tab views pull a narrow set of closures (`audioLibrary`, `audioDisk`, `audioDiagnostics`) from the kernel rather than holding the kernel; view models never retain the kernel.
@@ -31,6 +31,7 @@ The audio database viewer plugin. It provides the browsable "Music Repository" c
   - Import cleanup: copied files are removed when a batch fails or the repository is unavailable; symlinked files are copied as standalone regular files; destination names avoid dangling symlinks.
   - `AudioListLoadPolicy`: next-load offset, page advancement, no-skip after displayed rows shrink, page rebasing after deletion, generation checks, symlink dedup, has-more detection, stale-result handling, and load-more triggering by visible index.
   - `AudioListDeletionPolicy`: matches symlinked/dangling-symlink rows, counts only displayed removed rows, updates totals for unloaded deleted rows, and invalidates pending loads.
+  - `AudioListHeaderPolicy`: the statistics header ("Total N" / "共 N") keeps the trailing "Add" button whenever the repository has content, so desktop users get a clickable import entry instead of drag-and-drop only.
   - `AudioStorageDiagnosticsFactory`: reads storage root and builds the audio disk path, falling back when storage is missing.
   - `AudioTreeBuilder`: scans files and folders (directories first, hidden and unsupported files skipped), returns empty for a missing directory, case-insensitive extension checks, and `AudioTreeNode` computed properties.
   - Scene regression: the music tab is contributed only with the live scene provider resolved at `onReady`, scene switches gate contribution, and duplicate scene registration throws until unregistered.

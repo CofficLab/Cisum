@@ -30,6 +30,16 @@ func audioLibraryDefaultObserverReturnsNoopHandle() {
     handle.cancel()
 }
 
+/// 不跟踪扫描状态的实现方落到协议扩展的默认值：**不**认为仓库为空。
+///
+/// 「不知道」≠「是空的」——误报会让空仓库引导在有歌的仓库上照样弹出来。
+@Test @MainActor
+func audioLibraryWithoutScanTrackingIsNotAssumedEmpty() {
+    let provider = StubAudioLibraryProvider()
+
+    #expect(provider.isRepositoryEmpty == false)
+}
+
 @Test
 func unavailableLibraryErrorIsTransportSafe() async {
     let task = Task.detached { () throws -> Void in

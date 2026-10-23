@@ -169,6 +169,23 @@ struct ControlViewProviderTests {
     }
 
     @Test
+    func defaultProviderRendersEmptyStateUntilStateMessageProvided() throws {
+        let defaultProvider = DefaultControlViewProvider()
+        let messageProvider = DefaultControlViewProvider(
+            stateViews: { [] },
+            stateMessage: { "播放状态" }
+        )
+
+        let defaultPixels = try pixels(defaultProvider.makeControlView())
+        let messagePixels = try pixels(messageProvider.makeControlView())
+        let emptyPixels = try pixels(EmptyView())
+
+        // 默认的状态提示与贡献视图都是空的 → 状态区不渲染任何内容。
+        #expect(defaultPixels == emptyPixels)
+        #expect(defaultPixels != messagePixels)
+    }
+
+    @Test
     func lightweightProviderDefaultsRemainNoopAndSafe() {
         let provider = ControlViewProviderStub()
         let handle = provider.addObserver { _ in
@@ -182,6 +199,7 @@ struct ControlViewProviderTests {
         provider.setControlButtonsView(customView)
         provider.setRightAlbumView(customView)
         provider.setDemoMode(true)
+        provider.setGuideSlot(nil)
 
         #expect(handle is NoopControlViewProvidingObserverHandle)
         handle.cancel()

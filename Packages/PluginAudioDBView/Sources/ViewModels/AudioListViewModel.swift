@@ -69,7 +69,6 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     private weak var playback: (any AudioLibraryPlaybackCapability)?
     private var currentAsset: URL?
     private let reasonTag: String
-    private let isDesktop: Bool
     private weak var toast: (any AudioLibraryToastCapability)?
 
     /// 存储配置状态（Capabilities 目录收窄）。仅用于区分「首启尚未配置存储」
@@ -81,7 +80,6 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         playback: (any AudioLibraryPlaybackCapability)? = nil,
         download: (any CloudDownloadCapability)? = nil,
         reasonTag: String = "AudioListViewModel",
-        isDesktop: Bool? = nil,
         toast: (any AudioLibraryToastCapability)? = nil,
         storage: (any AudioLibraryStorageCapability)? = nil
     ) {
@@ -89,20 +87,8 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         self.playback = playback
         self.download = download
         self.reasonTag = reasonTag
-        self.isDesktop = isDesktop ?? Self.defaultIsDesktop
         self.toast = toast
         self.storage = storage
-    }
-
-    /// 非桌面平台（用于显示「添加」按钮等布局差异）。
-    var isNotDesktop: Bool { !isDesktop }
-
-    private static var defaultIsDesktop: Bool {
-        #if os(macOS)
-            true
-        #else
-            false
-        #endif
     }
 
     // MARK: - User intent
