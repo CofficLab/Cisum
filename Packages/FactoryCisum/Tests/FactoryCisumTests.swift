@@ -61,10 +61,27 @@ struct FactoryCisumTests {
     func kernelLoadsThemeContributionsAfterPluginStartup() async throws {
         let kernel = try await CisumBuilder.createKernel()
         let theme = try #require(kernel.resolveProvider((any ThemeProviding).self))
-        // LumiThemePack exposes the canonical 19-theme catalog plus
-        // the three ProviderTheme appearance variants.
-        #expect(theme.themes.count == 22)
+        // Cisum 只加载白名单内的目录主题（见 `CisumThemeSelection`），
+        // 加上 ProviderTheme 内置的三个基础外观。
+        #expect(theme.themes.count == CisumThemeSelection.catalogueIDs.count + 3)
         #expect(theme.selectedThemeId != nil)
+        try await kernel.stopAsync()
+        CisumBuilder.destroyKernel(kernel)
+    }
+
+    @Test
+    func kernelLoadsOnlyWhitelistedCatalogueThemes() async throws {
+        let kernel = try await CisumBuilder.createKernel()
+        let theme = try #require(kernel.resolveProvider((any ThemeProviding).self))
+
+        let catalogueIDs = Set(CisumThemeSelection.catalogueIDs)
+        let loaded = theme.themes.filter { catalogueIDs.contains($0.id) }
+        #expect(Set(loaded.map(\.id)) == catalogueIDs)
+
+        // 白名单外的目录主题不应出现在可选列表中。
+        #expect(!theme.themes.contains { $0.id == "dracula" })
+        #expect(!theme.themes.contains { $0.id == "github" })
+
         try await kernel.stopAsync()
         CisumBuilder.destroyKernel(kernel)
     }

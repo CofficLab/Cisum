@@ -21,7 +21,8 @@ let package = Package(
         .package(name: "PluginRootView", path: "../PluginRootView"),
         .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.6.0"),
         .package(url: "https://github.com/CofficLab/LumiPluginToast.git", from: "1.2.1"),
-        .package(url: "https://github.com/CofficLab/LumiThemePack.git", from: "1.0.6"),
+        // 1.0.8 起支持按 id 白名单只注册部分目录主题（Cisum 只加载少量配色）。
+        .package(url: "https://github.com/CofficLab/LumiThemePack.git", from: "1.0.8"),
         .package(url: "https://github.com/CofficLab/LumiUI", from: "1.8.0"),
         .package(path: "../KitEventObservation"),
         .package(name: "KitMagic", path: "../MagicKit"),

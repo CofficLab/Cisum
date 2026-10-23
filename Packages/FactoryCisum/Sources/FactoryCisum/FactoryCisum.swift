@@ -129,7 +129,13 @@ public enum CisumBuilder: SuperLog {
 
         // 主题目录来自远程 LumiThemePack；宿主只负责注册共享主题、迁移旧选择，
         // 并把 ProviderTheme 状态桥接到 Cisum 现有 LumiUI 根视图。
-        LumiThemeRegistration.register(in: themeProvider)
+        // Cisum 定位在播放器 / 有声书，只加载少量代表性配色而非全量目录，
+        // 因此按白名单注册子集（见 `CisumThemeSelection`）。
+        let unknownThemeIDs = LumiThemeRegistration.unknownIDs(in: CisumThemeSelection.catalogueIDs)
+        if !unknownThemeIDs.isEmpty {
+            logger.warning("\(Self.t)主题白名单包含未知 id，将被忽略：\(unknownThemeIDs.joined(separator: ", "))")
+        }
+        LumiThemeRegistration.register(in: themeProvider, themeIDs: CisumThemeSelection.catalogueIDs)
         CisumThemeBridge.migrateLegacySelection(in: themeProvider)
         CisumThemeBridge.install(themeProvider, in: kernel)
 
