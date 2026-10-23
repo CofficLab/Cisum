@@ -84,11 +84,17 @@ private final class AudioLibraryProbe: AudioLibraryCapability {
     var supportedExtensions: [String] = ["mp3"]
     var isAvailable: Bool = true
     var totalCountValue = 0
+    /// 仓库中的文件列表（按稳定顺序）。
+    var urlsValue: [URL] = []
     private var observers: [UUID: (AudioLibraryEvent) -> Void] = [:]
 
     func totalCount() async -> Int { totalCountValue }
-    func allURLs(reason: String) async -> [URL] { [] }
-    func urls(offset: Int, limit: Int, reason: String) async -> [URL] { [] }
+    func allURLs(reason: String) async -> [URL] { urlsValue }
+    func urls(offset: Int, limit: Int, reason: String) async -> [URL] {
+        guard offset < urlsValue.count else { return [] }
+        let upper = min(offset + limit, urlsValue.count)
+        return Array(urlsValue[offset ..< upper])
+    }
     func delete(urls: [URL], verbose: Bool) async throws {}
     func sync(urls: [URL], verbose: Bool, isFirst: Bool) async {}
 
@@ -503,6 +509,66 @@ struct AudioDatabaseObserverTests {
             try await Task.sleep(for: .milliseconds(10))
         }
         Issue.record("Audio list did not finish its repository-availability refresh in time")
+    }
+}
+
+// MARK: - 未选择文件时自动选中第一项
+
+/// 仓库有文件、用户尚未选择任何文件时，列表应自动选中第一项。
+///
+/// 判据是「用户没有选择过任何文件」：已经存在选中项时不得被覆盖。
+@MainActor
+struct AudioListAutoSelectionTests {
+    @Test
+    func selectsFirstFileWhenRepositoryHasFilesAndNothingIsSelected() async throws {
+        let library = AudioLibraryProbe()
+        let first = URL(fileURLWithPath: "/tmp/cisum-auto-first.mp3")
+        let second = URL(fileURLWithPath: "/tmp/cisum-auto-second.mp3")
+        library.urlsValue = [first, second]
+        library.totalCountValue = 2
+
+        let list = AudioListViewModel(library: library)
+        list.handleOnAppear()
+        try await waitForInitialLoad(list)
+
+        #expect(list.selection == first)
+    }
+
+    @Test
+    func doesNotSelectAnythingWhenRepositoryIsEmpty() async throws {
+        let library = AudioLibraryProbe()
+        library.urlsValue = []
+        library.totalCountValue = 0
+
+        let list = AudioListViewModel(library: library)
+        list.handleOnAppear()
+        try await waitForInitialLoad(list)
+
+        #expect(list.selection == nil)
+    }
+
+    @Test
+    func keepsExistingSelectionInsteadOfOverwritingItWithFirstFile() async throws {
+        let library = AudioLibraryProbe()
+        let first = URL(fileURLWithPath: "/tmp/cisum-auto-keep-first.mp3")
+        let second = URL(fileURLWithPath: "/tmp/cisum-auto-keep-second.mp3")
+        library.urlsValue = [first, second]
+        library.totalCountValue = 2
+
+        let list = AudioListViewModel(library: library)
+        list.applyExternalPlayback(url: second)
+        list.handleOnAppear()
+        try await waitForInitialLoad(list)
+
+        #expect(list.selection == second)
+    }
+
+    private func waitForInitialLoad(_ viewModel: AudioListViewModel) async throws {
+        for _ in 0 ..< 100 {
+            if !viewModel.isLoading { return }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        Issue.record("Audio list did not finish its initial load in time")
     }
 }
 

@@ -132,6 +132,32 @@ enum AudioListHeaderPolicy {
     }
 }
 
+/// 列表选中项的自动兜底策略。
+///
+/// 仓库有文件、但用户还没有选择任何文件时，自动选中第一项：
+/// 否则列表看上去「有内容却没有任何选中态」，用户无从判断当前播放的是哪一首。
+enum AudioListAutoSelectionPolicy {
+    /// 是否需要自动选中第一项。
+    ///
+    /// - Parameters:
+    ///   - selection: 当前选中项；已选中时不得覆盖用户的既有选择。
+    ///   - currentAsset: 当前播放资源；正在播放时选中态由播放事件驱动。
+    ///   - displayedURLs: 已加载到列表中的文件。
+    static func shouldAutoSelectFirst(
+        selection: URL?,
+        currentAsset: URL?,
+        displayedURLs: [URL]
+    ) -> Bool {
+        guard selection == nil, currentAsset == nil else { return false }
+        return !displayedURLs.isEmpty
+    }
+
+    /// 自动选中的目标：列表第一项。
+    static func firstAutoSelectableURL(displayedURLs: [URL]) -> URL? {
+        displayedURLs.first
+    }
+}
+
 enum AudioListSelectionPolicy {
     static func shouldApplySelection(
         currentGeneration: Int,

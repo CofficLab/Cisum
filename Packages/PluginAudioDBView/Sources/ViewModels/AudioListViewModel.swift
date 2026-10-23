@@ -355,6 +355,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                     self.currentPage = 1
                     self.hasMore = urls.count == pageSize
                     self.isLoading = false
+                    self.autoSelectFirstIfNeeded()
                 }
             }
         }
@@ -563,6 +564,22 @@ final class AudioListViewModel: ObservableObject, SuperLog {
 
     private func setSelection(_ newValue: URL?) {
         selection = newValue
+    }
+
+    /// 仓库有文件但用户尚未选择任何文件时，自动选中第一项。
+    ///
+    /// 判定放在 `AudioListAutoSelectionPolicy`：
+    /// - 已有选中项（用户选过，或正在播放）时不动，避免覆盖用户意图；
+    /// - 列表为空时不选，避免把空仓库标成「已选中」。
+    private func autoSelectFirstIfNeeded() {
+        guard AudioListAutoSelectionPolicy.shouldAutoSelectFirst(
+            selection: selection,
+            currentAsset: currentAsset,
+            displayedURLs: urls
+        ) else { return }
+
+        guard let first = AudioListAutoSelectionPolicy.firstAutoSelectableURL(displayedURLs: urls) else { return }
+        setSelection(first)
     }
 
     private func deleteFiles(
