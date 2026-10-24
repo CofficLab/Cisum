@@ -15,11 +15,11 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
-        .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.0.1"),
-        .package(url: "https://github.com/CofficLab/LumiPluginSettingView.git", from: "1.0.2"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.0"),
+        .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.1.0"),
+        .package(url: "https://github.com/CofficLab/LumiPluginSettingView.git", from: "1.0.3"),
         .package(name: "PluginRootView", path: "../PluginRootView"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.6.0"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.12.0"),
         .package(url: "https://github.com/CofficLab/LumiPluginToast.git", from: "1.2.1"),
         // 1.0.8 起支持按 id 白名单只注册部分目录主题（Cisum 只加载少量配色）。
         .package(url: "https://github.com/CofficLab/LumiThemePack.git", from: "1.0.8"),
