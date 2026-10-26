@@ -24,7 +24,7 @@ let package = Package(
         .package(name: "KitPlayback", path: "../MagicPlayMan"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(path: "../ProviderAudioNavigation"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.12.0"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.13.0"),
     ],
     targets: [
         .target(

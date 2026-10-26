@@ -19,10 +19,11 @@ let package = Package(
         .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.1.0"),
         .package(url: "https://github.com/CofficLab/LumiPluginSettingView.git", from: "1.0.3"),
         .package(name: "PluginRootView", path: "../PluginRootView"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.12.0"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.13.0"),
         .package(url: "https://github.com/CofficLab/LumiPluginToast.git", from: "1.2.1"),
         // 1.0.8 起支持按 id 白名单只注册部分目录主题（Cisum 只加载少量配色）。
-        .package(url: "https://github.com/CofficLab/LumiThemePack.git", from: "1.0.8"),
+        // 1.0.10 起移除了主题搜索入口，外观页改为「外观筛选 + 双栏浏览」。
+        .package(url: "https://github.com/CofficLab/LumiThemePack.git", from: "1.0.12"),
         .package(url: "https://github.com/CofficLab/LumiUI", from: "1.8.0"),
         .package(path: "../KitEventObservation"),
         .package(name: "KitMagic", path: "../MagicKit"),

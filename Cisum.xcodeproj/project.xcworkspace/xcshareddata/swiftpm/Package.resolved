@@ -1,5 +1,5 @@
 {
-  "originHash" : "c7a1bcf76e558f09a859515ecfd0a600d3e0002c52f7e9df4e6856288a224010",
+  "originHash" : "2ff1498c5c5416aee1d4c6f8c22638c02e84bb154c00b0ef26c17ab1e81ebdc2",
   "pins" : [
     {
       "identity" : "id3tageditor",
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CofficLab/LumiProviders.git",
       "state" : {
-        "revision" : "db6f0874337e01df039ef54c774803f1c737bc8d",
-        "version" : "1.12.0"
+        "revision" : "52c05931d1d455670075437853786137250d6dcc",
+        "version" : "1.13.0"
       }
     },
     {
@@ -78,8 +78,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CofficLab/LumiThemePack.git",
       "state" : {
-        "revision" : "dd9d2e5dfc37d2b0b836fb51e921bb0e2db05525",
-        "version" : "1.0.10"
+        "revision" : "7024a835a4ff46b9b2eaef82529f9c0b06070d37",
+        "version" : "1.0.12"
       }
     },
     {

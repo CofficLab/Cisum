@@ -24,7 +24,7 @@ let package = Package(
         .package(path: "../ProviderPlugin"),
         .package(path: "../ProviderScene"),
         .package(path: "../ProviderPlayback"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.12.0")
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.13.0")
     ],
     targets: [
         .target(
