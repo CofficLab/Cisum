@@ -24,7 +24,7 @@ let package = Package(
         // 1.0.8 起支持按 id 白名单只注册部分目录主题（Cisum 只加载少量配色）。
         // 1.0.10 起移除了主题搜索入口，外观页改为「外观筛选 + 双栏浏览」。
         .package(url: "https://github.com/CofficLab/LumiThemePack.git", from: "1.0.12"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.8.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.11.1"),
         .package(path: "../KitEventObservation"),
         .package(name: "KitMagic", path: "../MagicKit"),
         .package(path: "../ProviderPlugin"),
