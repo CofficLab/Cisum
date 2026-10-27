@@ -19,7 +19,7 @@ import SwiftUI
 ///
 /// 导航栏归属用 `.host` 模式：Cisum 业务根视图自己创建 `NavigationStack`，
 /// SwiftUI 不会把外层 `.toolbar` 传递进嵌套的导航栈，因此齿轮必须由
-/// **导航栈的所有者**（业务根视图）在栈级别挂载 —— 见
+/// **导航栈的所有者**（业务根视图）在栈**内部的内容上**挂载 —— 见
 /// `PluginRootView` 的 `IOSNavigationBarItemsBridge` 接入。
 ///
 /// 主题：设置 sheet 出现时要把 `ThemeProviding` 选中的主题桥接到 LumiUI

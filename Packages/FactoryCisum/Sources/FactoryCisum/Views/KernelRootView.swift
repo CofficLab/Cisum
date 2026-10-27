@@ -57,14 +57,17 @@ struct KernelRootView: View {
 #endif
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
+                #if os(iOS)
+                // iOS 侧插件贡献的导航栏项（设置齿轮）要出现在这条系统导航栏上。
+                //
+                // 必须挂在 `NavigationStack` **内部**的内容上：`NavigationStack { … }`
+                // 自身再接 `.toolbar`，项会被算到**外层**上下文去，不会进入这条
+                // 栈自己的导航栏。挂在栈内的内容上才会被这条栈接管（与
+                // `RootLayoutView` 内部的 `.toolbar` 落在同一条导航栏）。
+                .modifier(IOSNavigationBarToolbarModifier(items: navigationBarItems.items))
+                #endif
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
-            #if os(iOS)
-            // iOS 侧插件贡献的导航栏项（设置齿轮）要出现在这条系统导航栏上。
-            // `NavigationStack` 在本视图内部创建，SwiftUI 不会把外层的
-            // `.toolbar` 传递进来，因此由栈的所有者在这里挂载。
-            .modifier(IOSNavigationBarToolbarModifier(items: navigationBarItems.items))
-            #endif
         }
         .appThemedAppearance()
         .environment(\.toastProviding, kernel.resolveProvider((any ToastProviding).self))

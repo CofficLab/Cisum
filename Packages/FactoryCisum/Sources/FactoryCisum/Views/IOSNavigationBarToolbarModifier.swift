@@ -2,14 +2,17 @@
 import ProviderSettingsHost
 import SwiftUI
 
-/// 把 `IOSNavigationBarProviding` 的贡献项挂到**导航栈级别**的 toolbar。
+/// 把 `IOSNavigationBarProviding` 的贡献项挂到 iOS 顶部导航栏。
 ///
-/// ## 为什么必须挂在栈级别
+/// ## 挂载位置
 ///
-/// SwiftUI 的 `.toolbar` 只对**最近的导航容器**生效：挂在 `NavigationStack`
-/// **外面**的 `.toolbar` 会被外层上下文接走（没有外层导航容器时直接不显示），
-/// 挂在外面的视图也不会被传递进这条嵌套的导航栈。因此插件贡献的导航栏项
-/// （设置齿轮等）必须由**导航栈的所有者**在栈内挂载。
+/// 必须挂在 `NavigationStack` **内部的内容**上（即栈的 `content` 闭包里），
+/// 不能挂在 `NavigationStack` 自身之后：
+///
+/// - `NavigationStack { … }.toolbar { … }` —— 项被算到**外层**上下文，不会进入
+///   这条栈自己的导航栏，表现为「贡献成功但看不见」；
+/// - 挂在栈内内容上 —— 才会被这条栈接管，与栈内其它 `.toolbar` 落在同一条
+///   导航栏上。
 ///
 /// 本 modifier 只负责「把项挂上去」，取值与变更转发由
 /// `IOSNavigationBarItemsBridge` 负责（对齐 GameFactory/BookletMaker 的
