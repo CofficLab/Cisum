@@ -30,7 +30,6 @@ let package = Package(
             name: "PluginScene",
             dependencies: [
                 .product(name: "MagicKit", package: "KitMagic"),
-                .product(name: "ProviderSettingView", package: "LumiSettings"),
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
@@ -50,6 +49,7 @@ let package = Package(
             dependencies: [
                 "PluginScene",
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
+                .product(name: "ProviderSettingView", package: "LumiSettings"),
             ],
             path: "Tests/PluginSceneTests"
         ),

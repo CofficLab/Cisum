@@ -3,14 +3,14 @@ import Foundation
 import ProviderScene
 import MagicKit
 
-/// 场景设置页的状态容器：维护可选场景列表与当前选中项。
+/// 场景选择的状态容器：维护可选场景列表与当前选中项。
 ///
 /// 通过 `SceneSelectionCapability` 读写场景（见 Capabilities 目录），
 /// 不直接持有内核 `SceneProviding`：
 /// - 「Provider 未就绪」与「已就绪但场景为空」是两种不同状态，
 ///   前者 `scenes` / `currentScene` 返回空值并在 UI 上隐藏整个区块；
 @MainActor
-final class SceneSettingsViewModel: ObservableObject, SuperLog {
+final class SceneSelectionViewModel: ObservableObject, SuperLog {
     nonisolated static let verbose = false
 
     @Published private(set) var revision = 0
@@ -30,10 +30,6 @@ final class SceneSettingsViewModel: ObservableObject, SuperLog {
 
     var scenes: [AppScene] { isAvailable ? currentScenes : [] }
     var currentScene: AppScene? { isAvailable ? selectedScene : nil }
-
-    var currentSceneIconName: String {
-        currentScene?.iconName ?? "rectangle.3.group"
-    }
 
     /// 用户意图：切换到指定场景。
     func select(_ target: AppScene) {

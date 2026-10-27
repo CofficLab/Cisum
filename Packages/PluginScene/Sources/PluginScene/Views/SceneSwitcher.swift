@@ -8,7 +8,7 @@ import SwiftUI
 /// 由 `ScenePlugin` 通过 `addToolBarButtons()` 贡献到工具栏（迁移自
 /// `ProviderToolbar` 的 `DefaultToolbarProviding`）。
 struct SceneSwitcher: View {
-    @ObservedObject var viewModel: SceneSettingsViewModel
+    @ObservedObject var viewModel: SceneSelectionViewModel
 
     private var scenes: [AppScene] { viewModel.scenes }
     private var current: AppScene? { viewModel.currentScene }
@@ -40,7 +40,7 @@ private struct PostersView: View {
         let view: AnyView
     }
 
-    @ObservedObject var viewModel: SceneSettingsViewModel
+    @ObservedObject var viewModel: SceneSelectionViewModel
     let dismissAction: @MainActor () -> Void
     @State private var selectedID = ""
     @State private var items: [Item] = []
