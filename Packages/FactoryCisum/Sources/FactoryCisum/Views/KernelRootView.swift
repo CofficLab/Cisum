@@ -106,6 +106,7 @@ struct KernelRootView: View {
 @MainActor
 private final class KernelRootProviderObserver: ObservableObject {
     @Published private(set) var revision = 0
+    @Published private(set) var currentScene: AppScene?
     private weak var kernel: KernelCoreContainer?
     private var pluginHandle: (any PluginManagingObserverHandle)?
     private var sceneHandle: (any SceneProvidingObserverHandle)?
@@ -117,12 +118,15 @@ private final class KernelRootProviderObserver: ObservableObject {
 
     func start() {
         guard pluginHandle == nil, sceneHandle == nil, let kernel else { return }
+        // 初始化当前场景
+        currentScene = kernel.resolveProvider((any SceneProviding).self)?.currentScene
         pluginHandle = kernel.resolveProvider((any PluginManaging).self)?.addPluginObserver { [weak self] event in
             guard case .enabledStateChanged = event else { return }
             self?.revision += 1
         }
         sceneHandle = kernel.resolveProvider((any SceneProviding).self)?.addObserver { [weak self] event in
-            guard case .selectionChanged = event else { return }
+            guard case .selectionChanged(let scene) = event else { return }
+            self?.currentScene = scene
             self?.revision += 1
         }
     }

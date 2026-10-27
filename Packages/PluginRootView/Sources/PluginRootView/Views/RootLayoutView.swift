@@ -17,6 +17,10 @@ struct RootLayoutView: View {
     @State private var isDetailVisible: Bool
     @State private var rememberedHeight: CGFloat = 0
     @State private var autoResizing = false
+    /// 当前场景：用于叠加场景色调背景
+    @State private var currentScene: AppScene?
+    /// 场景观察者句柄
+    @State private var sceneObserverHandle: (any SceneProvidingObserverHandle)?
     let kernel: KernelCoreContainer
 
     init(provider: RootViewProvider, kernel: KernelCoreContainer) {
@@ -37,6 +41,12 @@ struct RootLayoutView: View {
         GeometryReader { geometry in
             ZStack {
                 themeRegistry.chromeTheme.makeGlobalBackground(proxy: geometry)
+
+                // 场景色调叠加层：根据当前场景叠加微妙色调，区分不同场景氛围
+                sceneTintOverlay
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+                    .animation(.easeInOut(duration: 0.4), value: currentScene)
 
                 VStack(spacing: 0) {
                     controlArea
@@ -65,6 +75,22 @@ struct RootLayoutView: View {
                     scene: kernel.resolveProvider((any SceneProviding).self),
                     library: kernel.resolveProvider((any AudioLibraryProviding).self)
                 ))
+                // 场景色调观察：初始化当前场景并订阅变更
+                if let sceneProvider = kernel.resolveProvider((any SceneProviding).self) {
+                    currentScene = sceneProvider.currentScene
+                    sceneObserverHandle = sceneProvider.addObserver { event in
+                        guard case .selectionChanged(let scene) = event else { return }
+                        // @State 内部使用引用类型存储，通过闭包修改是安全的
+                        // 句柄在 onDisappear 时取消，避免泄漏
+                        DispatchQueue.main.async {
+                            self.currentScene = scene
+                        }
+                    }
+                }
+            }
+            .onDisappear {
+                sceneObserverHandle?.cancel()
+                sceneObserverHandle = nil
             }
             .onChange(of: provider.isContentViewHidden) { _, hidden in
                 handleContentViewVisibilityChange(!hidden, geometry: geometry)
@@ -96,6 +122,24 @@ struct RootLayoutView: View {
         }
         .onAppear { viewModel.start() }
         .onDisappear { viewModel.cancel() }
+    }
+
+    // MARK: - Scene Tint Overlay
+
+    /// 场景色调叠加层：根据当前场景叠加微妙色调，区分不同场景氛围。
+    ///
+    /// 音乐场景使用冷蓝色调，有声书场景使用暖棕色调。
+    /// 色调透明度较低，仅作为氛围点缀，不影响内容可读性。
+    @ViewBuilder
+    private var sceneTintOverlay: some View {
+        switch currentScene {
+        case .music:
+            Color(red: 0.10, green: 0.18, blue: 0.32).opacity(0.15)
+        case .audiobooks:
+            Color(red: 0.32, green: 0.20, blue: 0.10).opacity(0.15)
+        case nil:
+            Color.clear
+        }
     }
 
     @ViewBuilder
