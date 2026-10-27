@@ -14,7 +14,7 @@
   - `Tests/PluginSceneTests/ScenePluginTests.swift` — provider registration, persistence, observer/view-model wiring, and plugin boot ordering.
   - `Tests/PluginSceneTests/SceneSettingsTests.swift` — view model behavior against a `SceneProbe`.
 - **Key scenarios tested:**
-  - Provider registers/unregisters as `SceneProviding`; the settings navigation item has id `"scene"`, title `"Scene"`, icon `"rectangle.3.group"`.
+  - Provider registers/unregisters as `SceneProviding`; **no** settings navigation item with id `"scene"` is registered (scene switching is toolbar-only).
   - A scene-dependent probe plugin boots successfully after `ScenePlugin` (provider available).
   - Scenes are the fixed built-in list (`[.music, .audiobooks]`).
   - Current scene persists to `current-scene.json` and restores across instances; unknown persisted scenes fall back to `.music`; observers are notified on change and stop after cancellation.
@@ -36,7 +36,7 @@
 |----|------|------|--------|------|----------|----------|
 | 1 | 行为 | Registers and unregisters scene provider | P0 | ✅ 已覆盖 | `PluginSceneTests/ScenePluginTests.swift` | `registersAndUnregistersSceneProvider` |
 | 2 | 行为 | Contributes scene switcher after boot dependencies are ready | P0 | ✅ 已覆盖 | `PluginSceneTests/ScenePluginTests.swift` | `contributesSceneSwitcherAfterBootDependenciesAreReady` |
-| 3 | 行为 | Contributes scene settings navigation item | P0 | ✅ 已覆盖 | `PluginSceneTests/ScenePluginTests.swift` | `contributesSceneSettingsNavigationItem` |
+| 3 | 行为 | Does not register scene settings navigation item | P0 | ✅ 已覆盖 | `PluginSceneTests/ScenePluginTests.swift` | `doesNotRegisterSceneSettingsNavigationItem` |
 | 4 | 插件 | Boots before same order scene dependent plugins | P0 | ✅ 已覆盖 | `PluginSceneTests/ScenePluginTests.swift` | `bootsBeforeSameOrderSceneDependentPlugins` |
 | 5 | 行为 | Exposes fixed built in scenes | P0 | ✅ 已覆盖 | `PluginSceneTests/ScenePluginTests.swift` | `exposesFixedBuiltInScenes` |
 | 6 | 持久化 | Persists and restores current scene from disk | P0 | ✅ 已覆盖 | `PluginSceneTests/ScenePluginTests.swift` | `persistsAndRestoresCurrentSceneFromDisk` |

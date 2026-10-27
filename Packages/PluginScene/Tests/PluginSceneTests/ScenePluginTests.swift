@@ -2,6 +2,7 @@ import ProviderScene
 import Foundation
 import KernelCore
 import ProviderPlugin
+import ProviderSettingView
 import KitAppEvents
 @testable import PluginScene
 import Testing
@@ -53,16 +54,24 @@ struct ScenePluginTests {
 
         #expect(kernel.resolveProvider((any SceneProviding).self)?.scenes == [.music, .audiobooks])
         #expect(pluginProvider.getToolBarButtons().map(\.id) == ["scene-switcher"])
-        #expect(plugin.settingsViewModel?.currentScene == .music)
+        #expect(plugin.selectionViewModel?.currentScene == .music)
     }
 
     @Test
-    func contributesSceneSettingsNavigationItem() {
-        let item = ScenePlugin().makeSettingEntry()
+    func doesNotRegisterSceneSettingsNavigationItem() async throws {
+        let kernel = KernelCoreContainer()
+        let pluginProvider = PluginContributionService(kernel: kernel)
+        let plugin = ScenePlugin()
+        try kernel.registerProvider((any PluginProviding).self, pluginProvider)
+        try kernel.registerProvider((any PluginContributionProviding).self, pluginProvider)
 
-        #expect(item?.id == "scene")
-        #expect(item?.title == "Scene")
-        #expect(item?.systemImage == "rectangle.3.group")
+        let settings = DefaultSettingViewProviding()
+        try kernel.registerProvider((any SettingViewProviding).self, settings)
+
+        try await kernel.startAsync(plugins: [plugin])
+
+        // 场景切换只保留工具栏入口，设置界面不再出现「场景」入口。
+        #expect(!settings.entries.contains { $0.id == "scene" })
     }
 
     @Test
@@ -174,7 +183,7 @@ struct ScenePluginTests {
 
         // 走真实 SceneProvider + Adapter：验证 Adapter 的转发与句柄取消正确。
         let capability = SceneSelectionCapabilityAdapter(scene: service)
-        let viewModel = SceneSettingsViewModel(selection: capability)
+        let viewModel = SceneSelectionViewModel(selection: capability)
         let observer = SceneProvidingObserver(selection: capability, viewModel: viewModel)
         defer { observer.cancel() }
 
@@ -196,7 +205,7 @@ struct ScenePluginTests {
 
         // 走真实 SceneProvider + Adapter：验证 Adapter 的转发与句柄取消正确。
         let capability = SceneSelectionCapabilityAdapter(scene: service)
-        let viewModel = SceneSettingsViewModel(selection: capability)
+        let viewModel = SceneSelectionViewModel(selection: capability)
         let observer = SceneProvidingObserver(selection: capability, viewModel: viewModel)
         defer { observer.cancel() }
 
@@ -217,7 +226,7 @@ struct ScenePluginTests {
 
         // 走真实 SceneProvider + Adapter：验证 Adapter 的转发与句柄取消正确。
         let capability = SceneSelectionCapabilityAdapter(scene: service)
-        let viewModel = SceneSettingsViewModel(selection: capability)
+        let viewModel = SceneSelectionViewModel(selection: capability)
         let observer = SceneProvidingObserver(selection: capability, viewModel: viewModel)
 
         service.setCurrentScene(.audiobooks)
@@ -235,18 +244,18 @@ struct ScenePluginTests {
         let plugin = ScenePlugin()
 
         try await plugin.onBootAsync(kernel: kernel)
-        try await plugin.onReady(kernel: kernel)
+        try await plugin.onReadyAsync(kernel: kernel)
 
-        let first = plugin.makeSettingEntry() != nil
-        let second = plugin.makeSettingEntry() != nil
-        #expect(first)
         // 同一个长期存在的 ViewModel：两次请求不重建状态对象。
-        #expect(second)
+        let first = plugin.selectionViewModel
+        let second = plugin.selectionViewModel
+        #expect(first != nil)
+        #expect(first === second)
 
         try await plugin.onDisable(kernel: kernel)
         try await plugin.onEnable(kernel: kernel)
-        // 禁用再启用后仍可注入设置导航项。
-        #expect(plugin.makeSettingEntry() != nil)
+        // 禁用再启用后仍可重新装配场景状态。
+        #expect(plugin.selectionViewModel != nil)
 
         try await plugin.onShutdownAsync(kernel: kernel)
     }
