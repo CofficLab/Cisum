@@ -5,6 +5,8 @@ import ProviderPlugin
 import ProviderPluginManaging
 import ProviderScene
 import ProviderToast
+import ProviderToolbar
+import ProviderSettingsHost
 import MagicKit
 import SwiftUI
 
@@ -18,10 +20,24 @@ struct KernelRootView: View {
     @StateObject private var providerObserver: KernelRootProviderObserver
     /// 已组装的根视图。组装会更新各个 ObservableObject Provider，不能在 body 求值期间执行。
     @State private var assembledContent: AnyView?
+    #if os(iOS)
+    /// iOS 导航栏贡献项桥接器。
+    ///
+    /// 插件（设置齿轮等）通过 `IOSNavigationBarProviding` 贡献导航栏项，
+    /// 由本视图在导航栈级别挂载。桥接器只负责「取值 + 变更转发」。
+    @StateObject private var navigationBarItems: IOSNavigationBarItemsBridge
+    #endif
 
     init(kernel: KernelCoreContainer) {
         self.kernel = kernel
         _providerObserver = StateObject(wrappedValue: KernelRootProviderObserver(kernel: kernel))
+        #if os(iOS)
+        // Provider 可能在插件启动后才注入贡献项，桥接器订阅其变更信号。
+        _navigationBarItems = StateObject(wrappedValue: IOSNavigationBarItemsBridge(
+            provider: kernel.resolveProvider((any IOSNavigationBarProviding).self)
+                ?? DefaultIOSNavigationBarProviding()
+        ))
+        #endif
     }
 
     var body: some View {
@@ -43,6 +59,12 @@ struct KernelRootView: View {
                 .frame(width: geometry.size.width, height: geometry.size.height)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
+            #if os(iOS)
+            // iOS 侧插件贡献的导航栏项（设置齿轮）要出现在这条系统导航栏上。
+            // `NavigationStack` 在本视图内部创建，SwiftUI 不会把外层的
+            // `.toolbar` 传递进来，因此由栈的所有者在这里挂载。
+            .modifier(IOSNavigationBarToolbarModifier(items: navigationBarItems.items))
+            #endif
         }
         .appThemedAppearance()
         .environment(\.toastProviding, kernel.resolveProvider((any ToastProviding).self))

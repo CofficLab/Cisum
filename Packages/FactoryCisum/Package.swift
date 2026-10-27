@@ -34,6 +34,7 @@ let package = Package(
         .package(name: "ProviderDevice", path: "../ProviderDevice"),
         .package(name: "ProviderAppState", path: "../ProviderAppState"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
+        .package(name: "ProviderSettingsHost", path: "../ProviderSettingsHost"),
         // MARK: - Plugin Dependencies (直接由 Factory 装配)
         .package(name: "PluginAudio", path: "../PluginAudio"),
         .package(name: "PluginAudioCopy", path: "../PluginAudioCopy"),
@@ -98,6 +99,7 @@ let package = Package(
                 .product(name: "ProviderRootView", package: "LumiProviders"),
                 .product(name: "ProviderStorage", package: "LumiProviders"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
+                .product(name: "ProviderSettingsHost", package: "ProviderSettingsHost"),
                 .product(name: "ProviderToolbar", package: "LumiProviders"),
                 .product(name: "ProviderToast", package: "LumiProviders"),
                 .product(name: "PluginToast", package: "LumiPluginToast"),
