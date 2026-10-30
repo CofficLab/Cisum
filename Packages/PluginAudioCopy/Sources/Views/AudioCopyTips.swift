@@ -1,6 +1,5 @@
 import LumiUI
 import ProviderAudioLibrary
-import ProviderStore
 import SwiftUI
 
 struct AudioCopyTips: View {
@@ -11,6 +10,12 @@ struct AudioCopyTips: View {
     }
 
     var variant: Variant = .drop
+
+    /// 当前订阅档位的显示名。
+    ///
+    /// 经容量能力读取，不直接依赖商店服务：限额提示只关心「用户是什么档位」
+    /// 这一个结论，不需要知道 StoreKit 的存在。
+    var tierDisplayName: String = String(localized: "Free version", bundle: .module)
 
     var supportedFormats: [String] {
         AudioPluginInfo.supportedExtensions
@@ -58,7 +63,7 @@ struct AudioCopyTips: View {
                     formatChipsView
 
                     HStack {
-                        Text("Current subscription: ", bundle: .module) + Text(StoreService.tierCached().displayName)
+                        Text("Current subscription: ", bundle: .module) + Text(tierDisplayName)
                     }
                 }
             }

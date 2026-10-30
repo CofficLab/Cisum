@@ -47,7 +47,10 @@ let package = Package(
         ),
         .testTarget(
             name: "AudioCopyPluginTests",
-            dependencies: ["PluginAudioCopy"],
+            dependencies: [
+                "PluginAudioCopy",
+                .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+            ],
             path: "Tests"
         ),
     ]

@@ -276,46 +276,52 @@ import UniformTypeIdentifiers
     #expect(task.message == "Permission denied")
 }
 
-@Test func copyLimitCountsCurrentLibraryAndIncomingDrop() {
-    #expect(AudioCopyLimitPolicy.allowedTaskCount(
-        currentAudioCount: 99,
+/// 容量准入判定：仓库计数 + 进行中占用数共同决定放行数量。
+///
+/// 判定规则已下沉到数据层的闸门（`AudioCapacityProviding`），此处用替身
+/// 验证判定语义，避免把额度算法复制回 UI 层。
+@MainActor
+@Test func capacityAdmissionAccountsForExistingFilesAndPendingCopies() async {
+    let capacity = StubAudioCopyCapacity(
+        libraryCount: 99,
+        pendingCopyTaskCount: 0
+    )
+
+    // 仓库已有 99 个：只剩 1 个额度。
+    let nearFull = await capacity.admit(requestedCount: 10, reservedCount: 0)
+    #expect(nearFull.allowedCount(requestedCount: 10) == 1)
+    #expect(nearFull.didReject == true)
+
+    // 仓库已满：一个都进不去。
+    let full = StubAudioCopyCapacity(libraryCount: 100, pendingCopyTaskCount: 0)
+    let rejected = await full.admit(requestedCount: 10, reservedCount: 0)
+    #expect(rejected.allowedCount(requestedCount: 10) == 0)
+    #expect(rejected.didReject == true)
+
+    // 付费用户不受限制。
+    let unlimited = StubAudioCopyCapacity(
+        libraryCount: 100,
         pendingCopyTaskCount: 0,
-        requestedTaskCount: 10,
-        maxAudioCount: 100,
-        isFreeVersion: true
-    ) == 1)
+        isUnlimited: true
+    )
+    let admitted = await unlimited.admit(requestedCount: 10, reservedCount: 0)
+    #expect(admitted.allowedCount(requestedCount: 10) == 10)
+    #expect(admitted.didReject == false)
+}
 
-    #expect(AudioCopyLimitPolicy.allowedTaskCount(
-        currentAudioCount: 100,
-        pendingCopyTaskCount: 0,
-        requestedTaskCount: 10,
-        maxAudioCount: 100,
-        isFreeVersion: true
-    ) == 0)
+/// 进行中的复制已经占了位：不计入它们会导致连续两次拖放双双放行、最终超限。
+@MainActor
+@Test func capacityAdmissionCountsPendingCopiesAsReservedSlots() async {
+    // 仓库 99 个 + 1 个进行中 = 满。
+    let capacity = StubAudioCopyCapacity(libraryCount: 99, pendingCopyTaskCount: 0)
+    let admission = await capacity.admit(requestedCount: 10, reservedCount: 1)
+    #expect(admission.allowedCount(requestedCount: 10) == 0)
+    #expect(admission.didReject == true)
 
-    #expect(AudioCopyLimitPolicy.allowedTaskCount(
-        currentAudioCount: 100,
-        pendingCopyTaskCount: 0,
-        requestedTaskCount: 10,
-        maxAudioCount: 100,
-        isFreeVersion: false
-    ) == 10)
-
-    #expect(AudioCopyLimitPolicy.allowedTaskCount(
-        currentAudioCount: 99,
-        pendingCopyTaskCount: 1,
-        requestedTaskCount: 10,
-        maxAudioCount: 100,
-        isFreeVersion: true
-    ) == 0)
-
-    #expect(AudioCopyLimitPolicy.allowedTaskCount(
-        currentAudioCount: 90,
-        pendingCopyTaskCount: 5,
-        requestedTaskCount: 10,
-        maxAudioCount: 100,
-        isFreeVersion: true
-    ) == 5)
+    // 仓库 90 个 + 5 个进行中 = 95，还剩 5 个额度。
+    let roomier = StubAudioCopyCapacity(libraryCount: 90, pendingCopyTaskCount: 0)
+    let partial = await roomier.admit(requestedCount: 10, reservedCount: 5)
+    #expect(partial.allowedCount(requestedCount: 10) == 5)
 }
 
 @Test func copyDropSkipsNoFilesAlertAfterPreparationFailure() {
