@@ -36,7 +36,7 @@ struct ManualsBrowserView: View {
             HStack(spacing: 8) {
                 Image(systemName: "book")
                     .foregroundStyle(.secondary)
-                Text("Manual")
+                Text("Manual", bundle: .module)
                     .font(.headline)
             }
             .padding(.horizontal, 14)
@@ -110,7 +110,7 @@ struct ManualsBrowserView: View {
                     Image(systemName: "book")
                         .font(.system(size: 34))
                         .foregroundStyle(.secondary)
-                    Text("No manuals yet.")
+                    Text("No manuals yet.", bundle: .module)
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }

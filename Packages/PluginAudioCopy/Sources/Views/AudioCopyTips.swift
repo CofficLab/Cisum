@@ -50,7 +50,7 @@ struct AudioCopyTips: View {
                     HStack {
                         Image.appInfo
                             .foregroundStyle(appTheme.primary)
-                        Text("Basic plan supports up to \(AudioPluginInfo.maxAudioCount) files", bundle: .module)
+                        Text(String(localized: String.LocalizationValue("Basic plan supports up to \(AudioPluginInfo.maxAudioCount) files"), bundle: .module))
                             .font(.title3)
                     }
 

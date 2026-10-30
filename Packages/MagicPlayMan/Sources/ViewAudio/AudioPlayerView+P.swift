@@ -8,7 +8,7 @@ struct AudioPlayerViewShowcase: View {
         TabView {
             // Basic Usage
             VStack(spacing: 12) {
-                Text("Basic Usage")
+                Text("Basic Usage", bundle: .module)
                     .font(.headline)
                     .padding(.top)
 
@@ -25,7 +25,7 @@ struct AudioPlayerViewShowcase: View {
 
             // With Default Cover
             VStack(spacing: 12) {
-                Text("With Default Cover")
+                Text("With Default Cover", bundle: .module)
                     .font(.headline)
                     .padding(.top)
 
@@ -37,7 +37,7 @@ struct AudioPlayerViewShowcase: View {
                 )
                 .frame(width: 400)
 
-                Text("Use the defaultArtwork parameter")
+                Text("Use the defaultArtwork parameter", bundle: .module)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -47,7 +47,7 @@ struct AudioPlayerViewShowcase: View {
 
             // No Artist Info
             VStack(spacing: 12) {
-                Text("No Artist Info")
+                Text("No Artist Info", bundle: .module)
                     .font(.headline)
                     .padding(.top)
 
@@ -58,7 +58,7 @@ struct AudioPlayerViewShowcase: View {
                 )
                 .frame(width: 400)
 
-                Text("Artist parameter is nil")
+                Text("Artist parameter is nil", bundle: .module)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -68,7 +68,7 @@ struct AudioPlayerViewShowcase: View {
 
             // No URL
             VStack(spacing: 12) {
-                Text("No URL (Empty State)")
+                Text("No URL (Empty State)", bundle: .module)
                     .font(.headline)
                     .padding(.top)
 
@@ -80,7 +80,7 @@ struct AudioPlayerViewShowcase: View {
                 )
                 .frame(width: 400)
 
-                Text("URL parameter is nil")
+                Text("URL parameter is nil", bundle: .module)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

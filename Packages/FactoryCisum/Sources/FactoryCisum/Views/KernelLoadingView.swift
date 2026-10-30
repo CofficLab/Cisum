@@ -5,7 +5,7 @@ struct KernelLoadingView: View {
     var body: some View {
         VStack(spacing: 12) {
             ProgressView()
-            Text("Loading…")
+            Text("Loading…", bundle: .module)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

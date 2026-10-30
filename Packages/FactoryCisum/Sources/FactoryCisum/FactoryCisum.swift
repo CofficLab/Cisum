@@ -262,7 +262,7 @@ public enum CisumBuilder: SuperLog {
     @MainActor
     public static func assembleMainView(kernel: KernelCoreContainer) -> AnyView {
         guard let root = kernel.resolveProvider((any RootViewProviding).self) else {
-            return AnyView(Text("RootViewProviding not registered"))
+            return AnyView(Text("RootViewProviding not registered", bundle: .module))
         }
 
         if let control = kernel.resolveProvider((any ControlViewProviding).self) {

@@ -261,7 +261,7 @@ struct AudioList: View, SuperLog {
         List {
             Section(header: HStack {
                 if viewModel.totalCount > 0 {
-                    Text("Total \(viewModel.totalCount.description)", bundle: .module)
+                    Text(String(localized: String.LocalizationValue("Total \(viewModel.totalCount.description)"), bundle: .module))
                         .accessibilityIdentifier("cisum.audio-library.count")
                 }
                 Spacer()

@@ -30,7 +30,7 @@ extension AvatarView {
                 }
                 .popover(isPresented: $showError) {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Error Details")
+                        Text("Error Details", bundle: .module)
                             .font(.headline)
 
                         Divider()
@@ -43,7 +43,7 @@ extension AvatarView {
 
                         Divider()
 
-                        Text("File URL")
+                        Text("File URL", bundle: .module)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
 

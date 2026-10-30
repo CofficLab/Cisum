@@ -612,7 +612,7 @@ struct MigrationProgressView: View {
                         }
                     }
                 } else if let errorMessage = errorMessage {
-                    Text("Migration failed: \(errorMessage)", bundle: .module)
+                    Text(String(localized: String.LocalizationValue("Migration failed: \(errorMessage)"), bundle: .module))
                         .font(DesignTokens.Typography.body)
                         .foregroundStyle(appTheme.error)
                 } else {

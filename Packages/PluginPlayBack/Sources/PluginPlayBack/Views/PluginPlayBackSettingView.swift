@@ -65,7 +65,7 @@ struct PluginPlayBackSettingView: View {
                     .foregroundColor(theme.textPrimary)
                 Spacer()
                 if scene == viewModel.currentScene {
-                    Text("Current")
+                    Text("Current", bundle: .module)
                         .font(.appMicro)
                         .foregroundColor(theme.textSecondary)
                         .padding(.horizontal, 8)
@@ -130,7 +130,7 @@ struct PluginPlayBackSettingView: View {
             Image(systemName: "play.circle")
                 .font(.system(size: 34))
                 .foregroundStyle(.secondary)
-            Text("No file is currently playing")
+            Text("No file is currently playing", bundle: .module)
                 .font(.appBody)
                 .foregroundStyle(.secondary)
         }
