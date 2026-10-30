@@ -19,7 +19,7 @@
     },
   ],
   "files": [
-    { "kind": "folder", "path": "Shared", "target-membership": [ "Cisum", "CisumWidgetExtension" ] },
+    { "kind": "folder", "path": "Shared", "target-membership": [ "Cisum" ] },
     {
       "kind": "folder",
       "path": "CisumApp",
@@ -37,32 +37,10 @@
           ],
         },
       ],
-    }, {
-      "kind": "folder",
-      "path": "CisumWidget",
-      "target-membership": [
-        "CisumWidgetExtension",
-      ],
-      "membership-exceptions": [
-        {
-          "target": "CisumWidgetExtension",
-          "exclusions": [
-            "Info.plist",
-          ],
-        },
-      ],
     },
     { "path": "<PRODUCTS>/Cisum.app", "id": "0B53A6CC2F1C734B00169AF2", "type": "wrapper.application", "index": false },
-    { "path": "<PRODUCTS>/CisumWidgetExtension.appex", "id": "F5826E682F3578070079B285", "type": "wrapper.app-extension", "index": false, "target-membership": [ { "build-phase": "Cisum/copy/Embed Foundation Extensions", "header-preservation": "remove-on-copy" } ] },
     { "kind": "folder", "path": "CisumUITests", "target-membership": [ "CisumUITests" ] },
     {
-      "kind": "group",
-      "name": "Frameworks",
-      "children": [
-        { "path": "/System/Library/Frameworks/WidgetKit.framework", "target-membership": [ "CisumWidgetExtension/frameworks" ] },
-        { "path": "/System/Library/Frameworks/SwiftUI.framework", "target-membership": [ "CisumWidgetExtension/frameworks" ] },
-      ],
-    }, {
       "kind": "group",
       "name": "Recovered References",
       "children": [
@@ -92,18 +70,10 @@
       "product": "Cisum.app",
       "product-type": "application",
       "last-swift-migration": "14.3",
-      "dependencies": [
-        "CisumWidgetExtension",
-      ],
       "build-phases": [
         "compile-sources",
         "frameworks",
         "resources",
-        {
-          "kind": "copy",
-          "name": "Embed Foundation Extensions",
-          "bundle-base-path": "plugins-directory",
-        },
       ],
       "package-product-members": [
         {
@@ -182,73 +152,6 @@
         "TARGETED_DEVICE_FAMILY": "1,2,7",
         "VALIDATE_PRODUCT[config=Release]": "YES",
         "XROS_DEPLOYMENT_TARGET": "2.0",
-      },
-    }, {
-      "name": "CisumWidgetExtension",
-      "id": "F5826E672F3578070079B285",
-      "product": "CisumWidgetExtension.appex",
-      "product-type": "app-extension",
-      "build-phases": [
-        "compile-sources",
-        "frameworks",
-        "resources",
-      ],
-      "package-product-members": [
-        {
-          "package": "FactoryCisum",
-          "product-name": "FactoryCisum",
-          "build-phase": { "build-phase": "frameworks" },
-        }, {
-          "package": "FactoryCisum",
-          "product-name": "FactoryCisum",
-          "build-phase": { "build-phase": "frameworks" },
-        },
-      ],
-      "build-settings": {
-        "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "AccentColor",
-        "ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME": "WidgetBackground",
-        "CISUM_APP_GROUP_IDENTIFIER[config=Debug]": "group.com.yueyi.cisum.debug",
-        "CISUM_APP_GROUP_IDENTIFIER[config=Release]": "group.com.yueyi.cisum",
-        "CODE_SIGN_ENTITLEMENTS": "CisumWidget/CisumWidgetExtension.entitlements",
-        "CODE_SIGN_IDENTITY": "Apple Development",
-        "CODE_SIGN_STYLE": "Automatic",
-        "CURRENT_PROJECT_VERSION": "531",
-        "ENABLE_APP_SANDBOX": "YES",
-        "ENABLE_HARDENED_RUNTIME": "YES",
-        "GCC_C_LANGUAGE_STANDARD": "gnu17",
-        "GENERATE_INFOPLIST_FILE": "YES",
-        "INFOPLIST_FILE": "CisumWidget/Info.plist",
-        "INFOPLIST_KEY_CFBundleDisplayName": "CisumWidget",
-        "INFOPLIST_KEY_NSHumanReadableCopyright": "",
-        "IPHONEOS_DEPLOYMENT_TARGET": "17.0",
-        "LD_RUNPATH_SEARCH_PATHS": [
-          "$(inherited)",
-          "@executable_path/Frameworks",
-          "@executable_path/../../Frameworks",
-        ],
-        "LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]": [
-          "$(inherited)",
-          "@executable_path/../Frameworks",
-          "@executable_path/../../../../Frameworks",
-        ],
-        "LOCALIZATION_PREFERS_STRING_CATALOGS": "YES",
-        "MACOSX_DEPLOYMENT_TARGET": "14.0",
-        "MARKETING_VERSION": "4.4.9",
-        "PRODUCT_BUNDLE_IDENTIFIER[config=Debug]": "com.yueyi.cisum.debug.widget",
-        "PRODUCT_BUNDLE_IDENTIFIER[config=Release]": "com.yueyi.cisum.widget",
-        "PRODUCT_NAME": "$(TARGET_NAME)",
-        "REGISTER_APP_GROUPS": "YES",
-        "SDKROOT": "auto",
-        "SKIP_INSTALL": "YES",
-        "STRING_CATALOG_GENERATE_SYMBOLS": "YES",
-        "SUPPORTED_PLATFORMS": "iphoneos iphonesimulator macosx xros xrsimulator",
-        "SWIFT_ACTIVE_COMPILATION_CONDITIONS[config=Debug]": "DEBUG $(inherited)",
-        "SWIFT_APPROACHABLE_CONCURRENCY": "YES",
-        "SWIFT_EMIT_LOC_STRINGS": "YES",
-        "SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY": "YES",
-        "SWIFT_VERSION": "6.0",
-        "TARGETED_DEVICE_FAMILY": "1,2,7",
-        "XROS_DEPLOYMENT_TARGET": "26.2",
       },
     }, {
       "name": "CisumUITests",
