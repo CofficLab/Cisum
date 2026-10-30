@@ -26,6 +26,7 @@ let package = Package(
         .package(name: "ProviderAudioLibrary", path: "../ProviderAudioLibrary"),
         .package(name: "ProviderCloudDownload", path: "../ProviderCloudDownload"),
         .package(path: "../ProviderScene"),
+        .package(path: "../ProviderStore"),
         .package(path: "../ProviderStorage"),
         .package(path: "../ProviderAppState"),
         .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.13.0"),
@@ -46,6 +47,7 @@ let package = Package(
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "ProviderCloudDownload", package: "ProviderCloudDownload"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
+                .product(name: "ProviderStore", package: "ProviderStore"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
                 .product(name: "ProviderAppState", package: "ProviderAppState"),
                 .product(name: "ProviderToast", package: "LumiProviders"),
@@ -65,6 +67,7 @@ let package = Package(
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
+                .product(name: "ProviderStore", package: "ProviderStore"),
                 .product(name: "KitAudioRepositoryImport", package: "KitAudioRepositoryImport"),
             ],
             path: "Tests"

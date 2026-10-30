@@ -2,6 +2,7 @@ import ProviderAppState
 import ProviderAudioLibrary
 import ProviderCloudDownload
 import ProviderScene
+import ProviderStore
 import ProviderDocsView
 import ProviderPlayback
 import CisumProviderStorage
@@ -52,6 +53,8 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
     nonisolated(unsafe) private var playback: AudioLibraryPlaybackCapabilityAdapter?
     nonisolated(unsafe) private var toast: AudioLibraryToastCapabilityAdapter?
     nonisolated(unsafe) private var sceneCapability: MusicLibrarySceneCapabilityAdapter?
+    nonisolated(unsafe) private var capacity: AudioLibraryCapacityCapabilityAdapter?
+    nonisolated(unsafe) private var purchase: AudioPurchasePresentingCapabilityAdapter?
 
     /// 导入控制器：仓库视图的拖放与文件选择器共用同一套导入流程。
     nonisolated(unsafe) private var importer: AudioRepositoryImporter?
@@ -317,7 +320,9 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
             library: makeLibraryCapability(),
             audioDisk: audioDiskProvider,
             supportedExtensions: AudioPluginInfo.supportedExtensions,
-            toast: makeToastCapability()
+            toast: makeToastCapability(),
+            capacity: makeCapacityCapability(),
+            purchase: makePurchaseCapability()
         )
         importer = created
         return created
@@ -331,6 +336,31 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
             toast: kernel?.resolveProvider((any ToastProviding).self)
         )
         toast = created
+        return created
+    }
+
+    /// 仓库容量准入能力（幂等）：内部惰性解析内核 Provider。
+    ///
+    /// 数据层插件的 boot 顺序不确定，视图贡献可能早于容量能力注册；
+    /// 惰性解析让 Provider 稍后就绪时能力自动生效。
+    @MainActor
+    private func makeCapacityCapability() -> AudioLibraryCapacityCapabilityAdapter {
+        if let capacity { return capacity }
+        let created = AudioLibraryCapacityCapabilityAdapter { @MainActor [weak self] in
+            self?.kernel?.resolveProvider((any AudioCapacityProviding).self)
+        }
+        capacity = created
+        return created
+    }
+
+    /// 购买面板呈现能力（幂等）：撞限引导用。
+    @MainActor
+    private func makePurchaseCapability() -> AudioPurchasePresentingCapabilityAdapter {
+        if let purchase { return purchase }
+        let created = AudioPurchasePresentingCapabilityAdapter { @MainActor [weak self] in
+            self?.kernel?.resolveProvider((any StorePurchasePresenting).self)
+        }
+        purchase = created
         return created
     }
 
@@ -351,6 +381,8 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
         dbViewModel = nil
         playback = nil
         toast = nil
+        capacity = nil
+        purchase = nil
         importer = nil
     }
 
