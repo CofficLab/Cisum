@@ -12,15 +12,26 @@ import OSLog
 final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingProviding, SuperLog {
     nonisolated static let emoji = "💾"
     nonisolated static let verbose = false
+    nonisolated static let logger = Logger(subsystem: "com.coffic.cisum", category: "plugin.audio-db-data")
 
     private let storage: any StorageProviding
     private var cachedRepo: AudioRepo?
+
+    /// 订阅权益能力：数据层据此判断本次同步是否受容量限制。
+    ///
+    /// 惰性解析商店 Provider（boot 顺序不固定）；未就绪时按「受限」处理，
+    /// 宁可先挡住超限文件，也不要让免费用户绕过上限。
+    private let entitlement: any AudioDataEntitlementCapability
     private var storageObserver: AudioStorageObserver?
     private var observers: [WeakAudioLibraryObserver] = []
     private var repositoryIsKnownEmpty: Bool?
 
-    init(storage: any StorageProviding) {
+    init(
+        storage: any StorageProviding,
+        entitlement: any AudioDataEntitlementCapability
+    ) {
         self.storage = storage
+        self.entitlement = entitlement
         storageObserver = AudioStorageObserver(
             storage: AudioDataStorageCapabilityAdapter(storage: storage)
         ) { [weak self] _ in
@@ -116,7 +127,36 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
 
     func sync(urls: [URL], verbose: Bool, isFirst: Bool) async {
         guard let repo = await repository else { return }
-        await repo.sync(urls, verbose: verbose, isFirst: isFirst)
+
+        // 容量兜底：应用内写入走闸门，但仓库目录对用户可见——用户可以直接
+        // 把文件拷进去。目录监控会把它们同步进来，这里挡住超限的那部分，
+        // 只让它留在磁盘上而不进索引（付费后额度放宽，下一次同步自然回来）。
+        let admitted = await capacityAdmittedURLs(urls, isFirst: isFirst)
+
+        await repo.sync(admitted, verbose: verbose, isFirst: isFirst)
+    }
+
+    /// 按容量上限筛选本次同步允许进入索引的文件。
+    private func capacityAdmittedURLs(_ urls: [URL], isFirst: Bool) async -> [URL] {
+        guard !urls.isEmpty else { return urls }
+        guard entitlement.isCapacityLimited else { return urls }
+
+        // 首次全量同步：索引里还没有任何记录，existingCount 为 0。
+        // 增量同步：索引里已有的文件已占用额度。
+        let existingCount = isFirst ? 0 : await totalCount()
+        let limit = AudioPluginInfo.maxAudioCount
+
+        let admitted = AudioSyncCapacityGuard.admittedURLs(
+            urls: urls,
+            existingCount: existingCount,
+            fileLimit: limit
+        )
+        if admitted.count < urls.count {
+            Self.logger.warning(
+                "\(Self.t)⚠️ Sync capacity guard: admitted \(admitted.count)/\(urls.count) file(s) (limit \(limit), existing \(existingCount))"
+            )
+        }
+        return admitted
     }
 
     func sort(url: URL?, reason: String) async {

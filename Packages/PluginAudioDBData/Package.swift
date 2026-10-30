@@ -24,6 +24,7 @@ let package = Package(
         .package(path: "../ProviderAudioLibrary"),
         .package(path: "../ProviderAudioNavigation"),
         .package(path: "../ProviderStorage"),
+        .package(path: "../ProviderStore"),
     ],
     targets: [
         .target(
@@ -37,6 +38,7 @@ let package = Package(
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "ProviderAudioNavigation", package: "ProviderAudioNavigation"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
+                .product(name: "ProviderStore", package: "ProviderStore"),
             ],
             path: ".",
             exclude: ["README.md", "Tests"],
@@ -52,6 +54,7 @@ let package = Package(
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "ProviderStorage", package: "ProviderStorage"),
+                .product(name: "ProviderStore", package: "ProviderStore"),
             ],
             path: "Tests"
         ),

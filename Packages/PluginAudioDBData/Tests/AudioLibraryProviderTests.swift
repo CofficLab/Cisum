@@ -123,7 +123,7 @@ struct AudioLibraryProviderTests {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("AudioLibraryUnavailableTests-\(UUID().uuidString)", isDirectory: true)
         let storage = TestStorageProvider(storageRoot: nil, databaseRoot: root)
-        let provider = AudioLibraryProvider(storage: storage)
+        let provider = AudioLibraryProvider(storage: storage, entitlement: TestAudioDataEntitlement())
         defer {
             provider.shutdown()
             try? FileManager.default.removeItem(at: root)
@@ -172,7 +172,8 @@ struct AudioLibraryProviderTests {
         defer { try? FileManager.default.removeItem(at: root) }
 
         let provider = AudioLibraryProvider(
-            storage: TestStorageProvider(storageRoot: storageRoot, databaseRoot: root.appendingPathComponent("Database"))
+            storage: TestStorageProvider(storageRoot: storageRoot, databaseRoot: root.appendingPathComponent("Database")),
+            entitlement: TestAudioDataEntitlement()
         )
         defer { provider.shutdown() }
 
@@ -248,7 +249,8 @@ struct AudioLibraryProviderTests {
         defer { try? FileManager.default.removeItem(at: root) }
 
         let provider = AudioLibraryProvider(
-            storage: TestStorageProvider(storageRoot: storageRoot, databaseRoot: root.appendingPathComponent("Database"))
+            storage: TestStorageProvider(storageRoot: storageRoot, databaseRoot: root.appendingPathComponent("Database")),
+            entitlement: TestAudioDataEntitlement()
         )
         defer { provider.shutdown() }
 
@@ -291,7 +293,7 @@ struct AudioLibraryProviderTests {
         let firstStorageRoot = root.appendingPathComponent("First", isDirectory: true)
         let secondStorageRoot = root.appendingPathComponent("Second", isDirectory: true)
         let storage = TestStorageProvider(storageRoot: firstStorageRoot, databaseRoot: root.appendingPathComponent("FallbackDB"))
-        let provider = AudioLibraryProvider(storage: storage)
+        let provider = AudioLibraryProvider(storage: storage, entitlement: TestAudioDataEntitlement())
         defer {
             provider.shutdown()
             try? FileManager.default.removeItem(at: root)
