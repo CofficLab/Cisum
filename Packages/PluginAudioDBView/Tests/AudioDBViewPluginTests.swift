@@ -120,6 +120,13 @@ import UniformTypeIdentifiers
     #expect(!AudioListHeaderPolicy.shouldShowAddButton(hasContent: false))
 }
 
+@Test func audioListHeaderKeepsOpenRepositoryButtonWhileRepositoryHasContent() {
+    // 非空仓库在表头最右侧常驻「打开仓库目录」按钮：用户可直接跳到访达里的仓库目录。
+    #expect(AudioListHeaderPolicy.shouldShowOpenRepositoryButton(hasContent: true))
+    // 空仓库由空状态视图自己提供目录入口，表头不再重复出现。
+    #expect(!AudioListHeaderPolicy.shouldShowOpenRepositoryButton(hasContent: false))
+}
+
 @Test func audioListLoadsMoreFromCurrentLoadedCount() {
     #expect(AudioListLoadPolicy.nextLoadOffset(loadedCount: 90, currentPage: 0, pageSize: 50) == 90)
     #expect(AudioListLoadPolicy.nextLoadOffset(loadedCount: 100, currentPage: 0, pageSize: 50) == 100)
