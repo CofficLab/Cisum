@@ -758,6 +758,34 @@
         }
       }
     },
+    "Download removed. File remains in iCloud." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download removed. File remains in iCloud."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已移除下载。文件保留在 iCloud 中。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已移除下載。檔案保留在 iCloud 中。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已移除下載。檔案保留在 iCloud 中。"
+          }
+        }
+      }
+    },
     "Drop music files here to add them" : {
       "localizations" : {
         "en" : {
@@ -838,6 +866,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "匯出到下載目錄"
+          }
+        }
+      }
+    },
+    "Failed to remove download: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to remove download: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除下载失败：%@"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除下載失敗：%@"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除下載失敗：%@"
           }
         }
       }
@@ -1594,6 +1650,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重新整理失敗：音訊倉庫不可用"
+          }
+        }
+      }
+    },
+    "Remove Download" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Download"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除下载"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除下載"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除下載"
+          }
+        }
+      }
+    },
+    "Remove the downloaded copy? The file will remain in iCloud." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove the downloaded copy? The file will remain in iCloud."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除已下载的副本？文件将保留在 iCloud 中。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除已下載的副本？檔案將保留在 iCloud 中。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除已下載的副本？檔案將保留在 iCloud 中。"
           }
         }
       }
