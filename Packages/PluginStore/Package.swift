@@ -37,6 +37,7 @@ let package = Package(
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
+                .product(name: "ProviderRootView", package: "LumiProviders"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "ProviderToast", package: "LumiProviders"),
             ],
@@ -44,6 +45,7 @@ let package = Package(
             sources: [
                 "Sources/StorePlugin.swift",
                 "Sources/Observers",
+                "Sources/Providers",
                 "Sources/ViewModels",
                 "Sources/Views"
             ],
