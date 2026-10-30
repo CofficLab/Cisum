@@ -12,6 +12,7 @@ import Testing
 private final class PlaybackStub: ProgressBarCapability {
     var currentTime: TimeInterval
     var duration: TimeInterval
+    var state: PlaybackStatus = .paused
     private(set) var seekTimes: [TimeInterval] = []
     private var observers: [UUID: (ProgressBarEvent) -> Void] = [:]
 
@@ -214,6 +215,74 @@ struct PlaybackProgressTests {
         _ = PlaybackProgressView(viewModel: viewModel).body
         _ = PlaybackProgressPluginAboutView().body
         _ = PlaybackProgressPluginManualView().body
+    }
+
+    // MARK: - Download progress tests
+
+    @Test
+    func downloadProgressIsNilWhenNotDownloading() {
+        let playback = PlaybackStub(currentTime: 5, duration: 60)
+        playback.state = .playing
+        let viewModel = PlaybackProgressViewModel(playback: playback)
+
+        #expect(viewModel.downloadProgress == nil)
+    }
+
+    @Test
+    func downloadProgressExtractsFromDownloadingState() {
+        let playback = PlaybackStub(currentTime: 0, duration: 0)
+        playback.state = .loading(.downloading(0.42))
+        let viewModel = PlaybackProgressViewModel(playback: playback)
+
+        #expect(viewModel.downloadProgress == 0.42)
+    }
+
+    @Test
+    func downloadProgressUpdatesOnStateChangedEvent() {
+        let playback = PlaybackStub(currentTime: 0, duration: 0)
+        playback.state = .idle
+        let viewModel = PlaybackProgressViewModel(playback: playback)
+        let observer = PlaybackProgressObserver(playback: playback, viewModel: viewModel)
+
+        #expect(viewModel.downloadProgress == nil)
+
+        playback.send(.stateChanged(.loading(.downloading(0.3))))
+        #expect(viewModel.downloadProgress == 0.3)
+
+        playback.send(.stateChanged(.loading(.downloading(0.75))))
+        #expect(viewModel.downloadProgress == 0.75)
+
+        // 下载完成，切换到播放态
+        playback.send(.stateChanged(.playing))
+        #expect(viewModel.downloadProgress == nil)
+
+        observer.cancel()
+    }
+
+    @Test
+    func downloadProgressClampsToValidRange() {
+        #expect(PlaybackProgressViewModel.extractDownloadProgress(from: .loading(.downloading(-0.1))) == 0)
+        #expect(PlaybackProgressViewModel.extractDownloadProgress(from: .loading(.downloading(1.5))) == 1)
+        #expect(PlaybackProgressViewModel.extractDownloadProgress(from: .loading(.downloading(0.5))) == 0.5)
+        #expect(PlaybackProgressViewModel.extractDownloadProgress(from: .playing) == nil)
+        #expect(PlaybackProgressViewModel.extractDownloadProgress(from: .loading(.connecting)) == nil)
+        #expect(PlaybackProgressViewModel.extractDownloadProgress(from: .idle) == nil)
+    }
+
+    @Test
+    func downloadProgressClearsOnAssetChange() {
+        let playback = PlaybackStub(currentTime: 0, duration: 0)
+        playback.state = .loading(.downloading(0.5))
+        let viewModel = PlaybackProgressViewModel(playback: playback)
+        let observer = PlaybackProgressObserver(playback: playback, viewModel: viewModel)
+        #expect(viewModel.downloadProgress == 0.5)
+
+        // 切换到新文件（不再下载）
+        playback.state = .paused
+        playback.send(.assetChanged)
+        #expect(viewModel.downloadProgress == nil)
+
+        observer.cancel()
     }
 }
 
