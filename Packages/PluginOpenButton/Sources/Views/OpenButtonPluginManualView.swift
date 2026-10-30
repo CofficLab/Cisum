@@ -5,10 +5,10 @@ import SwiftUI
 struct OpenButtonPluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Open Current", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Open Current", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Provides an Open Current entry in the toolbar to quickly locate the current file")
+            Text("Provides an Open Current entry in the toolbar to quickly locate the current file", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

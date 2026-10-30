@@ -5,10 +5,10 @@ import SwiftUI
 struct SystemPluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Reset", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Reset", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Reset app state or data to restore the initial state")
+            Text("Reset app state or data to restore the initial state", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

@@ -5,10 +5,10 @@ import SwiftUI
 struct RepositoryGuidePluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Repository Guide", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Repository Guide", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Shows a short guide at the top of the player control area when the repository is empty.")
+            Text("Shows a short guide at the top of the player control area when the repository is empty.", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

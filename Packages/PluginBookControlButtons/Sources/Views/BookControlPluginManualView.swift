@@ -5,10 +5,10 @@ import SwiftUI
 struct BookControlPluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Audiobook Controls", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Audiobook Controls", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Control play, pause, and chapter navigation for the current audiobook")
+            Text("Control play, pause, and chapter navigation for the current audiobook", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

@@ -5,10 +5,10 @@ import SwiftUI
 struct PlaybackProgressPluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Playback Progress", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Playback Progress", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Provides the progress bar view for the player control area, showing the current progress in real time and supporting drag to control the position.")
+            Text("Provides the progress bar view for the player control area, showing the current progress in real time and supporting drag to control the position.", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

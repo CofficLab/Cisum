@@ -5,10 +5,10 @@ import SwiftUI
 struct PluginPlayBackManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Playback Engine", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Playback Engine", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Provides a unified playback engine that controls audio playback and restores the last played file after relaunch.")
+            Text("Provides a unified playback engine that controls audio playback and restores the last played file after relaunch.", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

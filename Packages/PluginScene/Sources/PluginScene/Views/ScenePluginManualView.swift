@@ -5,10 +5,10 @@ import SwiftUI
 struct ScenePluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Scene Management", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Scene Management", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Manages app scene switching and state (Music Library / Audiobooks)")
+            Text("Manages app scene switching and state (Music Library / Audiobooks)", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

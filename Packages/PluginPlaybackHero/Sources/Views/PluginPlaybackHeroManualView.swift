@@ -5,10 +5,10 @@ import SwiftUI
 struct PlaybackHeroPluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Playback Cover", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Playback Cover", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Provides the cover and title view for the player control area, automatically showing a cover or video frame based on the current media.")
+            Text("Provides the cover and title view for the player control area, automatically showing a cover or video frame based on the current media.", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

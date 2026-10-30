@@ -5,10 +5,10 @@ import SwiftUI
 struct PluginControlButtonsManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Playback Control Buttons", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Playback Control Buttons", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Provides the control button group at the bottom of the player for quickly switching tracks, playing/pausing, and changing play modes.")
+            Text("Provides the control button group at the bottom of the player for quickly switching tracks, playing/pausing, and changing play modes.", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)
