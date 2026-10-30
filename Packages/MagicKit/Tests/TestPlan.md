@@ -78,13 +78,16 @@ MagicKit 是 Cisum 的通用工具层，包含两大块：
 | 42 | 缩略图 | 图片裁剪正确性 | - | 裁剪图片 | 尺寸符合预期 | P1 | ✅ 已覆盖 | `testImageCropping` |
 | 43 | 缩略图 | 图片裁剪性能不退化 | - | 基准裁剪 | 耗时在阈值内 | P2 | ✅ 已覆盖 | `testImageCroppingPerformance` |
 | 44 | 智能同步 | `SmartSync` actor 的增量同步与 `SuperSyncDelegate` 回调语义 | 需真实 iCloud 容器 | 触发同步 | 回调与数据一致 | P2 | ❌ 缺失 | - |
+| 45 | 头像 | 本地不存在的文件不得被初判成错误 | 占位文件（iCloud 未下载）本地不存在 | 构造头像视图 | 不预判错误，红色感叹号不出现 | P0 | ✅ 已覆盖 | `missingLocalFileIsNotPresumedToBeAnError` |
+| 46 | 头像 | 错误态在得出结论前不渲染 | - | 置入错误状态 | 未出结论时给加载态 | P0 | ✅ 已覆盖 | `errorStateIsHiddenUntilResolved` / `resetClearsResolutionAndError` / `markingNeedsReloadClearsResolution` |
+| 47 | 头像 | 非文件非网络 URL 仍判为无效 URL | - | 构造头像视图 | 初判为 `invalidURL` | P1 | ✅ 已覆盖 | `nonFileNonNetworkURLIsStillAnInvalidURL` / `fileURLHasNoPresumedError` |
 
 ## 覆盖率统计
 
-- P0: 已覆盖 16 / 16
-- P1: 已覆盖 26 / 26
+- P0: 已覆盖 18 / 18
+- P1: 已覆盖 27 / 27
 - P2: 已覆盖 1 / 2
-- **合计: 43 / 44**（仅表示清单场景，非源码覆盖率）
+- **合计: 46 / 47**（仅表示清单场景，非源码覆盖率）
 
 > 统计仅表示清单场景，不是源码覆盖率。MagicKit 存在 Swift Testing / XCTest 双框架混用，
 > `swift test` 两者都会执行。ID 44 的 `SmartSync` 需真实 iCloud 容器，标注为 ❌ 缺失而非虚假打勾。

@@ -177,7 +177,7 @@ done
 | 插件入口 `*Plugin.swift` / `*Manager.swift` | 组装层，可直接 resolve Provider |
 | `AudioStorageDiagnosticsFactory`（PluginAudioDBView） | 一次性诊断快照，不订阅不持有 |
 | `AudioProgressViewModel` 的 `audioLike` 闭包 | 恢复进度时一次性读取 |
-| `CisumRootLayoutView`（PluginRootView） | 组装层 View，resolve 后立即包成 Adapter |
+| `RootLayoutView`（PluginRootView） | 组装层 View，resolve 后立即包成 Adapter |
 | `PluginPluginManager.swift`、`PluginScene` | 自身即 Provider 生产方 / 入口 |
 
 **新建命中项时**：把消费收敛到 `Sources/Capabilities/`（或 `Sources/<Package>/Capabilities/`）的

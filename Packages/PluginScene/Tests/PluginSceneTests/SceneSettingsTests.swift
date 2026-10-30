@@ -117,32 +117,30 @@ struct SceneSelectionCapabilityAdapterTests {
     }
 }
 
-// MARK: - SceneSettingsViewModel
+// MARK: - SceneSelectionViewModel
 
 @MainActor
-struct SceneSettingsViewModelTests {
+struct SceneSelectionViewModelTests {
     @Test
     func initLoadsScenesAndCurrentFromProvider() {
         let probe = SceneProbe(current: .audiobooks)
-        let viewModel = SceneSettingsViewModel(selection: probe)
+        let viewModel = SceneSelectionViewModel(selection: probe)
 
         #expect(viewModel.scenes == [.music, .audiobooks])
         #expect(viewModel.currentScene == .audiobooks)
-        #expect(viewModel.currentSceneIconName == ProviderScene.AppScene.audiobooks.iconName)
     }
 
     @Test
     func initWithoutProviderFallsBackToEmpty() {
-        let viewModel = SceneSettingsViewModel(selection: nil)
+        let viewModel = SceneSelectionViewModel(selection: nil)
         #expect(viewModel.scenes.isEmpty)
         #expect(viewModel.currentScene == nil)
-        #expect(viewModel.currentSceneIconName == "rectangle.3.group")
     }
 
     @Test
     func selectDelegatesToProviderAndRefreshes() {
         let probe = SceneProbe(current: .music)
-        let viewModel = SceneSettingsViewModel(selection: probe)
+        let viewModel = SceneSelectionViewModel(selection: probe)
 
         viewModel.select(.audiobooks)
 
@@ -154,7 +152,7 @@ struct SceneSettingsViewModelTests {
     @Test
     func handleProviderChangedRefreshesState() {
         let probe = SceneProbe(current: .music)
-        let viewModel = SceneSettingsViewModel(selection: probe)
+        let viewModel = SceneSelectionViewModel(selection: probe)
 
         // 外部直接改 Provider 状态，再通知 ViewModel 刷新。
         probe.setCurrentScene(.audiobooks)
@@ -165,7 +163,7 @@ struct SceneSettingsViewModelTests {
 
     @Test
     func selectWithoutProviderIsNoOp() {
-        let viewModel = SceneSettingsViewModel(selection: nil)
+        let viewModel = SceneSelectionViewModel(selection: nil)
         viewModel.select(.music)
         #expect(viewModel.scenes.isEmpty)
         #expect(viewModel.currentScene == nil)
@@ -173,7 +171,7 @@ struct SceneSettingsViewModelTests {
     @Test
     func viewModelWeaklyHoldsProviderAndFallsBackWhenReleased() {
         var probe: SceneProbe? = SceneProbe(current: .music)
-        let viewModel = SceneSettingsViewModel(selection: probe!)
+        let viewModel = SceneSelectionViewModel(selection: probe!)
 
         #expect(viewModel.scenes == [.music, .audiobooks])
         #expect(viewModel.currentScene == .music)

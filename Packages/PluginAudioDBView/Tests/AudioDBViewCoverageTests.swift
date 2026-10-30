@@ -38,6 +38,8 @@ private final class PlaybackProbe: AudioLibraryPlaybackCapability {
     var currentURL: URL?
 
     var playedURLs: [URL] = []
+    /// 被「加载但未自动播放」的资源。
+    var loadedURLs: [URL] = []
     var resetCount = 0
     private var observers: [UUID: (AudioLibraryPlaybackEvent) -> Void] = [:]
 
@@ -47,6 +49,7 @@ private final class PlaybackProbe: AudioLibraryPlaybackCapability {
     }
 
     func play(_ url: URL) async { playedURLs.append(url) }
+    func load(_ url: URL) async { loadedURLs.append(url) }
     func reset() async { resetCount += 1 }
 
     @discardableResult
@@ -84,11 +87,17 @@ private final class AudioLibraryProbe: AudioLibraryCapability {
     var supportedExtensions: [String] = ["mp3"]
     var isAvailable: Bool = true
     var totalCountValue = 0
+    /// 仓库中的文件列表（按稳定顺序）。
+    var urlsValue: [URL] = []
     private var observers: [UUID: (AudioLibraryEvent) -> Void] = [:]
 
     func totalCount() async -> Int { totalCountValue }
-    func allURLs(reason: String) async -> [URL] { [] }
-    func urls(offset: Int, limit: Int, reason: String) async -> [URL] { [] }
+    func allURLs(reason: String) async -> [URL] { urlsValue }
+    func urls(offset: Int, limit: Int, reason: String) async -> [URL] {
+        guard offset < urlsValue.count else { return [] }
+        let upper = min(offset + limit, urlsValue.count)
+        return Array(urlsValue[offset ..< upper])
+    }
     func delete(urls: [URL], verbose: Bool) async throws {}
     func sync(urls: [URL], verbose: Bool, isFirst: Bool) async {}
 
@@ -503,6 +512,119 @@ struct AudioDatabaseObserverTests {
             try await Task.sleep(for: .milliseconds(10))
         }
         Issue.record("Audio list did not finish its repository-availability refresh in time")
+    }
+}
+
+// MARK: - 未选择文件时自动选中第一项
+
+/// 仓库有文件、用户尚未选择任何文件时，列表应自动选中第一项。
+///
+/// 判据是「用户没有选择过任何文件」：已经存在选中项时不得被覆盖。
+@MainActor
+struct AudioListAutoSelectionTests {
+    @Test
+    func selectsFirstFileWhenRepositoryHasFilesAndNothingIsSelected() async throws {
+        let library = AudioLibraryProbe()
+        let first = URL(fileURLWithPath: "/tmp/cisum-auto-first.mp3")
+        let second = URL(fileURLWithPath: "/tmp/cisum-auto-second.mp3")
+        library.urlsValue = [first, second]
+        library.totalCountValue = 2
+
+        let list = AudioListViewModel(library: library)
+        list.handleOnAppear()
+        try await waitForInitialLoad(list)
+
+        #expect(list.selection == first)
+    }
+
+    /// 自动选中必须让**播放器**持有该文件，否则播放区（封面 + 标题）仍是空的。
+    ///
+    /// 封面与标题的数据源是播放器的 `currentURL`，不是列表的 `selection`：
+    /// 只改 `selection` 的话，`PlaybackHeroViewModel.isHeroVisible` 仍为 false，
+    /// 封面区高度归零，用户看到的是一片空白（而非首曲信息）。
+    @Test
+    func loadsFirstFileIntoPlayerSoHeroHasACurrentTrack() async throws {
+        let library = AudioLibraryProbe()
+        let first = URL(fileURLWithPath: "/tmp/cisum-hero-first.mp3")
+        let second = URL(fileURLWithPath: "/tmp/cisum-hero-second.mp3")
+        library.urlsValue = [first, second]
+        library.totalCountValue = 2
+
+        let playback = PlaybackProbe()
+        let list = AudioListViewModel(library: library, playback: playback)
+        list.handleOnAppear()
+        try await waitForInitialLoad(list)
+        try await waitForPlaybackLoad(playback)
+
+        #expect(list.selection == first)
+        #expect(playback.loadedURLs == [first], "首曲必须被加载到播放器，封面区才有内容")
+        #expect(playback.playedURLs.isEmpty, "兜底加载不应自动播放——不替用户决定开始出声")
+    }
+
+    /// 已有当前曲目时不得再兜底加载：用户意图优先。
+    @Test
+    func doesNotLoadAnythingWhenPlayerAlreadyHasACurrentTrack() async throws {
+        let library = AudioLibraryProbe()
+        let first = URL(fileURLWithPath: "/tmp/cisum-hero-keep-first.mp3")
+        let second = URL(fileURLWithPath: "/tmp/cisum-hero-keep-second.mp3")
+        library.urlsValue = [first, second]
+        library.totalCountValue = 2
+
+        let playback = PlaybackProbe()
+        let list = AudioListViewModel(library: library, playback: playback)
+        // 模拟「播放器已有当前曲目」：走正式入口，让 currentAsset 与
+        // selection 同步到播放器的实际状态。
+        list.applyExternalPlayback(url: second)
+        list.handleOnAppear()
+        try await waitForInitialLoad(list)
+        try await waitForPlaybackLoad(playback)
+
+        #expect(playback.loadedURLs.isEmpty, "已有当前曲目时不应覆盖用户的播放状态")
+        #expect(list.selection == second)
+    }
+
+    @Test
+    func doesNotSelectAnythingWhenRepositoryIsEmpty() async throws {
+        let library = AudioLibraryProbe()
+        library.urlsValue = []
+        library.totalCountValue = 0
+
+        let list = AudioListViewModel(library: library)
+        list.handleOnAppear()
+        try await waitForInitialLoad(list)
+
+        #expect(list.selection == nil)
+    }
+
+    @Test
+    func keepsExistingSelectionInsteadOfOverwritingItWithFirstFile() async throws {
+        let library = AudioLibraryProbe()
+        let first = URL(fileURLWithPath: "/tmp/cisum-auto-keep-first.mp3")
+        let second = URL(fileURLWithPath: "/tmp/cisum-auto-keep-second.mp3")
+        library.urlsValue = [first, second]
+        library.totalCountValue = 2
+
+        let list = AudioListViewModel(library: library)
+        list.applyExternalPlayback(url: second)
+        list.handleOnAppear()
+        try await waitForInitialLoad(list)
+
+        #expect(list.selection == second)
+    }
+
+    private func waitForInitialLoad(_ viewModel: AudioListViewModel) async throws {
+        for _ in 0 ..< 100 {
+            if !viewModel.isLoading { return }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        Issue.record("Audio list did not finish its initial load in time")
+    }
+
+    /// 兜底加载在 `Task` 中执行，等待它落地。
+    private func waitForPlaybackLoad(_ probe: PlaybackProbe) async throws {
+        for _ in 0 ..< 100 where probe.loadedURLs.isEmpty {
+            try await Task.sleep(for: .milliseconds(10))
+        }
     }
 }
 

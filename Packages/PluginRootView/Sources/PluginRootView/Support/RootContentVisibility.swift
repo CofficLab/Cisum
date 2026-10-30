@@ -2,7 +2,7 @@ import CoreGraphics
 
 /// 根布局：几何尺寸变化后，内容区（音乐库）是否应被收起为「纯播放器」态的判定。
 ///
-/// 抽出为纯函数以便单测覆盖平台差异；`CisumRootLayoutView.handleGeometryChange`
+/// 抽出为纯函数以便单测覆盖平台差异；`RootLayoutView.handleGeometryChange`
 /// 通过注入编译期平台常量调用它。
 enum RootContentVisibility {
     /// 宿主是否为 macOS。生产路径注入此值；测试可传入任意平台以覆盖两条分支。

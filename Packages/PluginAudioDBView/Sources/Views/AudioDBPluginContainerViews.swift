@@ -85,6 +85,8 @@ struct AudioDBPluginTabView: View {
     private let audioDiagnostics: @MainActor @Sendable () -> AudioStorageDiagnostics
     private let isImporting: Binding<Bool>
     private let showDBView: @MainActor @Sendable () -> Void
+    /// 导入控制器：拖放与文件选择器共用同一实例。
+    private let importer: AudioRepositoryImporter
 
     let demoMode: Bool
 
@@ -97,7 +99,8 @@ struct AudioDBPluginTabView: View {
         audioDiagnostics: @escaping @MainActor @Sendable () -> AudioStorageDiagnostics,
         isImporting: Binding<Bool>,
         showDBView: @escaping @MainActor @Sendable () -> Void,
-        demoMode: Bool
+        demoMode: Bool,
+        importer: AudioRepositoryImporter
     ) {
         self.listViewModel = listViewModel
         self.rootViewModel = rootViewModel
@@ -108,6 +111,7 @@ struct AudioDBPluginTabView: View {
         self.isImporting = isImporting
         self.showDBView = showDBView
         self.demoMode = demoMode
+        self.importer = importer
     }
 
     var body: some View {
@@ -115,7 +119,8 @@ struct AudioDBPluginTabView: View {
             isDemoMode: demoMode,
             listViewModel: listViewModel,
             dbViewModel: dbViewModel,
-            dependencies: dependencies
+            dependencies: dependencies,
+            importer: importer
         )
         .accessibilityIdentifier("cisum.scene.music")
     }

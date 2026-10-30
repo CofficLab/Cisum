@@ -115,7 +115,7 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
                 kernel.resolveProvider((any ContentViewVisibilityProviding).self)?
                     .toggleContentView()
             }
-            .appDebugBadge("Book Controls", alignment: .bottomLeading)
+            // .appDebugBadge("Book Controls", alignment: .bottomLeading)
         )
     }
 

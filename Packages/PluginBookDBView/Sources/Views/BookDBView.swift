@@ -44,7 +44,8 @@ public struct BookDBView: View, SuperLog, SuperThread {
                 BookGrid(
                     viewModel: viewModel,
                     dependencies: dependencies,
-                    requestImport: { isFileImporterPresented = true }
+                    requestImport: { isFileImporterPresented = true },
+                    isDropping: isDropping
                 )
             }
         }

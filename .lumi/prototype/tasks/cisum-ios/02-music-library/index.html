@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Cisum · 音乐库</title>
+<style>
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",sans-serif;
+  font-size:13px;line-height:1.45;color:var(--text-1);
+  background:var(--bg-deep);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+:root{
+  --primary:#34D399; --primary-2:#F59E0B; --tertiary:#38BDF8;
+  --bg-deep:#1C1C1A; --bg-medium:#262624; --bg-light:#30302E;
+  --text-1:#FAFAF9; --text-2:#D6D3D1; --text-3:#A8A29E;
+  --success:#30D158; --error:#FF453A; --info:#38BDF8;
+  --hairline:rgba(255,255,255,.09);
+  --hairline-2:rgba(255,255,255,.055);
+  --glass:rgba(255,255,255,.07);
+  --glass-strong:rgba(255,255,255,.12);
+  --r-sm:8px; --r-md:10px; --r-lg:16px;
+}
+svg{display:block;flex:0 0 auto}
+button{appearance:none;-webkit-appearance:none;border:none;background:none;padding:0;margin:0;
+  font:inherit;color:inherit;line-height:inherit;cursor:default;outline:none}
+
+/* 全局背景：两团模糊光晕（makeGlobalBackground） */
+.backdrop{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--bg-deep);pointer-events:none}
+.backdrop::before,.backdrop::after{content:"";position:absolute;border-radius:50%;filter:blur(44px)}
+.backdrop::before{width:600px;height:600px;left:-210px;top:-210px;
+  background:radial-gradient(circle,rgba(56,189,248,.42) 0%,rgba(245,158,11,.26) 38%,rgba(52,211,153,.16) 62%,rgba(0,0,0,0) 100%)}
+.backdrop::after{width:500px;height:500px;right:-140px;bottom:-140px;
+  background:radial-gradient(circle,rgba(56,189,248,.40) 0%,rgba(245,158,11,.24) 40%,rgba(0,0,0,0) 100%)}
+.scrim{position:fixed;inset:0;z-index:0;background:rgba(10,10,9,.55)}
+
+/* ---------- macOS 窗口（400x800，AppBootstrap.defaultWindowSize） ---------- */
+.stage{position:relative;z-index:1;width:400px;height:800px;display:flex;flex-direction:column;overflow:hidden}
+.toolbar{flex:0 0 52px;height:52px;display:flex;align-items:center;padding:0 12px 0 0;gap:6px;
+  background:linear-gradient(to bottom,rgba(255,255,255,.055),rgba(255,255,255,0))}
+.traffic{display:flex;gap:8px;padding-left:13px}
+.traffic i{width:12px;height:12px;border-radius:50%;display:block}
+.tl-r{background:#FF5F57}.tl-y{background:#FEBC2E}.tl-g{background:#28C840}
+.tb-gap{flex:1 1 auto}
+.tb-btn{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  color:var(--text-2);background:transparent}
+.tb-btn.on{color:var(--primary)}
+.tb-btn.on svg{stroke-width:1.9}
+
+/* ---------- 播放控制区 ---------- */
+.control{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;width:100%}
+.hero-slot{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.album-wrap{flex:1 1 auto;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
+.album{position:relative;overflow:hidden;border-radius:10px;box-shadow:0 22px 48px rgba(0,0,0,.46)}
+.album.c-a{background:linear-gradient(145deg,#0B3A2E 0%,#17795C 38%,#34D399 78%,#0EA5E9 100%)}
+.album.c-b{background:linear-gradient(145deg,#3B1E0B 0%,#A85B12 40%,#F59E0B 100%)}
+.album.c-c{background:linear-gradient(145deg,#0B2436 0%,#15607E 42%,#38BDF8 100%)}
+.album .glyph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.28)}
+.album .sheen{position:absolute;inset:0;background:linear-gradient(200deg,rgba(255,255,255,.22),rgba(255,255,255,0) 52%)}
+.album::after{content:"";position:absolute;left:50%;top:50%;width:62%;height:62%;
+  transform:translate(-50%,-50%);border-radius:50%;opacity:.5;
+  background:radial-gradient(circle,rgba(0,0,0,.30) 0 17%,rgba(255,255,255,.12) 17% 19%,
+    rgba(0,0,0,.20) 19% 56%,rgba(255,255,255,.06) 56% 58%,rgba(0,0,0,.28) 58% 60%,transparent 60%)}
+.title{font-size:24px;font-weight:600;letter-spacing:-.3px;text-align:center;line-height:1.2;
+  color:var(--text-1);text-shadow:0 2px 8px rgba(28,28,26,.22);
+  display:flex;align-items:center;justify-content:center;padding:0 16px;flex:0 0 60px;height:60px}
+.title.small{font-size:19px;flex:0 0 60px}
+
+.state-row{width:100%;display:flex;align-items:center;justify-content:center}
+.state-pill{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:999px;
+  background:var(--bg-light);color:var(--text-1);font-size:12.5px}
+.state-pill svg{color:var(--text-1)}
+
+/* 进度条（MagicProgressBar = 原生 Slider） */
+.progress{width:100%;padding:8px 14px;display:flex;align-items:center}
+.slider{position:relative;width:100%;height:5px;border-radius:3px;background:rgba(255,255,255,.17)}
+.slider i{display:block;height:100%;width:38%;border-radius:3px;background:var(--primary)}
+.slider b{position:absolute;top:50%;left:38%;width:13px;height:13px;border-radius:50%;background:#fff;
+  transform:translate(-50%,-50%);box-shadow:0 2px 7px rgba(0,0,0,.35)}
+.times{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text-3);
+  font-variant-numeric:tabular-nums}
+
+/* 传输按钮组（ControlButtonsView，spacing 12，bottom padding 20） */
+.buttons{width:100%;display:flex;align-items:center;justify-content:center;gap:12px}
+.cbtn{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:var(--text-2);
+  box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.cbtn.on{color:var(--text-1);border-color:rgba(52,211,153,.55)}
+.cbtn.main{width:58px;height:58px;color:#0B3A2E;background:var(--primary);border-color:transparent;
+  box-shadow:0 8px 22px rgba(52,211,153,.28)}
+.cbtn.main svg{stroke:none;fill:#0B3A2E}
+.buttons .tip{position:relative}
+
+/* ---------- 内容区（音乐库 / 有声书库） ---------- */
+.content{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;background:var(--bg-deep);
+  border-top:1px solid var(--hairline)}
+.list-head{display:flex;align-items:center;gap:8px;padding:10px 16px 6px;font-size:12px;color:var(--text-3)}
+.list-head .add{margin-left:auto;width:26px;height:26px;border-radius:7px;display:flex;align-items:center;
+  justify-content:center;color:var(--primary);background:rgba(52,211,153,.12)}
+.scroll{flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.row{display:flex;align-items:center;gap:12px;padding:7px 14px;border-radius:var(--r-sm);
+  background:rgba(255,255,255,.04);margin:0 10px 4px}
+.row.sel{background:rgba(52,211,153,.16);box-shadow:inset 0 0 0 1px rgba(52,211,153,.32)}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.82);flex:0 0 auto}
+.avatar.a1{background:linear-gradient(140deg,#0B3A2E,#34D399)}
+.avatar.a2{background:linear-gradient(140deg,#3B1E0B,#F59E0B)}
+.avatar.a3{background:linear-gradient(140deg,#0B2436,#38BDF8)}
+.avatar.a4{background:linear-gradient(140deg,#3B0B1B,#FF453A)}
+.avatar.a5{background:linear-gradient(140deg,#24103B,#8B5CF6)}
+.row .meta{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px}
+.row .nm{font-size:13.5px;font-weight:600;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .sz{font-size:11.5px;color:var(--text-3)}
+
+/* 有声书网格（LazyVGrid，min 150，间距 12/16） */
+.grid{display:grid;grid-template-columns:repeat(2,150px);gap:16px 12px;padding:6px 16px 16px;justify-content:center}
+.tile{width:150px;height:200px;border-radius:8px;overflow:hidden;position:relative;
+  display:flex;align-items:flex-end;box-shadow:0 10px 26px rgba(0,0,0,.4)}
+.tile .cap{padding:10px;text-align:center;width:100%}
+.tile .cap b{display:block;font-size:13px;font-weight:600;color:#fff;line-height:1.3;
+  text-shadow:0 1px 4px rgba(0,0,0,.4)}
+.tile .cap span{display:block;font-size:11px;color:rgba(255,255,255,.82);margin-top:3px}
+.tile .cap .last{margin-top:8px;padding:6px 4px;border-radius:6px;background:rgba(0,0,0,.3);
+  font-size:10px;color:rgba(255,255,255,.9)}
+.tile.sel{box-shadow:0 0 0 3px var(--primary),0 10px 26px rgba(0,0,0,.4)}
+.tile.t1{background:linear-gradient(150deg,#3B1E0B,#B45309 55%,#F59E0B)}
+.tile.t2{background:linear-gradient(150deg,#0B2436,#155E75 55%,#38BDF8)}
+.tile.t3{background:linear-gradient(150deg,#24103B,#5B21B6 55%,#A78BFA)}
+.tile.t4{background:linear-gradient(150deg,#3B0B1B,#9F1239 55%,#FB7185)}
+.tile.t5{background:linear-gradient(150deg,#0B3A2E,#047857 55%,#34D399)}
+.tile.t6{background:linear-gradient(150deg,#2A2A28,#57534E 55%,#A8A29E)}
+
+/* ---------- 空态（AudioDBTips） ---------- */
+.empty{flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:18px;
+  background:var(--bg-deep)}
+.empty-inner{width:100%;border:2px dashed rgba(52,211,153,.45);border-radius:16px;
+  padding:26px 18px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.empty-ic{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+  background:rgba(52,211,153,.12);color:var(--text-2)}
+.empty h3{font-size:16px;font-weight:600;color:var(--text-1)}
+.empty p{font-size:12.5px;color:var(--text-3)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.chip{font-size:10.5px;font-weight:600;letter-spacing:.3px;padding:4px 8px;border-radius:6px;
+  background:rgba(52,211,153,.12);color:var(--primary)}
+.btn{height:34px;padding:0 16px;border-radius:var(--r-sm);display:inline-flex;align-items:center;
+  justify-content:center;gap:6px;font-size:13px;font-weight:500;border:1px solid var(--hairline);
+  background:rgba(255,255,255,.06);color:var(--text-1)}
+.btn.primary{background:var(--primary);color:#0B3A2E;border-color:transparent;font-weight:600}
+.btn.lg{height:44px;border-radius:12px;width:100%;font-size:15px;font-weight:600}
+
+/* ---------- 空仓库引导（RepositoryGuideView） ---------- */
+.guide{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+  padding:0 16px}
+.guide-logo{width:min(336px,100%);aspect-ratio:1/1;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;box-shadow:0 24px 54px rgba(0,0,0,.5)}
+.guide-logo .mark{width:132px;height:132px;border-radius:28px;display:flex;align-items:center;
+  justify-content:center;background:linear-gradient(145deg,#0B3A2E,#34D399 55%,#0EA5E9);
+  color:#fff;box-shadow:0 10px 26px rgba(0,0,0,.34)}
+.guide-title{margin-top:16px;height:60px;display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:600;text-align:center;color:var(--text-1);
+  text-shadow:0 2px 8px rgba(28,28,26,.22)}
+
+/* ⋯ 引导气泡（MoreButtonGuidanceView） */
+.callout{position:absolute;bottom:calc(100% + 6px);left:0;width:220px;padding:8px 10px;
+  border-radius:10px;background:rgba(58,58,54,.92);border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 6px 18px rgba(0,0,0,.4);font-size:12px;text-align:center;color:var(--text-1);
+  backdrop-filter:blur(12px)}
+.callout::after{content:"";position:absolute;left:18px;bottom:-5px;width:9px;height:9px;
+  transform:rotate(45deg);background:rgba(58,58,54,.92);
+  border-right:1px solid rgba(255,255,255,.14);border-bottom:1px solid rgba(255,255,255,.14)}
+
+/* ---------- 场景切换 popover ---------- */
+.popover{position:relative;z-index:2;margin:64px 20px 0;padding:4px;border-radius:14px;
+  background:rgba(46,46,43,.86);border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 24px 60px rgba(0,0,0,.55);backdrop-filter:blur(24px)}
+.seg{display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(255,255,255,.08)}
+.seg span{flex:1;text-align:center;font-size:13px;font-weight:500;padding:8px 0;border-radius:999px;
+  color:var(--text-1)}
+.seg span.on{background:rgba(52,211,153,.18);color:var(--primary)}
+.poster{margin:14px;padding:22px 18px;border-radius:12px;background:rgba(255,255,255,.045);
+  border:1px solid var(--hairline);display:flex;flex-direction:column;align-items:center;gap:14px}
+.poster .mark{width:110px;height:110px;border-radius:22px;display:flex;align-items:center;
+  justify-content:center;color:var(--primary);
+  background:linear-gradient(135deg,rgba(52,211,153,.18),rgba(245,158,11,.22))}
+.poster h4{font-size:19px;font-weight:600}
+.poster p{font-size:13px;color:var(--text-2);text-align:center}
+.poster .enter{width:230px;height:44px;border-radius:12px;display:flex;align-items:center;
+  justify-content:center;gap:7px;background:var(--primary);color:#0B3A2E;font-weight:600;font-size:14px}
+.popover-backdrop{position:absolute;inset:0;z-index:1;background:rgba(10,10,9,.35)}
+
+/* ---------- 欢迎 / 首启存储选择 ---------- */
+.welcome{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;
+  background:rgba(28,28,26,.72);backdrop-filter:blur(18px);padding:20px}
+.welcome-card{width:100%;border-radius:16px;background:rgba(48,48,46,.9);border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 22px 60px rgba(0,0,0,.5);padding:18px 16px}
+.welcome-head{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;margin-bottom:18px}
+.welcome-head .mark{color:var(--primary);filter:drop-shadow(0 8px 14px rgba(0,0,0,.35))}
+.welcome-head h2{font-size:29px;font-weight:700;letter-spacing:-.4px;line-height:1.15}
+.welcome-head p{font-size:14px;color:var(--text-2)}
+.sec-title{text-align:center;font-size:12.5px;font-weight:600;color:var(--text-2);
+  margin-bottom:10px;letter-spacing:.2px}
+.opt{display:flex;align-items:center;gap:12px;padding:11px 8px}
+.opt .ic{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.07);color:var(--text-2);flex:0 0 auto}
+.opt .tx{flex:1 1 auto;min-width:0}
+.opt .tx b{display:block;font-size:14px;font-weight:600}
+.opt .tx span{display:block;font-size:11.5px;color:var(--text-3);line-height:1.4}
+.opt .mark2{color:var(--primary);font-size:12px}
+.opt .mark2 svg{stroke-width:2}
+.hr{height:1px;background:var(--hairline);margin:2px 0}
+.warn{display:flex;align-items:center;gap:5px;padding:0 8px 8px 40px;font-size:11px;color:var(--primary-2)}
+
+/* ---------- 复制任务 popover（macOS 专属） ---------- */
+.copy-pop{position:relative;z-index:2;margin:70px 18px 0;border-radius:10px;
+  background:rgba(46,46,43,.9);border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 22px 54px rgba(0,0,0,.55);backdrop-filter:blur(22px);overflow:hidden}
+.copy-pop .hd{display:flex;align-items:center;gap:7px;padding:10px 12px;font-size:12.5px;color:var(--text-1);
+  border-bottom:1px solid var(--hairline)}
+.copy-pop .row{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:9px 12px;margin:0;border-radius:0;
+  background:transparent;border-bottom:1px solid var(--hairline-2)}
+.copy-pop .row b{font-size:13px;font-weight:600;color:var(--text-1)}
+.copy-pop .row span{font-size:11.5px;color:var(--text-3)}
+.copy-empty{padding:26px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--text-3)}
+
+/* ---------- iPhone（393x852） ---------- */
+.stage{position:relative;z-index:1;width:393px;height:852px;display:flex;flex-direction:column;overflow:hidden}
+.statusbar{flex:0 0 54px;height:54px;display:flex;align-items:flex-start;justify-content:space-between;
+  padding:14px 26px 0;font-size:15px;font-weight:600;color:var(--text-1)}
+.statusbar .icons{display:flex;gap:6px;align-items:center}
+.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:126px;height:37px;
+  border-radius:20px;background:#000;z-index:5}
+.navbar{flex:0 0 44px;height:44px;display:flex;align-items:center;padding:0 12px;gap:8px}
+.navbar .lead{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  color:var(--text-2);background:rgba(255,255,255,.07)}
+.navbar .trail{margin-left:auto;display:flex;gap:6px}
+.navbar .trail .lead{width:30px;height:30px}
+.homebar{flex:0 0 24px;height:24px;display:flex;align-items:center;justify-content:center}
+.homebar i{width:134px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)}
+.ios .title{font-size:21px}
+.ios .cbtn{width:50px;height:50px}
+.ios .cbtn.main{width:62px;height:62px}
+.ios .row{padding:9px 16px;margin:0 12px 6px;background:rgba(255,255,255,.05)}
+.ios .grid{grid-template-columns:repeat(2,1fr);gap:16px 12px;padding:8px 16px 20px}
+.ios .tile{width:100%;height:206px}
+.ios .state-pill{height:26px;font-size:12px}
+.ios .album{border-radius:12px}
+.ios .guide-logo .mark{border-radius:30px}
+.ios .welcome h2{font-size:27px}
+.ios-sheet{position:absolute;inset:0;z-index:4;background:var(--bg-deep);
+  display:flex;flex-direction:column}
+.ios-sheet .nav{flex:0 0 52px;display:flex;align-items:center;gap:10px;padding:0 16px;
+  border-bottom:1px solid var(--hairline);font-size:16px;font-weight:600}
+.ios-sheet .nav .back{color:var(--primary);display:flex;align-items:center;gap:2px;font-size:16px}
+
+/* iOS 形态的设置分组：圆角底色块 + 卡片外标题 + 发丝线分隔 */
+.ios-sheet .body{background:rgba(255,255,255,.03)}
+.ios-sheet .group{background:rgba(255,255,255,.06);border:none;border-radius:10px}
+.ios-sheet .group .gt{padding:0 4px 7px;font-size:11.5px;font-weight:500;color:var(--text-3);
+  letter-spacing:.2px}
+.ios-sheet .grow{padding:11px 14px;min-height:46px;border-top:.5px solid rgba(255,255,255,.09)}
+.ios-sheet .grow:first-of-type{border-top:none}
+.ios-sheet .grow .ic{width:22px;height:22px;background:transparent;color:var(--text-2)}
+.ios-sheet .grow .tx b{font-size:15px}
+.ios-sheet .grow .tx span{font-size:12.5px}
+.ios-sheet .grow .val{font-size:13px}
+
+</style>
+</head>
+<body data-device="iPhone15Pro" data-logical-width="393" data-logical-height="852">
+<div class="backdrop"></div><div class="stage ios"><div class="statusbar" data-block="statusbar" data-block-label="状态栏"><span>9:41</span><span class="icons"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M16.2 16.2 21 21"/></svg><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 13.9 9l5.8 1.9-5.8 1.9L12 18.6 10.1 12.8 4.3 10.9 10.1 9z"/><path d="M18.6 3.4l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8z"/></svg></span></div><div class="island"></div><div class="navbar" data-block="navbar" data-block-label="导航栏"><button class="lead" data-block="tb-scene" data-block-label="场景切换" data-prototype-link="05-scene-switcher" data-prototype-label="场景切换"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><path d="M3 6h3M3 10h3M3 14h3"/></svg></button><div class="trail"><button class="lead on" data-block="tb-like" data-block-label="喜欢"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button></div></div><div class="control" style="height:250px" data-block="control-area" data-block-label="播放控制区"><div class="hero-slot" style="height:132px"><div class="title small" data-block="player-title" data-block-label="当前播放标题">夜空中最亮的星</div></div><div class="progress" data-block="progress" data-block-label="播放进度条"><div class="slider"><i></i><b></b></div></div><div class="buttons" data-block="transport" data-block-label="播放控制按钮组"><div class="tip"><button class="cbtn" data-block="btn-more" data-block-label="更多按钮（展开/收起仓库）"><svg class="ic" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.9"/><circle cx="5.5" cy="12" r="1.9"/><circle cx="18.5" cy="12" r="1.9"/></svg></button></div><button class="cbtn" data-block="btn-prev" data-block-label="上一曲"><svg class="ic" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7v10l-8.5-5L20 7Z"/><rect x="3.6" y="6" width="2.3" height="12" rx="1.1"/></svg></button><button class="cbtn main on" data-block="btn-play" data-block-label="播放/暂停"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1.2"/><rect x="14" y="4" width="4" height="16" rx="1.2"/></svg></button><button class="cbtn" data-block="btn-next" data-block-label="下一曲"><svg class="ic" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7v10l8.5-5L4 7Z"/><rect x="18.1" y="6" width="2.3" height="12" rx="1.1"/></svg></button><button class="cbtn on" data-block="btn-mode" data-block-label="播放模式"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2.5 20.5 6 17 9.5"/><path d="M3.5 11.5V9.5A3.5 3.5 0 0 1 7 6h13.5"/><path d="M7 21.5 3.5 18 7 14.5"/><path d="M20.5 12.5v2a3.5 3.5 0 0 1-3.5 3.5H3.5"/></svg></button></div></div><div class="content" data-block="content-area" data-block-label="音乐库内容区"><div class="list-head" data-block="list-head" data-block-label="列表头（总数）"><span>共 128</span><button class="add" data-block="btn-add" data-block-label="添加文件" data-prototype-link="04-empty-repository" data-prototype-label="添加"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8.2v7.6M8.2 12h7.6"/></svg></button></div><div class="scroll"><div class="row sel" data-block="row-0" data-block-label="曲目行 1"><div class="avatar a1"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><div class="meta"><div class="nm">夜空中最亮的星.mp3</div><div class="sz">8.4 MB</div></div></div><div class="row" data-block="row-1" data-block-label="曲目行 2"><div class="avatar a2"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><div class="meta"><div class="nm">平凡之路.mp3</div><div class="sz">9.1 MB</div></div></div><div class="row" data-block="row-2" data-block-label="曲目行 3"><div class="avatar a3"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><div class="meta"><div class="nm">起风了.flac</div><div class="sz">32.6 MB</div></div></div><div class="row" data-block="row-3" data-block-label="曲目行 4"><div class="avatar a4"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><div class="meta"><div class="nm">光年之外.mp3</div><div class="sz">7.8 MB</div></div></div><div class="row" data-block="row-4" data-block-label="曲目行 5"><div class="avatar a5"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><div class="meta"><div class="nm">漠河舞厅.m4a</div><div class="sz">11.2 MB</div></div></div><div class="row" data-block="row-5" data-block-label="曲目行 6"><div class="avatar a3"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><div class="meta"><div class="nm">稻香.mp3</div><div class="sz">8.9 MB</div></div></div></div></div><div class="homebar"><i></i></div></div>
+</body>
+</html>

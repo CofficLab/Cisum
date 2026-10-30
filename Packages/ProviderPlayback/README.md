@@ -11,7 +11,7 @@ Defines the playback service contract (`PlaybackProviding`), the media-view surf
   - `PlaybackMode`: `.sequence`, `.loop`, `.shuffle`, `.repeatAll`.
   - `PlaybackSnapshot`: a consistent Sendable snapshot (`state`, `currentURL`, `currentTime`, `duration`, `progress`, `playMode`, `likedAssets`) with `isPlaying`/`hasAsset` helpers; the protocol provides a default `snapshot` computed from stored properties.
   - `PlaybackNavigationDirection` / `PlaybackNavigationFailure`: describe previous/next failures.
-  - `PlaybackMediaProviding`: `makeMediaView() -> AnyView`, `localizedStateText(for:)` — used by cover/hero plugins.
+  - `PlaybackMediaProviding`: `makeMediaView() -> AnyView`, `localizedStateText(for:)`, `localizedDownloadingLabel()` — used by cover/hero plugins. The download label is plain text without a percentage (the hero ring prints the percentage in its centre); the default extension strips the trailing percentage from the provider's own downloading state text.
   - `PlaybackProviding` (`@MainActor`, `AnyObject`):
     - State: `state`, `currentURL`, `currentTime`, `duration`, `progress`, `playMode`, `likedAssets`, `isPlaying`, `hasAsset`, `snapshot`.
     - Actions: `play(_:)` / `play(_:startTime:)`, `pause()`, `toggle()`, `seek(toProgress:)` / `seek(toTime:)`, `next()`, `previous()`, `setPlayMode(_:)`, `toggleCurrentLike()`, `reset()`, `togglePlayMode()`.

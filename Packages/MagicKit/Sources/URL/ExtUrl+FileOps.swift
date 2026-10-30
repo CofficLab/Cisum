@@ -56,6 +56,16 @@ enum URLDirectoryContainmentPolicy {
 }
 
 public enum URLOpenActionPolicy {
+    /// URL 在访达中的呈现方式。
+    public enum FinderPresentation: Equatable {
+        /// 打开该目录本身：访达窗口的当前目录就是它。
+        case openDirectory
+        /// 打开父目录并在其中选中该条目（文件或符号链接）。
+        case revealInParent
+        /// 没有可呈现的对象。
+        case none
+    }
+
     public static func canOpen(_ url: URL) -> Bool {
         guard url.isFileURL else {
             return true
@@ -72,6 +82,37 @@ public enum URLOpenActionPolicy {
         }
 
         return (try? url.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink) == true
+    }
+
+    /// 决定 URL 在访达中应该如何呈现。
+    ///
+    /// 目录必须走「打开目录本身」，不能走「在父目录中选中」：后者只会把访达
+    /// 停在父目录并高亮该文件夹，用户看到的并不是要打开的仓库目录本身。
+    public static func finderPresentation(for url: URL) -> FinderPresentation {
+        guard url.isFileURL else { return .none }
+        guard canRevealInFinder(url) else { return .none }
+        guard isDirectory(url) else { return .revealInParent }
+
+        return .openDirectory
+    }
+
+    /// 判断 URL 是否指向目录；符号链接按其目标判断。
+    private static func isDirectory(_ url: URL) -> Bool {
+        let resolved = url.resolvingSymlinksInPath()
+        if resolved.path != url.path, FileManager.default.fileExists(atPath: resolved.path) {
+            var isDir: ObjCBool = false
+            guard FileManager.default.fileExists(atPath: resolved.path, isDirectory: &isDir) else {
+                return false
+            }
+            return isDir.boolValue
+        }
+
+        if let values = try? url.resourceValues(forKeys: [.isDirectoryKey]),
+           let isDirectory = values.isDirectory {
+            return isDirectory
+        }
+
+        return url.hasDirectoryPath
     }
 
     public static func buttonAccessibilityLabel(for url: URL) -> String {
@@ -375,15 +416,24 @@ public extension URL {
             .joined(separator: "/")
     }
 
-    /// 在 Finder 中打开文件夹
+    /// 在访达中打开文件夹本身。
+    ///
+    /// 目录用 `NSWorkspace.open` 打开，使访达窗口的当前目录就是该目录；
+    /// `activateFileViewerSelecting` 只会打开父目录并在其中选中它，
+    /// 「打开仓库目录」这类入口用它会停在父目录。
     func openFolder() {
-        guard URLOpenActionPolicy.canRevealInFinder(self) else { return }
-
-        #if os(macOS)
-            NSWorkspace.shared.activateFileViewerSelecting([self])
-        #elseif os(iOS)
-            UIApplication.shared.open(self)
-        #endif
+        switch URLOpenActionPolicy.finderPresentation(for: self) {
+        case .openDirectory:
+            #if os(macOS)
+                NSWorkspace.shared.open(self)
+            #elseif os(iOS)
+                UIApplication.shared.open(self)
+            #endif
+        case .revealInParent:
+            openInFinder()
+        case .none:
+            break
+        }
     }
 
     /// 在 Finder 中显示当前文件或目录。

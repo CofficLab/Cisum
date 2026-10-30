@@ -28,6 +28,13 @@ protocol AudioLibraryPlaybackCapability: AnyObject {
     /// 从头播放指定文件。
     func play(_ url: URL) async
 
+    /// 加载指定文件但**不自动播放**。
+    ///
+    /// 与 `play` 的区别：加载后播放器持有该资源（`currentURL` 有值、封面与
+    /// 标题可见），但不会开始出声。用于「仓库有文件却没有任何当前曲目」时的
+    /// 自动兜底——只补齐展示态，不替用户决定开始播放。
+    func load(_ url: URL) async
+
     /// 重置播放状态（删除文件后需要停止对已删文件的播放）。
     func reset() async
 
@@ -53,6 +60,15 @@ final class AudioLibraryPlaybackCapabilityAdapter: AudioLibraryPlaybackCapabilit
 
     func play(_ url: URL) async {
         await playback?.play(url)
+    }
+
+    /// 加载但不自动播放。
+    ///
+    /// 内核的 `play(_:startTime:)` 在 `PlaybackProvider` 内部走
+    /// `autoPlay: false`：资源被装入播放器（`currentURL` 有值），但不会出声。
+    /// 这正是「补齐当前曲目展示态、但不替用户决定开始播放」所需的语义。
+    func load(_ url: URL) async {
+        await playback?.play(url, startTime: nil)
     }
 
     func reset() async {

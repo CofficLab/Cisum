@@ -1,0 +1,105 @@
+{
+  "createdAt" : "2026-10-21T01:00:00Z",
+  "device" : {
+    "height" : 852,
+    "kind" : "iPhone15Pro",
+    "scale" : 3,
+    "width" : 393
+  },
+  "id" : "cisum-ios",
+  "schemaVersion" : 1,
+  "screens" : [
+    {
+      "createdAt" : "2026-10-21T01:00:00Z",
+      "hotspots" : [
+
+      ],
+      "htmlFileName" : "index.html",
+      "id" : "01-now-playing",
+      "order" : 0,
+      "title" : "正在播放",
+      "updatedAt" : "2026-10-21T01:00:00Z"
+    },
+    {
+      "createdAt" : "2026-10-21T01:00:00Z",
+      "hotspots" : [
+
+      ],
+      "htmlFileName" : "index.html",
+      "id" : "02-music-library",
+      "order" : 1,
+      "title" : "音乐库",
+      "updatedAt" : "2026-10-21T01:00:00Z"
+    },
+    {
+      "createdAt" : "2026-10-21T01:00:00Z",
+      "hotspots" : [
+
+      ],
+      "htmlFileName" : "index.html",
+      "id" : "03-audiobooks",
+      "order" : 2,
+      "title" : "有声书库",
+      "updatedAt" : "2026-10-21T01:00:00Z"
+    },
+    {
+      "createdAt" : "2026-10-21T01:00:00Z",
+      "hotspots" : [
+
+      ],
+      "htmlFileName" : "index.html",
+      "id" : "04-empty-repository",
+      "order" : 3,
+      "title" : "空仓库引导",
+      "updatedAt" : "2026-10-21T01:00:00Z"
+    },
+    {
+      "createdAt" : "2026-10-21T01:00:00Z",
+      "hotspots" : [
+        {
+          "label" : "场景切换",
+          "targetScreenID" : "05-scene-switcher"
+        },
+        {
+          "label" : "音乐库",
+          "targetScreenID" : "02-music-library"
+        },
+        {
+          "label" : "有声书",
+          "targetScreenID" : "03-audiobooks"
+        }
+      ],
+      "htmlFileName" : "index.html",
+      "id" : "05-scene-switcher",
+      "order" : 4,
+      "title" : "场景切换",
+      "updatedAt" : "2026-10-21T02:08:49Z"
+    },
+    {
+      "createdAt" : "2026-10-21T01:00:00Z",
+      "hotspots" : [
+
+      ],
+      "htmlFileName" : "index.html",
+      "id" : "06-welcome-storage",
+      "order" : 5,
+      "title" : "选择存储位置",
+      "updatedAt" : "2026-10-21T01:00:00Z"
+    },
+    {
+      "createdAt" : "2026-10-21T01:00:00Z",
+      "hotspots" : [
+
+      ],
+      "htmlFileName" : "index.html",
+      "id" : "07-settings",
+      "order" : 6,
+      "title" : "设置",
+      "updatedAt" : "2026-10-21T01:00:00Z"
+    }
+  ],
+  "startScreenID" : "01-now-playing",
+  "style" : "hiFi",
+  "title" : "Cisum iOS",
+  "updatedAt" : "2026-10-21T02:08:49Z"
+}

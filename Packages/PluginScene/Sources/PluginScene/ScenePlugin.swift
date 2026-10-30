@@ -3,9 +3,7 @@ import ProviderDocsView
 import KernelCore
 import ProviderPlugin
 import ProviderStorage
-import LumiUI
 import Foundation
-import ProviderSettingView
 import SwiftUI
 import MagicKit
 
@@ -16,9 +14,11 @@ import MagicKit
 /// 同时通过 `addToolBarButtons()` 把场景切换器贡献到工具栏（迁移自
 /// `ProviderToolbar` 的 `DefaultToolbarProviding`）。
 ///
-/// 入口在 `onReady` 创建并持有长期存在的 `SceneSettingsViewModel` 与
-/// `SceneProvidingObserver`，设置导航项注入同一个 ViewModel；View 不自行创建
-/// 状态对象、也不直接读取 Provider。
+/// 场景切换只保留工具栏入口，**不再贡献设置窗口导航项**：设置界面里
+/// 不再出现「场景」入口。
+///
+/// 入口在 `onReady` 创建并持有长期存在的 `SceneSelectionViewModel` 与
+/// `SceneProvidingObserver`；View 不自行创建状态对象、也不直接读取 Provider。
 @MainActor
 public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
     public let id = String(describing: ScenePlugin.self)
@@ -40,11 +40,11 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
 
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var sceneProvider: SceneProvider?
-    nonisolated(unsafe) private(set) var settingsViewModel: SceneSettingsViewModel?
-    nonisolated(unsafe) private var settingsObserver: SceneProvidingObserver?
+    nonisolated(unsafe) private(set) var selectionViewModel: SceneSelectionViewModel?
+    nonisolated(unsafe) private var selectionObserver: SceneProvidingObserver?
 
-    /// 设置页消费的 Adapter。ViewModel 以 `weak` 持有，故入口必须显式强持有，
-    /// 否则能力会随装配调用返回而释放。
+    /// 工具栏场景切换器消费的 Adapter。ViewModel 以 `weak` 持有，故入口必须
+    /// 显式强持有，否则能力会随装配调用返回而释放。
     nonisolated(unsafe) private var selectionCapability: SceneSelectionCapabilityAdapter?
 
     public init() {}
@@ -68,10 +68,9 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
         self.sceneProvider = provider
         try kernel.registerProvider((any SceneProviding).self, provider)
 
-        // 先设置 kernel 并注册 SceneProviding，再构建依赖它的设置/工具栏
+        // 先设置 kernel 并注册 SceneProviding，再构建依赖它的工具栏
         // ViewModel；否则 SceneSwitcher 会永久持有空场景列表。
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
             contrib.addToolBarButtons(ownerPluginID: id, self.addToolBarButtons())
         }
     }
@@ -86,47 +85,25 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
             sceneProvider.enablePersistence(pluginDataDirectory: pluginDir)
         }
         kernel.resolveProvider((any SceneProviding).self)?.restoreCurrentScene()
-        installSettingsState(kernel: kernel)
+        installSelectionState(kernel: kernel)
     }
 
     @MainActor
     public func onEnable(kernel: KernelCoreContainer) async throws {
-        installSettingsState(kernel: kernel)
+        installSelectionState(kernel: kernel)
     }
 
     @MainActor
     public func onDisable(kernel: KernelCoreContainer) async throws {
-        teardownSettingsState()
-    }
-
-    @MainActor
-    public func makeSettingEntry() -> SettingEntryItem? {
-        // View 贡献可能在插件启动前被请求：保证返回一个稳定、长期存在的
-        // ViewModel，而不是每次请求都重新创建。
-        let viewModel = settingsViewModel ?? {
-            let viewModel = SceneSettingsViewModel(selection: makeSelectionCapability())
-            settingsViewModel = viewModel
-            return viewModel
-        }()
-        return SettingEntryItem(
-            id: metadata.id,
-            title: metadata.name,
-            systemImage: iconName,
-            // 设置入口排序不使用 order（-1000 是启动优先级），
-            // 使用独立值确保「通用」（order=1）排在最前。
-            order: 100,
-            detail: {
-            SceneSettingsView(model: viewModel)
-        }
-        )
+        teardownSelectionState()
     }
 
     @MainActor
     public func addToolBarButtons() -> [(id: String, view: AnyView)] {
         guard let kernel else { return [] }
-        let viewModel = settingsViewModel ?? {
-            let viewModel = SceneSettingsViewModel(selection: makeSelectionCapability(kernel: kernel))
-            settingsViewModel = viewModel
+        let viewModel = selectionViewModel ?? {
+            let viewModel = SceneSelectionViewModel(selection: makeSelectionCapability(kernel: kernel))
+            selectionViewModel = viewModel
             return viewModel
         }()
         return [(id: "scene-switcher", view: AnyView(SceneSwitcher(viewModel: viewModel)))]
@@ -135,32 +112,31 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
-        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: [metadata.id])
-        teardownSettingsState()
+        teardownSelectionState()
         sceneProvider = nil
         kernel.unregisterProvider((any SceneProviding).self)
     }
 
-    // MARK: - Settings state assembly
+    // MARK: - Selection state assembly
 
     @MainActor
-    private func installSettingsState(kernel: KernelCoreContainer) {
+    private func installSelectionState(kernel: KernelCoreContainer) {
         guard let scene = kernel.resolveProvider((any SceneProviding).self) else { return }
         let capability = makeSelectionCapability(kernel: kernel)
-        let viewModel = settingsViewModel ?? SceneSettingsViewModel(selection: capability)
+        let viewModel = selectionViewModel ?? SceneSelectionViewModel(selection: capability)
         // The view model may have been created during onBoot to build a toolbar
         // contribution. Attach it to the restored scene state during onReady.
         viewModel.bind(selection: capability)
-        settingsViewModel = viewModel
-        guard settingsObserver == nil else { return }
-        settingsObserver = SceneProvidingObserver(selection: capability, viewModel: viewModel)
+        selectionViewModel = viewModel
+        guard selectionObserver == nil else { return }
+        selectionObserver = SceneProvidingObserver(selection: capability, viewModel: viewModel)
     }
 
-    /// 组装场景选择能力：把内核 `SceneProviding` 收窄为设置页所需的最小能力。
+    /// 组装场景选择能力：把内核 `SceneProviding` 收窄为工具栏切换器所需的最小能力。
     ///
     /// onBoot 阶段场景 Provider 尚未注册（本插件自己在 onReady 才恢复并替换
     /// 实例），此时能力退化为「未就绪」，ViewModel 据此隐藏场景区块；
-    /// onReady 的 `installSettingsState` 会带着已就绪的能力重新绑定。
+    /// onReady 的 `installSelectionState` 会带着已就绪的能力重新绑定。
     @MainActor
     private func makeSelectionCapability(kernel: KernelCoreContainer? = nil) -> SceneSelectionCapabilityAdapter {
         if let kernel, let selectionCapability { return selectionCapability }
@@ -172,10 +148,10 @@ public final class ScenePlugin: AsyncSuperPlugin, SuperLog {
     }
 
     @MainActor
-    private func teardownSettingsState() {
-        settingsObserver?.cancel()
-        settingsObserver = nil
-        settingsViewModel = nil
+    private func teardownSelectionState() {
+        selectionObserver?.cancel()
+        selectionObserver = nil
+        selectionViewModel = nil
         selectionCapability = nil
     }
 

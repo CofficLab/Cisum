@@ -69,7 +69,6 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     private weak var playback: (any AudioLibraryPlaybackCapability)?
     private var currentAsset: URL?
     private let reasonTag: String
-    private let isDesktop: Bool
     private weak var toast: (any AudioLibraryToastCapability)?
 
     /// 存储配置状态（Capabilities 目录收窄）。仅用于区分「首启尚未配置存储」
@@ -81,7 +80,6 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         playback: (any AudioLibraryPlaybackCapability)? = nil,
         download: (any CloudDownloadCapability)? = nil,
         reasonTag: String = "AudioListViewModel",
-        isDesktop: Bool? = nil,
         toast: (any AudioLibraryToastCapability)? = nil,
         storage: (any AudioLibraryStorageCapability)? = nil
     ) {
@@ -89,20 +87,8 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         self.playback = playback
         self.download = download
         self.reasonTag = reasonTag
-        self.isDesktop = isDesktop ?? Self.defaultIsDesktop
         self.toast = toast
         self.storage = storage
-    }
-
-    /// 非桌面平台（用于显示「添加」按钮等布局差异）。
-    var isNotDesktop: Bool { !isDesktop }
-
-    private static var defaultIsDesktop: Bool {
-        #if os(macOS)
-            true
-        #else
-            false
-        #endif
     }
 
     // MARK: - User intent
@@ -369,6 +355,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                     self.currentPage = 1
                     self.hasMore = urls.count == pageSize
                     self.isLoading = false
+                    self.autoSelectFirstIfNeeded()
                 }
             }
         }
@@ -577,6 +564,33 @@ final class AudioListViewModel: ObservableObject, SuperLog {
 
     private func setSelection(_ newValue: URL?) {
         selection = newValue
+    }
+
+    /// 仓库有文件但用户尚未选择任何文件时，自动选中第一项。
+    ///
+    /// 判定放在 `AudioListAutoSelectionPolicy`：
+    /// - 已有选中项（用户选过，或正在播放）时不动，避免覆盖用户意图；
+    /// - 列表为空时不选，避免把空仓库标成「已选中」。
+    ///
+    /// 选中之外还要让播放器**加载**该文件（只加载、不自动播放）：播放器的
+    /// `currentURL` 才是封面与标题的数据源，只改列表的 `selection` 的话，
+    /// 播放区会因「无当前曲目」而收起（封面区高度归零），用户看到的是一片空白。
+    private func autoSelectFirstIfNeeded() {
+        guard AudioListAutoSelectionPolicy.shouldAutoSelectFirst(
+            selection: selection,
+            currentAsset: currentAsset,
+            displayedURLs: urls
+        ) else { return }
+
+        guard let first = AudioListAutoSelectionPolicy.firstAutoSelectableURL(displayedURLs: urls) else { return }
+        setSelection(first)
+
+        // 播放能力缺席时仅更新选中态：封面区是否为空是播放器的既有状态，
+        // 不应因为兜底逻辑而引入副作用。
+        guard let playback else { return }
+        Task { @MainActor in
+            await playback.load(first)
+        }
     }
 
     private func deleteFiles(

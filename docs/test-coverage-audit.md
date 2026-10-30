@@ -51,7 +51,7 @@ python3 scripts/coverage_lib.py file-report temp/coverage/MagicKit.json  # 逐�
 
 | 包 | 现象 | 根因 |
 |---|---|---|
-| （已解除）`PluginRootView` | 曾**编译失败**，无覆盖率数据 | `CisumRootLayoutView.swift:198` 调用 `AppResponsivePlayerLayoutMetrics.shared.horizontalCenteringOffset(...)`，当时 LumiUI 中该方法尚未合入。**已解决**：当前 checkout 的 LumiUI 已提供该 API，`swift build` 通过 |
+| （已解除）`PluginRootView` | 曾**编译失败**，无覆盖率数据 | `RootLayoutView.swift:198` 调用 `AppResponsivePlayerLayoutMetrics.shared.horizontalCenteringOffset(...)`，当时 LumiUI 中该方法尚未合入。**已解决**：当前 checkout 的 LumiUI 已提供该 API，`swift build` 通过 |
 | （已解除）`PluginAudioDBView` | 曾有 2 个测试失败 | `loadInitial` 用 `Task.detached(priority: .background)` 调 `@MainActor` 库能力，测试轮询主线程时后台任务被饿死，`isLoading` 永不落位。**现已无法复现**，全量 118 个测试通过 |
 
 ### 1.2.1 本轮修复（iCloud 下载进度环闪烁）

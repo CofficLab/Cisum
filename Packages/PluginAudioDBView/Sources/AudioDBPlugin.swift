@@ -9,7 +9,6 @@ import ProviderToast
 import KernelCore
 import ProviderPlugin
 import KitAppEvents
-import ProviderSettingView
 import LumiUI
 import SwiftUI
 import MagicKit
@@ -42,7 +41,6 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private var databaseObserver: AudioDatabaseObserver?
 nonisolated(unsafe) private var downloadObserver: CloudDownloadObserver?
     nonisolated(unsafe) private var playbackObserver: AudioDBPlaybackObserver?
-    nonisolated(unsafe) private var settingPlaybackObserver: AudioDBPlaybackObserver?
     nonisolated(unsafe) private var sceneState: AudioDBSceneState?
     nonisolated(unsafe) private var sceneObserver: AudioDBSceneObserver?
 
@@ -54,7 +52,9 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
     nonisolated(unsafe) private var playback: AudioLibraryPlaybackCapabilityAdapter?
     nonisolated(unsafe) private var toast: AudioLibraryToastCapabilityAdapter?
     nonisolated(unsafe) private var sceneCapability: MusicLibrarySceneCapabilityAdapter?
-    nonisolated(unsafe) private var settingPlayback: AudioLibraryPlaybackCapabilityAdapter?
+
+    /// 导入控制器：仓库视图的拖放与文件选择器共用同一套导入流程。
+    nonisolated(unsafe) private var importer: AudioRepositoryImporter?
 
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
@@ -68,7 +68,6 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             contrib.addTabView(ownerPluginID: id) { reason, demoMode in self.addTabView(reason: reason, demoMode: demoMode) }
-            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
         self.kernel = kernel
         // 跨插件 Provider（Scene / Playback）一律在 onReady 中解析，不假设其他插件
@@ -105,7 +104,6 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
-        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["audiodb"])
         sceneBox.scene = nil
         teardownState()
     }
@@ -163,63 +161,12 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
                         set: { self.kernel?.resolveProvider((any AppStateProviding).self)?.setImporting($0) }
                     ),
                     showDBView: { self.kernel?.resolveProvider((any AppStateProviding).self)?.showDBView() },
-                    demoMode: demoMode
+                    demoMode: demoMode,
+                    importer: resolveImporter()
                 )
-                .appDebugBadge("Music Repository", alignment: .bottomLeading)
+                // .appDebugBadge("Music Repository", alignment: .bottomLeading)
             ),
             String(localized: "Music Repository", bundle: .module)
-        )
-    }
-
-    /// 设置窗口入口：展示音频库文件列表（方式一）与目录树（方式二）。
-    @MainActor
-    public func makeSettingEntry() -> SettingEntryItem? {
-        // 设置页使用独立的 AudioListViewModel，避免与主窗口内容区（AudioList）
-        // 共享同一实例——否则设置页 onAppear 触发 handleOnAppear() 重载时，
-        // 共享状态变化会传播到主窗口 contentview，导致其闪动。
-        let playback = AudioLibraryPlaybackCapabilityAdapter(
-            playback: self.kernel?.resolveProvider((any PlaybackProviding).self)
-        )
-        settingPlayback = playback
-        let settingList = AudioListViewModel(
-            library: makeLibraryCapability(),
-            playback: playback,
-            toast: AudioLibraryToastCapabilityAdapter(
-                toast: self.kernel?.resolveProvider((any ToastProviding).self)
-            ),
-            storage: makeStorageCapability()
-        )
-        let settingTree = AudioTreeViewModel(disk: audioDiskProvider)
-        settingPlaybackObserver = AudioDBPlaybackObserver(playback: playback, viewModel: settingList)
-        return SettingEntryItem(
-            id: "audiodb",
-            title: String(localized: String.LocalizationValue(AudioDBPluginInfo.titleKey), bundle: .module),
-            systemImage: iconName,
-            // 设置入口排序不使用 order（1 是启动优先级），
-            // 使用独立值确保「通用」（order=1）排在最前。
-            order: 10,
-            detail: {
-            AudioDBSettingView(
-                                viewModel: settingList,
-                                treeViewModel: settingTree,
-                                dependencies: self.settingDependencies
-                            )
-        }
-        )
-    }
-
-    /// 设置页依赖：仓库路径 / 仓库 / 诊断由数据层 Provider 提供。
-    @MainActor
-    private var settingDependencies: AudioDBDependencies {
-        AudioDBDependencies(
-                library: makeLibraryCapability(),
-            audioDisk: audioDiskProvider,
-            audioDiagnostics: audioDiagnosticsProvider,
-            supportedExtensions: AudioPluginInfo.supportedExtensions,
-            isDesktop: Self.isDesktop,
-            isNotDesktop: !Self.isDesktop,
-            showDBView: { self.kernel?.resolveProvider((any AppStateProviding).self)?.showDBView() ?? () },
-            isImporting: .constant(false)
         )
     }
 
@@ -362,6 +309,31 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
         _ = resolveSceneState()
     }
 
+    /// 导入控制器（幂等）：仓库视图的拖放与文件选择器共用同一实例，导入行为保持一致。
+    @MainActor
+    private func resolveImporter() -> AudioRepositoryImporter {
+        if let importer { return importer }
+        let created = AudioRepositoryImporter(
+            library: makeLibraryCapability(),
+            audioDisk: audioDiskProvider,
+            supportedExtensions: AudioPluginInfo.supportedExtensions,
+            toast: makeToastCapability()
+        )
+        importer = created
+        return created
+    }
+
+    /// 提示能力（幂等）：入口持有 Adapter，能力内部对 Provider 是 weak。
+    @MainActor
+    private func makeToastCapability() -> AudioLibraryToastCapabilityAdapter {
+        if let toast { return toast }
+        let created = AudioLibraryToastCapabilityAdapter(
+            toast: kernel?.resolveProvider((any ToastProviding).self)
+        )
+        toast = created
+        return created
+    }
+
     @MainActor
     private func teardownState() {
         sceneObserver?.cancel()
@@ -374,14 +346,12 @@ nonisolated(unsafe) private var download: CloudDownloadCapabilityAdapter?
         downloadObserver = nil
         playbackObserver?.cancel()
         playbackObserver = nil
-        settingPlaybackObserver?.cancel()
-        settingPlaybackObserver = nil
         listViewModel = nil
         rootViewModel = nil
         dbViewModel = nil
         playback = nil
         toast = nil
-        settingPlayback = nil
+        importer = nil
     }
 
     /// 返回当前持有的 ViewModel；若尚未安装（启动前或插件被禁用），

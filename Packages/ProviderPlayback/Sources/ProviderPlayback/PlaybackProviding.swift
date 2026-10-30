@@ -127,6 +127,28 @@ public protocol PlaybackProvidingObserverHandle: AnyObject {
 public protocol PlaybackMediaProviding: AnyObject {
     func makeMediaView() -> AnyView
     func localizedStateText(for state: PlaybackStatus) -> String
+    /// 下载态的**纯文案**标签（不含百分比）。
+    ///
+    /// 与 `localizedStateText(for:)` 分开：状态文案在下载态下自带百分比
+    /// （如「正在下载 14%」），而 Hero 圆环已在中心单独显示百分比，
+    /// 底部小字若再带百分比就会出现同一屏两个百分比。
+    func localizedDownloadingLabel() -> String
+}
+
+public extension PlaybackMediaProviding {
+    /// 下载态的纯文案标签（不含百分比）。
+    ///
+    /// 默认实现从该 provider 自己的下载态状态文案中剥离尾部百分比
+    /// （如「正在下载 14%」→「正在下载」），保证与 provider 的本地化语言一致；
+    /// 引擎侧持有本地化资源，可覆盖为更精确的取值。
+    func localizedDownloadingLabel() -> String {
+        let text = localizedStateText(for: .loading(.downloading(0)))
+        guard let separator = text.lastIndex(of: " "),
+              text[text.index(after: separator)...].hasSuffix("%") else {
+            return text
+        }
+        return String(text[..<separator])
+    }
 }
 
 /// 播放服务能力协议：定义能力、基础数据和事件，不包含具体实现。

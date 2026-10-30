@@ -36,10 +36,10 @@ struct AudioCopyTips: View {
                 .frame(maxWidth: .infinity)
                 .appFillAvailableSpace()
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .fill(.ultraThinMaterial)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 16)
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .strokeBorder(appTheme.primary, style: .init(lineWidth: 2, dash: [8, 6]))
                         )
                         .padding()

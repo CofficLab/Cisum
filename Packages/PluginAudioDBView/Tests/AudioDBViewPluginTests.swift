@@ -112,6 +112,14 @@ import UniformTypeIdentifiers
     #expect(AudioListViewModel.urlsToDelete(from: IndexSet(integer: 2), in: urls) == nil)
 }
 
+@Test func audioListHeaderKeepsAddButtonWhileRepositoryHasContent() {
+    // 非空仓库在表头最右侧常驻「添加」按钮：桌面端同样有可点击的导入入口，
+    // 不再只能靠把文件拖进窗口。
+    #expect(AudioListHeaderPolicy.shouldShowAddButton(hasContent: true))
+    // 空仓库由空状态视图自己提供「添加」按钮，表头不再重复出现。
+    #expect(!AudioListHeaderPolicy.shouldShowAddButton(hasContent: false))
+}
+
 @Test func audioListLoadsMoreFromCurrentLoadedCount() {
     #expect(AudioListLoadPolicy.nextLoadOffset(loadedCount: 90, currentPage: 0, pageSize: 50) == 90)
     #expect(AudioListLoadPolicy.nextLoadOffset(loadedCount: 100, currentPage: 0, pageSize: 50) == 100)

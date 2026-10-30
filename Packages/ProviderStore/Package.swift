@@ -13,7 +13,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.8.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.11.1"),
     ],
     targets: [
         .target(

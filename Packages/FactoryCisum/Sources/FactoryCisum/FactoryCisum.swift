@@ -7,6 +7,7 @@ import ProviderRootView
 import ProviderScene
 import ProviderDocsView
 import ProviderToast
+import ProviderToolbar
 import ProviderDevice
 import ProviderCloud
 import ProviderCloudDownload
@@ -88,7 +89,7 @@ public enum CisumBuilder: SuperLog {
         // RootView provider is installed through the same plugin lifecycle as
         // Lumi. Keep it ahead of feature plugins so overlays can resolve it
         // during their own boot phase.
-        let plugins: [any SuperPlugin] = [CisumRootViewPlugin()] + factory.makePlugins()
+        let plugins: [any SuperPlugin] = [RootViewPlugin()] + factory.makePlugins()
 
         // 2. 注册基础设施 Provider
         let appState = BasicAppStateService()
@@ -117,19 +118,35 @@ public enum CisumBuilder: SuperLog {
         try kernel.registerProvider((any ToastProviding).self, defaultToast)
 
         // Other view providers are infrastructure. RootViewProviding itself is
-        // owned by CisumRootViewPlugin and registered through plugin lifecycle.
+        // owned by RootViewPlugin and registered through plugin lifecycle.
         try registerViewProviders(into: kernel)
 
         // 设置契约：由远程 LumiSettings 提供；PluginSettingView 外壳插件随后
         // 在 onBoot 替换为 AppSettingsSidebarShell 渲染（保留此前注册的入口）。
         try kernel.registerProvider((any SettingViewProviding).self, DefaultSettingViewProviding())
 
+        // iOS 导航栏贡献：macOS 用 ToolbarProviding（窗口工具栏），iOS 用
+        // IOSNavigationBarProviding（系统导航栏）。两端契约不同，必须分别注册，
+        // 否则 iOS 侧设置齿轮无处可挂（对齐 BookletMaker 的 IOSSettingsProviderFactory）。
+        #if os(iOS)
+        try kernel.registerProvider(
+            (any IOSNavigationBarProviding).self,
+            DefaultIOSNavigationBarProviding()
+        )
+        #endif
+
         // 3. 启动内核（插件 onBoot 注册 Storage 等服务 → 校验 → onReady → 贡献聚合）
         try await kernel.startAsync(plugins: plugins)
 
         // 主题目录来自远程 LumiThemePack；宿主只负责注册共享主题、迁移旧选择，
         // 并把 ProviderTheme 状态桥接到 Cisum 现有 LumiUI 根视图。
-        LumiThemeRegistration.register(in: themeProvider)
+        // Cisum 定位在播放器 / 有声书，只加载少量代表性配色而非全量目录，
+        // 因此按白名单注册子集（见 `CisumThemeSelection`）。
+        let unknownThemeIDs = LumiThemeRegistration.unknownIDs(in: CisumThemeSelection.catalogueIDs)
+        if !unknownThemeIDs.isEmpty {
+            logger.warning("\(Self.t)主题白名单包含未知 id，将被忽略：\(unknownThemeIDs.joined(separator: ", "))")
+        }
+        LumiThemeRegistration.register(in: themeProvider, themeIDs: CisumThemeSelection.catalogueIDs)
         CisumThemeBridge.migrateLegacySelection(in: themeProvider)
         CisumThemeBridge.install(themeProvider, in: kernel)
 

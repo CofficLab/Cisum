@@ -25,7 +25,7 @@ struct CisumMacApp: App {
 
         // 与 Lumi 使用相同的普通 Window Scene，避免 macOS Settings 容器
         // 额外注入边距/安全区域，导致共享设置视图被裁切。
-        Window("设置", id: AppBootstrap.settingsWindowID) {
+        Window("Settings", id: AppBootstrap.settingsWindowID) {
             FactoryCisum.makeSettingsWindow(configuration: CisumAppAssembly.configuration)
         }
         .windowStyle(.hiddenTitleBar)

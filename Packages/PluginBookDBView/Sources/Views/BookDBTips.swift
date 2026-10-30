@@ -9,7 +9,7 @@ import SwiftUI
  * 使用场景：在书籍列表为空或正在加载时显示友好的提示界面
  */
 struct BookDBTips: View {
-    enum Variant {
+    enum Variant: Equatable {
         case empty
         case loading
     }
@@ -18,15 +18,19 @@ struct BookDBTips: View {
     let dependencies: BookDBViewDependencies
     let requestImport: @MainActor @Sendable () -> Void
     var variant: Variant = .empty
+    /// 是否正有文件被拖到本区域上方：用于高亮拖放目标。
+    var isDropping: Bool = false
 
     init(
         dependencies: BookDBViewDependencies,
         requestImport: @escaping @MainActor @Sendable () -> Void,
-        variant: Variant = .empty
+        variant: Variant = .empty,
+        isDropping: Bool = false
     ) {
         self.dependencies = dependencies
         self.requestImport = requestImport
         self.variant = variant
+        self.isDropping = isDropping
     }
 
     var supportedFormats: String {
@@ -84,9 +88,26 @@ struct BookDBTips: View {
         }
         .padding()
         .background(appTheme.surface.opacity(0.85))
-        .appRoundedMedium()
-        .shadow(radius: 8)
+        // 空状态铺满整个内容区，圆角会在窗口左右上角露出背景缺口，
+        // 因此这里保持直角；阴影只用于衬托圆角卡片，一并去掉。
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .overlay {
+            // 空状态是本视图的拖放目标，用虚线描边标出可接收文件的区域。
+            if variant == .empty {
+                dropZoneBorder
+            }
+        }
+    }
+
+    /// 拖放目标标记：虚线描边；拖拽悬停时高亮，提示"可以松手了"。
+    private var dropZoneBorder: some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .strokeBorder(
+                appTheme.primary.opacity(isDropping ? 1 : 0.45),
+                style: StrokeStyle(lineWidth: 2, dash: [8, 6])
+            )
+            // 留 8pt：内容自带 16pt 内边距，避免按钮压到虚线上。
+            .padding(8)
     }
 }
 

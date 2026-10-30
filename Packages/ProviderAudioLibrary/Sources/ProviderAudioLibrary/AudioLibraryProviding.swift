@@ -42,6 +42,14 @@ public protocol AudioLibraryProviding: AnyObject, Sendable {
     /// 音频库是否已准备好访问。
     var isAvailable: Bool { get }
 
+    /// 音乐仓库是否确认为空。
+    ///
+    /// 只有在**完成过一次扫描**之后才有结论：还没扫过的仓库同样「数不出文件」，
+    /// 那是「还不知道」，不是「是空的」。数据层因此区分三态——未知 / 空 / 非空，
+    /// 消费方（如空仓库引导、「更多」按钮的提示）直接读这个结论，不必各自
+    /// 重新解释一遍计数。
+    var isRepositoryEmpty: Bool { get }
+
     /// 当前音频库中的项目数量。
     func totalCount() async -> Int
 
@@ -73,6 +81,12 @@ public protocol AudioLibraryProviding: AnyObject, Sendable {
 }
 
 public extension AudioLibraryProviding {
+    /// 默认不认为仓库为空：不知道 ≠ 是空的。
+    ///
+    /// 不跟踪扫描状态的实现方（如测试替身）会落到这个默认值——引导不出现，
+    /// 而不是误报「仓库是空的」。
+    var isRepositoryEmpty: Bool { false }
+
     @discardableResult
     func addObserver(_ callback: @escaping (AudioLibraryProvidingEvent) -> Void) -> any AudioLibraryProvidingObserverHandle {
         NoopAudioLibraryProvidingObserverHandle()

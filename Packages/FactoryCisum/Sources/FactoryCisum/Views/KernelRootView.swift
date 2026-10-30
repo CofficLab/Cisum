@@ -5,6 +5,8 @@ import ProviderPlugin
 import ProviderPluginManaging
 import ProviderScene
 import ProviderToast
+import ProviderToolbar
+import ProviderSettingsHost
 import MagicKit
 import SwiftUI
 
@@ -18,10 +20,24 @@ struct KernelRootView: View {
     @StateObject private var providerObserver: KernelRootProviderObserver
     /// 已组装的根视图。组装会更新各个 ObservableObject Provider，不能在 body 求值期间执行。
     @State private var assembledContent: AnyView?
+    #if os(iOS)
+    /// iOS 导航栏贡献项桥接器。
+    ///
+    /// 插件（设置齿轮等）通过 `IOSNavigationBarProviding` 贡献导航栏项，
+    /// 由本视图在导航栈级别挂载。桥接器只负责「取值 + 变更转发」。
+    @StateObject private var navigationBarItems: IOSNavigationBarItemsBridge
+    #endif
 
     init(kernel: KernelCoreContainer) {
         self.kernel = kernel
         _providerObserver = StateObject(wrappedValue: KernelRootProviderObserver(kernel: kernel))
+        #if os(iOS)
+        // Provider 可能在插件启动后才注入贡献项，桥接器订阅其变更信号。
+        _navigationBarItems = StateObject(wrappedValue: IOSNavigationBarItemsBridge(
+            provider: kernel.resolveProvider((any IOSNavigationBarProviding).self)
+                ?? DefaultIOSNavigationBarProviding()
+        ))
+        #endif
     }
 
     var body: some View {
@@ -41,6 +57,15 @@ struct KernelRootView: View {
 #endif
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
+                #if os(iOS)
+                // iOS 侧插件贡献的导航栏项（设置齿轮）要出现在这条系统导航栏上。
+                //
+                // 必须挂在 `NavigationStack` **内部**的内容上：`NavigationStack { … }`
+                // 自身再接 `.toolbar`，项会被算到**外层**上下文去，不会进入这条
+                // 栈自己的导航栏。挂在栈内的内容上才会被这条栈接管（与
+                // `RootLayoutView` 内部的 `.toolbar` 落在同一条导航栏）。
+                .modifier(IOSNavigationBarToolbarModifier(items: navigationBarItems.items))
+                #endif
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
@@ -81,6 +106,7 @@ struct KernelRootView: View {
 @MainActor
 private final class KernelRootProviderObserver: ObservableObject {
     @Published private(set) var revision = 0
+    @Published private(set) var currentScene: AppScene?
     private weak var kernel: KernelCoreContainer?
     private var pluginHandle: (any PluginManagingObserverHandle)?
     private var sceneHandle: (any SceneProvidingObserverHandle)?
@@ -92,12 +118,15 @@ private final class KernelRootProviderObserver: ObservableObject {
 
     func start() {
         guard pluginHandle == nil, sceneHandle == nil, let kernel else { return }
+        // 初始化当前场景
+        currentScene = kernel.resolveProvider((any SceneProviding).self)?.currentScene
         pluginHandle = kernel.resolveProvider((any PluginManaging).self)?.addPluginObserver { [weak self] event in
             guard case .enabledStateChanged = event else { return }
             self?.revision += 1
         }
         sceneHandle = kernel.resolveProvider((any SceneProviding).self)?.addObserver { [weak self] event in
-            guard case .selectionChanged = event else { return }
+            guard case .selectionChanged(let scene) = event else { return }
+            self?.currentScene = scene
             self?.revision += 1
         }
     }

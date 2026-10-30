@@ -21,10 +21,10 @@ struct ControlButtonsView: View {
             )
 
             HStack(spacing: AppResponsivePlayerLayoutMetrics.shared.controlButtonSpacing) {
-                AppCircularIconButton(
-                    systemImage: "ellipsis",
-                    accessibilityLabel: "More",
+                // 「⋯」：展开/收起音乐仓库视图。仓库为空时它自己带上引导气泡。
+                MoreButtonGuidanceView(
                     size: buttonSize,
+                    showsGuidance: viewModel.shouldShowRepositoryGuidance,
                     action: toggleDBView
                 )
                 AppCircularIconButton(

@@ -40,9 +40,10 @@ final class CisumSettingsUITests: CisumUITestBase {
         let themeCount = element(containingAny: ["themes", "主题"])
         XCTAssertTrue(themeCount.waitForExistence(timeout: 10), "外观页没有显示主题数量")
         XCTAssertFalse(element(anyLabelOf: ["0 themes", "0 个主题"]).exists, "外观页主题数为 0，主题插件贡献没有进入 ThemeProviding")
-        let themeSearch = app.textFields.matching(NSPredicate(format: "placeholderValue IN %@", ["Search Themes", "搜索主题"])).firstMatch
-        XCTAssertTrue(themeSearch.waitForExistence(timeout: 5), "外观页没有主题搜索入口")
         XCTAssertTrue(element(anyLabelOf: ["Use This Theme", "使用此主题", "Currently In Use", "当前使用", "目前使用"]).waitForExistence(timeout: 5), "外观页没有显示选中主题的应用状态")
+        // 外观页已移除主题搜索：搜索框不应再存在。
+        let themeSearch = app.textFields.matching(NSPredicate(format: "placeholderValue IN %@", ["Search Themes", "搜索主题"])).firstMatch
+        XCTAssertFalse(themeSearch.exists, "外观页不应再提供主题搜索入口")
         #else
         throw XCTSkip("外观设置窗口仅 macOS 支持")
         #endif

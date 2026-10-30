@@ -146,6 +146,14 @@ public final class PlaybackProvider: PlaybackProviding, PlaybackMediaProviding, 
         state.magicPlayState.localizedStateText(localization: playback.localization)
     }
 
+    /// 下载态的纯文案标签（不含百分比）。
+    ///
+    /// 引擎的 `localizedStateText` 在下载态下会拼上百分比（「正在下载 14%」），
+    /// Hero 圆环中心已单独显示百分比，底部小字只取「正在下载」这一段。
+    public func localizedDownloadingLabel() -> String {
+        playback.localization.downloading
+    }
+
     // MARK: - Engine event bridge
 
     private func installEngineObservers() {

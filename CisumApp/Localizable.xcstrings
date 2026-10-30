@@ -81,6 +81,22 @@
         }
       }
     },
+    "Settings" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定"
+          }
+        }
+      }
+    },
     "Skips to the next track." : {
       "localizations" : {
         "zh-Hans" : {
@@ -112,9 +128,6 @@
           }
         }
       }
-    },
-    "设置" : {
-
     }
   },
   "version" : "1.0"

@@ -33,6 +33,50 @@ import Testing
     #expect(URLOpenActionPolicy.buttonAccessibilityLabel(for: remoteURL) == "Open example.com")
 }
 
+@Test func finderPresentationOpensDirectoryItselfInsteadOfItsParent() throws {
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    let repository = root.appendingPathComponent("audios", isDirectory: true)
+    let track = repository.appendingPathComponent("track.mp3")
+    let missing = repository.appendingPathComponent("missing.mp3")
+    defer {
+        try? FileManager.default.removeItem(at: root)
+    }
+
+    try FileManager.default.createDirectory(at: repository, withIntermediateDirectories: true)
+    try Data("audio".utf8).write(to: track)
+
+    // 目录必须被「打开」：在父目录中选中只会让访达停在父目录。
+    #expect(URLOpenActionPolicy.finderPresentation(for: repository) == .openDirectory)
+    // 文件仍然走「在父目录中选中」。
+    #expect(URLOpenActionPolicy.finderPresentation(for: track) == .revealInParent)
+    #expect(URLOpenActionPolicy.finderPresentation(for: missing) == .none)
+    #expect(URLOpenActionPolicy.finderPresentation(for: URL(string: "https://example.com")!) == .none)
+}
+
+@Test func finderPresentationTreatsSymlinkToDirectoryAsDirectory() throws {
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    let repository = root.appendingPathComponent("audios", isDirectory: true)
+    let linkToDirectory = root.appendingPathComponent("audios-link")
+    let danglingLink = root.appendingPathComponent("dangling")
+    defer {
+        try? FileManager.default.removeItem(at: root)
+    }
+
+    try FileManager.default.createDirectory(at: repository, withIntermediateDirectories: true)
+    try FileManager.default.createSymbolicLink(at: linkToDirectory, withDestinationURL: repository)
+    try FileManager.default.createSymbolicLink(
+        at: danglingLink,
+        withDestinationURL: root.appendingPathComponent("deleted-target")
+    )
+
+    // 指向目录的符号链接按目录处理。
+    #expect(URLOpenActionPolicy.finderPresentation(for: linkToDirectory) == .openDirectory)
+    // 悬空符号链接按文件处理：在父目录中选中它。
+    #expect(URLOpenActionPolicy.finderPresentation(for: danglingLink) == .revealInParent)
+}
+
 @Test func directorySizeAndCountSkipHiddenFiles() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)

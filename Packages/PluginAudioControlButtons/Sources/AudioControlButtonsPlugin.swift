@@ -37,6 +37,8 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var viewModel: ControlButtonsViewModel?
     nonisolated(unsafe) private var observer: ControlButtonsObserver?
+    nonisolated(unsafe) private var repositoryObserver: RepositoryStateObserver?
+    nonisolated(unsafe) private var visibilityObserver: ContentVisibilityObserver?
 
     /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
     /// 强持有，否则能力会随装配调用返回而释放。
@@ -44,6 +46,8 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
     nonisolated(unsafe) private var navigationCapability: TrackNavigationCapabilityAdapter?
     nonisolated(unsafe) private var toastCapability: PlaybackControlToastCapabilityAdapter?
     nonisolated(unsafe) private var environmentCapability: PlaybackEnvironmentCapabilityAdapter?
+    nonisolated(unsafe) private var repositoryCapability: RepositoryStateCapabilityAdapter?
+    nonisolated(unsafe) private var visibilityCapability: ContentVisibilityCapabilityAdapter?
 
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
@@ -100,10 +104,20 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
             library: kernel.resolveProvider((any AudioLibraryProviding).self),
             storage: kernel.resolveProvider((any StorageProviding).self)
         )
+        // 空仓库引导挂在「⋯」按钮上：仓库状态用惰性解析，避免数据层插件
+        // 注册晚于本插件时能力永久失效。
+        let repository = RepositoryStateCapabilityAdapter { @MainActor [weak self] in
+            self?.kernel?.resolveProvider((any AudioLibraryProviding).self)
+        }
+        let visibility = ContentVisibilityCapabilityAdapter(
+            appState: kernel.resolveProvider((any AppStateProviding).self)
+        )
         playbackCapability = playback
         navigationCapability = navigation
         toastCapability = toast
         environmentCapability = environment
+        repositoryCapability = repository
+        visibilityCapability = visibility
 
         let viewModel = ControlButtonsViewModel(
             playback: playback,
@@ -115,6 +129,14 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
         observer = ControlButtonsObserver(
             playback: playback,
             environment: environment,
+            viewModel: viewModel
+        )
+        repositoryObserver = RepositoryStateObserver(
+            repository: repository,
+            viewModel: viewModel
+        )
+        visibilityObserver = ContentVisibilityObserver(
+            visibility: visibility,
             viewModel: viewModel
         )
     }
@@ -145,7 +167,7 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
                 kernel.resolveProvider((any ContentViewVisibilityProviding).self)?
                     .toggleContentView()
             }
-            .appDebugBadge("Audio Controls", alignment: .bottomTrailing)
+            // .appDebugBadge("Audio Controls", alignment: .bottomTrailing)
         )
     }
 
@@ -160,10 +182,16 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
     private func teardownState() {
         observer?.cancel()
         observer = nil
+        repositoryObserver?.cancel()
+        repositoryObserver = nil
+        visibilityObserver?.cancel()
+        visibilityObserver = nil
         viewModel = nil
         playbackCapability = nil
         navigationCapability = nil
         toastCapability = nil
         environmentCapability = nil
+        repositoryCapability = nil
+        visibilityCapability = nil
     }
 }

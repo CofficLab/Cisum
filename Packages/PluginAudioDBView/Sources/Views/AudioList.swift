@@ -1,5 +1,6 @@
 import MagicKit
 import LumiUI
+import KitAudioRepositoryImport
 import OSLog
 import SwiftData
 import SwiftUI
@@ -7,23 +8,7 @@ import ProviderAudioLibrary
 
 enum AudioListFileIdentity {
     static func canonicalIdentity(for url: URL) -> String {
-        guard url.isFileURL else {
-            return url.standardized.absoluteString
-        }
-
-        if isDanglingSymlink(url) {
-            return url.standardizedFileURL.path
-        }
-
-        return url.resolvingSymlinksInPath().standardizedFileURL.path
-    }
-
-    private static func isDanglingSymlink(_ url: URL) -> Bool {
-        guard (try? url.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink) == true else {
-            return false
-        }
-
-        return !FileManager.default.fileExists(atPath: url.path)
+        AudioRepositoryFileIdentity.canonicalIdentity(for: url)
     }
 }
 
@@ -133,6 +118,46 @@ enum AudioListDeletionPolicy {
     }
 }
 
+/// 统计表头（「共 N」所在行）的展示策略。
+enum AudioListHeaderPolicy {
+    /// 表头最右侧是否展示「添加」按钮（导入入口）。
+    ///
+    /// - Parameter hasContent: 仓库列表是否已有内容。
+    ///
+    /// 说明：非空仓库在桌面端过去只能靠拖放入库，表头没有任何可点击的
+    /// 导入入口，用户必须把文件拖进窗口才能补充音频。只要列表有内容，
+    /// 表头最右侧就常驻「添加」按钮，且与平台无关（iOS / macOS 一致）。
+    static func shouldShowAddButton(hasContent: Bool) -> Bool {
+        hasContent
+    }
+}
+
+/// 列表选中项的自动兜底策略。
+///
+/// 仓库有文件、但用户还没有选择任何文件时，自动选中第一项：
+/// 否则列表看上去「有内容却没有任何选中态」，用户无从判断当前播放的是哪一首。
+enum AudioListAutoSelectionPolicy {
+    /// 是否需要自动选中第一项。
+    ///
+    /// - Parameters:
+    ///   - selection: 当前选中项；已选中时不得覆盖用户的既有选择。
+    ///   - currentAsset: 当前播放资源；正在播放时选中态由播放事件驱动。
+    ///   - displayedURLs: 已加载到列表中的文件。
+    static func shouldAutoSelectFirst(
+        selection: URL?,
+        currentAsset: URL?,
+        displayedURLs: [URL]
+    ) -> Bool {
+        guard selection == nil, currentAsset == nil else { return false }
+        return !displayedURLs.isEmpty
+    }
+
+    /// 自动选中的目标：列表第一项。
+    static func firstAutoSelectableURL(displayedURLs: [URL]) -> URL? {
+        displayedURLs.first
+    }
+}
+
 enum AudioListSelectionPolicy {
     static func shouldApplySelection(
         currentGeneration: Int,
@@ -190,24 +215,27 @@ struct AudioList: View, SuperLog {
 
     @ObservedObject var viewModel: AudioListViewModel
     let dependencies: AudioDBDependencies
+    /// 是否正有文件被拖到仓库视图上方：用于高亮拖放目标。
+    var isDropping: Bool = false
     @LumiTheme private var appTheme
 
-    init(viewModel: AudioListViewModel, dependencies: AudioDBDependencies) {
+    init(viewModel: AudioListViewModel, dependencies: AudioDBDependencies, isDropping: Bool = false) {
         self._viewModel = ObservedObject(wrappedValue: viewModel)
         self.dependencies = dependencies
+        self.isDropping = isDropping
     }
 
     var body: some View {
         ZStack {
             if viewModel.isConfirmedRepositoryEmpty {
-                AudioDBTips(dependencies: dependencies, variant: .empty)
+                AudioDBTips(dependencies: dependencies, variant: .empty, isDropping: isDropping)
             } else {
                 audioListView
 
                 if viewModel.isLoading && viewModel.urls.isEmpty {
                     AudioLibrarySkeletonView()
                 } else if viewModel.urls.isEmpty && !viewModel.isLoading {
-                    AudioDBTips(dependencies: dependencies, variant: .empty)
+                    AudioDBTips(dependencies: dependencies, variant: .empty, isDropping: isDropping)
                 }
             }
         }
@@ -237,10 +265,18 @@ struct AudioList: View, SuperLog {
                     }
                 }
 
-                if viewModel.isNotDesktop {
+                // 导入入口：仓库已有内容时，表头最右侧常驻「添加」按钮，
+                // 用户点开系统文件选择器即可把文件加入仓库。
+                // 桌面端过去只提供拖放，非空仓库没有任何可点击的导入入口。
+                if AudioListHeaderPolicy.shouldShowAddButton(
+                    hasContent: viewModel.totalCount > 0 || !viewModel.urls.isEmpty
+                ) {
                     BtnAdd(dependencies: dependencies)
                         .font(.title2)
                         .labelStyle(.iconOnly)
+                        .accessibilityIdentifier("cisum.audio-library.add")
+                        .accessibilityLabel(Text("Add", bundle: .module))
+                        .help(Text("Add", bundle: .module))
                 }
             }, content: {
                 ForEach(Array(viewModel.urls.enumerated()), id: \.element) { index, url in

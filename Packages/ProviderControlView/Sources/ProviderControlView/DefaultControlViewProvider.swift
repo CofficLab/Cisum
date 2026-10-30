@@ -12,6 +12,8 @@ public final class DefaultControlViewProvider: ObservableObject, ControlViewProv
     public private(set) var progressView: AnyView?
     public private(set) var controlButtonsView: AnyView?
     public private(set) var rightAlbumView: AnyView?
+    /// 空仓库引导插槽（顶部引导）。
+    public private(set) var guideSlot: ControlGuideSlot?
     public private(set) var isDemoMode = false
 
     private let stateViews: @MainActor () -> [AnyView]
@@ -30,6 +32,7 @@ public final class DefaultControlViewProvider: ObservableObject, ControlViewProv
     public func setProgressView(_ view: AnyView?) { progressView = view }
     public func setControlButtonsView(_ view: AnyView?) { controlButtonsView = view }
     public func setRightAlbumView(_ view: AnyView?) { rightAlbumView = view }
+    public func setGuideSlot(_ slot: ControlGuideSlot?) { guideSlot = slot }
     public func setDemoMode(_ enabled: Bool) { isDemoMode = enabled }
 
     public func makeControlView() -> AnyView {
@@ -42,7 +45,8 @@ public final class DefaultControlViewProvider: ObservableObject, ControlViewProv
                 stateView: stateView,
                 progressView: progressView,
                 controlButtonsView: controlButtonsView,
-                rightAlbumView: rightAlbumView
+                rightAlbumView: rightAlbumView,
+                guideSlot: guideSlot
             )
         )
     }

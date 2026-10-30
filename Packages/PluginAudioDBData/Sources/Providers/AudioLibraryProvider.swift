@@ -78,6 +78,15 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
         audioDisk != nil
     }
 
+    /// 仓库是否确认为空：结论来自扫描状态本身。
+    ///
+    /// `repositoryIsKnownEmpty` 是三态：`nil` 表示还没扫过（不知道），
+    /// `true` 表示扫完了且确认为空。只有 `true` 才算「仓库是空的」——
+    /// 未扫描时数据库里同样没有记录，那不是空仓库的证据。
+    var isRepositoryEmpty: Bool {
+        repositoryIsKnownEmpty == true
+    }
+
     func totalCount() async -> Int {
         guard let repo = await repository else { return 0 }
         return await repo.getTotalCount()
