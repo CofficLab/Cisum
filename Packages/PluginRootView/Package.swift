@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "PluginRootView",
+    defaultLocalization: "en",
     platforms: [
         .macOS(.v14),
         .iOS(.v17),
@@ -30,6 +31,11 @@ let package = Package(
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+            ],
+            path: ".",
+            sources: ["Sources"],
+            resources: [
+                .process("Resources/Localizable.xcstrings")
             ]
         ),
         .testTarget(
