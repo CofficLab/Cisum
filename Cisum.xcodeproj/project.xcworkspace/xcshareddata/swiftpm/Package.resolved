@@ -1,5 +1,5 @@
 {
-  "originHash" : "2ff1498c5c5416aee1d4c6f8c22638c02e84bb154c00b0ef26c17ab1e81ebdc2",
+  "originHash" : "c7a1bcf76e558f09a859515ecfd0a600d3e0002c52f7e9df4e6856288a224010",
   "pins" : [
     {
       "identity" : "id3tageditor",
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CofficLab/LumiProviders.git",
       "state" : {
-        "revision" : "52c05931d1d455670075437853786137250d6dcc",
-        "version" : "1.13.0"
+        "revision" : "d8a256b9e5a0dc56d5a67b16cc8f08ee20655e31",
+        "version" : "1.17.0"
       }
     },
     {
@@ -71,6 +71,15 @@
       "state" : {
         "revision" : "996db81e4e4c7a43b5cd423505541f581d42b5f0",
         "version" : "1.1.0"
+      }
+    },
+    {
+      "identity" : "lumistorekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/CofficLab/LumiStoreKit.git",
+      "state" : {
+        "revision" : "bcd387ab364c38c56196172d69685fc84645b967",
+        "version" : "1.0.1"
       }
     },
     {
