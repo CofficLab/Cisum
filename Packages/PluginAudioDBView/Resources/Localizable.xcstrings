@@ -926,6 +926,9 @@
         }
       }
     },
+    "File limit reached" : {
+
+    },
     "Filters or sorts music records as needed." : {
       "localizations" : {
         "en" : {
@@ -950,34 +953,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "依需求篩選或排序音樂記錄。"
-          }
-        }
-      }
-    },
-    "User Manual" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "User Manual"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "用户手册"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用者手冊"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用者手冊"
           }
         }
       }
@@ -1401,6 +1376,9 @@
           }
         }
       }
+    },
+    "Only %lld files were added because the free file limit is almost full" : {
+
     },
     "Open repository folder" : {
       "localizations" : {
@@ -2406,6 +2384,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "可用儲存位置"
+          }
+        }
+      }
+    },
+    "User Manual" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "User Manual"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用户手册"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用者手冊"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用者手冊"
           }
         }
       }
