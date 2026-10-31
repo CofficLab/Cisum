@@ -120,12 +120,44 @@ public enum MagicApp {
 
     /// 获取应用专属 Application Support 目录。
     public static func getAppSpecificSupportDirectory() -> URL {
-        (try? URL.appSpecificSupport) ?? FileManager.default.temporaryDirectory
+        if let isolated = isolatedUITestRoot() {
+            return isolated.appendingPathComponent("ApplicationSupport", isDirectory: true)
+        }
+        return (try? URL.appSpecificSupport) ?? FileManager.default.temporaryDirectory
     }
 
     /// 获取 Documents 目录。
     public static func getDocumentsDirectory() -> URL {
-        (try? URL.documents) ?? FileManager.default.temporaryDirectory
+        if let isolated = isolatedUITestRoot() {
+            return isolated.appendingPathComponent("Documents", isDirectory: true)
+        }
+        return (try? URL.documents) ?? FileManager.default.temporaryDirectory
+    }
+
+    /// UI 测试专用：隔离的数据根目录。
+    ///
+    /// 启动参数 `--cisum-ui-testing-isolated-storage=<目录名>` 让本次启动
+    /// 的数据根落到临时目录下的独立子目录里，与真实沙盒完全隔离。
+    ///
+    /// 用途：需要「仓库确实是空的」这一前提的用例。上一次运行留下的
+    /// 音频文件与数据库行会让仓库非空，单靠清理磁盘目录不够——数据库
+    /// 里的行还在，列表照样有内容。
+    private static func isolatedUITestRoot() -> URL? {
+        #if DEBUG
+            let arguments = ProcessInfo.processInfo.arguments
+            let prefix = "--cisum-ui-testing-isolated-storage="
+            guard let argument = arguments.first(where: { $0.hasPrefix(prefix) }) else { return nil }
+            let name = String(argument.dropFirst(prefix.count))
+                .trimmingCharacters(in: .whitespaces)
+            guard !name.isEmpty else { return nil }
+            let root = FileManager.default.temporaryDirectory
+                .appendingPathComponent("cisum-ui-testing", isDirectory: true)
+                .appendingPathComponent(name, isDirectory: true)
+            try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+            return root
+        #else
+            return nil
+        #endif
     }
 
     /// 获取应用容器目录。

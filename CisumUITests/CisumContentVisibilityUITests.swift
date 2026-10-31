@@ -53,7 +53,12 @@ final class CisumContentVisibilityUITests: CisumUITestBase {
             "点击「更多」后内容区没有收起"
         )
 
-        more.click()
+        // 收起后控制区会重新排版，按钮位置随之变化——必须重新定位，
+        // 否则第二次点击会落到旧坐标上，等于「点了没反应」。
+        let moreAgain = moreButton(in: app)
+        XCTAssertTrue(moreAgain.waitForExistence(timeout: 10), "收起后播放控制区缺少「更多」按钮")
+        XCTAssertTrue(moreAgain.isHittable, "收起后「更多」按钮不可点击")
+        moreAgain.click()
         XCTAssertTrue(
             waitForContentArea(in: app),
             "再次点击「更多」后内容区没有回来（按钮点了没反应）"

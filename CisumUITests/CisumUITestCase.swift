@@ -86,6 +86,19 @@ class CisumUITestBase: XCTestCase {
         )
     }
 
+    /// 等待某个元素**持续不存在**。
+    ///
+    /// 与 `waitForExistence` 相反：用于「某状态不应该出现」的断言。
+    /// 返回 true 表示在超时前元素始终没有出现。
+    func waitForNonExistence(_ element: XCUIElement, timeout: TimeInterval = 10) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if element.exists { return false }
+            Thread.sleep(forTimeInterval: 0.25)
+        }
+        return !element.exists
+    }
+
     func switchScene(to labels: [String]) {
         #if os(macOS)
         let sceneID = labels.contains(where: { ["Music Library", "音乐仓库"].contains($0) })
@@ -98,16 +111,22 @@ class CisumUITestBase: XCTestCase {
         XCTAssertTrue(switcher.waitForExistence(timeout: 10), "工具栏找不到场景切换器")
         switcher.click()
 
+        // 场景选择器是弹出层：整条 UI 测试链路一起跑时，它的出现与可点击
+        // 会比单独跑慢一些。分段等待 + 必要时重开，比一次性等待稳。
         let segment = element(identifier: "cisum.scene.option.\(sceneID)")
-        XCTAssertTrue(segment.waitForExistence(timeout: 5), "场景选择器中找不到目标场景：\(labels)")
+        if !segment.waitForExistence(timeout: 10) {
+            // 第一次点击可能没打开弹出层（窗口刚拿到焦点）。重开一次再等。
+            switcher.click()
+            XCTAssertTrue(segment.waitForExistence(timeout: 10), "场景选择器中找不到目标场景：\(labels)")
+        }
         segment.click()
 
         let enterButton = element(identifier: "cisum.scene.enter.\(sceneID)")
-        if enterButton.waitForExistence(timeout: 5) {
+        if enterButton.waitForExistence(timeout: 10) {
             enterButton.click()
             XCTAssertTrue(targetScene.waitForExistence(timeout: 10), "点击「进入场景」后目标场景未出现：\(sceneID)")
         } else {
-            XCTAssertTrue(targetScene.waitForExistence(timeout: 5), "找不到「进入场景」按钮，且目标场景未直接切换")
+            XCTAssertTrue(targetScene.waitForExistence(timeout: 10), "找不到「进入场景」按钮，且目标场景未直接切换")
         }
         #endif
     }

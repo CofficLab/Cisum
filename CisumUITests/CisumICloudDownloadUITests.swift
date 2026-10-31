@@ -38,6 +38,10 @@ class CisumICloudTestBase: CisumUITestBase {
         super.additionalLaunchArguments
             + [
                 "--cisum-ui-testing-icloud-download=\(icloudMode)",
+                // 必须同时**播种**被播放的文件：`--cisum-ui-testing-playback-file`
+                // 只是把路径写进播放槽位，App 启动后会去恢复播放它。若文件不存在，
+                // 恢复流程卡住，主窗口根本不会出现（表现为「主界面未组装」）。
+                "--cisum-ui-testing-seed-audio", seededAudioName,
                 "--cisum-ui-testing-playback-file", seededAudioName,
             ]
     }
