@@ -3,6 +3,7 @@ import Foundation
 import OSLog
 import MagicKit
 import ProviderStore
+import ProviderStoreKit
 
 /// 商店设置视图的状态容器（迁移 Phase 4）。
 ///
@@ -15,7 +16,7 @@ final class StoreViewModel: ObservableObject, SuperLog {
 
     @Published var showBuySheet = false
     @Published var showRestoreSheet = false
-    @Published private(set) var purchaseInfo: PurchaseInfo = .none
+    @Published private(set) var purchaseInfo: StoreEntitlementSnapshot = .none
     @Published private(set) var tierDisplayName: String = "Free"
     @Published private(set) var statusDescription: String = "Currently using free version"
 

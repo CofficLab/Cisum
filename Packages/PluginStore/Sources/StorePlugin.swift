@@ -9,6 +9,7 @@ import SwiftUI
 import MagicKit
 import OSLog
 import ProviderStore
+import ProviderStoreKit
 
 @MainActor
 public final class StorePlugin: AsyncSuperPlugin, SuperLog {

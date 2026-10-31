@@ -8,14 +8,18 @@ import Testing
 /// 可控的商店权益 Provider 替身。
 @MainActor
 final class StubStoreEntitlementProvider: StoreEntitlementProviding {
-    var tier: SubscriptionTier
+    /// 权益快照是唯一真值；`tier` 由共享契约的默认实现派生。
+    var entitlement: StoreEntitlementSnapshot
 
     private(set) var observerCount = 0
     private(set) var cancelledCount = 0
     private var callback: ((StoreEntitlementEvent) -> Void)?
 
-    init(tier: SubscriptionTier = .none) {
-        self.tier = tier
+    init(tier: StoreTier = .none) {
+        self.entitlement = StoreEntitlementSnapshot(
+            tier: tier,
+            expiresAt: tier > .none ? Date().addingTimeInterval(3600) : nil
+        )
     }
 
     func addObserver(
@@ -30,8 +34,11 @@ final class StubStoreEntitlementProvider: StoreEntitlementProviding {
     }
 
     /// 模拟用户完成购买：等级变化并派发事件。
-    func simulateUpgrade(to tier: SubscriptionTier) {
-        self.tier = tier
+    func simulateUpgrade(to tier: StoreTier) {
+        self.entitlement = StoreEntitlementSnapshot(
+            tier: tier,
+            expiresAt: tier > .none ? Date().addingTimeInterval(3600) : nil
+        )
         callback?(.tierChanged(tier))
     }
 }
@@ -72,7 +79,7 @@ struct AudioDataEntitlementCapabilityAdapterTests {
     @Test("Provider 未就绪时显示免费档")
     func missingProviderShowsFreeTier() {
         let adapter = AudioDataEntitlementCapabilityAdapter(resolve: { nil })
-        #expect(adapter.tierDisplayName == SubscriptionTier.none.displayName)
+        #expect(adapter.tierDisplayName == StoreTier.none.defaultDisplayName)
     }
 
     @Test("免费用户受容量限制")
@@ -81,7 +88,7 @@ struct AudioDataEntitlementCapabilityAdapterTests {
         let adapter = AudioDataEntitlementCapabilityAdapter(resolve: { provider })
 
         #expect(adapter.isCapacityLimited)
-        #expect(adapter.tierDisplayName == SubscriptionTier.none.displayName)
+        #expect(adapter.tierDisplayName == StoreTier.none.defaultDisplayName)
     }
 
     @Test("专业版用户不受容量限制")
@@ -90,7 +97,7 @@ struct AudioDataEntitlementCapabilityAdapterTests {
         let adapter = AudioDataEntitlementCapabilityAdapter(resolve: { provider })
 
         #expect(adapter.isCapacityLimited == false)
-        #expect(adapter.tierDisplayName == SubscriptionTier.pro.displayName)
+        #expect(adapter.tierDisplayName == StoreTier.pro.defaultDisplayName)
     }
 
     @Test("旗舰版用户不受容量限制")
@@ -99,7 +106,7 @@ struct AudioDataEntitlementCapabilityAdapterTests {
         let adapter = AudioDataEntitlementCapabilityAdapter(resolve: { provider })
 
         #expect(adapter.isCapacityLimited == false)
-        #expect(adapter.tierDisplayName == SubscriptionTier.ultimate.displayName)
+        #expect(adapter.tierDisplayName == StoreTier.ultimate.defaultDisplayName)
     }
 
     @Test("Provider 晚注册后容量判定自动修正")
