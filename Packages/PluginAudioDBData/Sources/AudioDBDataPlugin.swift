@@ -1,5 +1,6 @@
 import ProviderAudioNavigation
 import ProviderAudioLibrary
+import ProviderStore
 import CisumProviderStorage
 import KernelCore
 import ProviderPlugin
@@ -35,10 +36,13 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var libraryProvider: AudioLibraryProvider?
     nonisolated(unsafe) private var navigationProvider: AudioTrackNavigationProvider?
+    nonisolated(unsafe) private var capacityProvider: AudioCapacityProvider?
     nonisolated(unsafe) private var storageObserver: AudioStorageObserver?
 
     /// 本插件消费的能力 Adapter（见 Capabilities 规范第 5 条：入口强持有）。
     nonisolated(unsafe) private var audioDataStorageCapability: AudioDataStorageCapabilityAdapter?
+    /// 订阅权益能力：数据层据此判断容量限制与同步兜底。
+    nonisolated(unsafe) private var audioDataEntitlementCapability: AudioDataEntitlementCapabilityAdapter?
     nonisolated(unsafe) private var fileSystemMonitor: AudioFileSystemMonitor?
 
     @MainActor
@@ -271,12 +275,52 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     private func installProviders(kernel: KernelCoreContainer) throws {
         try installLibraryProvider(kernel: kernel)
         try installNavigationProvider(kernel: kernel)
+        installCapacityProvider(kernel: kernel)
     }
 
     @MainActor
     private func removeProviders(from kernel: KernelCoreContainer) {
         removeNavigationProvider(from: kernel)
+        removeCapacityProvider(from: kernel)
         removeLibraryProvider(from: kernel)
+    }
+
+    // MARK: - AudioCapacityProviding
+
+    /// 注册仓库容量准入 Provider。
+    ///
+    /// 数据层同时掌握两样东西：仓库里有几个文件（真值）与当前用户是不是
+    /// 免费用户（经权益能力）。因此它能把两者合成「这批文件能进几个」的
+    /// 单一判定，所有写入入口都走这一个判定，容量规则只存在一处。
+    ///
+    /// 权益能力内部**惰性解析**商店 Provider：商店插件的 boot 顺序不固定，
+    /// 快照引用会让权益永久停在「未就绪」。
+    @MainActor
+    private func installCapacityProvider(kernel: KernelCoreContainer) {
+        guard capacityProvider == nil, let library = libraryProvider else { return }
+
+        let entitlement = AudioDataEntitlementCapabilityAdapter { @MainActor [weak self] in
+            self?.kernel?.resolveProvider((any StoreEntitlementProviding).self)
+        }
+        let provider = AudioCapacityProvider(
+            library: library,
+            entitlement: entitlement
+        )
+        capacityProvider = provider
+        do {
+            try kernel.registerProvider((any AudioCapacityProviding).self, provider)
+        } catch {
+            os_log(.error, "\(Self.t)❌ Failed to register AudioCapacityProviding: \(error.localizedDescription)")
+            capacityProvider = nil
+        }
+    }
+
+    @MainActor
+    private func removeCapacityProvider(from kernel: KernelCoreContainer) {
+        guard capacityProvider != nil else { return }
+        capacityProvider?.shutdown()
+        kernel.unregisterProvider(AudioCapacityProviding.self)
+        capacityProvider = nil
     }
 
     // MARK: - AudioLibraryProviding
@@ -284,9 +328,25 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     private func installLibraryProvider(kernel: KernelCoreContainer) throws {
         guard libraryProvider == nil, let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
-        let provider = AudioLibraryProvider(storage: storage)
+
+        // 权益能力在入口组装一次，同一份实例同时供容量闸门与同步兜底使用。
+        let entitlement = makeEntitlementCapability()
+        let provider = AudioLibraryProvider(storage: storage, entitlement: entitlement)
         self.libraryProvider = provider
         try kernel.registerProvider((any AudioLibraryProviding).self, provider)
+    }
+
+    /// 组装订阅权益能力（幂等）：内部惰性解析商店 Provider。
+    ///
+    /// 商店插件的 boot 顺序不固定，快照引用会让权益永久停在「未就绪」。
+    @MainActor
+    private func makeEntitlementCapability() -> AudioDataEntitlementCapabilityAdapter {
+        if let audioDataEntitlementCapability { return audioDataEntitlementCapability }
+        let created = AudioDataEntitlementCapabilityAdapter { @MainActor [weak self] in
+            self?.kernel?.resolveProvider((any StoreEntitlementProviding).self)
+        }
+        audioDataEntitlementCapability = created
+        return created
     }
 
     @MainActor

@@ -25,7 +25,7 @@ struct PluginEnableControl: View {
                     get: { viewModel.isEnabled(id: plugin.id) },
                     set: { newValue in toggle(newValue) }
                 )) {
-                    Text("Enable")
+                    Text("Enable", bundle: .module)
                         .font(.appBody)
                         .foregroundStyle(theme.textPrimary)
                 }

@@ -12,8 +12,8 @@ let package = Package(
         .library(name: "ProviderPlugin", targets: ["ProviderPlugin"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.8.0"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.11.1"),
         .package(path: "../KitEventObservation"),
     ],
     targets: [

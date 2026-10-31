@@ -17,13 +17,13 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.8.0"),
-        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.11.1"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.0"),
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
         .package(path: "../ProviderAudioLibrary"),
         .package(path: "../ProviderStore"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.6.0"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.13.0"),
     ],
     targets: [
         .target(
@@ -47,7 +47,10 @@ let package = Package(
         ),
         .testTarget(
             name: "AudioCopyPluginTests",
-            dependencies: ["PluginAudioCopy"],
+            dependencies: [
+                "PluginAudioCopy",
+                .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+            ],
             path: "Tests"
         ),
     ]

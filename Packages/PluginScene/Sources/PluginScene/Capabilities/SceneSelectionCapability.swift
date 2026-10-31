@@ -1,9 +1,9 @@
 import Foundation
 import ProviderScene
 
-/// 场景选择事件：设置页对内核 `SceneProvidingEvent` 的语义化封装。
+/// 场景选择事件：对内核 `SceneProvidingEvent` 的语义化封装。
 ///
-/// 设置页不关心内核事件的载荷形态（回调执行时 `currentScene` 已更新），
+/// 消费方不关心内核事件的载荷形态（回调执行时 `currentScene` 已更新），
 /// 只把事件当作「状态已变，请重新读取」的信号，故在此抹平为无参事件。
 @MainActor
 enum SceneSelectionEvent {
@@ -18,15 +18,15 @@ protocol SceneSelectionObserverHandle: AnyObject {
     func cancel()
 }
 
-/// 场景设置页所需的最小场景能力。
+/// 场景切换所需的最小场景能力。
 ///
 /// 与本插件消费 `SceneProviding` 的其他插件不同，这里**保留写入能力**
-/// `setCurrentScene(_:)`——场景设置页本身就是「切换场景」这一用户意图的执行者，
+/// `setCurrentScene(_:)`——工具栏场景切换器本身就是「切换场景」这一用户意图的执行者，
 /// 收窄掉写入会让 ViewModel 无从表达该意图。
 ///
 /// 但仍剥除其余非消费成员：
 /// - `restoreCurrentScene()`：持久化恢复是 `ScenePlugin` 自身的启动职责，
-///   设置页无需触发；
+///   切换器无需触发；
 /// - `addObserver(_:)` 的事件载荷：见 `SceneSelectionEvent`。
 @MainActor
 protocol SceneSelectionCapability: AnyObject {
@@ -53,7 +53,7 @@ protocol SceneSelectionCapability: AnyObject {
     ) -> any SceneSelectionObserverHandle
 }
 
-/// 将内核 `SceneProviding` 收窄为场景设置页的最小能力。
+/// 将内核 `SceneProviding` 收窄为场景切换所需的最小能力。
 @MainActor
 final class SceneSelectionCapabilityAdapter: SceneSelectionCapability {
     /// 持有内核 Provider 用 `weak`：Provider 可能已被 unregister，

@@ -1,4 +1,5 @@
 import Foundation
+import CoreFoundation
 import OSLog
 #if os(iOS)
     import UIKit
@@ -134,7 +135,21 @@ extension String {
     /// }
     /// ```
     public func getIntFromJSON(for keyPath: String) -> Int? {
-        self.getValueFromJSON(for: keyPath) as? Int
+        guard let value = self.getValueFromJSON(for: keyPath) else { return nil }
+
+        // `JSONSerialization` 把 JSON 的 `true` / `false` 桥接成 `NSNumber`，
+        // 而 `NSNumber as? Int` 会把 `true` 读成 `1`。直接强转会让
+        // 「布尔字段」被误当成整数（例如把 `isEnabled` 当成计数）。
+        //
+        // 注意：不能用 `value is Bool` 判断——`NSNumber(value: 0)` 同样能桥接成
+        // `Bool`，那样会把整数 `0` 误判成布尔值。必须用 CoreFoundation 的
+        // 类型标识区分「真正的布尔」与「数字」。
+        if let number = value as? NSNumber, CFGetTypeID(number) == CFBooleanGetTypeID() {
+            return nil
+        }
+
+        // 其余情况沿用 `as? Int` 的语义：小数不会静默截断成整数。
+        return value as? Int
     }
 
     /// 从JSON字符串中获取指定路径的字符串值
@@ -216,11 +231,13 @@ extension String {
             return nil
         }
 
+        // 空键路径没有语义（不是「返回整个根对象」），直接判失败。
+        let keys = keyPath.split(separator: ".").map(String.init)
+        guard !keys.isEmpty else { return nil }
+
         do {
             // 解析 JSON
             if let jsonObject = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any] {
-                // 分割键路径
-                let keys = keyPath.split(separator: ".").map(String.init)
                 var currentObject: Any = jsonObject
 
                 // 遍历键路径，逐层获取值
@@ -233,6 +250,10 @@ extension String {
                         return nil
                     }
                 }
+                // JSON 的 `null` 会被解析成 `NSNull`。它不是「有值」，
+                // 直接返回会让调用方的 `as? Int` 之类的转换全部落空却仍判定
+                // 「键存在」，因此统一收敛成 `nil`。
+                if currentObject is NSNull { return nil }
                 return currentObject
             }
         } catch {
@@ -365,7 +386,15 @@ public extension String {
             os_log("保存到 -> \(url.relativePath)")
         }
 
-        _ = url.deletingLastPathComponent().createIfNotExist()
+        // 父目录必须存在且**确实是目录**。
+        // `createIfNotExist()` 会在路径不存在时创建一个**空文件**占位，
+        // 之后再往它下面写文件就会失败（"couldn't be saved in the folder"）。
+        // 因此这里直接创建目录，而不是复用文件占位的语义。
+        let parent = url.deletingLastPathComponent()
+        try FileManager.default.createDirectory(
+            at: parent,
+            withIntermediateDirectories: true
+        )
 
         try self.write(to: url, atomically: true, encoding: .utf8)
     }

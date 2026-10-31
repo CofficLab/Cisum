@@ -75,7 +75,19 @@ private final class WelcomeStorageSetupViewModel: ObservableObject {
 
     /// overlay 整体消失（插件卸载 / 根视图重建）时兜底恢复工具栏，
     /// 否则引导不再需要时工具栏会一直处于隐藏态。
+    ///
+    /// ## 为什么不能无条件恢复
+    ///
+    /// overlay 的 `onDisappear` 不只在「插件被卸载」时触发：根视图重建
+    /// （工具栏贡献变化导致 `RootOverlayHostView` 的身份变化）也会让整棵
+    /// 子树重建，overlay 随之消失再出现。此时引导**仍然需要**，工具栏必须
+    /// 继续隐藏——无条件恢复会让工具栏在引导期间闪出来，用户能点进
+    /// 设置页或切场景，跳过了本该先完成的存储选择。
+    ///
+    /// 因此只有「引导已不再需要」时才恢复工具栏。
     func restoreChromeIfNeeded() {
+        let stillRequired = !storage.hasUsableStorageLocation
+        guard !stillRequired else { return }
         chrome.setToolbarHidden(false)
     }
 }

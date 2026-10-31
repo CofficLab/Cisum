@@ -1,296 +1,450 @@
 {
-  "appPolicies" : {
-    "eula" : "",
-    "policies" : [
+  "appPolicies": {
+    "eula": "",
+    "policies": [
       {
-        "locale" : "en_US",
-        "policyText" : "",
-        "policyURL" : ""
+        "locale": "en_US",
+        "policyText": "",
+        "policyURL": ""
       }
     ]
   },
-  "identifier" : "E8BE4D16",
-  "nonRenewingSubscriptions" : [
+  "identifier": "E8BE4D16",
+  "nonRenewingSubscriptions": [
     {
-      "displayPrice" : "79",
-      "familyShareable" : false,
-      "internalID" : "9EAFFFBD",
-      "localizations" : [
+      "displayPrice": "79",
+      "familyShareable": false,
+      "internalID": "9EAFFFBD",
+      "localizations": [
         {
-          "description" : "专业版1年使用许可",
-          "displayName" : "专业版1年",
-          "locale" : "zh_Hans"
+          "description": "专业版1年使用许可",
+          "displayName": "专业版1年",
+          "locale": "zh_Hans"
         }
       ],
-      "productID" : "com.yueyi.kuaiyizhi.pro.year.1",
-      "referenceName" : "专业版1年",
-      "type" : "NonRenewingSubscription"
+      "productID": "com.yueyi.kuaiyizhi.pro.year.1",
+      "referenceName": "专业版1年",
+      "type": "NonRenewingSubscription"
     },
     {
-      "displayPrice" : "1.99",
-      "familyShareable" : false,
-      "internalID" : "5A8AEE2D",
-      "localizations" : [
+      "displayPrice": "1.99",
+      "familyShareable": false,
+      "internalID": "5A8AEE2D",
+      "localizations": [
         {
-          "description" : "专业版1月使用许可",
-          "displayName" : "专业版1月",
-          "locale" : "zh_Hans"
+          "description": "专业版1月使用许可",
+          "displayName": "专业版1月",
+          "locale": "zh_Hans"
         }
       ],
-      "productID" : "com.yueyi.kuaiyizhi.pro.month.1",
-      "referenceName" : "专业版1月",
-      "type" : "NonRenewingSubscription"
+      "productID": "com.yueyi.kuaiyizhi.pro.month.1",
+      "referenceName": "专业版1月",
+      "type": "NonRenewingSubscription"
     },
     {
-      "displayPrice" : "1",
-      "familyShareable" : false,
-      "internalID" : "93EDB522",
-      "localizations" : [
+      "displayPrice": "1",
+      "familyShareable": false,
+      "internalID": "93EDB522",
+      "localizations": [
         {
-          "description" : "专业版7天使用许可",
-          "displayName" : "专业版7天使用许可",
-          "locale" : "zh_Hans"
+          "description": "专业版7天使用许可",
+          "displayName": "专业版7天使用许可",
+          "locale": "zh_Hans"
         }
       ],
-      "productID" : "com.yueyi.kuaiyizhi.pro.day.7",
-      "referenceName" : "专业版7天",
-      "type" : "NonRenewingSubscription"
-    }
-  ],
-  "products" : [
-    {
-      "displayPrice" : "1.99",
-      "familyShareable" : false,
-      "internalID" : "36835F3D",
-      "localizations" : [
-        {
-          "description" : "A standard five-seater",
-          "displayName" : "Car",
-          "locale" : "en_US"
-        }
-      ],
-      "productID" : "nonconsumable.car",
-      "referenceName" : "Car",
-      "type" : "NonConsumable"
+      "productID": "com.yueyi.kuaiyizhi.pro.day.7",
+      "referenceName": "专业版7天",
+      "type": "NonRenewingSubscription"
     },
     {
-      "displayPrice" : "2.99",
-      "familyShareable" : false,
-      "internalID" : "8E64F7F7",
-      "localizations" : [
+      "displayPrice": "1.99",
+      "familyShareable": false,
+      "internalID": "20000001",
+      "localizations": [
         {
-          "description" : "Off-road vehicle",
-          "displayName" : "Sport Utility Vehicle",
-          "locale" : "en_US"
-        }
-      ],
-      "productID" : "nonconsumable.utilityvehicle",
-      "referenceName" : "Sport Utility Vehicle",
-      "type" : "NonConsumable"
-    },
-    {
-      "displayPrice" : "4.99",
-      "familyShareable" : false,
-      "internalID" : "C63E7D42",
-      "localizations" : [
-        {
-          "description" : "Race Car",
-          "displayName" : "Race Car",
-          "locale" : "en_US"
-        }
-      ],
-      "productID" : "nonconsumable.racecar",
-      "referenceName" : "Race Car",
-      "type" : "NonConsumable"
-    },
-    {
-      "displayPrice" : "0.99",
-      "familyShareable" : false,
-      "internalID" : "0B8E0C7E",
-      "localizations" : [
-        {
-          "description" : "87",
-          "displayName" : "Fuel87",
-          "locale" : "en_US"
-        }
-      ],
-      "productID" : "consumable.fuel.octane87",
-      "referenceName" : "Fuel87",
-      "type" : "Consumable"
-    },
-    {
-      "displayPrice" : "1.99",
-      "familyShareable" : false,
-      "internalID" : "674FCF88",
-      "localizations" : [
-        {
-          "description" : "89",
-          "displayName" : "Fuel89",
-          "locale" : "en_US"
-        }
-      ],
-      "productID" : "consumable.fuel.octane89",
-      "referenceName" : "Fuel89",
-      "type" : "Consumable"
-    },
-    {
-      "displayPrice" : "2.99",
-      "familyShareable" : false,
-      "internalID" : "46DA68EF",
-      "localizations" : [
-        {
-          "description" : "91",
-          "displayName" : "Fuel91",
-          "locale" : "en_US"
-        }
-      ],
-      "productID" : "consumable.fuel.octane91",
-      "referenceName" : "Fuel91",
-      "type" : "Consumable"
-    }
-  ],
-  "settings" : {
-    "_askToBuyEnabled" : false,
-    "_compatibilityTimeRate" : {
-      "3" : 6
-    },
-    "_failTransactionsEnabled" : false,
-    "_locale" : "zh_Hans",
-    "_storefront" : "CHN",
-    "_storeKitErrors" : [
-      {
-        "current" : null,
-        "enabled" : false,
-        "name" : "Load Products"
-      },
-      {
-        "current" : null,
-        "enabled" : false,
-        "name" : "Purchase"
-      },
-      {
-        "current" : null,
-        "enabled" : false,
-        "name" : "Verification"
-      },
-      {
-        "current" : null,
-        "enabled" : false,
-        "name" : "App Store Sync"
-      },
-      {
-        "current" : null,
-        "enabled" : false,
-        "name" : "Subscription Status"
-      },
-      {
-        "current" : null,
-        "enabled" : false,
-        "name" : "App Transaction"
-      },
-      {
-        "current" : null,
-        "enabled" : false,
-        "name" : "Manage Subscriptions Sheet"
-      },
-      {
-        "current" : null,
-        "enabled" : false,
-        "name" : "Refund Request Sheet"
-      },
-      {
-        "current" : null,
-        "enabled" : false,
-        "name" : "Offer Code Redeem Sheet"
-      }
-    ],
-    "_timeRate" : 15
-  },
-  "subscriptionGroups" : [
-    {
-      "id" : "3F19ED53",
-      "localizations" : [
-
-      ],
-      "name" : "Software Services",
-      "subscriptions" : [
-        {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "2",
-          "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "E0316BF9",
-          "introductoryOffer" : null,
-          "localizations" : [
-            {
-              "description" : "",
-              "displayName" : "Pro Annual",
-              "locale" : "en_US"
-            },
-            {
-              "description" : "",
-              "displayName" : "专业版按月订阅",
-              "locale" : "zh_Hans"
-            }
-          ],
-          "productID" : "com.yueyi.cisum.pro.monthly",
-          "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Pro Monthly",
-          "subscriptionGroupID" : "3F19ED53",
-          "type" : "RecurringSubscription",
-          "winbackOffers" : [
-
-          ]
+          "description": "",
+          "displayName": "Pro",
+          "locale": "en_US"
         },
         {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "20",
-          "familyShareable" : false,
-          "groupNumber" : 2,
-          "internalID" : "5B704C5E",
-          "introductoryOffer" : {
-            "displayPrice" : "0.99",
-            "internalID" : "86438374",
-            "numberOfPeriods" : 1,
-            "paymentMode" : "payAsYouGo",
-            "subscriptionPeriod" : "P1Y"
-          },
-          "localizations" : [
+          "description": "",
+          "displayName": "专业版",
+          "locale": "zh_Hans"
+        }
+      ],
+      "productID": "com.yueyi.cisum.pro.month.1",
+      "referenceName": "com.yueyi.cisum.pro.month.1",
+      "type": "NonRenewingSubscription"
+    },
+    {
+      "displayPrice": "79",
+      "familyShareable": false,
+      "internalID": "20000002",
+      "localizations": [
+        {
+          "description": "",
+          "displayName": "Pro",
+          "locale": "en_US"
+        },
+        {
+          "description": "",
+          "displayName": "专业版",
+          "locale": "zh_Hans"
+        }
+      ],
+      "productID": "com.yueyi.cisum.pro.year.1",
+      "referenceName": "com.yueyi.cisum.pro.year.1",
+      "type": "NonRenewingSubscription"
+    },
+    {
+      "displayPrice": "1",
+      "familyShareable": false,
+      "internalID": "20000003",
+      "localizations": [
+        {
+          "description": "",
+          "displayName": "Pro",
+          "locale": "en_US"
+        },
+        {
+          "description": "",
+          "displayName": "专业版",
+          "locale": "zh_Hans"
+        }
+      ],
+      "productID": "com.yueyi.cisum.pro.day.7",
+      "referenceName": "com.yueyi.cisum.pro.day.7",
+      "type": "NonRenewingSubscription"
+    }
+  ],
+  "products": [
+    {
+      "displayPrice": "1.99",
+      "familyShareable": false,
+      "internalID": "36835F3D",
+      "localizations": [
+        {
+          "description": "A standard five-seater",
+          "displayName": "Car",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "nonconsumable.car",
+      "referenceName": "Car",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "8E64F7F7",
+      "localizations": [
+        {
+          "description": "Off-road vehicle",
+          "displayName": "Sport Utility Vehicle",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "nonconsumable.utilityvehicle",
+      "referenceName": "Sport Utility Vehicle",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "C63E7D42",
+      "localizations": [
+        {
+          "description": "Race Car",
+          "displayName": "Race Car",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "nonconsumable.racecar",
+      "referenceName": "Race Car",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "0.99",
+      "familyShareable": false,
+      "internalID": "0B8E0C7E",
+      "localizations": [
+        {
+          "description": "87",
+          "displayName": "Fuel87",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "consumable.fuel.octane87",
+      "referenceName": "Fuel87",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "1.99",
+      "familyShareable": false,
+      "internalID": "674FCF88",
+      "localizations": [
+        {
+          "description": "89",
+          "displayName": "Fuel89",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "consumable.fuel.octane89",
+      "referenceName": "Fuel89",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "46DA68EF",
+      "localizations": [
+        {
+          "description": "91",
+          "displayName": "Fuel91",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "consumable.fuel.octane91",
+      "referenceName": "Fuel91",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {
+    "_askToBuyEnabled": false,
+    "_compatibilityTimeRate": {
+      "3": 6
+    },
+    "_failTransactionsEnabled": false,
+    "_locale": "zh_Hans",
+    "_storefront": "CHN",
+    "_storeKitErrors": [
+      {
+        "current": null,
+        "enabled": false,
+        "name": "Load Products"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "Purchase"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "Verification"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "App Store Sync"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "Subscription Status"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "App Transaction"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "Manage Subscriptions Sheet"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "Refund Request Sheet"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "Offer Code Redeem Sheet"
+      }
+    ],
+    "_timeRate": 15
+  },
+  "subscriptionGroups": [
+    {
+      "id": "3F19ED53",
+      "localizations": [],
+      "name": "Software Services",
+      "subscriptions": [
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "2",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "E0316BF9",
+          "introductoryOffer": null,
+          "localizations": [
             {
-              "description" : "",
-              "displayName" : "专业版按年订阅",
-              "locale" : "zh_Hans"
+              "description": "",
+              "displayName": "Pro Annual",
+              "locale": "en_US"
             },
             {
-              "description" : "",
-              "displayName" : "Pro",
-              "locale" : "en_US"
+              "description": "",
+              "displayName": "专业版按月订阅",
+              "locale": "zh_Hans"
             }
           ],
-          "productID" : "com.yueyi.cisum.pro.yearly",
-          "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "Pro Annual",
-          "subscriptionGroupID" : "3F19ED53",
-          "type" : "RecurringSubscription",
-          "winbackOffers" : [
-
-          ]
+          "productID": "com.yueyi.cisum.pro.monthly",
+          "recurringSubscriptionPeriod": "P1M",
+          "referenceName": "Pro Monthly",
+          "subscriptionGroupID": "3F19ED53",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "20",
+          "familyShareable": false,
+          "groupNumber": 2,
+          "internalID": "5B704C5E",
+          "introductoryOffer": {
+            "displayPrice": "0.99",
+            "internalID": "86438374",
+            "numberOfPeriods": 1,
+            "paymentMode": "payAsYouGo",
+            "subscriptionPeriod": "P1Y"
+          },
+          "localizations": [
+            {
+              "description": "",
+              "displayName": "专业版按年订阅",
+              "locale": "zh_Hans"
+            },
+            {
+              "description": "",
+              "displayName": "Pro",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "com.yueyi.cisum.pro.yearly",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "Pro Annual",
+          "subscriptionGroupID": "3F19ED53",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "2",
+          "familyShareable": false,
+          "groupNumber": 3,
+          "internalID": "10000001",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "",
+              "displayName": "Pro",
+              "locale": "en_US"
+            },
+            {
+              "description": "",
+              "displayName": "专业版",
+              "locale": "zh_Hans"
+            }
+          ],
+          "productID": "com.yueyi.cisum.monthly",
+          "recurringSubscriptionPeriod": "P1M",
+          "referenceName": "com.yueyi.cisum.monthly",
+          "subscriptionGroupID": "3F19ED53",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "20",
+          "familyShareable": false,
+          "groupNumber": 4,
+          "internalID": "10000002",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "",
+              "displayName": "Pro",
+              "locale": "en_US"
+            },
+            {
+              "description": "",
+              "displayName": "专业版",
+              "locale": "zh_Hans"
+            }
+          ],
+          "productID": "com.yueyi.cisum.yearly",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "com.yueyi.cisum.yearly",
+          "subscriptionGroupID": "3F19ED53",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "20",
+          "familyShareable": false,
+          "groupNumber": 5,
+          "internalID": "10000003",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "",
+              "displayName": "Pro",
+              "locale": "en_US"
+            },
+            {
+              "description": "",
+              "displayName": "专业版",
+              "locale": "zh_Hans"
+            }
+          ],
+          "productID": "com.yueyi.cisum.pro.annual",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "com.yueyi.cisum.pro.annual",
+          "subscriptionGroupID": "3F19ED53",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "20",
+          "familyShareable": false,
+          "groupNumber": 6,
+          "internalID": "10000004",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "",
+              "displayName": "Pro",
+              "locale": "en_US"
+            },
+            {
+              "description": "",
+              "displayName": "专业版",
+              "locale": "zh_Hans"
+            }
+          ],
+          "productID": "com.yueyi.cisum.annual",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "com.yueyi.cisum.annual",
+          "subscriptionGroupID": "3F19ED53",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
         }
       ]
     }
   ],
-  "version" : {
-    "major" : 4,
-    "minor" : 0
+  "version": {
+    "major": 4,
+    "minor": 0
   }
 }

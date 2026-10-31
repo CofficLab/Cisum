@@ -9,22 +9,6 @@ import LumiUI
     import SwiftUI
     import UniformTypeIdentifiers
 
-    enum AudioCopyLimitPolicy {
-        static func allowedTaskCount(
-            currentAudioCount: Int,
-            pendingCopyTaskCount: Int = 0,
-            requestedTaskCount: Int,
-            maxAudioCount: Int,
-            isFreeVersion: Bool
-        ) -> Int {
-            guard isFreeVersion else { return requestedTaskCount }
-
-            let occupiedCount = currentAudioCount + pendingCopyTaskCount
-            let remainingCount = max(0, maxAudioCount - occupiedCount)
-            return min(requestedTaskCount, remainingCount)
-        }
-    }
-
     struct CopyRootView<Content>: View, SuperEvent, SuperLog, SuperThread where Content: View {
         nonisolated static var emoji: String { "🚛" }
         nonisolated static var verbose: Bool { false }
@@ -54,7 +38,7 @@ import LumiUI
             ZStack {
                 content
                 VStack {
-                    AudioCopyTips(variant: .pro)
+                    AudioCopyTips(variant: .pro, tierDisplayName: AudioCopyService.tierDisplayName)
                         .appIf(showProTips)
 
                     AudioCopyTips(variant: .drop)
@@ -125,29 +109,26 @@ import LumiUI
                 }
             }
 
-            let allowedTaskCount = await AudioCopyService.allowedTaskCount(requestedTaskCount: sourceURLs.count)
-            if allowedTaskCount < sourceURLs.count {
+            // 容量准入：问闸门这批文件能进几个。判定规则只在数据层存在一处。
+            let admission = await AudioCopyService.admission(requestedCount: sourceURLs.count)
+            if admission.didReject {
+                let allowedTaskCount = admission.allowedCount(requestedCount: sourceURLs.count)
                 if allowedTaskCount == 0 {
                     await MainActor.run {
                         toastProvider?.error(String(localized: "Copy limit reached", bundle: .module))
                     }
-                    return false
+                } else {
+                    sourceURLs = Array(sourceURLs.prefix(allowedTaskCount))
+                    await MainActor.run {
+                        toastProvider?.warning(String(localized: "Only \(allowedTaskCount) files were added because the free copy limit is almost full", bundle: .module))
+                    }
                 }
 
-                sourceURLs = Array(sourceURLs.prefix(allowedTaskCount))
+                // 撞限后给出可点击的付费入口：提示会一闪而过，
+                // 没有入口的话用户只看到「已达上限」，却不知道去哪付费。
                 await MainActor.run {
-                    toastProvider?.warning(String(localized: "Only \(allowedTaskCount) files were added because the free copy limit is almost full", bundle: .module))
-                }
-            }
-
-            // 检查是否超出限制
-            let isOutOfLimit = await AudioCopyService.isOutOfLimit()
-            await MainActor.run {
-                self.outOfLimit = isOutOfLimit
-            }
-            if isOutOfLimit {
-                await MainActor.run {
-                    toastProvider?.error(String(localized: "Copy limit reached", bundle: .module))
+                    self.outOfLimit = true
+                    AudioCopyService.presentPurchase()
                 }
                 return false
             }

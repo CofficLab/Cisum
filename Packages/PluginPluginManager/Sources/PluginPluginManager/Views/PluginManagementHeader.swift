@@ -17,10 +17,10 @@ struct PluginManagementHeader: View {
     var body: some View {
         HStack(spacing: 10) {
             Label(
-                "\(totalCount) plugins",
+                String(localized: String.LocalizationValue("\(totalCount) plugins"), bundle: .module),
                 systemImage: "puzzlepiece.extension"
             )
-            Text("\(enabledCount) enabled")
+            Text(String(localized: String.LocalizationValue("\(enabledCount) enabled"), bundle: .module))
             Spacer()
         }
         .font(.appCaption)

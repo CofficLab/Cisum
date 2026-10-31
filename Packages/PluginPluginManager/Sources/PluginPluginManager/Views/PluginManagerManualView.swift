@@ -7,10 +7,10 @@ import SwiftUI
 struct PluginManagerManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Plugin Manager", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Plugin Manager", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("This manual introduces the Plugin Manager page of Cisum: how to view registered plugins, search and filter by category, and enable or disable a plugin.")
+            Text("This manual introduces the Plugin Manager page of Cisum: how to view registered plugins, search and filter by category, and enable or disable a plugin.", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

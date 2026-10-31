@@ -38,7 +38,7 @@ struct DebugView: View, SuperLog {
                 Button {
                     clear()
                 } label: {
-                    Text("Clear")
+                    Text("Clear", bundle: .module)
                 }
 
                 Spacer()
@@ -54,7 +54,7 @@ struct DebugView: View, SuperLog {
                         if let groups = self.productGroups {
                             productSection(groups: groups)
                         } else {
-                            Text("Products not loaded yet")
+                            Text("Products not loaded yet", bundle: .module)
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -67,7 +67,7 @@ struct DebugView: View, SuperLog {
                         if let groups = self.productGroups {
                             subscriptionStatusSection(subscriptions: groups.subscriptions)
                         } else {
-                            Text("Products not loaded yet")
+                            Text("Products not loaded yet", bundle: .module)
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -200,7 +200,7 @@ extension DebugView {
             Text("\(title) (\(items.count))")
                 .font(.headline)
             if items.isEmpty {
-                Text("Empty")
+                Text("Empty", bundle: .module)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(items, id: \.id) { p in
@@ -223,14 +223,14 @@ extension DebugView {
     @ViewBuilder
     func purchasedSection() -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Purchased")
+            Text("Purchased", bundle: .module)
                 .font(.title3)
                 .foregroundStyle(.brown)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Cars (\(purchasedCars.count))").font(.headline)
                 if purchasedCars.isEmpty {
-                    Text("Empty").foregroundStyle(.secondary)
+                    Text("Empty", bundle: .module).foregroundStyle(.secondary)
                 } else {
                     ForEach(purchasedCars, id: \.id) { p in
                         Text(p.displayName)
@@ -242,7 +242,7 @@ extension DebugView {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Subscriptions (\(purchasedSubscriptions.count))").font(.headline)
                 if purchasedSubscriptions.isEmpty {
-                    Text("Empty").foregroundStyle(.secondary)
+                    Text("Empty", bundle: .module).foregroundStyle(.secondary)
                 } else {
                     ForEach(purchasedSubscriptions, id: \.id) { p in
                         Text(p.displayName)
@@ -254,7 +254,7 @@ extension DebugView {
             VStack(alignment: .leading, spacing: 4) {
                 Text("NonRenewables (\(purchasedNonRenewables.count))").font(.headline)
                 if purchasedNonRenewables.isEmpty {
-                    Text("Empty").foregroundStyle(.secondary)
+                    Text("Empty", bundle: .module).foregroundStyle(.secondary)
                 } else {
                     ForEach(purchasedNonRenewables, id: \.id) { p in
                         Text(p.displayName)
@@ -268,7 +268,7 @@ extension DebugView {
     @ViewBuilder
     func productSection(groups: ProductGroupsDTO) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Products")
+            Text("Products", bundle: .module)
                 .font(.title3)
                 .foregroundStyle(.red)
 
@@ -286,7 +286,7 @@ extension DebugView {
                 .font(.headline)
 
             if subscriptionGroups.isEmpty {
-                Text("Empty")
+                Text("Empty", bundle: .module)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(subscriptionGroups, id: \.id) { group in
@@ -334,30 +334,30 @@ extension DebugView {
     @ViewBuilder
     func subscriptionStatusSection(subscriptions: [ProductDTO]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Subscription Status")
+            Text("Subscription Status", bundle: .module)
                 .font(.title3)
                 .foregroundStyle(.cyan)
 
             if let highest = highestSubscriptionProduct {
                 HStack {
-                    Text("Highest Product:")
+                    Text("Highest Product:", bundle: .module)
                     Spacer()
                     Text(highest.displayName)
                         .foregroundStyle(.secondary)
                 }
             } else {
-                Text("Highest Product: None").foregroundStyle(.secondary)
+                Text("Highest Product: None", bundle: .module).foregroundStyle(.secondary)
             }
 
             if let hs = highestSubscriptionStatus {
                 HStack {
-                    Text("Highest Status:")
+                    Text("Highest Status:", bundle: .module)
                     Spacer()
                     Text("state=\(hs.state)")
                         .foregroundStyle(.secondary)
                 }
             } else {
-                Text("Highest Status: None").foregroundStyle(.secondary)
+                Text("Highest Status: None", bundle: .module).foregroundStyle(.secondary)
             }
 
             Divider()
@@ -365,11 +365,11 @@ extension DebugView {
             Text("All Statuses (\(subscriptionStatuses.count))")
                 .font(.headline)
             if subscriptionStatuses.isEmpty {
-                Text("Empty").foregroundStyle(.secondary)
+                Text("Empty", bundle: .module).foregroundStyle(.secondary)
             } else {
                 ForEach(Array(subscriptionStatuses.enumerated()), id: \.offset) { _, s in
                     HStack(alignment: .top) {
-                        Text("state=")
+                        Text("state=", bundle: .module)
                         Text("\(s.state)")
                             .foregroundStyle(.secondary)
                         Spacer()

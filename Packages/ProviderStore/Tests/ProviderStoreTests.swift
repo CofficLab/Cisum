@@ -68,6 +68,9 @@ struct ProviderStoreTests {
             "com.yueyi.cisum.pro.month.1",
             "com.yueyi.cisum.pro.year.1",
             "com.yueyi.cisum.pro.day.7",
+            "com.yueyi.kuaiyizhi.pro.month.1",
+            "com.yueyi.kuaiyizhi.pro.year.1",
+            "com.yueyi.kuaiyizhi.pro.day.7",
         ]
 
         #expect(Set(StoreConfig.allProductIds) == expectedIDs)

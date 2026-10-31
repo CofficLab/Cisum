@@ -15,15 +15,16 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
-        .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.0.1"),
-        .package(url: "https://github.com/CofficLab/LumiPluginSettingView.git", from: "1.0.2"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.0"),
+        .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.1.0"),
+        .package(url: "https://github.com/CofficLab/LumiPluginSettingView.git", from: "1.0.3"),
         .package(name: "PluginRootView", path: "../PluginRootView"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.6.0"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.13.0"),
         .package(url: "https://github.com/CofficLab/LumiPluginToast.git", from: "1.2.1"),
         // 1.0.8 起支持按 id 白名单只注册部分目录主题（Cisum 只加载少量配色）。
-        .package(url: "https://github.com/CofficLab/LumiThemePack.git", from: "1.0.8"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.8.0"),
+        // 1.0.10 起移除了主题搜索入口，外观页改为「外观筛选 + 双栏浏览」。
+        .package(url: "https://github.com/CofficLab/LumiThemePack.git", from: "1.0.12"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.11.1"),
         .package(path: "../KitEventObservation"),
         .package(name: "KitMagic", path: "../MagicKit"),
         .package(path: "../ProviderPlugin"),
@@ -33,6 +34,7 @@ let package = Package(
         .package(name: "ProviderDevice", path: "../ProviderDevice"),
         .package(name: "ProviderAppState", path: "../ProviderAppState"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
+        .package(name: "ProviderSettingsHost", path: "../ProviderSettingsHost"),
         // MARK: - Plugin Dependencies (直接由 Factory 装配)
         .package(name: "PluginAudio", path: "../PluginAudio"),
         .package(name: "PluginAudioCopy", path: "../PluginAudioCopy"),
@@ -97,6 +99,7 @@ let package = Package(
                 .product(name: "ProviderRootView", package: "LumiProviders"),
                 .product(name: "ProviderStorage", package: "LumiProviders"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
+                .product(name: "ProviderSettingsHost", package: "ProviderSettingsHost"),
                 .product(name: "ProviderToolbar", package: "LumiProviders"),
                 .product(name: "ProviderToast", package: "LumiProviders"),
                 .product(name: "PluginToast", package: "LumiPluginToast"),

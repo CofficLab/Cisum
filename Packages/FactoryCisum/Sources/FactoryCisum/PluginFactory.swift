@@ -90,8 +90,12 @@ public struct DefaultPluginFactory: PluginFactory {
         #if os(macOS)
         plugins.append(CopyPlugin.shared)
         plugins.append(FileLogPlugin.shared)
-        plugins.append(SettingsButtonPlugin.shared)
         #endif
+
+        // 设置按钮两端都要装：
+        // - macOS 贡献到窗口工具栏（点击 openWindow 打开设置窗口）；
+        // - iOS 贡献到系统导航栏（点击广播 openSettings 通知，由宿主以 sheet 呈现）。
+        plugins.append(SettingsButtonPlugin.shared)
 
         plugins.append(contentsOf: [
             PluginSettingView(id: "com.coffic.cisum.plugin.setting-view"),

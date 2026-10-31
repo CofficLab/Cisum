@@ -44,7 +44,7 @@ struct GeneralSettingsDetailView: View {
     private var appInfoSection: some View {
         AppSettingSection(title: String(localized: "App Info", bundle: .module)) {
             settingRow(icon: "app", title: String(localized: "Name", bundle: .module), value: MagicApp.getAppName())
-            settingRow(icon: "number", title: "Bundle ID", value: MagicApp.getBundleIdentifier())
+            settingRow(icon: "number", title: String(localized: "Bundle ID", bundle: .module), value: MagicApp.getBundleIdentifier())
             settingRow(icon: "info.circle", title: String(localized: "Version", bundle: .module), value: MagicApp.getVersion())
             settingRow(icon: "hammer", title: String(localized: "Build", bundle: .module), value: MagicApp.getBuildNumber())
         }
@@ -55,7 +55,7 @@ struct GeneralSettingsDetailView: View {
     private var manualsSection: some View {
         AppSettingSection(title: String(localized: "Manual", bundle: .module)) {
             AppSettingRow(
-                title: "Browse the manuals contributed by plugins",
+                title: String(localized: "Browse the manuals contributed by plugins", bundle: .module),
                 icon: "book",
                 action: { isShowingManuals = true }
             ) {
@@ -70,9 +70,9 @@ struct GeneralSettingsDetailView: View {
 
     #if DEBUG
     private var debugSection: some View {
-        AppSettingSection(title: "Debug") {
+        AppSettingSection(title: String(localized: "Debug", bundle: .module)) {
             AppSettingRow(
-                title: "Open Data Directory",
+                title: String(localized: "Open Data Directory", bundle: .module),
                 icon: "folder",
                 action: { openDataDirectory() }
             ) {

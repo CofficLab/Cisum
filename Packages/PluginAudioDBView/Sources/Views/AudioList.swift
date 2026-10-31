@@ -130,6 +130,16 @@ enum AudioListHeaderPolicy {
     static func shouldShowAddButton(hasContent: Bool) -> Bool {
         hasContent
     }
+
+    /// 表头是否展示「打开仓库目录」按钮。
+    ///
+    /// - Parameter hasContent: 仓库列表是否已有内容。
+    ///
+    /// 说明：与「添加」按钮同节奏——仓库有内容时常驻表头右侧，方便直接跳到
+    /// 访达里的仓库目录；空仓库时改由空状态视图自带的入口承担，表头不重复。
+    static func shouldShowOpenRepositoryButton(hasContent: Bool) -> Bool {
+        hasContent
+    }
 }
 
 /// 列表选中项的自动兜底策略。
@@ -251,7 +261,7 @@ struct AudioList: View, SuperLog {
         List {
             Section(header: HStack {
                 if viewModel.totalCount > 0 {
-                    Text("Total \(viewModel.totalCount.description)", bundle: .module)
+                    Text(String(localized: String.LocalizationValue("Total \(viewModel.totalCount.description)"), bundle: .module))
                         .accessibilityIdentifier("cisum.audio-library.count")
                 }
                 Spacer()
@@ -263,6 +273,19 @@ struct AudioList: View, SuperLog {
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
+                }
+
+                // 仓库目录入口：与「添加」按钮并排在表头最右侧，
+                // 用户可以直接跳到访达里的音频仓库目录。
+                if AudioListHeaderPolicy.shouldShowOpenRepositoryButton(
+                    hasContent: viewModel.totalCount > 0 || !viewModel.urls.isEmpty
+                ) {
+                    BtnOpenRepository(dependencies: dependencies)
+                        .font(.title2)
+                        .labelStyle(.iconOnly)
+                        .accessibilityIdentifier("cisum.audio-library.open-repository")
+                        .accessibilityLabel(Text("Open repository folder", bundle: .module))
+                        .help(Text("Open repository folder", bundle: .module))
                 }
 
                 // 导入入口：仓库已有内容时，表头最右侧常驻「添加」按钮，

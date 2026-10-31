@@ -5,10 +5,10 @@ import SwiftUI
 struct BookPlayModePluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Audiobook Play Mode", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Audiobook Play Mode", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Switch playback modes: single chapter loop, list loop, shuffle, and more")
+            Text("Switch playback modes: single chapter loop, list loop, shuffle, and more", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

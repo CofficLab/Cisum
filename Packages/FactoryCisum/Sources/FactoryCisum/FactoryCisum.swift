@@ -7,6 +7,7 @@ import ProviderRootView
 import ProviderScene
 import ProviderDocsView
 import ProviderToast
+import ProviderToolbar
 import ProviderDevice
 import ProviderCloud
 import ProviderCloudDownload
@@ -123,6 +124,16 @@ public enum CisumBuilder: SuperLog {
         // 设置契约：由远程 LumiSettings 提供；PluginSettingView 外壳插件随后
         // 在 onBoot 替换为 AppSettingsSidebarShell 渲染（保留此前注册的入口）。
         try kernel.registerProvider((any SettingViewProviding).self, DefaultSettingViewProviding())
+
+        // iOS 导航栏贡献：macOS 用 ToolbarProviding（窗口工具栏），iOS 用
+        // IOSNavigationBarProviding（系统导航栏）。两端契约不同，必须分别注册，
+        // 否则 iOS 侧设置齿轮无处可挂（对齐 BookletMaker 的 IOSSettingsProviderFactory）。
+        #if os(iOS)
+        try kernel.registerProvider(
+            (any IOSNavigationBarProviding).self,
+            DefaultIOSNavigationBarProviding()
+        )
+        #endif
 
         // 3. 启动内核（插件 onBoot 注册 Storage 等服务 → 校验 → onReady → 贡献聚合）
         try await kernel.startAsync(plugins: plugins)
@@ -251,7 +262,7 @@ public enum CisumBuilder: SuperLog {
     @MainActor
     public static func assembleMainView(kernel: KernelCoreContainer) -> AnyView {
         guard let root = kernel.resolveProvider((any RootViewProviding).self) else {
-            return AnyView(Text("RootViewProviding not registered"))
+            return AnyView(Text("RootViewProviding not registered", bundle: .module))
         }
 
         if let control = kernel.resolveProvider((any ControlViewProviding).self) {

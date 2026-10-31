@@ -5,10 +5,10 @@ import SwiftUI
 struct AudioDBPluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Music Database", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Music Database", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Browse and organize music files in a database view")
+            Text("Browse and organize music files in a database view", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

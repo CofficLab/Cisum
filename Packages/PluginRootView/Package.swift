@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "PluginRootView",
+    defaultLocalization: "en",
     platforms: [
         .macOS(.v14),
         .iOS(.v17),
@@ -11,9 +12,9 @@ let package = Package(
         .library(name: "PluginRootView", targets: ["PluginRootView"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.6.0"),
-        .package(url: "https://github.com/CofficLab/LumiUI.git", from: "1.8.0"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.0"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.13.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI.git", from: "1.11.1"),
         .package(path: "../ProviderPlugin"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
@@ -30,6 +31,11 @@ let package = Package(
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+            ],
+            path: ".",
+            sources: ["Sources"],
+            resources: [
+                .process("Resources/Localizable.xcstrings")
             ]
         ),
         .testTarget(

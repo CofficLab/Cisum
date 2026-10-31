@@ -21,7 +21,7 @@ final class CisumAudioSkeletonLayoutUITests: CisumUITestBase {
 
     /// 观测窗口：XCUITest 的可访问性轮询约 0.3-0.5s 一轮，
     /// 留出足够时间在骨架消失前完成多轮几何查询。
-    private let loadDelaySeconds = 12
+    private let loadDelaySeconds = 20
 
     override var additionalLaunchArguments: [String] {
         super.additionalLaunchArguments + [
@@ -57,9 +57,20 @@ final class CisumAudioSkeletonLayoutUITests: CisumUITestBase {
 
         // 只统计此刻真实存在的骨架行：骨架改为按高度自适应行数后，
         // 行数会少于 12，测试不应把「不存在的行」当成失败。
-        let rows = (0..<Self.candidateRowCount)
-            .map { (index: $0, element: skeletonRow($0)) }
-            .filter { $0.element.exists }
+        //
+        // 整条 UI 测试链路一起跑时加载会更慢，骨架可能在「等首行」与
+        // 「枚举全部行」之间就消失了。这里重试到取到行为止——骨架出现与
+        // 消失都是正常的时序现象，测试要抓的是**出现时的几何**。
+        var rows: [(index: Int, element: XCUIElement)] = []
+        let deadline = Date().addingTimeInterval(15)
+        while Date() < deadline {
+            rows = (0..<Self.candidateRowCount)
+                .map { (index: $0, element: skeletonRow($0)) }
+                .filter { $0.element.exists }
+            if !rows.isEmpty { break }
+            // 骨架可能整批换过一轮标识，等首行重新出现再取。
+            _ = firstRow.waitForExistence(timeout: 2)
+        }
 
         XCTAssertFalse(rows.isEmpty, "未能定位到任何骨架行")
 
