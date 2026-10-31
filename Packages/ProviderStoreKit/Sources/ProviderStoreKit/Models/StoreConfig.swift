@@ -51,12 +51,16 @@ public struct CisumStoreCatalog: StoreProductCatalog {
         "nonconsumable.racecar": .none,
 
         // Auto-renewable subscriptions — Cisum
-        "com.yueyi.cisum.pro.monthly": .pro,
+        //
+        // 这两个是 App Store Connect 上 Cisum（com.yueyi.cisum）真实在售的
+        // 自动续期商品，也是购买面板应当展示的两档。
+        //
+        // 历史上这里还映射了 .pro.monthly / .pro.yearly / .pro.annual / .annual
+        // 四个 ID，但它们从未在 App Store Connect 上架过。保留这些映射会让
+        // 购买面板按 `allProductIds` 请求一批永远拿不到的商品，并把本地
+        // mock 的档位数量推到 6 行，与生产的 2 行不一致。
         "com.yueyi.cisum.monthly": .pro,
-        "com.yueyi.cisum.pro.yearly": .pro,
         "com.yueyi.cisum.yearly": .pro,
-        "com.yueyi.cisum.pro.annual": .pro,
-        "com.yueyi.cisum.annual": .pro,
 
         // Non-renewing subscriptions — Cisum
         "com.yueyi.cisum.pro.month.1": .pro,

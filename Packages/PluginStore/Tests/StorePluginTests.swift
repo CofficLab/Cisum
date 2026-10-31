@@ -12,13 +12,11 @@ import Testing
 }
 
 @Test func cisumSubscriptionProductAliasesGrantProTier() {
+    // 这份清单对应 App Store Connect 上 Cisum 真实在售的内购：
+    // 两个自动续期订阅（monthly / yearly）加三个非续期商品。
     let proProductIDs = [
-        "com.yueyi.cisum.pro.monthly",
         "com.yueyi.cisum.monthly",
-        "com.yueyi.cisum.pro.yearly",
         "com.yueyi.cisum.yearly",
-        "com.yueyi.cisum.pro.annual",
-        "com.yueyi.cisum.annual",
         "com.yueyi.cisum.pro.month.1",
         "com.yueyi.cisum.pro.year.1",
         "com.yueyi.cisum.pro.day.7",
@@ -30,14 +28,33 @@ import Testing
     }
 }
 
+/// 未经上架的历史别名不应再出现在商品表里。
+///
+/// `.pro.monthly` / `.pro.yearly` / `.pro.annual` / `.annual` 从未在
+/// App Store Connect 上架过；把它们留在商品表里会让购买面板请求一批永远
+/// 拿不到的商品，并把本地 mock 的档位数量推到 6 行，与生产的 2 行不一致。
+@Test func unshippedSubscriptionAliasesAreNotInCatalog() {
+    let unshippedProductIDs = [
+        "com.yueyi.cisum.pro.monthly",
+        "com.yueyi.cisum.pro.yearly",
+        "com.yueyi.cisum.pro.annual",
+        "com.yueyi.cisum.annual",
+    ]
+
+    for productID in unshippedProductIDs {
+        #expect(CisumStoreCatalog.shared.tier(for: productID) == .none)
+        #expect(!CisumStoreCatalog.shared.allProductIds.contains(productID))
+    }
+}
+
 @Test func activeSubscribedStatusSelectsCurrentSubscription() {
     let subscriptions = [
-        subscriptionProduct(id: "com.yueyi.cisum.pro.monthly"),
+        subscriptionProduct(id: "com.yueyi.cisum.monthly"),
     ]
     let statuses = [
         SubscriptionStatusSnapshot(
             state: RenewalState.subscribed.rawValue,
-            currentProductID: "com.yueyi.cisum.pro.monthly"
+            currentProductID: "com.yueyi.cisum.monthly"
         ),
     ]
 

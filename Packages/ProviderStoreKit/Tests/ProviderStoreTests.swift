@@ -27,12 +27,8 @@ struct ProviderStoreKitTests {
             "nonconsumable.car",
             "nonconsumable.utilityvehicle",
             "nonconsumable.racecar",
-            "com.yueyi.cisum.pro.monthly",
             "com.yueyi.cisum.monthly",
-            "com.yueyi.cisum.pro.yearly",
             "com.yueyi.cisum.yearly",
-            "com.yueyi.cisum.pro.annual",
-            "com.yueyi.cisum.annual",
             "com.yueyi.cisum.pro.month.1",
             "com.yueyi.cisum.pro.year.1",
             "com.yueyi.cisum.pro.day.7",
@@ -47,10 +43,28 @@ struct ProviderStoreKitTests {
     /// 订阅商品映射到 Pro，占位商品不授予任何等级。
     @Test
     func catalogMapsSubscriptionProductsToProTier() {
-        #expect(CisumStoreCatalog.shared.tier(for: "com.yueyi.cisum.pro.monthly") == .pro)
-        #expect(CisumStoreCatalog.shared.tier(for: "com.yueyi.cisum.annual") == .pro)
+        #expect(CisumStoreCatalog.shared.tier(for: "com.yueyi.cisum.monthly") == .pro)
+        #expect(CisumStoreCatalog.shared.tier(for: "com.yueyi.cisum.yearly") == .pro)
         #expect(CisumStoreCatalog.shared.tier(for: "consumable.fuel.octane87") == .none)
         #expect(CisumStoreCatalog.shared.tier(for: "nonconsumable.car") == .none)
+    }
+
+    /// 未经上架的历史别名不应再授予权益。
+    ///
+    /// `.pro.monthly` / `.pro.yearly` / `.pro.annual` / `.annual` 从未在
+    /// App Store Connect 上架过。留在商品表里会让购买面板请求一批永远拿不到
+    /// 的商品，并把本地 mock 的档位数量推到 6 行，与生产的 2 行不一致。
+    @Test
+    func unshippedSubscriptionAliasesGrantNoTier() {
+        for productID in [
+            "com.yueyi.cisum.pro.monthly",
+            "com.yueyi.cisum.pro.yearly",
+            "com.yueyi.cisum.pro.annual",
+            "com.yueyi.cisum.annual",
+        ] {
+            #expect(CisumStoreCatalog.shared.tier(for: productID) == .none)
+            #expect(!CisumStoreCatalog.shared.allProductIds.contains(productID))
+        }
     }
 
     /// 未登记的商品不授予权益：默认拒绝，而非默认放行。
@@ -68,7 +82,7 @@ struct ProviderStoreKitTests {
     func subscriptionProductIdsExcludePlaceholders() {
         let ids = Set(CisumStoreCatalog.shared.subscriptionProductIds)
 
-        #expect(ids.contains("com.yueyi.cisum.pro.monthly"))
+        #expect(ids.contains("com.yueyi.cisum.monthly"))
         #expect(ids.contains("com.yueyi.kuaiyizhi.pro.day.7"))
         #expect(!ids.contains("nonconsumable.car"))
         #expect(!ids.contains("consumable.fuel.octane87"))
@@ -80,7 +94,7 @@ struct ProviderStoreKitTests {
     @Test
     func mappedProductGrantsTier() {
         let snapshot = CisumStoreCatalog.shared.entitlement(
-            activeProductIDs: ["com.yueyi.cisum.pro.yearly"],
+            activeProductIDs: ["com.yueyi.cisum.yearly"],
             latestExpiration: Date().addingTimeInterval(3600)
         )
 
@@ -97,7 +111,7 @@ struct ProviderStoreKitTests {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
 
         let snapshot = CisumStoreCatalog.shared.entitlement(
-            activeProductIDs: ["unknown.subscription", "com.yueyi.cisum.pro.monthly"],
+            activeProductIDs: ["unknown.subscription", "com.yueyi.cisum.monthly"],
             latestExpiration: now.addingTimeInterval(100)
         )
         #expect(snapshot.tier == .pro)
@@ -118,7 +132,7 @@ struct ProviderStoreKitTests {
         // 用真实的过去时刻：快照的过期判定与当前时间比较，
         // 固定时间戳可能落在未来而测不出过期。
         let snapshot = CisumStoreCatalog.shared.entitlement(
-            activeProductIDs: ["com.yueyi.cisum.pro.monthly"],
+            activeProductIDs: ["com.yueyi.cisum.monthly"],
             latestExpiration: Date().addingTimeInterval(-3600)
         )
 
@@ -289,7 +303,7 @@ struct ProviderStoreKitTests {
     /// 订阅选择能处理重复商品、宽限期与扣款重试。
     @Test
     func subscriptionSelectionHandlesDuplicateProductsGraceAndBillingRetry() {
-        let id = "com.yueyi.cisum.pro.monthly"
+        let id = "com.yueyi.cisum.monthly"
         let products = [product(id: id, price: 5), product(id: id, price: 7)]
 
         for state in [RenewalState.inGracePeriod, .inBillingRetryPeriod, .subscribed] {
@@ -373,7 +387,7 @@ struct ProviderStoreKitTests {
     @Test
     @MainActor
     func transactionNotificationIncludesProductID() async {
-        let productID = "com.yueyi.cisum.pro.monthly"
+        let productID = "com.yueyi.cisum.monthly"
         let notifications = NotificationCenter.default.notifications(named: .storeTransactionUpdated)
         let task = Task {
             for await notification in notifications {

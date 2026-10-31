@@ -26,13 +26,17 @@ TARGET = ROOT / "Packages" / "PluginStore" / "Resources" / "Products.storekit"
 # StoreConfig.productTier 中授予 Pro 权益的商品 ID。
 # 任何在 .storekit 里存在、但不在这里列出的 Cisum 订阅，都会因为缺少
 # tier 映射而导致「买了不给权益」。
+#
+# 这份清单必须与 App Store Connect 上 Cisum（com.yueyi.cisum）**真实在售**的
+# 内购一致。生产实际只有两个自动续期订阅：
+#   com.yueyi.cisum.monthly（按月订阅）
+#   com.yueyi.cisum.yearly （年度订阅）
+# 历史上这里还列了 .pro.monthly / .pro.yearly / .pro.annual / .annual 四个
+# 商品，但它们从未在 App Store Connect 上架过——写进 .storekit 只会让本地
+# mock 多出四行重复档位，与生产表现不一致（本地 6 行 vs 生产 2 行）。
 PRO_SUBSCRIPTION_IDS = [
-    "com.yueyi.cisum.pro.monthly",
     "com.yueyi.cisum.monthly",
-    "com.yueyi.cisum.pro.yearly",
     "com.yueyi.cisum.yearly",
-    "com.yueyi.cisum.pro.annual",
-    "com.yueyi.cisum.annual",
 ]
 
 PRO_NON_RENEWING_IDS = [
@@ -146,7 +150,8 @@ def check_consistency(config):
 
     config_ids = collect_ids(config)
     # StoreConfig 里的商品 ID（解析源码，避免重复维护一份列表）。
-    store_config = (ROOT / "Packages" / "ProviderStore" / "Sources" / "ProviderStore"
+    # 商品表在共享层重构后搬到了 App 侧的 ProviderStoreKit 包。
+    store_config = (ROOT / "Packages" / "ProviderStoreKit" / "Sources" / "ProviderStoreKit"
                     / "Models" / "StoreConfig.swift").read_text()
     import re
     mapped = set(re.findall(r'"([a-z0-9.]+)":\s*\.(?:none|pro|ultimate)', store_config))
