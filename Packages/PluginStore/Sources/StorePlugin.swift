@@ -137,8 +137,11 @@ public final class StorePlugin: AsyncSuperPlugin, SuperLog {
         guard let root = kernel.resolveProvider((any RootViewProviding).self) else { return }
         root.addOverlays([
             RootOverlayItem(id: Self.purchaseOverlayID, order: 9_500) { content in
-                StorePurchaseOverlay(presentation: presentation)
-                    .overlay(content)
+                // 内容必须作为主体层传入：写成 `.overlay(content)` 会让
+                // 整个应用根视图变成「空视图的覆盖层」，主窗口就什么都不剩。
+                StorePurchaseOverlay(presentation: presentation) {
+                    content
+                }
             }
         ])
     }
