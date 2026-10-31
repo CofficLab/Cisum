@@ -15,10 +15,19 @@ final class AudioDataEntitlementCapabilityAdapter: AudioDataEntitlementCapabilit
     private let resolve: @MainActor @Sendable () -> (any StoreEntitlementProviding)?
     private var observers: [UUID: (AudioDataEntitlementEvent) -> Void] = [:]
     private var entitlementHandle: (any StoreEntitlementObserverHandle)?
+    /// 当前订阅所绑定的 Provider 实例。
+    ///
+    /// 插件可在运行时被停用 / 启用（插件管理页）。商店插件被停用时会
+    /// `unregisterProvider`，启用时会**注册一个新的 Provider 实例**。
+    /// 若不记住绑定了哪个实例，重启后就会继续监听已被注销的旧实例——
+    /// 权益变化事件从此静默丢失。
+    private var subscribedProvider: (any StoreEntitlementProviding)?
     private var retryTask: Task<Void, Never>?
 
-    /// 补订阅的最大重试次数；超过后仍会等待 Provider 就绪后的事件。
-    private static let maxRetryCount = 10
+    /// 复查 Provider 实例的间隔。
+    ///
+    /// 间隔不宜太长（用户升级订阅后容量上限应及时放开），
+    /// 也不宜太短（避免无谓的轮询开销）。
     private static let retryInterval: UInt64 = 200_000_000
 
     init(resolve: @escaping @MainActor @Sendable () -> (any StoreEntitlementProviding)?) {
@@ -47,36 +56,53 @@ final class AudioDataEntitlementCapabilityAdapter: AudioDataEntitlementCapabilit
         let token = UUID()
         observers[token] = callback
         subscribeIfPossible()
+        startWatchingIfNeeded()
         return AudioDataEntitlementHandleBox { [weak self] in
             self?.observers[token] = nil
         }
     }
 
     /// 订阅商店权益事件；Provider 尚未注册时稍后重试补订阅。
+    ///
+    /// Provider 实例发生变化时（插件重启）会**重新订阅**：旧句柄属于已被
+    /// 注销的实例，继续持有只会让权益变化事件静默丢失。
     private func subscribeIfPossible() {
-        guard entitlementHandle == nil else { return }
         guard let entitlement = resolve() else {
-            scheduleRetry()
             return
         }
+
+        if let subscribedProvider, subscribedProvider === entitlement {
+            // 已订阅当前实例，无需重复订阅。
+            return
+        }
+
+        // Provider 实例已更换：退订旧实例，再绑定新实例。
+        entitlementHandle?.cancel()
+        entitlementHandle = nil
+        subscribedProvider = entitlement
 
         entitlementHandle = entitlement.addObserver { [weak self] _ in
             self?.publishChange()
         }
     }
 
-    /// 延迟重试补订阅（Provider 注册可能晚于本插件 boot）。
-    private func scheduleRetry() {
+    /// 启动 Provider 监听循环。
+    ///
+    /// Provider 的注册时机不可控：商店插件可能晚于本插件 boot，也可能被
+    /// 用户在插件管理页停用后重新启用（此时注册的是**新实例**）。
+    /// 因此这里持续复查 Provider 实例，发生变化就重新订阅——
+    /// 否则用户升级订阅后，容量上限会一直按免费档计算。
+    private func startWatchingIfNeeded() {
         guard retryTask == nil else { return }
+        guard observers.isEmpty == false else { return }
 
         retryTask = Task { @MainActor [weak self] in
-            for _ in 0 ..< Self.maxRetryCount {
+            while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: Self.retryInterval)
                 guard let self else { return }
+                // 没有订阅者时停止监听，避免无谓的轮询。
                 guard self.observers.isEmpty == false else { return }
-                guard self.resolve() != nil else { continue }
                 self.subscribeIfPossible()
-                return
             }
         }
     }
