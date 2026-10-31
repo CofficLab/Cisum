@@ -97,6 +97,16 @@ public final class SceneProvider: ObservableObject, SceneProviding {
     ) -> any SceneProvidingObserverHandle {
         let observer = Observer(owner: self, callback: callback)
         observers.append(WeakObserver(observer))
+        // **重放当前场景**：场景恢复发生在 `ScenePlugin.onReady`，而消费方
+        // （如 `PluginAudioDBView`，`order` 更小）的 `onReady` 更早跑完——
+        // 它们订阅时 `currentScene` 可能还是 `nil`，场景是在它们订阅**之后**
+        // 才恢复的，恢复事件它们永远等不到，音乐库内容区就一直是空的。
+        //
+        // 「订阅即重放当前值」等价于订阅后立刻收到一次当前状态，
+        // 消费方不必再自己补一次初值。
+        if let currentScene {
+            callback(.selectionChanged(scene: currentScene))
+        }
         return observer
     }
 
