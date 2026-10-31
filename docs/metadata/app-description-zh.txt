@@ -30,7 +30,7 @@ Cisum 是一款为真正热爱音乐的人设计的播放器。没有恼人的�
 https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 
 【隐私条款】
-https://www.kuaiyizhi.cn/privacy
+https://coffic.cn/privacy
 
 【APP备案号】
 鲁ICP备2022009149号-4A

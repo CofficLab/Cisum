@@ -30,7 +30,7 @@ struct PurchaseView: View, SuperLog {
                     }
                 }
 
-                if let privacyURL = URL(string: "https://www.kuaiyizhi.cn/privacy"),
+                if let privacyURL = URL(string: "https://coffic.cn/privacy"),
                    let licenseURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
                 {
                     // Bottom links
