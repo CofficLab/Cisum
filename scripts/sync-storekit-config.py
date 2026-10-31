@@ -2,7 +2,7 @@
 """生成统一的产品 ID 集合。
 
 `StoreConfig.productTier` 是「商品 ID → 订阅等级」的唯一真值源。
-本脚本以根目录 `Products.storekit` 为结构基准，补全配置中缺失的 Cisum
+本脚本以 `CisumApp/Products.storekit` 为结构基准，补全配置中缺失的 Cisum
 订阅商品，输出到 `Packages/PluginStore/Resources/Products.storekit`。
 
 两份配置必须一致：一份用于本地 Xcode 调试（scheme 引用），一份随包分发。
@@ -20,7 +20,7 @@ import pathlib
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-SOURCE = ROOT / "Products.storekit"
+SOURCE = ROOT / "CisumApp" / "Products.storekit"
 TARGET = ROOT / "Packages" / "PluginStore" / "Resources" / "Products.storekit"
 
 # StoreConfig.productTier 中授予 Pro 权益的商品 ID。
@@ -99,7 +99,7 @@ def collect_ids(config):
 
 
 def build_unified():
-    """以根目录配置为基准，补全 Cisum 订阅商品。"""
+    """以 CisumApp 下的配置为基准，补全 Cisum 订阅商品。"""
     config = json.loads(SOURCE.read_text())
 
     existing = collect_ids(config)
@@ -198,7 +198,7 @@ def main():
     TARGET.write_text(json.dumps(unified, indent=2, ensure_ascii=False) + "\n")
     print(f"✅ 已同步 {TARGET.relative_to(ROOT)}")
 
-    # 根目录配置也写回，保证两份完全一致。
+    # App 侧配置也写回，保证两份完全一致。
     SOURCE.write_text(json.dumps(unified, indent=2, ensure_ascii=False) + "\n")
     print(f"✅ 已同步 {SOURCE.relative_to(ROOT)}")
 

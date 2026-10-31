@@ -13,8 +13,8 @@ import ProviderStore
 ///
 /// ## 为什么这里是唯一真值源
 ///
-/// 商品 ID 集合历史上散落三处（`StoreConfig`、两份 `.storekit`、`Products.plist`），
-/// 各自漂移。漂移的后果不是「配置不好看」，而是**付费链路静默断裂**：
+/// 商品 ID 集合历史上散落两处（`StoreConfig` 与 `.storekit`），各自漂移。
+/// 漂移的后果不是「配置不好看」，而是**付费链路静默断裂**：
 ///
 /// - 商品在 `.storekit` 里但不在 `productTier` 里 → `tier(for:)` 返回 `.none`
 ///   → 权益判定直接跳过 → **用户付了钱，权益没到账**；

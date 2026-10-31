@@ -34,6 +34,7 @@
             "Cisum-Info-macOS-Debug.plist",
             "Cisum-Info-macOS.plist",
             "Cisum-Info.plist",
+            "Products.storekit",
           ],
         },
       ],

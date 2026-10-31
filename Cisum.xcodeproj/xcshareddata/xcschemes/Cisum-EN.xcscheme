@@ -86,7 +86,7 @@
          referenceType = "1">
       </LocationScenarioReference>
       <StoreKitConfigurationFileReference
-         identifier = "../../Products.storekit">
+         identifier = "../../CisumApp/Products.storekit">
       </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
