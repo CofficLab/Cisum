@@ -190,7 +190,7 @@ struct RootLayoutView: View {
         if !visible, abs(geometry.size.height - rememberedHeight) > 0.5, rememberedHeight > 0 {
             autoResizing = true
             setWindowHeight(rememberedHeight)
-        } else if visible, AppResponsivePlayerLayoutMetrics.shared.needsExpandedWindow(for: geometry.size.height) {
+        } else if visible, AppResponsivePlayerLayoutMetrics.shared.needsExpandedWindow(for: currentWindowHeight(geometry: geometry)) {
             autoResizing = true
             setWindowHeight(AppResponsivePlayerLayoutMetrics.shared.controlMinimumHeight + AppResponsivePlayerLayoutMetrics.shared.contentMinimumHeight)
         }
@@ -206,6 +206,18 @@ struct RootLayoutView: View {
         ) {
             provider.hideContentView()
         }
+    }
+
+    /// 当前**窗口**高度（拿不到窗口时退回布局高度）。
+    ///
+    /// `needsExpandedWindow(for:)` 的语义是「窗口够不够高」，参数必须是
+    /// 窗口高度。若误用 `geometry.size.height`（内容区高度，扣掉了标题栏等
+    /// 窗口装饰），展开内容区时会把一个本来足够高的窗口误判为「不够高」，
+    /// 反而把它**缩小**——缩小后内容区高度又低于收起阈值，于是内容区刚
+    /// 展开就被立刻收起，「更多」按钮表现为「点了没反应」。
+    private func currentWindowHeight(geometry: GeometryProxy) -> CGFloat {
+        let height = windowHeight()
+        return height > 0 ? height : geometry.size.height
     }
 
     private func windowHeight() -> CGFloat {
