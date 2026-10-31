@@ -82,6 +82,9 @@ public struct StoreSetting: View, SuperLog, SuperEvent {
                         .padding(.vertical, 4)
 
                     ProductsSubscription(showHeader: false, embedsScrollView: false)
+
+                    // 隐私政策与许可协议：购买前必须能读到，弹层里也有一份。
+                    StoreLegalLinks()
                 }
 
                 // Restore purchase
