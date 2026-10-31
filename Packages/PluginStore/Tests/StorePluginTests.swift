@@ -136,7 +136,6 @@ import Testing
 }
 
 @Test func storeSettingIconButtonsExposeReadableLabels() {
-    #expect(StoreSetting.purchaseActionLabel == "In-App Purchase")
     #expect(StoreSetting.restorePurchaseActionLabel == "Restore Purchase")
 }
 
@@ -208,7 +207,6 @@ func storeObserverCancelsTokensIdempotently() {
 @MainActor
 func storeViewModelStartsWithFreePresentation() {
     let viewModel = StoreViewModel()
-    #expect(!viewModel.showBuySheet)
     #expect(!viewModel.showRestoreSheet)
     #expect(viewModel.purchaseInfo == .none)
     #expect(viewModel.tierDisplayName == "Free")

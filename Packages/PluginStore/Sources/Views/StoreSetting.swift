@@ -14,10 +14,6 @@ enum StorePurchaseInfoLoadPolicy {
 
 public struct StoreSetting: View, SuperLog, SuperEvent {
     public nonisolated static let emoji = "💰"
-    nonisolated static let purchaseActionLabel = String(
-        localized: "In-App Purchase",
-        bundle: .module
-    )
     nonisolated static let restorePurchaseActionLabel = String(
         localized: "Restore Purchase",
         bundle: .module
@@ -77,27 +73,19 @@ public struct StoreSetting: View, SuperLog, SuperEvent {
                                 .font(.footnote)
                         }
                     }
+                }
 
-                    // Purchase entry
-                    AppSettingRow(
-                        title: String(localized: "In-App Purchase", bundle: .module),
-                        description: String(localized: "Subscribe to Pro to unlock all features", bundle: .module),
-                        icon: "cart"
-                    ) {
-                        Image.appAppStore
-                            .frame(width: 28)
-                            .frame(height: 28)
-                            .background(.regularMaterial, in: .circle)
-                            .shadowSm()
-                            .appHoverScale(1.05)
-                            .appPlainButton({
-                                viewModel.showBuySheet = true
-                            })
-                            .accessibilityLabel(Self.purchaseActionLabel)
-                            .help(Self.purchaseActionLabel)
-                    }
+                // 应用内购买：版本对比 + 商品列表直接铺在设置页里，
+                // 不再需要点按钮弹层。
+                AppSettingSection(title: String(localized: "In-App Purchase", bundle: .module)) {
+                    VersionComparisonView()
+                        .padding(.vertical, 4)
 
-                    // Restore purchase
+                    ProductsSubscription(showHeader: false, embedsScrollView: false)
+                }
+
+                // Restore purchase
+                AppSettingSection {
                     AppSettingRow(
                         title: String(localized: "Restore Purchase", bundle: .module),
                         description: String(localized: "Restore purchases made on other devices", bundle: .module),
@@ -118,9 +106,6 @@ public struct StoreSetting: View, SuperLog, SuperEvent {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .sheet(isPresented: $viewModel.showBuySheet) {
-            PurchaseView()
         }
         .sheet(isPresented: $viewModel.showRestoreSheet) {
             RestoreView()

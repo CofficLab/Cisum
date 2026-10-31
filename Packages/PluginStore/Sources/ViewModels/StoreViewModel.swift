@@ -7,14 +7,17 @@ import ProviderStoreKit
 
 /// 商店设置视图的状态容器（迁移 Phase 4）。
 ///
-/// 持有订阅信息、购买/恢复弹窗状态与加载代际，统一处理
+/// 持有订阅信息、恢复弹窗状态与加载代际，统一处理
 /// `updatePurchaseInfo()`；取代原 `StoreSetting` 内的全部
 /// `@State` 与 `.onReceive` 订阅。
 @MainActor
 final class StoreViewModel: ObservableObject, SuperLog {
     nonisolated static let verbose = false
 
-    @Published var showBuySheet = false
+    /// 恢复购买弹窗。
+    ///
+    /// 购买本身不再走弹层——商品列表直接铺在设置页里。只有「恢复购买」
+    /// 仍需要独立界面，因此保留这一份弹窗状态。
     @Published var showRestoreSheet = false
     @Published private(set) var purchaseInfo: StoreEntitlementSnapshot = .none
     @Published private(set) var tierDisplayName: String = "Free"

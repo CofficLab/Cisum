@@ -10,6 +10,22 @@ import ProviderStoreKit
 import ProviderStore
 import ProviderStoreKit
 
+/// 可选滚动容器修饰器。
+///
+/// `embedsScrollView` 为真时自带 `ScrollView`（购买弹层：商品列表就是全部内容）；
+/// 为假时不加滚动容器（设置页：外层 `AppSettingsContentScaffold` 已经在滚）。
+private struct ScrollContainerModifier: ViewModifier {
+    let embedsScrollView: Bool
+
+    func body(content: Content) -> some View {
+        if embedsScrollView {
+            content.appScrollView()
+        } else {
+            content
+        }
+    }
+}
+
 enum StoreProductListPresentation {
     enum State: Equatable {
         case loading
@@ -62,8 +78,19 @@ struct ProductsSubscription: View, SuperEvent, SuperLog, SuperThread {
     /// Whether to show the header.
     var showHeader: Bool = true
 
-    init(showHeader: Bool = true) {
+    /// 是否由本视图自带滚动容器。
+    ///
+    /// 购买弹层里商品列表是内容的全部，需要自己滚动；而设置页把它内嵌在
+    /// 区块中，外层已经有滚动容器（`AppSettingsContentScaffold`），
+    /// 再套一层 `ScrollView` 会形成嵌套滚动——内层抢走滚轮，
+    /// 滚到边界后不回弹，整页跟着卡住。
+    ///
+    /// 因此内嵌场景传 `false`，让滚动交给外层。
+    var embedsScrollView: Bool = true
+
+    init(showHeader: Bool = true, embedsScrollView: Bool = true) {
         self.showHeader = showHeader
+        self.embedsScrollView = embedsScrollView
     }
 
     var body: some View {
@@ -124,7 +151,7 @@ struct ProductsSubscription: View, SuperEvent, SuperLog, SuperThread {
                         }
                     }
                 }
-                .appScrollView()
+                .modifier(ScrollContainerModifier(embedsScrollView: embedsScrollView))
             }
         }
         .onAppear(perform: onAppear)
