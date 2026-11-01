@@ -14,7 +14,8 @@
 - **Key scenarios tested:**
   - ViewModel initializes from Provider state, tracks asset/state changes, and falls back to `.idle`/`EmptyView` when Providers are absent.
   - Observer forwards asset and state events but ignores time changes, and stops after cancellation.
-  - Confirmed empty-library events hide the Hero only in the Music scene; positive-count library events restore it, and cancellation stops updates.
+  - Confirmed empty-library events hide the Hero in the Music scene; positive-count library events restore it, and cancellation stops updates.
+  - **Scene switch hides Hero**: switching away from the Music scene hides the Hero even if `currentURL` is preserved for restoration.
   - Plugin boot registers About/Manual docs, produces both hero and right-album views, and tears them down on shutdown.
 - **Running tests:**
   ```bash
@@ -35,18 +36,19 @@
 | 4 | 存储 | Empty repository hides hero and populated library restores it | P1 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `emptyRepositoryHidesHeroAndPopulatedLibraryRestoresIt` |
 | 5 | 观察者 | Plugin assembles docs and playback views then releases observer | P2 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `pluginAssemblesDocsAndPlaybackViewsThenReleasesObserver` |
 | 6 | 插件 | Plugin contributes hero views after playback providers are ready | P2 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `pluginContributesHeroViewsAfterPlaybackProvidersAreReady` |
+| 7 | 视图模型 | 场景切换时 Hero 可见性必须跟随场景：切离音乐场景后 Hero 必须隐藏 | P0 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `switchingAwayFromMusicSceneHidesHero` |
 
 ## 覆盖率统计
 
-- P0: 0 / 0
+- P0: 1 / 1 ✅
 - P1: 2 / 2 ✅
 - P2: 4 / 4 ✅
 
-**总计: 6 / 6**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
+**总计: 7 / 7**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
 
 ## 测试文件
 
-- `PlaybackHeroTests.swift` — 6 条用例
+- `PlaybackHeroTests.swift` — 8 条用例
 
 ## 优先级说明
 

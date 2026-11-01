@@ -17,7 +17,9 @@ final class PlaybackHeroViewModel: ObservableObject, SuperLog {
     @Published private(set) var isMusicSceneActive: Bool
 
     var isHeroVisible: Bool {
-        currentURL != nil && !(isMusicSceneActive && isRepositoryEmpty)
+        // Hero 只在音乐场景显示；切到其他场景（如有声书）时必须隐藏，
+        // 即使 currentURL 仍保留（SceneObserver 为恢复而保留）。
+        isMusicSceneActive && currentURL != nil && !isRepositoryEmpty
     }
 
     /// 媒体渲染能力（Capabilities 目录收窄），`weak` 持有。
