@@ -326,18 +326,22 @@ struct BookGridViewModelTests {
     }
 
     @Test
-    func handleOnDisappearInvalidatesPendingUpdates() async throws {
+    func handleOnDisappearKeepsPendingLoadAlive() async throws {
         let provider = BookProbe()
         provider.booksValue = [makeBook(url: URL(fileURLWithPath: "/tmp/Book1"))]
         let viewModel = BookGridViewModel()
         viewModel.bind(library: provider)
 
-        // 触发 debounce 后立即消失：代际失效，books 不应被应用。
+        // 触发 debounce 后立即消失：SwiftUI 在场景切换时给出的
+        // `onAppear` / `onDisappear` 顺序并不固定，「先 appear 后 disappear」
+        // 是真实存在的顺序之一。此时**不能**取消尚未执行的加载请求，
+        // 否则 `isLoading` 会永远停在 true，UI 永远显示「正在读取有声书仓库」。
         viewModel.handleOnAppear()
         viewModel.handleOnDisappear()
         try await Task.sleep(for: .milliseconds(400))
 
-        #expect(viewModel.books.isEmpty)
+        #expect(viewModel.books.count == 1)
+        #expect(!viewModel.isLoading)
     }
 }
 

@@ -17,6 +17,12 @@ class CisumUITestBase: XCTestCase {
     /// 封闭的：任何用例收起过内容区都不会污染后续用例的启动状态。
     /// 需要验证「落盘偏好真正生效」的用例必须另起一个**不带该参数**的 App 实例
     /// （见 `CisumContentVisibilityUITests`）。
+    ///
+    /// - Important: `-UI.ContentViewVisible YES` **必须放在参数列表末尾**。
+    ///   UserDefaults 的参数域在遇到第一个**不含 `=`** 的参数时就停止解析，
+    ///   而 `YES` 正是这样一个参数。把它放在中间会让排在它后面的所有
+    ///   `-key=value` 形式参数（例如 `--foo=bar`）被整段丢弃。
+    ///   子类覆写本属性时也必须保持这一顺序约定。
     var additionalLaunchArguments: [String] {
         ["--cisum-ui-testing", "--cisum-ui-testing-storage-local", "-UI.ContentViewVisible", "YES"]
     }

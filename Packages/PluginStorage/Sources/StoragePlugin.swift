@@ -85,6 +85,13 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
             if arguments.contains("--cisum-ui-testing-storage-local") {
                 defaults.set(StorageLocation.local.rawValue, forKey: "StorageLocation")
             }
+            // iCloud 存储路径与本地路径走的是完全不同的目录监控实现
+            // （NSMetadataQuery vs DispatchSource），且 iCloud 容器在无 iCloud
+            // 账号或容器不可用时会退化为 nil。用例需要显式钉住这一分支，
+            // 否则「有声书仓库一直显示正在读取」这类缺陷只在真实配置下出现。
+            if arguments.contains("--cisum-ui-testing-storage-icloud") {
+                defaults.set(StorageLocation.icloud.rawValue, forKey: "StorageLocation")
+            }
             return defaults
         #else
             return .standard
