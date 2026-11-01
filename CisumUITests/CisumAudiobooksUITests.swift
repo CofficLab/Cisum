@@ -13,7 +13,7 @@ final class CisumAudiobooksUITests: CisumUITestBase {
 
         let header = element(labelBeginsWith: ["Total", "共"])
         let bookTile = element(labelBeginsWith: ["Select ", "选择"])
-        let reading = element(anyLabelOf: ["Reading repository", "正在读取仓库"])
+        let reading = element(anyLabelOf: ["Reading book repository", "正在读取有声书仓库"])
         let emptyState = element(containing: "Drop audiobook folders here to add them").exists
             || element(containing: "将有声书文件夹拖到这里可添加").exists
             || element(containing: "Audiobook repository is empty").exists

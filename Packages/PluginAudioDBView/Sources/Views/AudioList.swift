@@ -269,7 +269,7 @@ struct AudioList: View, SuperLog {
                     HStack(spacing: 6) {
                         ProgressView()
                             .controlSize(.small)
-                        Text("Reading repository", bundle: .module)
+                        Text("Reading audiobook repository", bundle: .module)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }

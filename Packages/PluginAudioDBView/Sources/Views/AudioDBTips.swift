@@ -66,7 +66,7 @@ struct AudioDBTips: View {
                     .buttonStyle(.bordered)
 
             case .loading:
-                AppLoadingOverlay(message: LocalizedStringKey(String(localized: "Reading repository", bundle: .module)), size: .large)
+                AppLoadingOverlay(message: LocalizedStringKey(String(localized: "Reading audiobook repository", bundle: .module)), size: .large)
                     .frame(height: 120)
                 Text("Supported formats: \(supportedFormats)", bundle: .module)
                     .font(.footnote)

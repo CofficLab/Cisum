@@ -22,7 +22,7 @@ final class CisumMusicLibraryUITests: CisumUITestBase {
         // 轮询等待任一状态出现，超时才判定失败。
         let candidates = [
             element(labelBeginsWith: ["Total", "共"]),
-            element(anyLabelOf: ["Reading repository", "正在读取仓库"]),
+            element(anyLabelOf: ["Reading audiobook repository", "正在读取音频仓库"]),
             element(anyLabelOf: [
                 "Drop music files here to add them",
                 "将音乐文件拖到这里可添加",

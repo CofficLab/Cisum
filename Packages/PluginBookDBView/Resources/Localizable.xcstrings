@@ -590,34 +590,6 @@
         }
       }
     },
-    "Reading repository": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reading repository"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在读取仓库"
-          }
-        },
-        "zh-Hant-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在讀取倉庫"
-          }
-        },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在讀取倉庫"
-          }
-        }
-      }
-    },
     "Repository is empty": {
       "localizations": {
         "en": {
@@ -982,30 +954,30 @@
         }
       }
     },
-    "User Manual":{
-      "localizations":{
-        "en":{
-          "stringUnit":{
-            "state":"translated",
-            "value":"User Manual"
+    "User Manual": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "User Manual"
           }
         },
-        "zh-Hans":{
-          "stringUnit":{
-            "state":"translated",
-            "value":"用户手册"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用户手册"
           }
         },
-        "zh-Hant-HK":{
-          "stringUnit":{
-            "state":"translated",
-            "value":"使用者手冊"
+        "zh-Hant-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用者手冊"
           }
         },
-        "zh-Hant-TW":{
-          "stringUnit":{
-            "state":"translated",
-            "value":"使用者手冊"
+        "zh-Hant-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用者手冊"
           }
         }
       }
@@ -1594,6 +1566,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "資料庫與書庫共用儲存位置。"
+          }
+        }
+      }
+    },
+    "Reading book repository": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading book repository"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取有声书仓库"
+          }
+        },
+        "zh-Hant-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在讀取有聲書倉庫"
+          }
+        },
+        "zh-Hant-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在讀取有聲書倉庫"
           }
         }
       }
