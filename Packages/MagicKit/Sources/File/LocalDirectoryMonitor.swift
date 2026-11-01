@@ -3,6 +3,21 @@ import Darwin
 import Foundation
 import OSLog
 
+/// 目录监控器启动失败的错误类型。
+public enum BookDirectoryMonitorError: Error, LocalizedError {
+    case directoryUnavailable
+    case fileDescriptorFailed
+    
+    public var errorDescription: String? {
+        switch self {
+        case .directoryUnavailable:
+            return "Directory is unavailable or could not be created"
+        case .fileDescriptorFailed:
+            return "Failed to open file descriptor for directory monitoring"
+        }
+    }
+}
+
 /// 监听本地文件夹内容变化的专用类
 /// - Note: macOS 使用 FSEvents 和 DispatchSource，iOS 使用轮询机制
 public final class LocalDirectoryMonitor: SuperLog {
@@ -108,9 +123,19 @@ public final class LocalDirectoryMonitor: SuperLog {
         } else {
             // macOS 使用 DispatchSource
             guard ensureDirectoryExists() else {
+                // 启动失败时通知调用者，避免 waitForInitialSync 永远等待
+                let onChange = self.onChange
+                Task {
+                    await onChange([], true, BookDirectoryMonitorError.directoryUnavailable)
+                }
                 return AnyCancellable {}
             }
             guard setupFileDescriptor() else {
+                // 启动失败时通知调用者，避免 waitForInitialSync 永远等待
+                let onChange = self.onChange
+                Task {
+                    await onChange([], true, BookDirectoryMonitorError.fileDescriptorFailed)
+                }
                 return AnyCancellable {}
             }
             setupMonitor()
