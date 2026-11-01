@@ -2,14 +2,14 @@ import MagicKit
 
 /// 播放设置页的播放状态观察者：把播放详情事件转发给设置页 ViewModel。
 @MainActor
-final class PlaybackSettingsPlaybackObserver: SuperLog {
+final class SettingsPlaybackObserver: SuperLog {
     nonisolated static let emoji = "🎶"
     nonisolated static let verbose = false
 
     private weak var viewModel: PluginPlayBackSettingsViewModel?
-    private var handle: (any PlaybackSettingsObserverHandle)?
+    private var handle: (any SettingsObserverHandle)?
 
-    init(playback: any PlaybackSettingsCapability, viewModel: PluginPlayBackSettingsViewModel) {
+    init(playback: any SettingsCapability, viewModel: PluginPlayBackSettingsViewModel) {
         self.viewModel = viewModel
         handle = playback.addObserver { [weak self] event in
             switch event {

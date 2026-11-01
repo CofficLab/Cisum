@@ -15,14 +15,14 @@ import os
 ///   避免切到有声书场景后音乐仍在播放；
 /// - 持有 `currentScene`，供插件在播放文件变化时写入对应场景的槽位。
 @MainActor
-final class PlaybackSceneObserver: SuperLog {
+final class SceneObserver: SuperLog {
     nonisolated static let emoji = "🎭"
     nonisolated static let verbose = false
     private static let log = Logger(subsystem: "com.yueyi.cisum", category: "Playback.Scene")
 
     private weak var player: MagicPlayMan?
     private let store: PlaybackStateStore
-    private var handle: (any PlaybackSceneObserverHandle)?
+    private var handle: (any SceneObserverHandle)?
 
     /// 恢复代际：快速连续切换场景时，仅最新一次恢复生效。
     private var restoreGeneration = 0
@@ -30,7 +30,7 @@ final class PlaybackSceneObserver: SuperLog {
     /// 当前激活场景；文件落盘时用它定位场景槽位。
     private(set) var currentScene: AppScene?
 
-    init(scene: any PlaybackSceneCapability, player: MagicPlayMan, store: PlaybackStateStore) {
+    init(scene: any SceneCapability, player: MagicPlayMan, store: PlaybackStateStore) {
         self.player = player
         self.store = store
         // Initial sync：先同步当前快照再安装监听，避免丢失监听安装前的状态。
