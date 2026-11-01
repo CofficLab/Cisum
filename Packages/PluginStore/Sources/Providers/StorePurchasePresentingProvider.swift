@@ -1,5 +1,6 @@
 import Foundation
 import ProviderStore
+import ProviderStoreKit
 import SwiftUI
 
 /// 购买面板的呈现状态机。

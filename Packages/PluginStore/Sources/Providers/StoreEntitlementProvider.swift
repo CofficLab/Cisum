@@ -1,5 +1,6 @@
 import Foundation
 import ProviderStore
+import ProviderStoreKit
 
 /// `StoreEntitlementProviding` 的实现：把 StoreKit 权益收敛成一个等级结论。
 ///
@@ -21,7 +22,7 @@ import ProviderStore
 /// 副本等于把「过期了但仍按 Pro 放行」变成常态。
 @MainActor
 public final class StoreEntitlementProvider: StoreEntitlementProviding {
-    private let readTier: @MainActor () -> SubscriptionTier
+    private let readEntitlement: @MainActor () -> StoreEntitlementSnapshot
     private var observers: [UUID: (StoreEntitlementEvent) -> Void] = [:]
     private var notificationToken: NSObjectProtocol?
 
@@ -29,16 +30,16 @@ public final class StoreEntitlementProvider: StoreEntitlementProviding {
     ///
     /// 初始化为「当前等级」而不是 `.none`：Provider 构造时权益可能已经是 Pro，
     /// 此时不应因为「第一次读到 Pro」就当成一次变化派发。
-    private var lastPublishedTier: SubscriptionTier
+    private var lastPublishedTier: StoreTier
 
-    /// - Parameter readTier: 读取当前等级的闭包。默认直接读 `StoreState`。
+    /// - Parameter readEntitlement: 读取当前权益快照的闭包。默认直接读 `StoreState`。
     public init(
-        readTier: @escaping @MainActor () -> SubscriptionTier = {
-            StoreService.tierCached()
+        readEntitlement: @escaping @MainActor () -> StoreEntitlementSnapshot = {
+            StoreService.currentEntitlement()
         }
     ) {
-        self.readTier = readTier
-        self.lastPublishedTier = readTier()
+        self.readEntitlement = readEntitlement
+        self.lastPublishedTier = readEntitlement().effectiveTier
         observeStoreTransactions()
     }
 
@@ -57,8 +58,9 @@ public final class StoreEntitlementProvider: StoreEntitlementProviding {
 
     // MARK: - StoreEntitlementProviding
 
-    public var tier: SubscriptionTier {
-        readTier()
+    /// 权益快照是唯一真值；`tier` 由共享契约的默认实现派生（过期即免费）。
+    public var entitlement: StoreEntitlementSnapshot {
+        readEntitlement()
     }
 
     @discardableResult

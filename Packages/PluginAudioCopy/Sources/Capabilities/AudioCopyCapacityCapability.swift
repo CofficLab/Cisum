@@ -51,7 +51,7 @@ final class AudioCopyCapacityCapabilityAdapter: AudioCopyCapacityCapability {
     }
 
     var tierDisplayName: String {
-        resolve()?.tierDisplayName ?? SubscriptionTier.none.displayName
+        resolve()?.tierDisplayName ?? StoreTier.none.defaultDisplayName
     }
 }
 

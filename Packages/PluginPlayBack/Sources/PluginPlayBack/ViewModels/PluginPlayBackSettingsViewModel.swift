@@ -7,9 +7,9 @@ import MagicKit
 ///
 /// 内核存在场景概念（`AppScene` 固定枚举，如「音乐库」「有声书」），因此设置页
 /// 不再只展示单一全局当前文件，而是按场景展示：每个场景各自记住上次播放的文件。
-/// 场景切换由 `PlaybackSettingsSceneObserver` 转发到 `handleSceneChanged(_:)`。
+/// 场景切换由 `SettingsSceneObserver` 转发到 `handleSceneChanged(_:)`。
 ///
-/// 播放详情通过 `PlaybackSettingsCapability` 读取（见 Capabilities 目录），
+/// 播放详情通过 `SettingsCapability` 读取（见 Capabilities 目录），
 /// 不直接持有内核 `PlaybackProviding`。
 @MainActor
 final class PluginPlayBackSettingsViewModel: ObservableObject, SuperLog {
@@ -29,9 +29,9 @@ final class PluginPlayBackSettingsViewModel: ObservableObject, SuperLog {
     private let store: PlaybackStateStore
 
     /// 播放能力（Capabilities 目录收窄），`weak` 持有。
-    private weak var playback: (any PlaybackSettingsCapability)?
+    private weak var playback: (any SettingsCapability)?
 
-    init(store: PlaybackStateStore, playback: (any PlaybackSettingsCapability)? = nil) {
+    init(store: PlaybackStateStore, playback: (any SettingsCapability)? = nil) {
         self.store = store
         self.playback = playback
         currentURL = playback?.currentURL

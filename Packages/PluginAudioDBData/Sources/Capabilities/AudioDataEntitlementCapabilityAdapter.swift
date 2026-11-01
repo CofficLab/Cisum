@@ -40,13 +40,13 @@ final class AudioDataEntitlementCapabilityAdapter: AudioDataEntitlementCapabilit
     /// 绕过上限——等到 Provider 就绪后判定会自动修正。
     var isCapacityLimited: Bool {
         guard let entitlement = resolve() else { return true }
-        return entitlement.tier.isFreeVersion
+        return entitlement.tier.isFree
     }
 
     /// 当前档位显示名；Provider 未就绪时按免费档展示。
     var tierDisplayName: String {
-        guard let entitlement = resolve() else { return SubscriptionTier.none.displayName }
-        return entitlement.tier.displayName
+        guard let entitlement = resolve() else { return StoreTier.none.defaultDisplayName }
+        return entitlement.tier.defaultDisplayName
     }
 
     @discardableResult

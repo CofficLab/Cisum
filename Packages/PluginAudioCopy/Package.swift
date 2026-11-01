@@ -22,8 +22,8 @@ let package = Package(
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
         .package(path: "../ProviderAudioLibrary"),
-        .package(path: "../ProviderStore"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.13.0"),
+        .package(path: "../ProviderStoreKit"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.17.0"),
     ],
     targets: [
         .target(
@@ -36,7 +36,8 @@ let package = Package(
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
-                .product(name: "ProviderStore", package: "ProviderStore"),
+                .product(name: "ProviderStoreKit", package: "ProviderStoreKit"),
+                .product(name: "ProviderStore", package: "LumiProviders"),
                 .product(name: "ProviderToast", package: "LumiProviders"),
             ],
             path: ".",

@@ -81,6 +81,17 @@ public final class SceneProvider: ObservableObject, SceneProviding {
             return
         }
 
+        // UI 测试专用：忽略磁盘上持久化的场景，让本次启动固定从首个场景
+        // （音乐库）开始。
+        //
+        // 场景是持久化的，上一次运行留下的状态会决定本次启动落在哪个场景，
+        // 用例因此无法稳定复现「启动于音乐库 → 切到有声书」这条路径
+        // （若上次停在有声书，App 会直接以有声书启动，走的是另一条路径）。
+        if Self.shouldResetPersistedSceneForUITesting {
+            resetPersistedSceneForUITestingIfNeeded()
+            return
+        }
+
         let saved = loadPersistedSceneName() ?? loadLegacySceneName()
         if let saved, let scene = AppScene(rawValue: saved), scenes.contains(scene) {
             updateCurrentScene(scene)
@@ -89,6 +100,32 @@ public final class SceneProvider: ObservableObject, SceneProviding {
 
         updateCurrentScene(first)
         try? persistScene(first)
+    }
+
+    /// 忽略磁盘上持久化的场景，回到首个场景（音乐库）。
+    ///
+    /// UI 测试专用（`--cisum-ui-testing-reset-scene`）。
+    func resetPersistedSceneForUITestingIfNeeded() {
+        guard let first = scenes.first else {
+            updateCurrentScene(nil)
+            return
+        }
+        updateCurrentScene(first)
+        try? persistScene(first)
+    }
+
+    /// 是否忽略持久化的场景（UI 测试专用）。
+    ///
+    /// 用**开关式参数**（不含 `=`）：`-key value` 形式的参数会落入
+    /// UserDefaults 的「参数域」，与 `-UI.ContentViewVisible YES` 混用时
+    /// 容易互相干扰；开关式参数只被 `ProcessInfo.processInfo.arguments`
+    /// 消费，互不影响。
+    private static var shouldResetPersistedSceneForUITesting: Bool {
+        #if DEBUG
+            ProcessInfo.processInfo.arguments.contains("--cisum-ui-testing-reset-scene")
+        #else
+            false
+        #endif
     }
 
     @discardableResult

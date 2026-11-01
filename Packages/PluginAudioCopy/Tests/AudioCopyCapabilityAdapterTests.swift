@@ -143,7 +143,7 @@ struct AudioCopyCapacityCapabilityAdapterTests {
     @Test("Provider 缺失时显示免费档")
     func missingProviderShowsFreeTier() {
         let adapter = AudioCopyCapacityCapabilityAdapter(resolve: { nil })
-        #expect(adapter.tierDisplayName == SubscriptionTier.none.displayName)
+        #expect(adapter.tierDisplayName == StoreTier.none.defaultDisplayName)
     }
 
     @Test("Provider 就绪时透出判定结果")

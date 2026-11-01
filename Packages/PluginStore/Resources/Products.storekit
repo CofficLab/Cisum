@@ -211,231 +211,131 @@
   ],
   "settings": {
     "_askToBuyEnabled": false,
+    "_billingGracePeriodEnabled": false,
+    "_billingIssuesEnabled": false,
     "_compatibilityTimeRate": {
       "3": 6
     },
+    "_disableDialogs": false,
     "_failTransactionsEnabled": false,
     "_locale": "zh_Hans",
+    "_renewalBillingIssuesEnabled": false,
     "_storefront": "CHN",
     "_storeKitErrors": [
       {
-        "current": null,
         "enabled": false,
         "name": "Load Products"
       },
       {
-        "current": null,
         "enabled": false,
         "name": "Purchase"
       },
       {
-        "current": null,
         "enabled": false,
         "name": "Verification"
       },
       {
-        "current": null,
         "enabled": false,
         "name": "App Store Sync"
       },
       {
-        "current": null,
         "enabled": false,
         "name": "Subscription Status"
       },
       {
-        "current": null,
         "enabled": false,
         "name": "App Transaction"
       },
       {
-        "current": null,
         "enabled": false,
         "name": "Manage Subscriptions Sheet"
       },
       {
-        "current": null,
         "enabled": false,
         "name": "Refund Request Sheet"
       },
       {
-        "current": null,
         "enabled": false,
         "name": "Offer Code Redeem Sheet"
       }
     ],
     "_timeRate": 15
   },
+  "subscriptionBundleGroups": [],
   "subscriptionGroups": [
     {
       "id": "3F19ED53",
       "localizations": [],
-      "name": "Software Services",
+      "name": "Cisum Pro",
       "subscriptions": [
         {
           "adHocOffers": [],
+          "billingPlans": [
+            {
+              "billingPlanType": "BILLED_UPFRONT",
+              "commitmentDisplayPrice": "2",
+              "displayPrice": "2",
+              "internalID": "4CBBDDCD",
+              "isEnabled": true
+            }
+          ],
           "codeOffers": [],
           "displayPrice": "2",
           "familyShareable": false,
           "groupNumber": 1,
           "internalID": "E0316BF9",
-          "introductoryOffer": null,
+          "introductoryOffers": [],
           "localizations": [
             {
               "description": "",
-              "displayName": "Pro Annual",
+              "displayName": "Monthly Subscription",
               "locale": "en_US"
             },
             {
               "description": "",
-              "displayName": "专业版按月订阅",
-              "locale": "zh_Hans"
-            }
-          ],
-          "productID": "com.yueyi.cisum.pro.monthly",
-          "recurringSubscriptionPeriod": "P1M",
-          "referenceName": "Pro Monthly",
-          "subscriptionGroupID": "3F19ED53",
-          "type": "RecurringSubscription",
-          "winbackOffers": []
-        },
-        {
-          "adHocOffers": [],
-          "codeOffers": [],
-          "displayPrice": "20",
-          "familyShareable": false,
-          "groupNumber": 2,
-          "internalID": "5B704C5E",
-          "introductoryOffer": {
-            "displayPrice": "0.99",
-            "internalID": "86438374",
-            "numberOfPeriods": 1,
-            "paymentMode": "payAsYouGo",
-            "subscriptionPeriod": "P1Y"
-          },
-          "localizations": [
-            {
-              "description": "",
-              "displayName": "专业版按年订阅",
-              "locale": "zh_Hans"
-            },
-            {
-              "description": "",
-              "displayName": "Pro",
-              "locale": "en_US"
-            }
-          ],
-          "productID": "com.yueyi.cisum.pro.yearly",
-          "recurringSubscriptionPeriod": "P1Y",
-          "referenceName": "Pro Annual",
-          "subscriptionGroupID": "3F19ED53",
-          "type": "RecurringSubscription",
-          "winbackOffers": []
-        },
-        {
-          "adHocOffers": [],
-          "codeOffers": [],
-          "displayPrice": "2",
-          "familyShareable": false,
-          "groupNumber": 3,
-          "internalID": "10000001",
-          "introductoryOffer": null,
-          "localizations": [
-            {
-              "description": "",
-              "displayName": "Pro",
-              "locale": "en_US"
-            },
-            {
-              "description": "",
-              "displayName": "专业版",
+              "displayName": "按月订阅",
               "locale": "zh_Hans"
             }
           ],
           "productID": "com.yueyi.cisum.monthly",
           "recurringSubscriptionPeriod": "P1M",
-          "referenceName": "com.yueyi.cisum.monthly",
+          "referenceName": "Monthly Subscription",
           "subscriptionGroupID": "3F19ED53",
           "type": "RecurringSubscription",
           "winbackOffers": []
         },
         {
           "adHocOffers": [],
+          "billingPlans": [
+            {
+              "billingPlanType": "BILLED_UPFRONT",
+              "commitmentDisplayPrice": "20",
+              "displayPrice": "20",
+              "internalID": "31662D48",
+              "isEnabled": true
+            }
+          ],
           "codeOffers": [],
           "displayPrice": "20",
           "familyShareable": false,
-          "groupNumber": 4,
-          "internalID": "10000002",
-          "introductoryOffer": null,
+          "groupNumber": 2,
+          "internalID": "5B704C5E",
+          "introductoryOffers": [],
           "localizations": [
             {
               "description": "",
-              "displayName": "Pro",
+              "displayName": "Annual Subscription",
               "locale": "en_US"
             },
             {
               "description": "",
-              "displayName": "专业版",
+              "displayName": "年度订阅",
               "locale": "zh_Hans"
             }
           ],
           "productID": "com.yueyi.cisum.yearly",
           "recurringSubscriptionPeriod": "P1Y",
-          "referenceName": "com.yueyi.cisum.yearly",
-          "subscriptionGroupID": "3F19ED53",
-          "type": "RecurringSubscription",
-          "winbackOffers": []
-        },
-        {
-          "adHocOffers": [],
-          "codeOffers": [],
-          "displayPrice": "20",
-          "familyShareable": false,
-          "groupNumber": 5,
-          "internalID": "10000003",
-          "introductoryOffer": null,
-          "localizations": [
-            {
-              "description": "",
-              "displayName": "Pro",
-              "locale": "en_US"
-            },
-            {
-              "description": "",
-              "displayName": "专业版",
-              "locale": "zh_Hans"
-            }
-          ],
-          "productID": "com.yueyi.cisum.pro.annual",
-          "recurringSubscriptionPeriod": "P1Y",
-          "referenceName": "com.yueyi.cisum.pro.annual",
-          "subscriptionGroupID": "3F19ED53",
-          "type": "RecurringSubscription",
-          "winbackOffers": []
-        },
-        {
-          "adHocOffers": [],
-          "codeOffers": [],
-          "displayPrice": "20",
-          "familyShareable": false,
-          "groupNumber": 6,
-          "internalID": "10000004",
-          "introductoryOffer": null,
-          "localizations": [
-            {
-              "description": "",
-              "displayName": "Pro",
-              "locale": "en_US"
-            },
-            {
-              "description": "",
-              "displayName": "专业版",
-              "locale": "zh_Hans"
-            }
-          ],
-          "productID": "com.yueyi.cisum.annual",
-          "recurringSubscriptionPeriod": "P1Y",
-          "referenceName": "com.yueyi.cisum.annual",
+          "referenceName": "Annual Subscription",
           "subscriptionGroupID": "3F19ED53",
           "type": "RecurringSubscription",
           "winbackOffers": []
@@ -443,8 +343,9 @@
       ]
     }
   ],
+  "subscriptionSuiteGroups": [],
   "version": {
-    "major": 4,
-    "minor": 0
+    "major": 6,
+    "minor": 3
   }
 }

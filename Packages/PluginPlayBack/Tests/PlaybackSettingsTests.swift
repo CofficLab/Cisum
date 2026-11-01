@@ -85,7 +85,7 @@ private final class SceneProviderStub: @preconcurrency SceneProviding {
     ) -> any SceneProvidingObserverHandle {
         let id = UUID()
         observers[id] = callback
-        return SceneObserverHandle { [weak self] in
+        return SceneStubHandle { [weak self] in
             self?.observers.removeValue(forKey: id)
         }
     }
@@ -98,7 +98,7 @@ private final class SceneProviderStub: @preconcurrency SceneProviding {
 }
 
 @MainActor
-private final class SceneObserverHandle: SceneProvidingObserverHandle {
+private final class SceneStubHandle: SceneProvidingObserverHandle {
     private var cancellation: (() -> Void)?
 
     init(cancellation: @escaping () -> Void) {
@@ -121,7 +121,7 @@ struct PlaybackSettingsTests {
         weak var weakPlayback = playback
         playback?.state = .playing
         let store = PlaybackStateStore(rootDirectory: root)
-        let capability = PlaybackSettingsCapabilityAdapter(playback: playback)
+        let capability = SettingsCapabilityAdapter(playback: playback)
         let viewModel = PluginPlayBackSettingsViewModel(store: store, playback: capability)
 
         #expect(viewModel.currentURL == playback?.currentURL)
@@ -150,7 +150,7 @@ struct PlaybackSettingsTests {
         playback.duration = 36
         let viewModel = PluginPlayBackSettingsViewModel(
             store: store,
-            playback: PlaybackSettingsCapabilityAdapter(playback: playback)
+            playback: SettingsCapabilityAdapter(playback: playback)
         )
 
         #expect(viewModel.scenes == AppScene.allCases)
@@ -185,8 +185,8 @@ struct PlaybackSettingsTests {
     func playbackObserverForwardsEventsAndStopsAfterCancellation() {
         let playback = PlaybackStub()
         let viewModel = PluginPlayBackSettingsViewModel(store: PlaybackStateStore(rootDirectory: temporaryRootURL()))
-        let observer = PlaybackSettingsPlaybackObserver(
-            playback: PlaybackSettingsCapabilityAdapter(playback: playback),
+        let observer = SettingsPlaybackObserver(
+            playback: SettingsCapabilityAdapter(playback: playback),
             viewModel: viewModel
         )
         let nextURL = URL(fileURLWithPath: "/library/next.mp3")
@@ -214,8 +214,8 @@ struct PlaybackSettingsTests {
         let viewModel = PluginPlayBackSettingsViewModel(
             store: PlaybackStateStore(rootDirectory: temporaryRootURL())
         )
-        let observer = PlaybackSettingsSceneObserver(
-            scene: PlaybackSceneCapabilityAdapter(scene: provider),
+        let observer = SettingsSceneObserver(
+            scene: SceneCapabilityAdapter(scene: provider),
             viewModel: viewModel
         )
 

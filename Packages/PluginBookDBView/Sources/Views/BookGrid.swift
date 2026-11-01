@@ -152,7 +152,7 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
                             HStack(spacing: 6) {
                                 ProgressView()
                                     .controlSize(.small)
-                                Text("Reading repository", bundle: .module)
+                                Text("Reading book repository", bundle: .module)
                                     .font(.footnote)
                                     .foregroundStyle(.secondary)
                             }

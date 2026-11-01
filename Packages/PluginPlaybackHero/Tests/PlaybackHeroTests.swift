@@ -256,10 +256,14 @@ struct PlaybackHeroTests {
         #expect(viewModel.state == .playing)
     }
 
+    /// 仓库为空时隐藏 Hero，仓库恢复后 Hero 重新显示。
+    ///
+    /// 测试场景：音乐场景下，仓库从非空变为空时 Hero 隐藏；仓库恢复后 Hero 重新显示。
+    /// 非音乐场景下 Hero 始终隐藏（无论仓库状态）。
     @Test
     func emptyRepositoryHidesHeroAndPopulatedLibraryRestoresIt() {
         let library = AudioLibraryStub()
-        let scene = SceneStub(currentScene: .audiobooks)
+        let scene = SceneStub(currentScene: .music)
         let playbackStub = PlaybackStub()
         // 能力 Adapter 以 `weak` 持有 Provider，故 Provider 与 Adapter 都需
         // 由测试显式持有：临时 `PlaybackStub()` 会立即释放，使 currentURL 变 nil。
@@ -268,7 +272,7 @@ struct PlaybackHeroTests {
         let sceneCapability = HeroSceneCapabilityAdapter(scene: scene)
         let viewModel = PlaybackHeroViewModel(
             playback: playbackCapability,
-            isMusicSceneActive: false
+            isMusicSceneActive: true
         )
         let observer = PlaybackHeroObserver(
             playback: playbackCapability,
@@ -277,28 +281,87 @@ struct PlaybackHeroTests {
             viewModel: viewModel
         )
 
+        // 音乐场景 + 有曲目 + 仓库非空 → Hero 可见
         #expect(viewModel.isHeroVisible)
 
+        // 仓库变为空 → Hero 隐藏
         library.send(.repositoryEmpty)
-        #expect(viewModel.isHeroVisible, "An empty music repository must not hide a title in the audiobook scene")
+        #expect(!viewModel.isHeroVisible, "Empty music repository should hide the hero")
 
-        scene.setCurrentScene(.music)
-        #expect(!viewModel.isHeroVisible)
-
+        // 仓库恢复 → Hero 重新显示
         library.send(.synced(totalCount: 2))
         #expect(viewModel.isHeroVisible)
 
+        // 非确认空的更新事件不应隐藏 Hero
         library.send(.updated(totalCount: 0))
         #expect(viewModel.isHeroVisible, "Only the confirmed-empty domain event should hide the hero")
 
+        // 删除事件需要等待确认空事件
         library.send(.deleted(urls: [URL(fileURLWithPath: "/library/track.mp3")], totalCount: 0))
         #expect(viewModel.isHeroVisible, "A zero-count deletion must wait for the confirmed-empty event")
         library.send(.repositoryEmpty)
         #expect(!viewModel.isHeroVisible)
 
+        // 切到有声书场景 → Hero 始终隐藏（即使仓库恢复）
+        scene.setCurrentScene(.audiobooks)
+        library.send(.synced(totalCount: 2))
+        #expect(!viewModel.isHeroVisible, "Hero must be hidden in audiobooks scene regardless of repository state")
+
+        // 切回音乐场景 → Hero 恢复显示
+        scene.setCurrentScene(.music)
+        #expect(viewModel.isHeroVisible, "Hero should be visible again in music scene")
+
         observer.cancel()
         library.send(.updated(totalCount: 1))
-        #expect(!viewModel.isHeroVisible, "Cancelled observers must not change hero visibility")
+        #expect(viewModel.isHeroVisible, "Cancelled observers must not change hero visibility")
+    }
+
+    /// 场景切换时 Hero 可见性必须跟随场景：切离音乐场景后 Hero 必须隐藏。
+    ///
+    /// 回归测试：音乐场景播放歌曲 A → 切换到有声书场景 → Hero 仍显示歌曲 A 的信息。
+    /// 原因：`SceneObserver.stop()` 保留 `currentURL` 以便切回时恢复，但 Hero 的
+    /// `isHeroVisible` 逻辑没有正确检查场景——非音乐场景时不应显示 Hero。
+    @Test
+    func switchingAwayFromMusicSceneHidesHero() {
+        let playback = PlaybackStub()
+        playback.currentURL = URL(fileURLWithPath: "/library/song-a.mp3")
+        playback.state = .playing
+        let scene = SceneStub(currentScene: .music)
+        let library = AudioLibraryStub()
+
+        let playbackCapability = HeroPlaybackCapabilityAdapter(playback: playback)
+        let libraryCapability = HeroLibraryCapabilityAdapter(library: library)
+        let sceneCapability = HeroSceneCapabilityAdapter(scene: scene)
+        let viewModel = PlaybackHeroViewModel(
+            playback: playbackCapability,
+            isMusicSceneActive: true
+        )
+        let observer = PlaybackHeroObserver(
+            playback: playbackCapability,
+            library: libraryCapability,
+            scene: sceneCapability,
+            viewModel: viewModel
+        )
+
+        // 音乐场景 + 有曲目 + 仓库非空 → Hero 可见
+        #expect(viewModel.isMusicSceneActive == true)
+        #expect(viewModel.currentURL != nil)
+        #expect(viewModel.isHeroVisible, "音乐场景播放时应显示 Hero")
+
+        // 切换到有声书场景（模拟 SceneObserver.stop() 保留 currentURL 的情况）
+        scene.setCurrentScene(.audiobooks)
+
+        // 关键断言：切离音乐场景后 Hero 必须隐藏，即使 currentURL 仍在
+        #expect(viewModel.isMusicSceneActive == false)
+        #expect(viewModel.currentURL != nil, "stop() 保留 currentURL 以便恢复")
+        #expect(!viewModel.isHeroVisible, "切离音乐场景后 Hero 必须隐藏，不应显示上一场景的曲目信息")
+
+        // 切回音乐场景 → Hero 应恢复显示
+        scene.setCurrentScene(.music)
+        #expect(viewModel.isMusicSceneActive == true)
+        #expect(viewModel.isHeroVisible, "切回音乐场景后 Hero 应恢复显示")
+
+        observer.cancel()
     }
 
     @Test

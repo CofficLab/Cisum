@@ -22,6 +22,85 @@ Are you tired of being bothered by:
 
 We decided to make our own app to keep software simple and pure.
 
+## Architecture
+
+Cisum is a plugin-based SwiftUI audio player. The codebase is split into independent
+Swift packages under `Packages/`, grouped into four roles:
+
+```text
+FactoryCisum
+  ├── Plugin*  ── consumes ──> Provider*
+  ├── Provider* ── uses ─────> Kit*
+  └── Kit*
+```
+
+| Role | Purpose |
+|------|---------|
+| `Kit*` | Reusable foundations not owned by one feature (playback primitives, UI components, event observation) |
+| `Provider*` | App-facing contracts, domain models, events, observer handles |
+| `Plugin*` | One feature each; consumes other features through Provider contracts |
+| `FactoryCisum` | The single composition root that wires providers and plugins together |
+
+Plugins never depend on each other directly — shared behavior travels through
+`Provider*` (data and contracts) or `Kit*` (pure utilities) packages.
+
+## Development
+
+### Requirements
+
+| Tool | Version |
+|------|---------|
+| macOS | 14.0 or later |
+| Xcode | 27.2 or later |
+| Swift | 6.0 or later |
+
+### Build and run
+
+```bash
+git clone https://github.com/CofficLab/Cisum.git
+cd Cisum
+
+xcodebuild -list -project Cisum.xcodeproj
+xcodebuild -project Cisum.xcodeproj -scheme Cisum -destination 'platform=macOS' build
+```
+
+### Build and test a single package
+
+Every package is a standalone Swift package, which makes for a fast inner loop:
+
+```bash
+cd Packages/PluginAudioDBView
+swift build
+swift test
+```
+
+### Run the test suite
+
+```bash
+# Package-level unit tests
+cd Packages && for p in Plugin*/; do [ -d "$p/Tests" ] || continue
+  printf "%-26s " "$(basename $p)"; (cd $p && swift test 2>&1 | grep -E "✘|error:|Test run with" | tail -1)
+done
+
+# App-level unit and UI tests
+xcodebuild -project Cisum.xcodeproj -scheme Cisum -destination 'platform=macOS' test
+```
+
+### Code coverage
+
+```bash
+scripts/collect-coverage.sh              # all packages with source code
+scripts/collect-coverage.sh MagicKit     # one package
+```
+
+The report is written to `temp/coverage/report.md`.
+
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the development
+environment setup, architecture rules, coding conventions, localization and logging
+guidelines, the commit message format, and the pull request workflow.
+
 ## Our Other Projects
 
 - [macOS Network Control](https://coffic.cn/en/products/travelmode)
