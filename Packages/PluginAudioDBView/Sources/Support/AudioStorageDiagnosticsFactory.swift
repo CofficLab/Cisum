@@ -1,5 +1,6 @@
 import CisumProviderStorage
 import Foundation
+import MagicKit
 import ProviderAudioLibrary
 
 @MainActor
@@ -10,8 +11,19 @@ enum AudioStorageDiagnosticsFactory {
     /// 只在错误视图打开时调用一次、不持有 Provider（参数非存储属性），
     /// 且 `StorageProviding` 是 Lumi 共享契约、并非本插件消费的核心能力。
     /// 按 Capabilities 规范的「不必建」判据：不订阅、不重试、生命周期不重叠。
-    static func make(storage: (any StorageProviding)?) -> AudioStorageDiagnostics {
-        let storageLocationRaw = UserDefaults.standard.string(forKey: "StorageLocation")
+    /// - Parameters:
+    ///   - storage: 存储 Provider（可能为 nil）。
+    ///   - preferences: 偏好存储。生产传 ``PreferenceStore/shared``。
+    ///
+    /// - Note: 之前这里硬编码 `UserDefaults.standard`，而 `StoragePlugin`
+    ///   在 UI 测试下写入的是**独立 suite**——读写不同源，导致诊断面板在
+    ///   UI 测试里永远显示「未设置存储位置」。改为注入同一个偏好存储，
+    ///   生产与测试都指向同一份真相。
+    static func make(
+        storage: (any StorageProviding)?,
+        preferences: PreferenceStore = .shared
+    ) -> AudioStorageDiagnostics {
+        let storageLocationRaw = preferences.defaults.string(forKey: "StorageLocation")
         let isICloudAvailable = FileManager.default.ubiquityIdentityToken != nil
         let cloudContainer = FileManager.default.url(forUbiquityContainerIdentifier: nil)
         let cloudDocuments = cloudContainer?.appendingPathComponent("Documents")
