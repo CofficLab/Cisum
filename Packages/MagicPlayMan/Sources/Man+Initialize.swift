@@ -124,20 +124,16 @@ internal extension MagicPlayMan {
                         // 播放状态变化时更新 Now Playing Info
                         self.updateNowPlayingInfo(includeThumbnail: true, reason: self.className + ".systemObserver.playing")
                     case .paused:
-                        self.updateNowPlayingInfo(includeThumbnail: false, reason: self.className + ".systemObserver.paused")
-
-                        // 如果是下载状态，无需更新状态
+                        // 先更新内部状态，确保 updateNowPlayingInfo 读取到正确的 state
+                        // 以输出 playbackRate = 0.0，否则菜单栏媒体中心图标不会切换
                         if self.state.isDownloading {
-                            return
+                            // 下载中状态无需处理
+                        } else if self.state.isFailed {
+                            // 加载失败时清空 item 同样会触发 .paused，不能把 .failed 覆盖成 .stopped
+                        } else {
+                            self.setState(self.currentTime == 0 ? .stopped : .paused, reason: self.className + ".systemObserver.paused")
                         }
-
-                        // 加载失败时清空 item 同样会触发 .paused，此时不能把 .failed
-                        // 覆盖成 .stopped，否则调用方会丢失失败原因（表现为「点了没反应也没有报错」）。
-                        if self.state.isFailed {
-                            return
-                        }
-
-                        self.setState(self.currentTime == 0 ? .stopped : .paused, reason: self.className + ".systemObserver.paused")
+                        self.updateNowPlayingInfo(includeThumbnail: true, reason: self.className + ".systemObserver.paused")
                     case .waitingToPlayAtSpecifiedRate:
                         if case .playing = self.state {
                             self.setState(.loading(.buffering), reason: self.className + ".systemObserver.waitingToPlayAtSpecifiedRate")

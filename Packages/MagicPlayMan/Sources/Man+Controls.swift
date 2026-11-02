@@ -406,7 +406,7 @@ public extension MagicPlayMan {
         setLikedAssets(newLikedAssets)
         // 通知订阅者喜欢状态变化
         events.onLikeStatusChanged.send((asset: asset, isLiked: isLiked))
-        updateNowPlayingInfo(includeThumbnail: false, reason: reason + ".setLike")
+        updateNowPlayingInfo(includeThumbnail: true, reason: reason + ".setLike")
     }
 
     /// 静音控制
