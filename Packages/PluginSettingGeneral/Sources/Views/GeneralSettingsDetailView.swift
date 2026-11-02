@@ -1,6 +1,9 @@
 #if canImport(AppKit)
 import AppKit
 #endif
+#if canImport(UIKit)
+import UIKit
+#endif
 import MagicKit
 import LumiUI
 import SwiftUI
@@ -22,6 +25,7 @@ struct GeneralSettingsDetailView: View {
         AppSettingsContentScaffold(maxContentWidth: nil) {
             VStack(alignment: .leading, spacing: 16) {
                 appInfoSection
+                aboutUsSection
                 #if DEBUG
                 debugSection
                 #endif
@@ -38,6 +42,40 @@ struct GeneralSettingsDetailView: View {
             settingRow(icon: "number", title: String(localized: "Bundle ID", bundle: .module), value: MagicApp.getBundleIdentifier())
             settingRow(icon: "info.circle", title: String(localized: "Version", bundle: .module), value: MagicApp.getVersion())
             settingRow(icon: "hammer", title: String(localized: "Build", bundle: .module), value: MagicApp.getBuildNumber())
+        }
+    }
+
+    // MARK: - 关于我们
+
+    private var aboutUsSection: some View {
+        AppSettingSection(title: String(localized: "About Us", bundle: .module)) {
+            AppSettingRow(
+                title: String(localized: "Official Website", bundle: .module),
+                icon: "globe",
+                action: { openURL("https://coffic.cn/cisum") }
+            ) {
+                Image(systemName: "arrow.up.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            AppSettingRow(
+                title: String(localized: "Privacy Policy", bundle: .module),
+                icon: "hand.raised",
+                action: { openURL("https://coffic.cn/privacy") }
+            ) {
+                Image(systemName: "arrow.up.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            AppSettingRow(
+                title: String(localized: "Terms of Service", bundle: .module),
+                icon: "doc.text",
+                action: { openURL("https://coffic.cn/terms") }
+            ) {
+                Image(systemName: "arrow.up.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
         }
     }
 
@@ -80,5 +118,15 @@ struct GeneralSettingsDetailView: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
         }
+    }
+
+    /// 在默认浏览器中打开链接。
+    private func openURL(_ urlString: String) {
+        guard let url = URL(string: urlString) else { return }
+        #if canImport(AppKit)
+        NSWorkspace.shared.open(url)
+        #elseif canImport(UIKit)
+        UIApplication.shared.open(url)
+        #endif
     }
 }
