@@ -15,8 +15,15 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
     private var storageObserver: (any StorageProvidingObserverHandle)?
     private var observers: [WeakBookProvidingObserver] = []
 
-    init(storage: any StorageProviding) {
+    /// 当前书籍的持久化仓库。
+    ///
+    /// 注入而非直接用 `BookSettingRepo.shared`：让单元测试可以给它一个
+    /// 独立的偏好存储，避免读写开发者的真实偏好与真实 iCloud 键值库。
+    private let bookSettings: BookSettingRepo
+
+    init(storage: any StorageProviding, bookSettings: BookSettingRepo = .shared) {
         self.storage = storage
+        self.bookSettings = bookSettings
         storageObserver = storage.addObserver { [weak self] event in
             self?.invalidateRepository()
         }
@@ -113,19 +120,19 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
     }
 
     func currentBookURL() -> URL? {
-        BookSettingRepo.getCurrent()
+        bookSettings.getCurrent()
     }
 
     func currentBookTime() -> TimeInterval? {
-        BookSettingRepo.getCurrentTime()
+        bookSettings.getCurrentTime()
     }
 
     func storeCurrentBookURL(_ url: URL?) {
-        BookSettingRepo.storeCurrent(url)
+        bookSettings.storeCurrent(url)
     }
 
     func storeCurrentBookTime(_ time: TimeInterval) {
-        BookSettingRepo.storeCurrentTime(time)
+        bookSettings.storeCurrentTime(time)
     }
 
     @discardableResult
