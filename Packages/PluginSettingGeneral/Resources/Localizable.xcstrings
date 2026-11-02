@@ -114,6 +114,7 @@
       }
     },
     "Browse the manuals contributed by plugins" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -451,6 +452,7 @@
       }
     },
     "No manuals yet." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

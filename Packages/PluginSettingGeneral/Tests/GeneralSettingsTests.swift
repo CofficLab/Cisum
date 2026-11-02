@@ -3,29 +3,13 @@ import KernelCore
 import ProviderPlugin
 import ProviderSettingView
 import KitAppEvents
-import SwiftUI
 import Testing
 @testable import PluginSettingGeneral
 
 @MainActor
 struct GeneralSettingsTests {
     @Test
-    func viewModelDefaultsToNoManualsAndPreservesInjectedEntries() {
-        let emptyViewModel = GeneralSettingsViewModel()
-        #expect(emptyViewModel.manualEntries.isEmpty)
-
-        let manuals = [
-            DocsEntry(id: "audio", name: "Audio") { EmptyView() },
-            DocsEntry(id: "storage", name: "Storage") { EmptyView() },
-        ]
-        let viewModel = GeneralSettingsViewModel(manualEntries: manuals)
-
-        #expect(viewModel.manualEntries.map(\.id) == ["audio", "storage"])
-        #expect(viewModel.manualEntries.map(\.name) == ["Audio", "Storage"])
-    }
-
-    @Test
-    func pluginRegistersItsDocsAndContributesGeneralEntry() async throws {
+    func pluginContributesGeneralEntry() async throws {
         let docs = DefaultDocsViewProvider()
         let settings = DefaultSettingViewProviding()
         let kernel = KernelCoreContainer()
