@@ -15,6 +15,20 @@ final class StoreState: ObservableObject, SuperLog {
 
     static let verbose = false
 
+    /// 权益缓存使用的偏好存储。
+    ///
+    /// 过去这里硬编码 `UserDefaults.standard`——进程级全局状态，单元测试
+    /// 无法替换，且测试会读写开发者真实的购买缓存。改为注入后，生产行为
+    /// 不变，测试可用独立 suite 完全隔离。
+    private static var preferences = PreferenceStore.shared
+
+    /// 覆盖偏好存储。仅供单元测试使用。
+    ///
+    /// - Parameter preferences: 新的偏好存储。传 `nil` 恢复生产默认值。
+    static func setPreferencesForTesting(_ preferences: PreferenceStore?) {
+        Self.preferences = preferences ?? .shared
+    }
+
     struct EntitlementSnapshot {
         let productID: String
         let productType: Product.ProductType
@@ -35,7 +49,7 @@ final class StoreState: ObservableObject, SuperLog {
 
     /// 读取缓存的权益快照。
     static func cachedPurchaseInfo() -> StoreEntitlementSnapshot {
-        let defaults = UserDefaults.standard
+        let defaults = preferences.defaults
         if let data = defaults.data(forKey: Keys.purchase),
            let snapshot = try? JSONDecoder().decode(StoreEntitlementSnapshot.self, from: data) {
             return snapshot
@@ -45,7 +59,7 @@ final class StoreState: ObservableObject, SuperLog {
 
     /// 写入权益快照。
     static func update(entitlement: StoreEntitlementSnapshot) {
-        let defaults = UserDefaults.standard
+        let defaults = preferences.defaults
         if let data = try? JSONEncoder().encode(entitlement) {
             defaults.set(data, forKey: Keys.purchase)
         }
