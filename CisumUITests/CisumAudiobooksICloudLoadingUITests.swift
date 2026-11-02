@@ -27,10 +27,22 @@ final class CisumAudiobooksICloudLoadingUITests: CisumUITestBase {
     /// - `--cisum-ui-testing-reset-scene`：忽略上次持久化的场景，
     ///   固定从音乐库启动（场景是持久化的，否则本次启动落在哪个场景
     ///   取决于上一次运行留下的状态，用例就无法稳定复现用户报告的路径）。
+    ///
+    /// 隔离数据根沿用基类的约定（`--cisum-ui-testing-isolated-storage=...`），
+    /// 因此仓库落在**真实 iCloud 容器的隔离子目录**下：
+    ///
+    /// - 真实容器 → `NSMetadataQuery` 那条监控实现仍会被走到，
+    ///   覆盖的是与本地完全不同的代码路径；
+    /// - 隔离子目录 → 内容由测试独占并幂等清空，开发者自己同步进容器的
+    ///   文件不会混进测试的仓库。
+    ///
+    /// 隔离的是「状态残留」，不是「系统行为」。
     override var additionalLaunchArguments: [String] {
         [
             "--cisum-ui-testing",
-            "--cisum-ui-testing-storage-icloud", "--cisum-ui-testing-reset-scene",
+            "--cisum-ui-testing-storage-icloud",
+            "--cisum-ui-testing-reset-scene",
+            "--cisum-ui-testing-isolated-storage=\(Self.isolatedStorageName)",
             "-UI.ContentViewVisible", "YES",
         ]
     }
@@ -68,6 +80,10 @@ final class CisumAudiobooksICloudLoadingUITests: CisumUITestBase {
     /// 预期：有声书场景必须在有限时间内结束"读取中"状态并呈现内容。
     func testSwitchingToAudiobooksUnderICloudStorageDoesNotStall() throws {
         #if os(macOS)
+        // iCloud 容器需要设备已登录 iCloud 账号。没有账号时容器不存在，
+        // 这条用例要测的代码路径根本不会被走到——显式跳过，绝不「顺带通过」。
+        try requireRealICloudContainer(reason: "iCloud 存储下的场景切换回归")
+
         // 前提：处于音乐模式（否则这条用例测的是另一条路径）。
         try ensureMusicScene()
         XCTAssertTrue(

@@ -12,6 +12,22 @@ class CisumUITestBase: XCTestCase {
 
     /// 启动参数。
     ///
+    /// ## 默认隔离
+    ///
+    /// 默认参数里带 `--cisum-ui-testing-isolated-storage=<隔离目录名>`，
+    /// 让本次启动的数据根落到临时目录下的独立子目录，与真实沙盒完全隔离。
+    /// 配合 App 启动时的**幂等重建**（``UITestIsolation``），每次启动都是
+    /// 全新环境：磁盘目录、SwiftData 数据库行、插件数据全部清空后重建。
+    ///
+    /// 于是「仓库为空」「仓库只有我造的那几首」都成为**确定性前提**，
+    /// 不再依赖上一次运行的残留，也不受开发者本地环境影响。
+    ///
+    /// 隔离目录名由**用例类名**派生（而非随机）：结构固定，失败现场可寻址、
+    /// 可复现。同一类的不同用例共享一个隔离目录，但每次启动都会重建，
+    /// 因此用例之间仍然互不影响。
+    ///
+    /// ## 参数域约定
+    ///
     /// `-UI.ContentViewVisible YES` 通过 UserDefaults 的**参数域**强制内容区可见。
     /// 参数域的优先级高于持久化域，因此整条 UI 测试链路对「内容区显隐」是
     /// 封闭的：任何用例收起过内容区都不会污染后续用例的启动状态。
@@ -24,7 +40,57 @@ class CisumUITestBase: XCTestCase {
     ///   `-key=value` 形式参数（例如 `--foo=bar`）被整段丢弃。
     ///   子类覆写本属性时也必须保持这一顺序约定。
     var additionalLaunchArguments: [String] {
-        ["--cisum-ui-testing", "--cisum-ui-testing-storage-local", "-UI.ContentViewVisible", "YES"]
+        [
+            "--cisum-ui-testing",
+            "--cisum-ui-testing-storage-local",
+            "--cisum-ui-testing-reset-scene",
+            "--cisum-ui-testing-isolated-storage=\(Self.isolatedStorageName)",
+            "-UI.ContentViewVisible", "YES",
+        ]
+    }
+
+    /// 本次启动使用的隔离数据根目录名。
+    ///
+    /// 由用例类名派生：同一类的用例共享目录（便于失败现场复现），
+    /// 不同类互不干扰。App 启动时会幂等重建该目录，因此共享不带来污染。
+    static var isolatedStorageName: String {
+        let raw = String(describing: self)
+        let sanitized = raw
+            .replacingOccurrences(of: "[^A-Za-z0-9_-]", with: "-", options: .regularExpression)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+        return sanitized.isEmpty ? "default" : sanitized
+    }
+
+    /// 真实 iCloud 容器是否可用。
+    ///
+    /// iCloud 容器需要设备**已登录 iCloud 账号**。没有账号（或容器被系统
+    /// 禁用）时，容器路径根本不存在——这是真实的系统约束，任何实现都绕不过去。
+    ///
+    /// 因此 iCloud 专项用例必须显式判断并 `XCTSkip`，**绝不能**让它
+    /// 「因为容器不存在而顺带通过」——那样这条用例在没登录 iCloud 的机器上
+    /// 根本没测到任何东西，却和其它机器一样显示为绿色。
+    ///
+    /// 跨机一致性由这条约定保证：要么真的测了 iCloud 路径，要么**明确**
+    /// 报告「本机未覆盖」，而不是混进全绿结果里。
+    var isRealICloudContainerAvailable: Bool {
+        FileManager.default.ubiquityIdentityToken != nil
+            && FileManager.default.url(forUbiquityContainerIdentifier: nil) != nil
+    }
+
+    /// 要求真实 iCloud 容器可用，否则显式跳过。
+    ///
+    /// - Parameter reason: 跳过原因（会出现在测试报告中）。
+    func requireRealICloudContainer(reason: String) throws {
+        guard isRealICloudContainerAvailable else {
+            throw XCTSkip(
+                """
+                \(reason) 需要真实 iCloud 容器，但当前设备未登录 iCloud 账号
+                （或容器不可用）。本用例在未覆盖 iCloud 路径的机器上被显式跳过，
+                而不是「因为容器不存在而顺带通过」——
+                否则它会与其它机器一样显示为绿色，却什么都没测。
+                """
+            )
+        }
     }
 
     /// 主容器元素：macOS 是名为 `Cisum` 的可调整窗口，iOS 是整个屏幕窗口。
