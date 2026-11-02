@@ -80,7 +80,17 @@ public enum CisumBuilder: SuperLog {
     ) async throws -> KernelCoreContainer {
         let kernel = KernelCoreContainer()
 
-        // 0. UI 测试注入：必须在任何插件 boot 之前完成，否则播放插件可能在
+        // 0a. UI 测试隔离：**幂等重建**隔离数据根。
+        //
+        // 必须早于任何插件读取数据根——隔离要覆盖全部数据：磁盘目录、
+        // SwiftData 数据库文件、插件数据目录都在同一棵树下。晚于这一步
+        // 的读取都会看到上一次运行留下的残留，「仓库为空」就只是
+        // 最终一致而非确定。
+        //
+        // 目录名由启动参数给出且保持稳定（不随机），失败现场可寻址、可复现。
+        UITestIsolation.resetIsolatedRootIfNeeded()
+
+        // 0b. UI 测试注入：必须在任何插件 boot 之前完成，否则播放插件可能在
         //    安装替身之前就已经发起过 iCloud 下载。无参数时不做任何改动。
         ICloudDownloadControl.shared.bootstrapFromLaunchArguments()
 
