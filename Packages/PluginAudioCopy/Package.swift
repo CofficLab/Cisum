@@ -23,7 +23,7 @@ let package = Package(
         .package(path: "../ProviderPlugin"),
         .package(path: "../ProviderAudioLibrary"),
         .package(path: "../ProviderStoreKit"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.17.0"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.18.0"),
     ],
     targets: [
         .target(
