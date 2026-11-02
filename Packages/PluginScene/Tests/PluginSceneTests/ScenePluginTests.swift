@@ -1,3 +1,4 @@
+import MagicKit
 import ProviderScene
 import Foundation
 import KernelCore
@@ -41,9 +42,6 @@ struct ScenePluginTests {
 
     @Test
     func contributesSceneSwitcherAfterBootDependenciesAreReady() async throws {
-        clearLegacyPersistence()
-        defer { clearLegacyPersistence() }
-
         let kernel = KernelCoreContainer()
         let pluginProvider = PluginContributionService(kernel: kernel)
         let plugin = ScenePlugin()
@@ -104,11 +102,27 @@ struct ScenePluginTests {
         return directory
     }
 
-    private func clearLegacyPersistence() {
-        UserDefaults.standard.removeObject(forKey: "currentSceneName")
-        UserDefaults.standard.removeObject(forKey: "currentPluginID")
-        NSUbiquitousKeyValueStore.default.removeObject(forKey: "currentSceneName")
-        NSUbiquitousKeyValueStore.default.removeObject(forKey: "currentPluginID")
+    /// 构造一份隔离的偏好存储。
+    ///
+    /// ## 为什么不再清真实全局状态
+    ///
+    /// 旧写法直接 `removeObject` 掉 `UserDefaults.standard` 与
+    /// `NSUbiquitousKeyValueStore.default` 里的 `currentSceneName` /
+    /// `currentPluginID`——那是**开发者自己正在用的场景设置**，
+    /// 跑一次测试就会把它删掉。而且真实 iCloud 键值库是否可读写取决于
+    /// 设备是否登录 iCloud，不同机器上的行为并不一致。
+    ///
+    /// 现在改为给每个用例一份独立的 suite + 内存版 iCloud 存储，
+    /// 既不污染开发者环境，也不依赖账号状态。
+    private func makePreferences(
+        suiteName: String = "PluginSceneTests-\(UUID().uuidString)"
+    ) -> PreferenceStore {
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        return PreferenceStore(
+            defaults: defaults,
+            cloud: InMemoryCloudKeyValueStore()
+        )
     }
 
     @Test
@@ -117,12 +131,12 @@ struct ScenePluginTests {
         defer { try? FileManager.default.removeItem(at: pluginDir) }
         let fileURL = pluginDir.appendingPathComponent("current-scene.json")
 
-        let first = SceneProvider(pluginDataDirectory: pluginDir)
+        let first = SceneProvider(pluginDataDirectory: pluginDir, preferences: makePreferences())
         first.restoreCurrentScene()
         // 当前只有音乐场景可用，测试音乐场景的持久化与恢复
         first.setCurrentScene(.music)
 
-        let second = SceneProvider(pluginDataDirectory: pluginDir)
+        let second = SceneProvider(pluginDataDirectory: pluginDir, preferences: makePreferences())
         second.restoreCurrentScene()
 
         #expect(second.currentScene == .music)
@@ -137,7 +151,7 @@ struct ScenePluginTests {
         let data = Data(#"{"sceneName":"不存在","pluginID":null}"#.utf8)
         try data.write(to: fileURL)
 
-        let service = SceneProvider(pluginDataDirectory: pluginDir)
+        let service = SceneProvider(pluginDataDirectory: pluginDir, preferences: makePreferences())
         service.restoreCurrentScene()
 
         #expect(service.currentScene == .music)
@@ -146,12 +160,11 @@ struct ScenePluginTests {
     @Test
     func notifiesObserversAfterSceneChangesAndSupportsCancellation() throws {
         let pluginDir = try makePluginDataDirectory()
-        clearLegacyPersistence()
-        defer {
-            clearLegacyPersistence()
-            try? FileManager.default.removeItem(at: pluginDir)
-        }
-        let service = SceneProvider(pluginDataDirectory: pluginDir)
+        defer { try? FileManager.default.removeItem(at: pluginDir) }
+        let service = SceneProvider(
+            pluginDataDirectory: pluginDir,
+            preferences: makePreferences()
+        )
         var observedScenes: [AppScene?] = []
         let handle = service.addObserver { event in
             if case let .selectionChanged(scene) = event {
@@ -175,12 +188,11 @@ struct ScenePluginTests {
     @Test
     func observerPerformsInitialSyncBeforeInstallingListener() throws {
         let pluginDir = try makePluginDataDirectory()
-        clearLegacyPersistence()
-        defer {
-            clearLegacyPersistence()
-            try? FileManager.default.removeItem(at: pluginDir)
-        }
-        let service = SceneProvider(pluginDataDirectory: pluginDir)
+        defer { try? FileManager.default.removeItem(at: pluginDir) }
+        let service = SceneProvider(
+            pluginDataDirectory: pluginDir,
+            preferences: makePreferences()
+        )
         service.restoreCurrentScene()
         // 当前只有音乐场景可用
         service.setCurrentScene(.music)
@@ -200,12 +212,11 @@ struct ScenePluginTests {
     @Test
     func observerForwardsProviderEventsToViewModel() throws {
         let pluginDir = try makePluginDataDirectory()
-        clearLegacyPersistence()
-        defer {
-            clearLegacyPersistence()
-            try? FileManager.default.removeItem(at: pluginDir)
-        }
-        let service = SceneProvider(pluginDataDirectory: pluginDir)
+        defer { try? FileManager.default.removeItem(at: pluginDir) }
+        let service = SceneProvider(
+            pluginDataDirectory: pluginDir,
+            preferences: makePreferences()
+        )
         service.restoreCurrentScene()
 
         // 走真实 SceneProvider + Adapter：验证 Adapter 的转发与句柄取消正确。
@@ -221,12 +232,11 @@ struct ScenePluginTests {
     @Test
     func observerCancelStopsViewModelUpdates() throws {
         let pluginDir = try makePluginDataDirectory()
-        clearLegacyPersistence()
-        defer {
-            clearLegacyPersistence()
-            try? FileManager.default.removeItem(at: pluginDir)
-        }
-        let service = SceneProvider(pluginDataDirectory: pluginDir)
+        defer { try? FileManager.default.removeItem(at: pluginDir) }
+        let service = SceneProvider(
+            pluginDataDirectory: pluginDir,
+            preferences: makePreferences()
+        )
         service.restoreCurrentScene()
 
         // 走真实 SceneProvider + Adapter：验证 Adapter 的转发与句柄取消正确。
