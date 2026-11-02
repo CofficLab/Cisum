@@ -52,7 +52,9 @@ struct ScenePluginTests {
 
         try await kernel.startAsync(plugins: [plugin])
 
-        #expect(kernel.resolveProvider((any SceneProviding).self)?.scenes == [.music, .audiobooks])
+        // 当前只启用音乐场景（有声书暂缓上线）
+        #expect(kernel.resolveProvider((any SceneProviding).self)?.scenes == [.music])
+        // 场景切换器仍然被添加到工具栏，但视图层面在 scenes.count == 1 时不渲染内容
         #expect(pluginProvider.getToolBarButtons().map(\.id) == ["scene-switcher"])
         #expect(plugin.selectionViewModel?.currentScene == .music)
     }
@@ -91,8 +93,8 @@ struct ScenePluginTests {
             .appendingPathComponent("PluginSceneTests-\(UUID().uuidString)", isDirectory: true)
         let service = SceneProvider(pluginDataDirectory: tempDir)
 
-        #expect(service.scenes == AppScene.allCases)
-        #expect(service.scenes == [.music, .audiobooks])
+        // 当前只启用音乐场景（有声书暂缓上线）
+        #expect(service.scenes == [.music])
     }
 
     private func makePluginDataDirectory() throws -> URL {
@@ -117,12 +119,13 @@ struct ScenePluginTests {
 
         let first = SceneProvider(pluginDataDirectory: pluginDir)
         first.restoreCurrentScene()
-        first.setCurrentScene(.audiobooks)
+        // 当前只有音乐场景可用，测试音乐场景的持久化与恢复
+        first.setCurrentScene(.music)
 
         let second = SceneProvider(pluginDataDirectory: pluginDir)
         second.restoreCurrentScene()
 
-        #expect(second.currentScene == .audiobooks)
+        #expect(second.currentScene == .music)
         #expect(FileManager.default.fileExists(atPath: fileURL.path))
     }
 
@@ -179,7 +182,8 @@ struct ScenePluginTests {
         }
         let service = SceneProvider(pluginDataDirectory: pluginDir)
         service.restoreCurrentScene()
-        service.setCurrentScene(.audiobooks)
+        // 当前只有音乐场景可用
+        service.setCurrentScene(.music)
 
         // 走真实 SceneProvider + Adapter：验证 Adapter 的转发与句柄取消正确。
         let capability = SceneSelectionCapabilityAdapter(scene: service)
@@ -188,8 +192,9 @@ struct ScenePluginTests {
         defer { observer.cancel() }
 
         // 监听安装前已经存在的状态不能丢失。
-        #expect(viewModel.scenes == AppScene.allCases)
-        #expect(viewModel.currentScene == .audiobooks)
+        // 当前只启用音乐场景（有声书暂缓上线）
+        #expect(viewModel.scenes == [.music])
+        #expect(viewModel.currentScene == .music)
     }
 
     @Test

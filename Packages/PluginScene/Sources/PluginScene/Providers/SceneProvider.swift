@@ -58,7 +58,9 @@ public final class SceneProvider: ObservableObject, SceneProviding {
     }
 
     public var scenes: [AppScene] {
-        AppScene.allCases
+        // 临时只启用音乐场景，有声书功能暂缓上线。
+        // 恢复有声书功能时改回 `AppScene.allCases`。
+        [.music]
     }
 
     public func setCurrentScene(_ scene: AppScene) {
