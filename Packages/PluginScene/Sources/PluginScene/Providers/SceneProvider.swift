@@ -1,6 +1,7 @@
 import ProviderScene
 import Combine
 import Foundation
+import MagicKit
 
 /// `SceneProviding` 的磁盘持久化实现。
 ///
@@ -24,13 +25,23 @@ public final class SceneProvider: ObservableObject, SceneProviding {
     private var persistenceURL: URL?
     private var observers: [WeakObserver] = []
 
+    /// 旧版场景键的持久化存储。
+    ///
+    /// 过去这里直接写 `UserDefaults.standard` 与 `NSUbiquitousKeyValueStore.default`
+    /// ——进程级全局状态，单元测试无法替换，且测试会清掉**开发者真实的场景
+    /// 设置**（`currentSceneName` / `currentPluginID`）。改为注入后，
+    /// 生产行为不变，测试可用独立 suite 精确控制。
+    private let preferences: PreferenceStore
+
     @Published public private(set) var currentScene: AppScene?
 
     /// 无持久化目录的临时实例（`onBoot` 阶段使用，此时 StoragePlugin 可能尚未就绪）。
     /// 后续由 `ScenePlugin.onReady` 调用 `enablePersistence(pluginDataDirectory:)`
     /// 挂上目录并恢复上次场景 —— 同一个实例全程存活，身份稳定，
     /// 避免替换实例导致消费方持有的弱引用变成空号。
-    public init() {
+    /// - Parameter preferences: 偏好存储。生产传 ``PreferenceStore/shared``。
+    public init(preferences: PreferenceStore = .shared) {
+        self.preferences = preferences
         self.persistenceURL = nil
         self.currentScene = nil
     }
@@ -41,7 +52,11 @@ public final class SceneProvider: ObservableObject, SceneProviding {
     ///
     /// 主要供测试场景直接构造已挂载目录的实例；生产代码推荐使用 `init()` +
     /// `enablePersistence(pluginDataDirectory:)` 的两阶段初始化。
-    public init(pluginDataDirectory: URL?) {
+    /// - Parameters:
+    ///   - pluginDataDirectory: 插件专属数据目录。传 `nil` 时禁用磁盘持久化。
+    ///   - preferences: 偏好存储。生产传 ``PreferenceStore/shared``。
+    public init(pluginDataDirectory: URL?, preferences: PreferenceStore = .shared) {
+        self.preferences = preferences
         self.persistenceURL = pluginDataDirectory?
             .appendingPathComponent(Self.persistenceFileName, isDirectory: false)
         self.currentScene = nil
@@ -176,8 +191,8 @@ public final class SceneProvider: ObservableObject, SceneProviding {
     }
 
     private func loadLegacySceneName() -> String? {
-        UserDefaults.standard.string(forKey: Self.legacySceneKey)
-            ?? NSUbiquitousKeyValueStore.default.string(forKey: Self.legacySceneKey)
+        preferences.defaults.string(forKey: Self.legacySceneKey)
+            ?? preferences.cloud.string(forKey: Self.legacySceneKey)
     }
 
     private func persistScene(_ scene: AppScene) throws {
@@ -193,7 +208,7 @@ public final class SceneProvider: ObservableObject, SceneProviding {
         try data.write(to: persistenceURL, options: .atomic)
 
         // 保留旧版键，便于从旧版本升级后继续恢复，也让已有调用方保持兼容。
-        UserDefaults.standard.set(scene.rawValue, forKey: Self.legacySceneKey)
+        preferences.defaults.set(scene.rawValue, forKey: Self.legacySceneKey)
     }
 
     private final class Observer: SceneProvidingObserverHandle {
