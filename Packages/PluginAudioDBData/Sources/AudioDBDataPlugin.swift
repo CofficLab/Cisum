@@ -91,6 +91,16 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     /// cleanup is not reliable when XCUITest terminates the app). Clearing the
     /// disk directory on startup makes the empty-repository precondition hold
     /// regardless of what the previous run left behind.
+    ///
+    /// ## 与隔离数据根的关系
+    ///
+    /// 启用 `--cisum-ui-testing-isolated-storage` 时，隔离根已在 App 启动
+    /// 阶段被**整体重建**（含 SwiftData 数据库文件），本方法清理的内容
+    /// 本就不存在——它保留下来是为了覆盖「未启用隔离」的旧路径
+    /// （例如某些用例刻意要复用同一个仓库目录）。
+    ///
+    /// 注意：本方法只清**磁盘目录**，不删数据库里的行。数据库行的清理
+    /// 依赖隔离根的整体重建——这正是「删磁盘目录不够」的历史原因。
     @MainActor
     private func resetUITestAudioStateIfRequested() {
         #if DEBUG
