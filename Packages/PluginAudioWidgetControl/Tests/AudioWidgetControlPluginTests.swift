@@ -1,3 +1,4 @@
+import MagicKit
 import Foundation
 import ProviderPlayback
 import Testing
@@ -198,9 +199,10 @@ struct AudioWidgetControlViewModelTests {
         viewModel.handleWidgetCommands()
 
         // 等待导航任务完成。
-        for _ in 0..<50 where playback.playedURLs.isEmpty {
-            try await Task.sleep(for: .milliseconds(20))
-        }
+        await DeterministicWait.expect(
+            "playback.playedURLs 应非空",
+            timeout: 2.0
+        ) { !playback.playedURLs.isEmpty }
         #expect(playback.playedURLs == [next])
     }
 
@@ -221,9 +223,10 @@ struct AudioWidgetControlViewModelTests {
         let viewModel = AudioWidgetControlViewModel(playback: playback, navigation: navigation)
         viewModel.handleWidgetCommands()
 
-        for _ in 0..<50 where playback.playedURLs.isEmpty {
-            try await Task.sleep(for: .milliseconds(20))
-        }
+        await DeterministicWait.expect(
+            "playback.playedURLs 应非空",
+            timeout: 2.0
+        ) { !playback.playedURLs.isEmpty }
         #expect(playback.playedURLs == [last])
     }
 

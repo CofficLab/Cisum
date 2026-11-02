@@ -1,3 +1,4 @@
+import MagicKit
 import ProviderScene
 import ProviderPlayback
 import Foundation
@@ -368,9 +369,10 @@ struct AudioLikeViewModelTests {
             repository: repository
         )
         viewModel.reloadLikedAudios()
-        for _ in 0..<50 where viewModel.isLoading {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "viewModel.isLoading 应结束",
+            timeout: 2.0
+        ) { !viewModel.isLoading }
         #expect(!viewModel.isLoading)
         #expect(viewModel.likedAudios.isEmpty)
     }
@@ -391,9 +393,10 @@ struct AudioLikeViewModelTests {
         // 激活后保存并 post 通知。
         viewModel.handleSceneChange(.music, targetScene: .music)
         viewModel.handleLikeStatusChanged(asset: URL(fileURLWithPath: "/tmp/a.mp3"), liked: true)
-        for _ in 0..<50 where repository.saved.isEmpty {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "repository.saved 应非空",
+            timeout: 2.0
+        ) { !repository.saved.isEmpty }
         #expect(repository.saved == ["file:///tmp/a.mp3"])
 
         // 离开场景后再次停用。
@@ -515,9 +518,10 @@ struct AudioLikeViewModelUnlikeTests {
         viewModel.handleLikeStatusChanged(asset: url, liked: true)
         viewModel.handleLikeStatusChanged(asset: url, liked: false)
 
-        for _ in 0..<50 where repository.records.count < 2 {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "repository.records.count 应大于等于 2",
+            timeout: 2.0
+        ) { repository.records.count >= 2 }
         #expect(repository.records.count == 2)
         #expect(repository.records[0].liked == true)
         #expect(repository.records[1].liked == false)
@@ -536,9 +540,10 @@ struct AudioLikeViewModelUnlikeTests {
         viewModel.handleSceneChange(.music, targetScene: .music)
         let url = URL(fileURLWithPath: "/tmp/audio/active.mp3")
         viewModel.handleLikeStatusChanged(asset: url, liked: true)
-        for _ in 0..<50 where repository.records.isEmpty {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "repository.records 应非空",
+            timeout: 2.0
+        ) { !repository.records.isEmpty }
         #expect(repository.records.count == 1)
 
         // 切到非目标场景 → 停用

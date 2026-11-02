@@ -1,3 +1,4 @@
+import MagicKit
 import ProviderAudioNavigation
 import ProviderAudioLibrary
 import CisumProviderStorage
@@ -357,16 +358,18 @@ struct AudioLibraryProviderTests {
 
         let addedURL = audioURL.deletingLastPathComponent().appendingPathComponent("added-track.mp3")
         try Data([0x03, 0x04]).write(to: addedURL)
-        for _ in 0..<100 where await library.totalCount() != 2 {
-            try await Task.sleep(nanoseconds: 20_000_000)
-        }
+        await DeterministicWait.expect(
+            "library.totalCount() 应等于 2",
+            timeout: 2.0
+        ) { await library.totalCount() == 2 }
         #expect(await library.contains(addedURL))
         #expect(await library.totalCount() == 2)
 
         try FileManager.default.removeItem(at: addedURL)
-        for _ in 0..<100 where await library.totalCount() != 1 {
-            try await Task.sleep(nanoseconds: 20_000_000)
-        }
+        await DeterministicWait.expect(
+            "library.totalCount() 应等于 1",
+            timeout: 2.0
+        ) { await library.totalCount() == 1 }
         #expect(await library.totalCount() == 1)
 
         let switchedRoot = root.appendingPathComponent("SwitchedDocuments", isDirectory: true)
@@ -393,9 +396,10 @@ struct AudioLibraryProviderTests {
 
         try await plugin.onEnable(kernel: kernel)
         let reenabledNavigation = try #require(kernel.resolveProvider((any AudioTrackNavigationProviding).self))
-        for _ in 0..<100 where await kernel.resolveProvider((any AudioLibraryProviding).self)?.totalCount() == 0 {
-            try await Task.sleep(nanoseconds: 20_000_000)
-        }
+        await DeterministicWait.expect(
+            "重启用后 totalCount() 应恢复非零",
+            timeout: 2.0
+        ) { await kernel.resolveProvider((any AudioLibraryProviding).self)?.totalCount() != 0 }
         #expect(await kernel.resolveProvider((any AudioLibraryProviding).self)?.totalCount() == 1)
 
         storage.updateStorageRoot(nil)

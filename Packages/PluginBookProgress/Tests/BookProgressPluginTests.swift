@@ -1,3 +1,4 @@
+import MagicKit
 import Foundation
 import ProviderBook
 import ProviderBookData
@@ -757,9 +758,10 @@ struct BookProgressViewModelTests {
         )
 
         viewModel.handleSceneChange(.audiobooks)
-        for _ in 0..<50 where playback.played.isEmpty {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "playback.played 应非空",
+            timeout: 2.0
+        ) { !playback.played.isEmpty }
         #expect(playback.played.count == 1)
         #expect(playback.played.first?.url == book)
         #expect(playback.played.first?.startTime == 42)
@@ -790,9 +792,10 @@ struct BookProgressViewModelTests {
         )
 
         viewModel.handleSceneChange(.audiobooks)
-        for _ in 0..<50 where playback.seeks.isEmpty {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "playback.seeks 应非空",
+            timeout: 2.0
+        ) { !playback.seeks.isEmpty }
         #expect(playback.seeks == [30])
         #expect(playback.played.isEmpty)
     }
@@ -824,9 +827,10 @@ struct BookProgressViewModelTests {
 
         viewModel.handleSceneChange(.audiobooks)
         viewModel.handlePlayManStateChanged(true)
-        for _ in 0..<50 where library.savedStates.isEmpty {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "library.savedStates 应非空",
+            timeout: 2.0
+        ) { !library.savedStates.isEmpty }
         #expect(library.currentTimeValue == 15)
         #expect(library.savedStates.count == 1)
     }

@@ -1,3 +1,4 @@
+import MagicKit
 import ProviderToast
 import ProviderPlayback
 import MagicPlayMan
@@ -650,9 +651,10 @@ struct BookControlViewModelTests {
         viewModel.handleSceneChange(.audiobooks)
         viewModel.handleStorageLocationDidReset()
 
-        for _ in 0..<50 where playback.resetCount == 0 {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "playback.resetCount 应大于 0",
+            timeout: 2.0
+        ) { playback.resetCount != 0 }
         #expect(playback.resetCount == 1)
     }
 
@@ -680,9 +682,10 @@ struct BookControlViewModelTests {
         viewModel.handleSceneChange(.audiobooks)
         viewModel.handleBookDBDeleted(deletedURLs: [URL(fileURLWithPath: "/tmp/book/chapter-01.mp3")])
 
-        for _ in 0..<50 where playback.resetCount == 0 {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "playback.resetCount 应大于 0",
+            timeout: 2.0
+        ) { playback.resetCount != 0 }
         #expect(playback.resetCount == 1)
     }
 

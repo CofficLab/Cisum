@@ -1,3 +1,4 @@
+import MagicKit
 import Foundation
 import Testing
 import ProviderBook
@@ -23,9 +24,10 @@ struct BookGridLoadingStateTests {
         viewModel.handleOnAppear()
         
         // 等待 debounce 和异步加载完成
-        for _ in 0..<50 where viewModel.isLoading {
-            try await Task.sleep(for: .milliseconds(50))
-        }
+        await DeterministicWait.expect(
+            "viewModel.isLoading 应结束",
+            timeout: 2.5
+        ) { !viewModel.isLoading }
         
         #expect(!viewModel.isLoading, "books() 返回空数组后，isLoading 应变为 false")
         #expect(viewModel.books.isEmpty, "books 应为空")
@@ -53,9 +55,10 @@ struct BookGridLoadingStateTests {
         viewModel.handleOnAppear()
         
         // 等待 debounce 和异步加载完成
-        for _ in 0..<50 where viewModel.isLoading {
-            try await Task.sleep(for: .milliseconds(50))
-        }
+        await DeterministicWait.expect(
+            "viewModel.isLoading 应结束",
+            timeout: 2.5
+        ) { !viewModel.isLoading }
         
         #expect(!viewModel.isLoading, "books() 返回数据后，isLoading 应变为 false")
         #expect(viewModel.books.count == 1, "books 应包含 1 本书")
@@ -123,9 +126,10 @@ struct BookGridLoadingStateTests {
         viewModel.handleOnAppear()
         
         // 等待 debounce 和异步加载完成
-        for _ in 0..<50 where viewModel.isLoading {
-            try await Task.sleep(for: .milliseconds(50))
-        }
+        await DeterministicWait.expect(
+            "viewModel.isLoading 应结束",
+            timeout: 2.5
+        ) { !viewModel.isLoading }
         
         #expect(!viewModel.isLoading, "多次快速切换后，isLoading 最终应变为 false")
     }
