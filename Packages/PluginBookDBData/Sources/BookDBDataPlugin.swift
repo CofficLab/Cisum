@@ -12,13 +12,13 @@ import Foundation
 /// UI 插件通过 `BookDatabaseProviding` 使用它，不再自行构造数据库。
 @MainActor
 public final class BookDBDataPlugin: AsyncSuperPlugin {
-    public let id = String(describing: BookDBDataPlugin.self)
+    public let id = "com.coffic.cisum.plugin.book-db-data"
 
     public static let shared = BookDBDataPlugin()
     public let order = 11
     public let iconName = "externaldrive.badge.timemachine"
     public let metadata = PluginMetadata(
-        id: String(describing: BookDBDataPlugin.self),
+        id: "com.coffic.cisum.plugin.book-db-data",
         name: "Audiobook Database Data",
         description: "Provides the audiobook database and repository service.",
         version: "1.0.0",

@@ -14,7 +14,7 @@ import MagicKit
 
 @MainActor
 public final class AudioLikePlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: AudioLikePlugin.self)
+    public let id = "com.coffic.cisum.plugin.audio-like"
 
     nonisolated static let verbose = false
 
@@ -22,7 +22,7 @@ public final class AudioLikePlugin: AsyncSuperPlugin, SuperLog {
     public let order = AudioLikePluginInfo.order
     public let iconName = AudioLikePluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: AudioLikePlugin.self),
+        id: "com.coffic.cisum.plugin.audio-like",
         name: AudioLikePluginInfo.title,
         version: "1.0.0",
         category: .feature,

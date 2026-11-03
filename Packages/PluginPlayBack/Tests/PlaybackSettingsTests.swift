@@ -12,10 +12,10 @@ import Testing
 @Test func pluginPlayBackExposesStableIdentityAndMetadata() {
     let plugin = PluginPlayBack.shared
 
-    #expect(plugin.id == "PluginPlayBack")
+    #expect(plugin.id == "com.coffic.cisum.plugin.playback")
     #expect(plugin.order == 12)
     #expect(plugin.iconName == "play.circle")
-    #expect(plugin.metadata.id == "PluginPlayBack")
+    #expect(plugin.metadata.id == "com.coffic.cisum.plugin.playback")
     #expect(plugin.metadata.name == "Play")
     #expect(plugin.metadata.version == "1.0.0")
     #expect(plugin.metadata.category == .system)

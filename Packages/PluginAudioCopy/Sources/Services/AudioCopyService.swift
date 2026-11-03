@@ -162,7 +162,7 @@ public enum AudioCopyService {
     private static func createDatabaseFile(name: String) throws -> URL {
         // 优先使用插件专属数据目录（对齐 Lumi 规范）
         if let pluginDir = storage?.pluginDataDirectoryPath() {
-            // 迁移旧目录：copy_db → CopyPlugin（首次启动时执行）。
+            // 迁移旧目录（copy_db → CopyPlugin → 当前 id）。
             // 必须在目录被创建之前迁移，否则迁移目标已经存在、永远不执行。
             migrateLegacyDirectoryIfNeeded(pluginDirectory: pluginDir)
             let url = pluginDir.appendingPathComponent("\(name).db", isDirectory: false)
@@ -201,10 +201,14 @@ public enum AudioCopyService {
         let majorVersion = version.split(separator: ".").first.flatMap { Int($0) } ?? 1
         let env = Self.dbDirName(majorVersion: majorVersion)
         let appSupport = MagicApp.getAppSpecificSupportDirectory()
-        let legacyDir = appSupport
-            .appendingPathComponent(env, isDirectory: true)
-            .appendingPathComponent("copy_db", isDirectory: true)
-        PluginDataDirectoryMigration.migrate(from: legacyDir, to: pluginDirectory)
+        let dataRoot = appSupport.appendingPathComponent(env, isDirectory: true)
+
+        for legacyName in PluginDataDirectoryHistory.legacyDirectoryNames(for: AudioCopyStorageCapabilityAdapter.pluginID) {
+            let legacyDirectory = dataRoot.appendingPathComponent(legacyName, isDirectory: true)
+            if PluginDataDirectoryMigration.migrate(from: legacyDirectory, to: pluginDirectory) {
+                return
+            }
+        }
     }
 
     private static func dbDirName(majorVersion: Int) -> String {

@@ -23,6 +23,9 @@ protocol AudioCopyStorageCapability: AnyObject {
 /// 惰性解析让 Provider 稍后就绪时能力自动生效。
 @MainActor
 final class AudioCopyStorageCapabilityAdapter: AudioCopyStorageCapability {
+    /// 本插件的 id。目录名 = 插件 id，因此历史目录名的查询也以它为键。
+    nonisolated static let pluginID = "com.coffic.cisum.plugin.copy"
+
     private let resolve: @MainActor @Sendable () -> (any StorageProviding)?
 
     init(resolve: @escaping @MainActor @Sendable () -> (any StorageProviding)?) {
@@ -36,7 +39,4 @@ final class AudioCopyStorageCapabilityAdapter: AudioCopyStorageCapability {
     func pluginDataDirectoryPath() -> URL? {
         resolve()?.pluginDataDirectoryPath(for: Self.pluginID)
     }
-
-    /// 本插件的目录名 = 插件 ID。
-    private static let pluginID = "CopyPlugin"
 }

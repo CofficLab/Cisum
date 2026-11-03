@@ -18,7 +18,7 @@ import CisumProviderStorage
 /// `onRegister` 中贡献关于页与说明书。
 @MainActor
 public final class PluginPluginManager: AsyncSuperPlugin {
-    public let id = String(describing: PluginPluginManager.self)
+    public let id = "com.coffic.cisum.plugin.plugin-manager"
 
     public static let shared = PluginPluginManager()
     public static let pluginID = "com.coffic.cisum.plugin.plugin-manager"
@@ -73,15 +73,11 @@ public final class PluginPluginManager: AsyncSuperPlugin {
             if let view = self.addSettingView() { contrib.addSettingView(ownerPluginID: id, view) }
             if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
-        // 注入插件启用状态持久化存储：onBoot 阶段从内核的 StorageProviding
-        // 解析插件专属数据目录（目录名 = 插件 ID，对齐 Lumi 规范）。
-        // 本插件为 alwaysOn，先于所有可配置插件的启用判断完成注入。
-        if let storage = kernel.resolveProvider((any ProviderStorage.StorageProviding).self) {
-            // 迁移旧目录：com.coffic.cisum.plugin.plugin-manager → PluginPluginManager
-            migrateLegacyDirectoryIfNeeded(storage: storage)
-            let pluginDir = storage.pluginDataDirectory(for: self.id)
-            kernel.stateStore = PluginEnabledStateStore(pluginDirectory: pluginDir)
-        }
+        // 插件启用状态的持久化存储由 StoragePlugin 注入（见
+        // `StoragePlugin.installEnabledStateStore`）：本插件的策略是
+        // `.disabled`，默认不启动，不能依赖自己的 onBoot 来准备状态存储。
+        //
+        // 目录迁移同理——由 StoragePlugin 在同一处完成。
 
     }
 
@@ -163,25 +159,4 @@ public final class PluginPluginManager: AsyncSuperPlugin {
         return viewModel
     }
 
-    /// 迁移旧目录到新目录（如果需要）。
-    ///
-    /// 旧版本使用 `com.coffic.cisum.plugin.plugin-manager` 作为目录名，
-    /// 新版本改用插件 ID `PluginPluginManager`（对齐 Lumi 规范）。
-    /// 此方法在首次启动时迁移旧数据，确保用户设置的插件启用状态不丢失。
-    @MainActor
-    private func migrateLegacyDirectoryIfNeeded(storage: any ProviderStorage.StorageProviding) {
-        let legacyID = Self.pluginID
-        let currentID = self.id
-
-        // 如果两个 ID 相同，无需迁移
-        guard legacyID != currentID else { return }
-
-        let legacyDir = storage.dataRootDirectory.appendingPathComponent(legacyID, isDirectory: true)
-        // 注意：这里不能用 `pluginDataDirectory(for:)`——它会创建目录，
-        // 那样「新目录是否存在」的判断将永远为真，迁移就永远不会执行。
-        // Lumi 的 StorageProviding 没有「只解析路径」的 API，因此在数据根
-        // 下直接拼接插件 ID（与 Lumi 的实现保持同一路径规则）。
-        let currentDir = storage.dataRootDirectory.appendingPathComponent(currentID, isDirectory: true)
-        PluginDataDirectoryMigration.migrate(from: legacyDir, to: currentDir)
-    }
 }

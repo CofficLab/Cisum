@@ -13,7 +13,7 @@ import SwiftUI
 
 @MainActor
 public final class AudioProgressPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: AudioProgressPlugin.self)
+    public let id = "com.coffic.cisum.plugin.audio-progress"
 
     public static let shared = AudioProgressPlugin()
     public nonisolated static let emoji = "💾"
@@ -21,7 +21,7 @@ public final class AudioProgressPlugin: AsyncSuperPlugin, SuperLog {
     public let order = 0
     public let iconName = "waveform"
     public let metadata = PluginMetadata(
-        id: String(describing: AudioProgressPlugin.self),
+        id: "com.coffic.cisum.plugin.audio-progress",
         name: String(localized: String.LocalizationValue(AudioProgressPluginInfo.titleKey), bundle: .module),
         description: String(localized: String.LocalizationValue(AudioProgressPluginInfo.descriptionKey), bundle: .module),
         version: "1.0.0",

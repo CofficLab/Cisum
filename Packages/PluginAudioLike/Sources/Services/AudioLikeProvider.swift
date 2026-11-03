@@ -47,23 +47,24 @@ final class AudioLikeProvider: AudioLikeProviding {
     }
 
     private func configureRepository() {
-        // 迁移旧目录：audio_like → AudioLikePlugin（对齐 Lumi 规范）
-        migrateLegacyAudioLikeDirectoryIfNeeded()
-        let pluginDir = storage.pluginDataDirectory(for: "AudioLikePlugin")
+        let pluginID = "com.coffic.cisum.plugin.audio-like"
+        // 迁移旧目录（audio_like → AudioLikePlugin → 当前 id）。
+        // 必须在目标目录被创建之前迁移，否则迁移永远不执行。
+        migrateLegacyDirectoryIfNeeded(pluginID: pluginID)
+        let pluginDir = storage.pluginDataDirectory(for: pluginID)
         let databaseURL = pluginDir.appendingPathComponent("audio_like.db", isDirectory: false)
         AudioLikeRepositoryConfiguration.configure(databaseURL: databaseURL)
     }
 
-    /// 迁移旧目录到新目录（如果需要）。
+    /// 迁移历史目录到当前插件目录（如果需要）。
     ///
-    /// 旧版本使用 `databaseFile(name: "audio_like")` 创建 `<databaseRoot>/audio_like/` 目录，
-    /// 新版本改用 `pluginDataDirectory(for: "AudioLikePlugin")` 创建 `<databaseRoot>/AudioLikePlugin/` 目录。
-    /// 此方法在首次启动时迁移旧数据，确保用户的喜欢数据不丢失。
-    private func migrateLegacyAudioLikeDirectoryIfNeeded() {
-        let legacyDir = storage.databaseRoot.appendingPathComponent("audio_like", isDirectory: true)
-        // 用只解析路径的 API：pluginDataDirectory 会创建目录，
-        // 那样「新目录是否存在」的判断将永远为真，迁移就永远不会执行。
-        let currentDir = storage.pluginDataDirectoryPath(for: "AudioLikePlugin")
-        PluginDataDirectoryMigration.migrate(from: legacyDir, to: currentDir)
+    /// 目录名随插件 id 变过两轮（`audio_like` → `AudioLikePlugin` → 反向 DNS），
+    /// 历史目录名由存储层统一登记，这里只负责调用。
+    private func migrateLegacyDirectoryIfNeeded(pluginID: String) {
+        PluginDataDirectoryMigration.migrate(
+            legacyDirectoryNames: PluginDataDirectoryHistory.legacyDirectoryNames(for: pluginID),
+            pluginID: pluginID,
+            dataRootDirectory: storage.databaseRoot
+        )
     }
 }

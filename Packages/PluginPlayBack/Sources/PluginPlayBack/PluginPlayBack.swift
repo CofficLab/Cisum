@@ -6,6 +6,7 @@ import LumiUI
 import KernelCore
 import ProviderPlugin
 import ProviderStorage
+import CisumProviderStorage
 import KitAppEvents
 import MagicPlayMan
 import ProviderSettingView
@@ -29,13 +30,13 @@ import SwiftUI
 /// 该功能仅有此插件维护。
 @MainActor
 public final class PluginPlayBack: AsyncSuperPlugin {
-    public let id = String(describing: PluginPlayBack.self)
+    public let id = "com.coffic.cisum.plugin.playback"
 
     public static let shared = PluginPlayBack()
     public let order = 12
     public let iconName = "play.circle"
     public let metadata = PluginMetadata(
-        id: String(describing: PluginPlayBack.self),
+        id: "com.coffic.cisum.plugin.playback",
         name: String(localized: "Play", bundle: .module),
         version: "1.0.0",
         category: .system,
@@ -94,6 +95,9 @@ public final class PluginPlayBack: AsyncSuperPlugin {
 
         // 持久化存储（order 12 在 StoragePlugin 之后，Lumi StorageProviding 已可用）
         guard let storage = kernel.resolveProvider((any ProviderStorage.StorageProviding).self) else { return }
+        // 迁移旧目录（PluginPlayBack → 当前 id）。必须在目标目录被创建之前
+        // 迁移，否则迁移永远不执行。
+        migrateLegacyDirectoryIfNeeded(storage: storage)
         let pluginDir = storage.pluginDataDirectory(for: self.id)
         let store = PlaybackStateStore(pluginDirectory: pluginDir)
         #if DEBUG
@@ -233,5 +237,26 @@ public final class PluginPlayBack: AsyncSuperPlugin {
         }
         )
     }
+
+    /// 迁移历史目录到当前插件目录（如果需要）。
+    ///
+    /// 目录名随插件 id 变过（`PluginPlayBack` → 反向 DNS），历史目录名
+    /// 由存储层统一登记，这里只负责调用。
+    ///
+    /// Lumi 的 StorageProviding 没有「只解析路径」的 API，因此这里直接
+    /// 在数据根下拼接插件 ID（与 Lumi 的实现保持同一路径规则），再交给
+    /// 存储层搬家——绝不能先用 `pluginDataDirectory(for:)`，它会创建目录。
+    private func migrateLegacyDirectoryIfNeeded(storage: any ProviderStorage.StorageProviding) {
+        let dataRoot = storage.dataRootDirectory
+        let currentDirectory = dataRoot.appendingPathComponent(self.id, isDirectory: true)
+
+        for legacyName in PluginDataDirectoryHistory.legacyDirectoryNames(for: self.id) {
+            let legacyDirectory = dataRoot.appendingPathComponent(legacyName, isDirectory: true)
+            if PluginDataDirectoryMigration.migrate(from: legacyDirectory, to: currentDirectory) {
+                return
+            }
+        }
+    }
+
 }
 

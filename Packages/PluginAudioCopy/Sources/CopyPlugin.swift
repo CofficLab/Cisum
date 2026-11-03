@@ -13,7 +13,7 @@ import CisumProviderStorage
 #if os(macOS)
     @MainActor
 public final class CopyPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: CopyPlugin.self)
+    public let id = "com.coffic.cisum.plugin.copy"
 
     nonisolated static let verbose = false
 
@@ -21,7 +21,7 @@ public final class CopyPlugin: AsyncSuperPlugin, SuperLog {
         public let order = 0
     public let iconName = AudioCopyPluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: CopyPlugin.self),
+        id: "com.coffic.cisum.plugin.copy",
         name: String(localized: "Copy", bundle: .module),
         description: String(localized: String.LocalizationValue(AudioCopyPluginInfo.descriptionKey), bundle: .module),
         version: "1.0.0",

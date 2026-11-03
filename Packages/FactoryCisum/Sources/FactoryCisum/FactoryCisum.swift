@@ -80,6 +80,16 @@ public enum CisumBuilder: SuperLog {
     ) async throws -> KernelCoreContainer {
         let kernel = KernelCoreContainer()
 
+        // 0. 插件 ID 兼容映射：新 id → 旧 id。
+        //
+        // 插件 id 从类型名（如 `AudioPlugin`）改为反向 DNS
+        // （`com.coffic.cisum.plugin.audio`）后，用户此前保存的「插件启用状态」
+        // 仍以旧 id 为键。这张表让内核在读取时回退到旧 id，写入时同时写两者，
+        // 于是升级不丢状态、回滚旧版本也仍然生效。
+        //
+        // 必须在任何插件 boot 之前配置：启用状态在插件 boot 阶段就要被读取。
+        kernel.legacyPluginIDAliases = PluginIDCompatibility.legacyAliases
+
         // 0a. UI 测试隔离：**幂等重建**隔离数据根。
         //
         // 必须早于任何插件读取数据根——隔离要覆盖全部数据：磁盘目录、

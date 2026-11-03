@@ -9,7 +9,7 @@ import MagicKit
 
 @MainActor
 public final class AudioScenePlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: AudioScenePlugin.self)
+    public let id = "com.coffic.cisum.plugin.audio-scene"
 
     nonisolated static let verbose = false
 
@@ -17,7 +17,7 @@ public final class AudioScenePlugin: AsyncSuperPlugin, SuperLog {
     public let order = AudioScenePluginInfo.order
     public let iconName = AudioScenePluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: AudioScenePlugin.self),
+        id: "com.coffic.cisum.plugin.audio-scene",
         name: AudioScenePluginInfo.title,
         description: AudioScenePluginInfo.description,
         version: "1.0.0",

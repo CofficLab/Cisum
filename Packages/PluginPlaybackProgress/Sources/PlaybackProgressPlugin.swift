@@ -10,7 +10,7 @@ import MagicKit
 /// 播放进度插件：向播放控制区注入进度条视图（`setProgressView`）。
 @MainActor
 public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: PlaybackProgressPlugin.self)
+    public let id = "com.coffic.cisum.plugin.playback-progress"
 
     nonisolated static let verbose = false
 
@@ -18,7 +18,7 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
     public let order = 21
     public let iconName = "waveform"
     public let metadata = PluginMetadata(
-        id: String(describing: PlaybackProgressPlugin.self),
+        id: "com.coffic.cisum.plugin.playback-progress",
         name: String(localized: "Playback Progress", bundle: .module),
         description: String(localized: "Provides the progress bar view for the player control area.", bundle: .module),
         version: "1.0.0",

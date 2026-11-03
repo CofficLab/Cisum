@@ -13,7 +13,7 @@ import MagicKit
 /// 应用信息。说明书条目注册到内核 `DocsViewProviding`，供其他地方消费。
 @MainActor
 public final class SettingGeneralPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: SettingGeneralPlugin.self)
+    public let id = "com.coffic.cisum.plugin.setting-general"
 
     nonisolated static let verbose = false
 
@@ -21,7 +21,7 @@ public final class SettingGeneralPlugin: AsyncSuperPlugin, SuperLog {
     public let order = 1
     public let iconName = "gearshape"
     public let metadata = PluginMetadata(
-        id: String(describing: SettingGeneralPlugin.self),
+        id: "com.coffic.cisum.plugin.setting-general",
         name: String(localized: "General Settings", bundle: .module),
         version: "1.0.0",
         category: .core,

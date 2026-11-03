@@ -104,7 +104,7 @@ struct SettingsButtonPluginLifecycleTests {
         let shared = SettingsButtonPlugin.shared
 
         #expect(shared.id == SettingsButtonPlugin().id)
-        #expect(shared.id == "SettingsButtonPlugin")
+        #expect(shared.id == "com.coffic.cisum.plugin.settings-button")
         #expect(SettingsButtonPlugin.verbose == false)
     }
 }

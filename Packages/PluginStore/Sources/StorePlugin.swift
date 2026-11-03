@@ -13,7 +13,7 @@ import ProviderStoreKit
 
 @MainActor
 public final class StorePlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: StorePlugin.self)
+    public let id = "com.coffic.cisum.plugin.store"
 
     nonisolated static let verbose = false
 
@@ -23,7 +23,7 @@ public final class StorePlugin: AsyncSuperPlugin, SuperLog {
     public let order = 80
     public let iconName = StorePluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: StorePlugin.self),
+        id: "com.coffic.cisum.plugin.store",
         name: String(localized: String.LocalizationValue(StorePluginInfo.titleKey), bundle: .module),
         version: "1.0.0",
         category: .system,

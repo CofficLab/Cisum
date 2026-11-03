@@ -55,9 +55,11 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
                 return cachedRepo
             }
             guard let disk = audioDisk else { return nil }
-            // 迁移旧目录：audio → AudioDBDataPlugin（对齐 Lumi 规范）
-            migrateLegacyAudioDirectoryIfNeeded()
-            let pluginDir = storage.pluginDataDirectory(for: "AudioDBDataPlugin")
+            let pluginID = "com.coffic.cisum.plugin.audio-db-data"
+            // 迁移旧目录（audio → AudioDBDataPlugin → 当前 id）。
+            // 必须在目标目录被创建之前迁移，否则迁移永远不执行。
+            migrateLegacyDirectoryIfNeeded(pluginID: pluginID)
+            let pluginDir = storage.pluginDataDirectory(for: pluginID)
             let databaseURL = pluginDir.appendingPathComponent("audio.db", isDirectory: false)
             guard let container = try? AudioConfigRepo.getContainer(databaseURL: databaseURL) else { return nil }
             let repo = try? AudioRepo(
@@ -73,17 +75,16 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
         }
     }
 
-    /// 迁移旧目录到新目录（如果需要）。
+    /// 迁移历史目录到当前插件目录（如果需要）。
     ///
-    /// 旧版本使用 `databaseFile(name: "audio")` 创建 `<databaseRoot>/audio/` 目录，
-    /// 新版本改用 `pluginDataDirectory(for: "AudioDBDataPlugin")` 创建 `<databaseRoot>/AudioDBDataPlugin/` 目录。
-    /// 此方法在首次启动时迁移旧数据，确保用户的音频数据库不丢失。
-    private func migrateLegacyAudioDirectoryIfNeeded() {
-        let legacyDir = storage.databaseRoot.appendingPathComponent("audio", isDirectory: true)
-        // 用只解析路径的 API：pluginDataDirectory 会创建目录，
-        // 那样「新目录是否存在」的判断将永远为真，迁移就永远不会执行。
-        let currentDir = storage.pluginDataDirectoryPath(for: "AudioDBDataPlugin")
-        PluginDataDirectoryMigration.migrate(from: legacyDir, to: currentDir)
+    /// 目录名随插件 id 变过两轮（`audio` → `AudioDBDataPlugin` → 反向 DNS），
+    /// 历史目录名由存储层统一登记，这里只负责调用。
+    private func migrateLegacyDirectoryIfNeeded(pluginID: String) {
+        PluginDataDirectoryMigration.migrate(
+            legacyDirectoryNames: PluginDataDirectoryHistory.legacyDirectoryNames(for: pluginID),
+            pluginID: pluginID,
+            dataRootDirectory: storage.databaseRoot
+        )
     }
 
     func currentRepository() async -> AudioRepo? {

@@ -13,7 +13,7 @@ import MagicKit
 /// 播放封面插件：向播放控制区注入封面/标题区视图（`setHeroView`）。
 @MainActor
 public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: PlaybackHeroPlugin.self)
+    public let id = "com.coffic.cisum.plugin.playback-hero"
 
     nonisolated static let verbose = false
 
@@ -21,7 +21,7 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
     public let order = 19
     public let iconName = "photo"
     public let metadata = PluginMetadata(
-        id: String(describing: PlaybackHeroPlugin.self),
+        id: "com.coffic.cisum.plugin.playback-hero",
         name: String(localized: "Playback Cover", bundle: .module),
         description: String(localized: "Provides the cover and title view for the player control area.", bundle: .module),
         version: "1.0.0",

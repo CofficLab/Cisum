@@ -10,7 +10,7 @@ import MagicKit
 
 @MainActor
 public final class SystemPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: SystemPlugin.self)
+    public let id = "com.coffic.cisum.plugin.system"
 
     nonisolated static let verbose = false
 
@@ -18,7 +18,7 @@ public final class SystemPlugin: AsyncSuperPlugin, SuperLog {
     public let order = ResetPluginInfo.order
     public let iconName = ResetPluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: SystemPlugin.self),
+        id: "com.coffic.cisum.plugin.system",
         name: ResetPluginInfo.title,
         version: "1.0.0",
         category: .system,

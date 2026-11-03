@@ -56,9 +56,11 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
         }
 
         guard let disk = bookDisk else { return nil }
-        // 迁移旧目录：books_db/books_cover → BookDBDataPlugin（对齐 Lumi 规范）
-        migrateLegacyBookDirectoriesIfNeeded()
-        let pluginDir = storage.pluginDataDirectory(for: "BookDBDataPlugin")
+        let pluginID = "com.coffic.cisum.plugin.book-db-data"
+        // 迁移旧目录（books_db/books_cover → BookDBDataPlugin → 当前 id）。
+        // 必须在目标目录被创建之前迁移，否则迁移永远不执行。
+        migrateLegacyDirectoryIfNeeded(pluginID: pluginID)
+        let pluginDir = storage.pluginDataDirectory(for: pluginID)
         let container = await Task.detached(priority: .utility) {
             try? BookConfig.getContainer(pluginDirectory: pluginDir)
         }.value
@@ -76,32 +78,28 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
         return repository
     }
 
-    /// 迁移旧目录到新目录（如果需要）。
+    /// 迁移历史目录到当前插件目录（如果需要）。
     ///
-    /// 旧版本使用 `databaseRoot/books_db/` 和 `databaseRoot/books_cover/` 目录，
-    /// 新版本改用 `pluginDataDirectory(for: "BookDBDataPlugin")` 目录。
-    /// 此方法在首次启动时迁移旧数据，确保用户的书籍数据库和封面不丢失。
-    private func migrateLegacyBookDirectoriesIfNeeded() {
-        let legacyDBDir = storage.databaseRoot.appendingPathComponent("books_db", isDirectory: true)
-        let legacyCoverDir = storage.databaseRoot.appendingPathComponent("books_cover", isDirectory: true)
-        // 用只解析路径的 API：pluginDataDirectory 会创建目录，
-        // 那样「新目录是否存在」的判断将永远为真，迁移就永远不会执行。
-        let currentDir = storage.pluginDataDirectoryPath(for: "BookDBDataPlugin")
+    /// 目录名随插件 id 变过两轮（`books_db` → `BookDBDataPlugin` → 反向 DNS），
+    /// 历史目录名由存储层统一登记，这里只负责调用。
+    ///
+    /// 封面目录 `books_cover` 历史上与数据库目录**平级**，而插件目录里它
+    /// 在 `books_cover/` 子目录下，因此需要单独搬一次。
+    private func migrateLegacyDirectoryIfNeeded(pluginID: String) {
+        let dataRoot = storage.databaseRoot
+        let currentDirectory = dataRoot.appendingPathComponent(pluginID, isDirectory: true)
 
-        // 优先迁移数据库目录（更重要）：它整体变成插件目录。
-        if PluginDataDirectoryMigration.migrate(from: legacyDBDir, to: currentDir) {
-            // 封面目录跟着进入插件目录内。
-            if FileManager.default.fileExists(atPath: legacyCoverDir.path) {
-                let newCoverDir = currentDir.appendingPathComponent("books_cover", isDirectory: true)
-                PluginDataDirectoryMigration.migrate(from: legacyCoverDir, to: newCoverDir)
-            }
-            return
-        }
+        PluginDataDirectoryMigration.migrate(
+            legacyDirectoryNames: PluginDataDirectoryHistory.legacyDirectoryNames(for: pluginID),
+            pluginID: pluginID,
+            dataRootDirectory: dataRoot
+        )
 
-        // 数据库目录不存在时，若只有封面目录，则单独迁移。
-        if FileManager.default.fileExists(atPath: legacyCoverDir.path) {
-            let newCoverDir = currentDir.appendingPathComponent("books_cover", isDirectory: true)
-            PluginDataDirectoryMigration.migrate(from: legacyCoverDir, to: newCoverDir)
+        // 封面目录：历史布局里与数据库目录平级，插件布局里是子目录。
+        let legacyCoverDirectory = dataRoot.appendingPathComponent("books_cover", isDirectory: true)
+        if FileManager.default.fileExists(atPath: legacyCoverDirectory.path) {
+            let newCoverDirectory = currentDirectory.appendingPathComponent("books_cover", isDirectory: true)
+            PluginDataDirectoryMigration.migrate(from: legacyCoverDirectory, to: newCoverDirectory)
         }
     }
 

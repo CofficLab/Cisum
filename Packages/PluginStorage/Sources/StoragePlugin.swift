@@ -12,7 +12,7 @@ import SwiftUI
 
 @MainActor
 public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: StoragePlugin.self)
+    public let id = "com.coffic.cisum.plugin.storage"
 
     public static let shared = StoragePlugin()
     public nonisolated static let emoji = "💾"
@@ -20,7 +20,7 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
     public let order = 10
     public let iconName = StoragePluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: StoragePlugin.self),
+        id: "com.coffic.cisum.plugin.storage",
         name: String(localized: String.LocalizationValue(StoragePluginInfo.titleKey), bundle: .module),
         version: "1.0.0",
         category: .feature,
@@ -58,11 +58,45 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
         try kernel.registerProvider((any CisumProviderStorage.StorageProviding).self, provider)
         try kernel.registerProvider((any ProviderStorage.StorageProviding).self, provider)
 
-        // 插件启用状态持久化存储由 PluginPluginManager.onBoot 注入
-        // （解析 kernel.resolveProvider((any CisumProviderStorage.StorageProviding).self)
-        // 的根目录，写入 `<databaseRoot>/PluginManager/`）。
+        // 插件启用状态的持久化存储在此注入（对齐 Lumi `FactoryLumi`）。
+        //
+        // 为什么放在这里而不是 PluginPluginManager：那个插件自身的策略是
+        // `.disabled`（彻底停用，不注册不启动），它的 `onBoot` 默认不会执行——
+        // 状态存储因此永远不会被注入，「用户关掉的插件」重启后又变回默认。
+        //
+        // 本插件是 `.alwaysOn` 且 order 最小，必然 boot；且它持有数据根目录，
+        // 由它来准备状态存储的落盘位置最自然。
+        installEnabledStateStore(kernel: kernel, storage: provider)
 
         installSettingsState(kernel: kernel)
+    }
+
+    /// 准备插件启用状态的持久化存储。
+    ///
+    /// 状态文件落在**插件管理器**的专属目录里（目录名 = 插件 id），
+    /// 与 Lumi 的布局一致。迁移同样在这里完成：插件管理器默认不启动，
+    /// 不能指望它自己搬运旧目录。
+    private func installEnabledStateStore(
+        kernel: KernelCoreContainer,
+        storage: any ProviderStorage.StorageProviding
+    ) {
+        let pluginManagerID = "com.coffic.cisum.plugin.plugin-manager"
+        let dataRoot = storage.dataRootDirectory
+        let currentDirectory = dataRoot.appendingPathComponent(pluginManagerID, isDirectory: true)
+
+        // 迁移历史目录。必须先迁移、再创建目录——`pluginDataDirectory(for:)`
+        // 会创建目录，若先用它拿到目标路径，「目标不存在」的判断恒为真，
+        // 迁移就永远不会执行。
+        for legacyName in PluginDataDirectoryHistory.legacyDirectoryNames(for: pluginManagerID) {
+            let legacyDirectory = dataRoot.appendingPathComponent(legacyName, isDirectory: true)
+            if PluginDataDirectoryMigration.migrate(from: legacyDirectory, to: currentDirectory) {
+                break
+            }
+        }
+
+        kernel.stateStore = PluginEnabledStateStore(
+            pluginDirectory: storage.pluginDataDirectory(for: pluginManagerID)
+        )
     }
 
     @MainActor

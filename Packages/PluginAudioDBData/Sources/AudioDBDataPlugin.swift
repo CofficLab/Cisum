@@ -14,7 +14,7 @@ import OSLog
 /// UI 插件通过 `AudioLibraryProviding` 使用它，不再自行构造数据库。
 @MainActor
 public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: AudioDBDataPlugin.self)
+    public let id = "com.coffic.cisum.plugin.audio-db-data"
 
     public nonisolated static let emoji = "💾"
     public nonisolated static let verbose = false
@@ -23,7 +23,7 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     public let order = 1
     public let iconName = "externaldrive.badge.timemachine"
     public let metadata = PluginMetadata(
-        id: String(describing: AudioDBDataPlugin.self),
+        id: "com.coffic.cisum.plugin.audio-db-data",
         name: "Audio Database Data",
         description: "Provides the audio database and keeps the audio library synchronized.",
         version: "1.0.0",

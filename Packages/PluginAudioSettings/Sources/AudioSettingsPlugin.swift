@@ -11,7 +11,7 @@ import MagicKit
 
 @MainActor
 public final class AudioSettingsPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: AudioSettingsPlugin.self)
+    public let id = "com.coffic.cisum.plugin.audio-settings"
 
     nonisolated static let verbose = false
 
@@ -19,7 +19,7 @@ public final class AudioSettingsPlugin: AsyncSuperPlugin, SuperLog {
     public let order = AudioSettingsPluginInfo.order
     public let iconName = AudioSettingsPluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: AudioSettingsPlugin.self),
+        id: "com.coffic.cisum.plugin.audio-settings",
         name: AudioSettingsPluginInfo.title,
         version: "1.0.0",
         category: .system,
