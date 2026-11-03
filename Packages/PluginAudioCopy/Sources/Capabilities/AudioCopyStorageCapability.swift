@@ -7,8 +7,14 @@ import CisumProviderStorage
 /// 对齐 Lumi 规范：插件数据目录名 = 插件 ID。
 @MainActor
 protocol AudioCopyStorageCapability: AnyObject {
-    /// 获取插件专属数据目录。
+    /// 获取插件专属数据目录（会创建目录）。
     func pluginDataDirectory() -> URL?
+
+    /// 解析插件专属数据目录路径（**不创建目录**）。
+    ///
+    /// 需要先判断目录是否存在（例如目录迁移）时必须用它：若先创建目录，
+    /// 「新目录是否已存在」的判断将永远为真，迁移就永远不会执行。
+    func pluginDataDirectoryPath() -> URL?
 }
 
 /// 存储能力适配器：惰性解析内核 StorageProviding。
@@ -24,6 +30,13 @@ final class AudioCopyStorageCapabilityAdapter: AudioCopyStorageCapability {
     }
 
     func pluginDataDirectory() -> URL? {
-        resolve()?.pluginDataDirectory(for: "CopyPlugin")
+        resolve()?.pluginDataDirectory(for: Self.pluginID)
     }
+
+    func pluginDataDirectoryPath() -> URL? {
+        resolve()?.pluginDataDirectoryPath(for: Self.pluginID)
+    }
+
+    /// 本插件的目录名 = 插件 ID。
+    private static let pluginID = "CopyPlugin"
 }

@@ -80,7 +80,9 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
     /// 此方法在首次启动时迁移旧数据，确保用户的音频数据库不丢失。
     private func migrateLegacyAudioDirectoryIfNeeded() {
         let legacyDir = storage.databaseRoot.appendingPathComponent("audio", isDirectory: true)
-        let currentDir = storage.pluginDataDirectory(for: "AudioDBDataPlugin")
+        // 用只解析路径的 API：pluginDataDirectory 会创建目录，
+        // 那样「新目录是否存在」的判断将永远为真，迁移就永远不会执行。
+        let currentDir = storage.pluginDataDirectoryPath(for: "AudioDBDataPlugin")
         PluginDataDirectoryMigration.migrate(from: legacyDir, to: currentDir)
     }
 

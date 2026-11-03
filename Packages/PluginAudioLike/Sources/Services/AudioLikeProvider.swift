@@ -61,7 +61,9 @@ final class AudioLikeProvider: AudioLikeProviding {
     /// 此方法在首次启动时迁移旧数据，确保用户的喜欢数据不丢失。
     private func migrateLegacyAudioLikeDirectoryIfNeeded() {
         let legacyDir = storage.databaseRoot.appendingPathComponent("audio_like", isDirectory: true)
-        let currentDir = storage.pluginDataDirectory(for: "AudioLikePlugin")
+        // 用只解析路径的 API：pluginDataDirectory 会创建目录，
+        // 那样「新目录是否存在」的判断将永远为真，迁移就永远不会执行。
+        let currentDir = storage.pluginDataDirectoryPath(for: "AudioLikePlugin")
         PluginDataDirectoryMigration.migrate(from: legacyDir, to: currentDir)
     }
 }

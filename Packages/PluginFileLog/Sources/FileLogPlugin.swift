@@ -59,7 +59,9 @@ public final class FileLogPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     private func migrateLegacyDirectoryIfNeeded(storage: any StorageProviding) {
         let legacyDir = storage.databaseRoot.appendingPathComponent("FileLog", isDirectory: true)
-        let currentDir = storage.pluginDataDirectory(for: self.id)
+        // 用只解析路径的 API：pluginDataDirectory 会创建目录，
+        // 那样「新目录是否存在」的判断将永远为真，迁移就永远不会执行。
+        let currentDir = storage.pluginDataDirectoryPath(for: self.id)
         PluginDataDirectoryMigration.migrate(from: legacyDir, to: currentDir)
     }
 

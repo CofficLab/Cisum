@@ -177,7 +177,11 @@ public final class PluginPluginManager: AsyncSuperPlugin {
         guard legacyID != currentID else { return }
 
         let legacyDir = storage.dataRootDirectory.appendingPathComponent(legacyID, isDirectory: true)
-        let currentDir = storage.pluginDataDirectory(for: currentID)
+        // 注意：这里不能用 `pluginDataDirectory(for:)`——它会创建目录，
+        // 那样「新目录是否存在」的判断将永远为真，迁移就永远不会执行。
+        // Lumi 的 StorageProviding 没有「只解析路径」的 API，因此在数据根
+        // 下直接拼接插件 ID（与 Lumi 的实现保持同一路径规则）。
+        let currentDir = storage.dataRootDirectory.appendingPathComponent(currentID, isDirectory: true)
         PluginDataDirectoryMigration.migrate(from: legacyDir, to: currentDir)
     }
 }

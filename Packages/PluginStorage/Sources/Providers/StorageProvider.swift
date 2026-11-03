@@ -94,9 +94,17 @@ public final class StorageProvider: ObservableObject, CisumProviderStorage.Stora
     }
 
     public func pluginDataDirectory(for pluginID: String) -> URL {
-        let dir = databaseRoot.appendingPathComponent(pluginID, isDirectory: true)
+        let dir = pluginDataDirectoryPath(for: pluginID)
         try? Self.ensureDirectory(at: dir)
         return dir
+    }
+
+    /// 解析插件数据目录路径，**不创建目录**。
+    ///
+    /// 与 `pluginDataDirectory(for:)` 分开，是为了让目录迁移能在目录被
+    /// 创建之前判断「新目录是否已存在」——若先创建再判断，迁移永远不会执行。
+    public func pluginDataDirectoryPath(for pluginID: String) -> URL {
+        databaseRoot.appendingPathComponent(pluginID, isDirectory: true)
     }
 
     public func setStorageLocation(_ location: StorageLocation?) {

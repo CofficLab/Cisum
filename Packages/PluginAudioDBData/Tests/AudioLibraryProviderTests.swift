@@ -119,6 +119,43 @@ private func waitForLibraryNotifications() async {
 @Suite(.serialized)
 @MainActor
 struct AudioLibraryProviderTests {
+    /// 回归测试：旧版 `audio/` 目录必须被迁移到 `AudioDBDataPlugin/`。
+    ///
+    /// 这是一个真实踩过的坑：迁移前先调用了 `pluginDataDirectory(for:)`，
+    /// 而它**会创建目录**——于是「目标目录是否已存在」的判断恒为真，
+    /// 迁移被静默跳过，旧目录原地留下，新目录变成空壳。
+    @Test
+    func legacyAudioDirectoryIsMigratedToPluginDirectory() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AudioLibraryMigrationTests-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let databaseRoot = root.appendingPathComponent("Database", isDirectory: true)
+        let legacyDirectory = databaseRoot.appendingPathComponent("audio", isDirectory: true)
+        try FileManager.default.createDirectory(at: legacyDirectory, withIntermediateDirectories: true)
+        // 用一个普通文件作为「旧数据」的标记。刻意**不**用 .db 后缀：
+        // 迁移后 SwiftData 会尝试打开 `AudioDBDataPlugin/audio.db`，
+        // 一个内容非法的假库会刷出一片 CoreData 报错噪声，掩盖真正的断言。
+        try Data("legacy".utf8).write(to: legacyDirectory.appendingPathComponent("legacy-marker.bin"))
+
+        let storage = TestStorageProvider(storageRoot: root, databaseRoot: databaseRoot)
+        let provider = AudioLibraryProvider(storage: storage, entitlement: TestAudioDataEntitlement())
+        defer { provider.shutdown() }
+
+        // 触发仓库构建：迁移就在这条路径上发生。
+        _ = await provider.currentRepository()
+
+        let pluginDirectory = databaseRoot.appendingPathComponent("AudioDBDataPlugin", isDirectory: true)
+        #expect(
+            !FileManager.default.fileExists(atPath: legacyDirectory.path),
+            "旧目录应被迁移走，而不是原地留下"
+        )
+        #expect(
+            FileManager.default.fileExists(atPath: pluginDirectory.appendingPathComponent("legacy-marker.bin").path),
+            "旧目录里的数据应被搬到插件目录下"
+        )
+    }
+
     @Test
     func unavailableStorageReturnsEmptyResultsAndRejectsRequiredOperations() async {
         let root = FileManager.default.temporaryDirectory

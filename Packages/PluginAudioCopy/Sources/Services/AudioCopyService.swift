@@ -161,8 +161,9 @@ public enum AudioCopyService {
 
     private static func createDatabaseFile(name: String) throws -> URL {
         // 优先使用插件专属数据目录（对齐 Lumi 规范）
-        if let pluginDir = storage?.pluginDataDirectory() {
-            // 迁移旧目录：copy_db → CopyPlugin（首次启动时执行）
+        if let pluginDir = storage?.pluginDataDirectoryPath() {
+            // 迁移旧目录：copy_db → CopyPlugin（首次启动时执行）。
+            // 必须在目录被创建之前迁移，否则迁移目标已经存在、永远不执行。
             migrateLegacyDirectoryIfNeeded(pluginDirectory: pluginDir)
             let url = pluginDir.appendingPathComponent("\(name).db", isDirectory: false)
             try FileManager.default.createDirectory(

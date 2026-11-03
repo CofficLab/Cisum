@@ -84,7 +84,9 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
     private func migrateLegacyBookDirectoriesIfNeeded() {
         let legacyDBDir = storage.databaseRoot.appendingPathComponent("books_db", isDirectory: true)
         let legacyCoverDir = storage.databaseRoot.appendingPathComponent("books_cover", isDirectory: true)
-        let currentDir = storage.pluginDataDirectory(for: "BookDBDataPlugin")
+        // 用只解析路径的 API：pluginDataDirectory 会创建目录，
+        // 那样「新目录是否存在」的判断将永远为真，迁移就永远不会执行。
+        let currentDir = storage.pluginDataDirectoryPath(for: "BookDBDataPlugin")
 
         // 优先迁移数据库目录（更重要）：它整体变成插件目录。
         if PluginDataDirectoryMigration.migrate(from: legacyDBDir, to: currentDir) {

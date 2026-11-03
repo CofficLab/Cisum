@@ -1111,6 +1111,50 @@ import ProviderStorage
     #expect(first.path != second.path)
 }
 
+/// 回归测试：`pluginDataDirectoryPath(for:)` 不得创建目录。
+///
+/// 目录迁移的语义是「新目录不存在时才搬」。若解析目标路径的 API 会顺手
+/// 创建目录，那么这个判断永远为真，迁移永远不执行——旧目录原地留下，
+/// 新目录变成空壳，App 读到的是空数据。
+@MainActor
+@Test func pluginDataDirectoryPathResolvesWithoutCreatingDirectory() {
+    let service = StorageProvider()
+    let path = service.pluginDataDirectoryPath(for: "PluginNotCreated")
+
+    #expect(path.lastPathComponent == "PluginNotCreated")
+    #expect(path.path.hasPrefix(service.databaseRoot.path))
+    // 关键断言：只解析路径，不得产生目录。
+    #expect(!FileManager.default.fileExists(atPath: path.path))
+}
+
+/// 回归测试：迁移必须在目录被创建之前执行。
+///
+/// 这正是历史 bug 的现场：先调 `pluginDataDirectory(for:)`（创建目录），
+/// 再判断「新目录是否存在」——判断恒为真，迁移被静默跳过。
+@MainActor
+@Test func legacyDirectoryIsMigratedWhenTargetDirectoryIsNotYetCreated() throws {
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent("StorageMigrationTests-\(UUID().uuidString)", isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+
+    let legacyDir = root.appendingPathComponent("audio", isDirectory: true)
+    let targetDir = root.appendingPathComponent("AudioDBDataPlugin", isDirectory: true)
+    try FileManager.default.createDirectory(at: legacyDir, withIntermediateDirectories: true)
+    try Data("legacy-db".utf8).write(to: legacyDir.appendingPathComponent("audio.db"))
+
+    // 只解析路径（不创建），然后迁移。
+    let resolvedTarget = root.appendingPathComponent("AudioDBDataPlugin", isDirectory: true)
+    #expect(!FileManager.default.fileExists(atPath: resolvedTarget.path))
+
+    let migrated = PluginDataDirectoryMigration.migrate(from: legacyDir, to: resolvedTarget)
+
+    #expect(migrated)
+    #expect(!FileManager.default.fileExists(atPath: legacyDir.path))
+    #expect(FileManager.default.fileExists(atPath: targetDir.path))
+    #expect(FileManager.default.fileExists(atPath: targetDir.appendingPathComponent("audio.db").path))
+}
+
 @MainActor
 @Test func storagePluginBindsPreexistingSettingsViewModelWhenProviderBecomesAvailable() async throws {
     let plugin = StoragePlugin()
