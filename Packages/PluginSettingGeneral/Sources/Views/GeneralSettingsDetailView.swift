@@ -6,6 +6,7 @@ import UIKit
 #endif
 import MagicKit
 import LumiUI
+import CisumProviderStorage
 import SwiftUI
 
 /// 通用设置详情视图 —— 设置窗口「通用」标签页。
@@ -96,11 +97,26 @@ struct GeneralSettingsDetailView: View {
         }
     }
 
+    /// 打开应用的数据根目录。
+    ///
+    /// 目录结构：
+    ///
+    /// ```text
+    /// <Application Support>/<bundleID>/
+    /// └── db_debug_v<N> | db_production_v<N>   ← 数据根目录
+    ///     ├── <pluginID>/                     ← 各插件数据
+    ///     └── Core/
+    /// ```
+    ///
+    /// 数据根目录名复用 `DataRootDirectoryNaming`（与 `StorageProvider` 同一份
+    /// 定义）——在视图里另抄一份 `db_debug_v<N>` 的话，改版本号策略时必然
+    /// 漏改，打开的就是一个不存在的目录。
     private func openDataDirectory() {
-        let bundleID = Bundle.main.bundleIdentifier ?? "com.coffic.cisum"
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
+        let bundleID = Bundle.main.bundleIdentifier ?? "com.yueyi.cisum"
+        let dataRoot = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
             .appendingPathComponent(bundleID, isDirectory: true)
-        guard let url = appSupport else { return }
+            .appendingPathComponent(DataRootDirectoryNaming.directoryName(), isDirectory: true)
+        guard let url = dataRoot else { return }
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         #if canImport(AppKit)
         NSWorkspace.shared.open(url)
