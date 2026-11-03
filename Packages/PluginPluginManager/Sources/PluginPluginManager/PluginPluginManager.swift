@@ -7,6 +7,7 @@ import ProviderPlugin
 import ProviderStorage
 import ProviderSettingView
 import SwiftUI
+import CisumProviderStorage
 
 /// 插件管理插件（对齐 Lumi `PluginPluginManager`）。
 ///
@@ -73,10 +74,12 @@ public final class PluginPluginManager: AsyncSuperPlugin {
             if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
         // 注入插件启用状态持久化存储：onBoot 阶段从内核的 StorageProviding
-        // 解析插件专属数据目录（目录名 = 插件 ID，对齐 GitOK 规律）。
+        // 解析插件专属数据目录（目录名 = 插件 ID，对齐 Lumi 规范）。
         // 本插件为 alwaysOn，先于所有可配置插件的启用判断完成注入。
         if let storage = kernel.resolveProvider((any ProviderStorage.StorageProviding).self) {
-            let pluginDir = storage.pluginDataDirectory(for: Self.pluginID)
+            // 迁移旧目录：com.coffic.cisum.plugin.plugin-manager → PluginPluginManager
+            migrateLegacyDirectoryIfNeeded(storage: storage)
+            let pluginDir = storage.pluginDataDirectory(for: self.id)
             kernel.stateStore = PluginEnabledStateStore(pluginDirectory: pluginDir)
         }
 
@@ -158,5 +161,23 @@ public final class PluginPluginManager: AsyncSuperPlugin {
         let viewModel = PluginManagementViewModel()
         managementViewModel = viewModel
         return viewModel
+    }
+
+    /// 迁移旧目录到新目录（如果需要）。
+    ///
+    /// 旧版本使用 `com.coffic.cisum.plugin.plugin-manager` 作为目录名，
+    /// 新版本改用插件 ID `PluginPluginManager`（对齐 Lumi 规范）。
+    /// 此方法在首次启动时迁移旧数据，确保用户设置的插件启用状态不丢失。
+    @MainActor
+    private func migrateLegacyDirectoryIfNeeded(storage: any ProviderStorage.StorageProviding) {
+        let legacyID = Self.pluginID
+        let currentID = self.id
+
+        // 如果两个 ID 相同，无需迁移
+        guard legacyID != currentID else { return }
+
+        let legacyDir = storage.dataRootDirectory.appendingPathComponent(legacyID, isDirectory: true)
+        let currentDir = storage.pluginDataDirectory(for: currentID)
+        PluginDataDirectoryMigration.migrate(from: legacyDir, to: currentDir)
     }
 }

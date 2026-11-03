@@ -6,6 +6,7 @@ import ProviderAudioLibrary
 import ProviderToast
 import SwiftData
 import SwiftUI
+import CisumProviderStorage
 
 @MainActor
 public enum AudioCopyService {
@@ -18,6 +19,7 @@ public enum AudioCopyService {
     static var toast: (any AudioCopyToastCapability)?
     static var capacity: (any AudioCopyCapacityCapability)?
     static var purchase: (any AudioCopyPurchaseCapability)?
+    static var storage: (any AudioCopyStorageCapability)?
     static var copyViewModel: CopyViewModel?
     static var copyObserver: CopyTaskObserver?
 
@@ -26,12 +28,14 @@ public enum AudioCopyService {
         library: any AudioCopyLibraryCapability,
         toast: (any AudioCopyToastCapability)?,
         capacity: any AudioCopyCapacityCapability,
-        purchase: any AudioCopyPurchaseCapability
+        purchase: any AudioCopyPurchaseCapability,
+        storage: any AudioCopyStorageCapability
     ) {
         Self.library = library
         Self.toast = toast
         Self.capacity = capacity
         Self.purchase = purchase
+        Self.storage = storage
         installCopyState()
     }
 
@@ -156,6 +160,19 @@ public enum AudioCopyService {
     }
 
     private static func createDatabaseFile(name: String) throws -> URL {
+        // 优先使用插件专属数据目录（对齐 Lumi 规范）
+        if let pluginDir = storage?.pluginDataDirectory() {
+            // 迁移旧目录：copy_db → CopyPlugin（首次启动时执行）
+            migrateLegacyDirectoryIfNeeded(pluginDirectory: pluginDir)
+            let url = pluginDir.appendingPathComponent("\(name).db", isDirectory: false)
+            try FileManager.default.createDirectory(
+                at: pluginDir,
+                withIntermediateDirectories: true
+            )
+            return url
+        }
+
+        // 回退：使用旧版路径（如果 storage 能力未注入）
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1"
         let majorVersion = version.split(separator: ".").first.flatMap { Int($0) } ?? 1
         let env = Self.dbDirName(majorVersion: majorVersion)
@@ -171,6 +188,22 @@ public enum AudioCopyService {
         )
 
         return url
+    }
+
+    /// 迁移旧目录到新目录（如果需要）。
+    ///
+    /// 旧版本使用 `<databaseRoot>/copy_db/` 目录，
+    /// 新版本改用 `pluginDataDirectory(for: "CopyPlugin")` 目录。
+    /// 此方法在首次启动时迁移旧数据，确保用户的复制任务数据不丢失。
+    private static func migrateLegacyDirectoryIfNeeded(pluginDirectory: URL) {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1"
+        let majorVersion = version.split(separator: ".").first.flatMap { Int($0) } ?? 1
+        let env = Self.dbDirName(majorVersion: majorVersion)
+        let appSupport = MagicApp.getAppSpecificSupportDirectory()
+        let legacyDir = appSupport
+            .appendingPathComponent(env, isDirectory: true)
+            .appendingPathComponent("copy_db", isDirectory: true)
+        PluginDataDirectoryMigration.migrate(from: legacyDir, to: pluginDirectory)
     }
 
     private static func dbDirName(majorVersion: Int) -> String {

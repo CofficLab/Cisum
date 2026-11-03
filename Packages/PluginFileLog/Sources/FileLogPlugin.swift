@@ -5,6 +5,7 @@ import ProviderPlugin
 import KitAppEvents
 import Foundation
 import MagicKit
+import CisumProviderStorage
 
 @MainActor
 public final class FileLogPlugin: AsyncSuperPlugin, SuperLog {
@@ -37,12 +38,29 @@ public final class FileLogPlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
-        FileLogCoordinator.shared.configuration = AppFileLogConfiguration()
+        if let storage = kernel.resolveProvider((any StorageProviding).self) {
+            // 迁移旧目录：FileLog → FileLogPlugin（对齐 Lumi 规范）
+            migrateLegacyDirectoryIfNeeded(storage: storage)
+            let logsDir = storage.pluginDataDirectory(for: self.id)
+            FileLogCoordinator.shared.configuration = AppFileLogConfiguration(logsDirectory: logsDir)
+        }
         FileLogCoordinator.shared.start()
 
         #if os(macOS)
             FileLogTerminationObserver.shared.start()
         #endif
+    }
+
+    /// 迁移旧目录到新目录（如果需要）。
+    ///
+    /// 旧版本使用 `<databaseRoot>/FileLog/` 目录，
+    /// 新版本改用 `pluginDataDirectory(for: "FileLogPlugin")` 目录。
+    /// 此方法在首次启动时迁移旧数据，确保用户的日志文件不丢失。
+    @MainActor
+    private func migrateLegacyDirectoryIfNeeded(storage: any StorageProviding) {
+        let legacyDir = storage.databaseRoot.appendingPathComponent("FileLog", isDirectory: true)
+        let currentDir = storage.pluginDataDirectory(for: self.id)
+        PluginDataDirectoryMigration.migrate(from: legacyDir, to: currentDir)
     }
 
     @MainActor

@@ -47,7 +47,21 @@ final class AudioLikeProvider: AudioLikeProviding {
     }
 
     private func configureRepository() {
-        guard let databaseURL = try? storage.databaseFile(name: "audio_like") else { return }
+        // 迁移旧目录：audio_like → AudioLikePlugin（对齐 Lumi 规范）
+        migrateLegacyAudioLikeDirectoryIfNeeded()
+        let pluginDir = storage.pluginDataDirectory(for: "AudioLikePlugin")
+        let databaseURL = pluginDir.appendingPathComponent("audio_like.db", isDirectory: false)
         AudioLikeRepositoryConfiguration.configure(databaseURL: databaseURL)
+    }
+
+    /// 迁移旧目录到新目录（如果需要）。
+    ///
+    /// 旧版本使用 `databaseFile(name: "audio_like")` 创建 `<databaseRoot>/audio_like/` 目录，
+    /// 新版本改用 `pluginDataDirectory(for: "AudioLikePlugin")` 创建 `<databaseRoot>/AudioLikePlugin/` 目录。
+    /// 此方法在首次启动时迁移旧数据，确保用户的喜欢数据不丢失。
+    private func migrateLegacyAudioLikeDirectoryIfNeeded() {
+        let legacyDir = storage.databaseRoot.appendingPathComponent("audio_like", isDirectory: true)
+        let currentDir = storage.pluginDataDirectory(for: "AudioLikePlugin")
+        PluginDataDirectoryMigration.migrate(from: legacyDir, to: currentDir)
     }
 }

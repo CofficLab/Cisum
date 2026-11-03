@@ -56,9 +56,11 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
         }
 
         guard let disk = bookDisk else { return nil }
-        let dbRoot = databaseRoot
+        // 迁移旧目录：books_db/books_cover → BookDBDataPlugin（对齐 Lumi 规范）
+        migrateLegacyBookDirectoriesIfNeeded()
+        let pluginDir = storage.pluginDataDirectory(for: "BookDBDataPlugin")
         let container = await Task.detached(priority: .utility) {
-            try? BookConfig.getContainer(dbRootURL: dbRoot)
+            try? BookConfig.getContainer(pluginDirectory: pluginDir)
         }.value
         guard let container else { return nil }
 
@@ -72,6 +74,33 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
         )
         cachedRepository = repository
         return repository
+    }
+
+    /// 迁移旧目录到新目录（如果需要）。
+    ///
+    /// 旧版本使用 `databaseRoot/books_db/` 和 `databaseRoot/books_cover/` 目录，
+    /// 新版本改用 `pluginDataDirectory(for: "BookDBDataPlugin")` 目录。
+    /// 此方法在首次启动时迁移旧数据，确保用户的书籍数据库和封面不丢失。
+    private func migrateLegacyBookDirectoriesIfNeeded() {
+        let legacyDBDir = storage.databaseRoot.appendingPathComponent("books_db", isDirectory: true)
+        let legacyCoverDir = storage.databaseRoot.appendingPathComponent("books_cover", isDirectory: true)
+        let currentDir = storage.pluginDataDirectory(for: "BookDBDataPlugin")
+
+        // 优先迁移数据库目录（更重要）：它整体变成插件目录。
+        if PluginDataDirectoryMigration.migrate(from: legacyDBDir, to: currentDir) {
+            // 封面目录跟着进入插件目录内。
+            if FileManager.default.fileExists(atPath: legacyCoverDir.path) {
+                let newCoverDir = currentDir.appendingPathComponent("books_cover", isDirectory: true)
+                PluginDataDirectoryMigration.migrate(from: legacyCoverDir, to: newCoverDir)
+            }
+            return
+        }
+
+        // 数据库目录不存在时，若只有封面目录，则单独迁移。
+        if FileManager.default.fileExists(atPath: legacyCoverDir.path) {
+            let newCoverDir = currentDir.appendingPathComponent("books_cover", isDirectory: true)
+            PluginDataDirectoryMigration.migrate(from: legacyCoverDir, to: newCoverDir)
+        }
     }
 
     func totalCount() async -> Int {

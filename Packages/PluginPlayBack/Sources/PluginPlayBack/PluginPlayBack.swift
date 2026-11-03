@@ -94,7 +94,8 @@ public final class PluginPlayBack: AsyncSuperPlugin {
 
         // 持久化存储（order 12 在 StoragePlugin 之后，Lumi StorageProviding 已可用）
         guard let storage = kernel.resolveProvider((any ProviderStorage.StorageProviding).self) else { return }
-        let store = PlaybackStateStore(rootDirectory: storage.dataRootDirectory)
+        let pluginDir = storage.pluginDataDirectory(for: self.id)
+        let store = PlaybackStateStore(pluginDirectory: pluginDir)
         #if DEBUG
         // UI 测试隔离：清空上次运行遗留的「当前播放记录」，保证每次 UI 测试启动
         // 都处于确定的「无当前曲目」状态；否则场景切换/播放器收起类断言会被

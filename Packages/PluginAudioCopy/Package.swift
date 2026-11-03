@@ -23,6 +23,7 @@ let package = Package(
         .package(path: "../ProviderPlugin"),
         .package(path: "../ProviderAudioLibrary"),
         .package(path: "../ProviderStoreKit"),
+        .package(path: "../ProviderStorage"),
         .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.18.0"),
     ],
     targets: [
@@ -37,6 +38,7 @@ let package = Package(
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "ProviderStoreKit", package: "ProviderStoreKit"),
+                .product(name: "ProviderStorage", package: "ProviderStorage"),
                 .product(name: "ProviderStore", package: "LumiProviders"),
                 .product(name: "ProviderToast", package: "LumiProviders"),
             ],

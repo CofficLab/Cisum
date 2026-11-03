@@ -55,7 +55,10 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
                 return cachedRepo
             }
             guard let disk = audioDisk else { return nil }
-            guard let databaseURL = try? storage.databaseFile(name: "audio") else { return nil }
+            // 迁移旧目录：audio → AudioDBDataPlugin（对齐 Lumi 规范）
+            migrateLegacyAudioDirectoryIfNeeded()
+            let pluginDir = storage.pluginDataDirectory(for: "AudioDBDataPlugin")
+            let databaseURL = pluginDir.appendingPathComponent("audio.db", isDirectory: false)
             guard let container = try? AudioConfigRepo.getContainer(databaseURL: databaseURL) else { return nil }
             let repo = try? AudioRepo(
                 container: container,
@@ -68,6 +71,17 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
             cachedRepo = repo
             return repo
         }
+    }
+
+    /// 迁移旧目录到新目录（如果需要）。
+    ///
+    /// 旧版本使用 `databaseFile(name: "audio")` 创建 `<databaseRoot>/audio/` 目录，
+    /// 新版本改用 `pluginDataDirectory(for: "AudioDBDataPlugin")` 创建 `<databaseRoot>/AudioDBDataPlugin/` 目录。
+    /// 此方法在首次启动时迁移旧数据，确保用户的音频数据库不丢失。
+    private func migrateLegacyAudioDirectoryIfNeeded() {
+        let legacyDir = storage.databaseRoot.appendingPathComponent("audio", isDirectory: true)
+        let currentDir = storage.pluginDataDirectory(for: "AudioDBDataPlugin")
+        PluginDataDirectoryMigration.migrate(from: legacyDir, to: currentDir)
     }
 
     func currentRepository() async -> AudioRepo? {

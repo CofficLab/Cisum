@@ -7,22 +7,20 @@ import ProviderScene
 /// 下次启动或切换场景时恢复。仅有此插件维护该状态，不依赖 `UserDefaults`。
 ///
 /// ## 文件
-/// - 路径：`<rootDirectory>/PluginPlayBack/current-playback.plist`
+/// - 路径：`<pluginDirectory>/current-playback.plist`
 /// - 格式：binary plist，`[String: String]`，键为场景名（`AppScene.rawValue`），
 ///   值为 URL 的 absoluteString；`url` 键保留给旧版全局记录做一次性迁移。
 @MainActor
 public final class PlaybackStateStore {
-    private static let subdirectory = "PluginPlayBack"
     private static let filename = "current-playback.plist"
     /// 旧版单一全局记录的键（场景化前的 `["url": String]` 格式），用于升级迁移。
     private static let legacyURLKey = "url"
 
     private let fileURL: URL
 
-    /// - Parameter rootDirectory: Lumi 存储协议提供的数据根目录。
-    public init(rootDirectory: URL) {
-        self.fileURL = rootDirectory
-            .appendingPathComponent(Self.subdirectory, isDirectory: true)
+    /// - Parameter pluginDirectory: 插件专属数据目录（由 `StorageProviding.pluginDataDirectory(for:)` 提供）。
+    public init(pluginDirectory: URL) {
+        self.fileURL = pluginDirectory
             .appendingPathComponent(Self.filename, isDirectory: false)
     }
 

@@ -8,6 +8,7 @@ import ProviderStore
 import ProviderToast
 import SwiftUI
 import MagicKit
+import CisumProviderStorage
 
 #if os(macOS)
     @MainActor
@@ -39,6 +40,9 @@ public final class CopyPlugin: AsyncSuperPlugin, SuperLog {
     /// 容量准入与购买呈现能力：入口强持有（Capabilities 规范第 5 条）。
     nonisolated(unsafe) private var capacityCapability: AudioCopyCapacityCapabilityAdapter?
     nonisolated(unsafe) private var purchaseCapability: AudioCopyPurchaseCapabilityAdapter?
+
+    /// 存储能力：入口强持有（Capabilities 规范第 5 条）。
+    nonisolated(unsafe) private var storageCapability: AudioCopyStorageCapabilityAdapter?
 
 
     @MainActor
@@ -106,13 +110,19 @@ public final class CopyPlugin: AsyncSuperPlugin, SuperLog {
                     self?.kernel?.resolveProvider((any AudioLibraryProviding).self)
                 }
             }
+            if storageCapability == nil {
+                storageCapability = AudioCopyStorageCapabilityAdapter { @MainActor [weak self] in
+                    self?.kernel?.resolveProvider((any StorageProviding).self)
+                }
+            }
             AudioCopyService.configure(
                 library: libraryCapability!,
                 toast: AudioCopyToastCapabilityAdapter(
                     toast: self.kernel?.resolveProvider((any ToastProviding).self)
                 ),
                 capacity: makeCapacityCapability(),
-                purchase: makePurchaseCapability()
+                purchase: makePurchaseCapability(),
+                storage: storageCapability!
             )
         }
     }
