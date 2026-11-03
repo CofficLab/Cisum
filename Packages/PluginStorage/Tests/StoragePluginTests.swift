@@ -13,20 +13,43 @@ import ProviderStorage
 }
 
 @MainActor
-@Test func storageProviderPersistsLocationToInjectedPreferencesOnly() {
-    let suiteName = "StorageProviderTests.\(UUID().uuidString)"
-    let defaults = UserDefaults(suiteName: suiteName)!
-    let standardValueBefore = UserDefaults.standard.string(forKey: "StorageLocation")
-    defer { defaults.removePersistentDomain(forName: suiteName) }
+@Test func storageProviderPersistsLocationToItsOwnDataDirectory() {
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: root) }
 
-    let provider = StorageProvider(userDefaults: defaults)
+    let provider = StorageProvider(databaseRoot: root)
     #expect(provider.currentStorageLocation == nil)
 
     provider.setStorageLocation(.local)
 
     #expect(provider.currentStorageLocation == .local)
-    #expect(defaults.string(forKey: "StorageLocation") == StorageLocation.local.rawValue)
-    #expect(UserDefaults.standard.string(forKey: "StorageLocation") == standardValueBefore)
+
+    // 配置必须落盘在插件自己的数据目录里，而不是偏好域。
+    let file = root
+        .appendingPathComponent(StoragePlugin.pluginID, isDirectory: true)
+        .appendingPathComponent("storage-location.json", isDirectory: false)
+    #expect(FileManager.default.fileExists(atPath: file.path))
+
+    let text = try? String(contentsOf: file, encoding: .utf8)
+    #expect(text?.contains("local") == true, "配置文件必须是可读的 JSON，实际 \(text ?? "nil")")
+
+    // 偏好域里不得留下任何痕迹。
+    #expect(UserDefaults.standard.string(forKey: "StorageLocation") == nil)
+}
+
+@MainActor
+@Test func storageLocationSurvivesProviderRecreation() {
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+
+    let first = StorageProvider(databaseRoot: root)
+    first.setStorageLocation(.local)
+
+    // 新实例必须从磁盘读到同一个位置。
+    let second = StorageProvider(databaseRoot: root)
+    #expect(second.currentStorageLocation == .local)
 }
 
 @MainActor

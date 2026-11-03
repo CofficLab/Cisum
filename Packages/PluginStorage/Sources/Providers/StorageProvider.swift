@@ -16,13 +16,19 @@ private typealias CisumStorageProvidingEvent = CisumProviderStorage.StorageProvi
 /// - 数据库文件：`<root>/<name>/<name>.db`
 ///
 /// 吸收了旧版 `Config` 的存储位置逻辑（iCloud / 本地 / 自定义）与数据库目录
-/// 管理，成为存储能力的唯一数据源。保持向后兼容：
-/// - `UserDefaults` key `"StorageLocation"`（与旧版 `Config` 一致）。
-/// - 存储变更通过 `StorageProvidingEvent` 广播。
+/// 管理，成为存储能力的唯一数据源。
+///
+/// 存储位置配置本身**不**存在 `UserDefaults` 里，而是写进本插件自己的
+/// 数据目录（`<root>/<pluginID>/storage-location.json`），详见
+/// `StorageLocationStore`。存储变更通过 `StorageProvidingEvent` 广播。
 @MainActor
 public final class StorageProvider: ObservableObject, CisumProviderStorage.StorageProviding, ProviderStorage.StorageProviding {
-    private static let storageLocationKey = "StorageLocation"
-    private let userDefaults: UserDefaults
+    /// 存储位置配置的磁盘存储。
+    ///
+    /// 配置写进本插件自己的数据目录（`<databaseRoot>/<pluginID>/storage-location.json`），
+    /// 不再用 `UserDefaults`——偏好域会被 iCloud 同步，而「数据放在哪」是
+    /// 设备本地的决策。详见 `StorageLocationStore`。
+    private let locationStore: StorageLocationStore
 
     /// 数据根目录名：`db_<debug|production>_v<majorVersion>`（对齐 Lumi/GitOK 命名规则）。
     private let dataRootDirectoryName: String
@@ -31,14 +37,20 @@ public final class StorageProvider: ObservableObject, CisumProviderStorage.Stora
     public let databaseRoot: URL
     private let eventObservers = EventObserverStore<CisumStorageProvidingEvent>()
 
-    public init(userDefaults: UserDefaults = .standard) {
-        self.userDefaults = userDefaults
-
+    /// - Parameters:
+    ///   - databaseRoot: 数据根目录。缺省按标准规则解析。
+    ///   - pluginID: 本插件 id，决定配置文件的落盘目录。
+    public init(
+        databaseRoot: URL? = nil,
+        pluginID: String = StoragePlugin.pluginID
+    ) {
         dataRootDirectoryName = DataRootDirectoryNaming.directoryName()
-        let root = MagicApp.getAppSpecificSupportDirectory()
-            .appendingPathComponent(dataRootDirectoryName, isDirectory: true)
+        let root = databaseRoot
+            ?? MagicApp.getAppSpecificSupportDirectory()
+                .appendingPathComponent(dataRootDirectoryName, isDirectory: true)
         try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
-        databaseRoot = root
+        self.databaseRoot = root
+        locationStore = StorageLocationStore(databaseRoot: root, pluginID: pluginID)
     }
 
     // MARK: - Lumi ProviderStorage compatibility
@@ -57,8 +69,7 @@ public final class StorageProvider: ObservableObject, CisumProviderStorage.Stora
     }
 
     public var currentStorageLocation: StorageLocation? {
-        guard let raw = userDefaults.string(forKey: Self.storageLocationKey),
-              let location = StorageLocation(rawValue: raw) else { return nil }
+        guard let location = locationStore.load() else { return nil }
         guard storageRoot(for: location) != nil else { return nil }
         return location
     }
@@ -101,13 +112,13 @@ public final class StorageProvider: ObservableObject, CisumProviderStorage.Stora
     }
 
     public func setStorageLocation(_ location: StorageLocation?) {
-        userDefaults.set(location?.rawValue, forKey: Self.storageLocationKey)
+        locationStore.save(location)
         eventObservers.send(.locationChanged(location))
         eventObservers.send(.storageAvailabilityChanged)
     }
 
     public func resetStorageLocation() {
-        userDefaults.removeObject(forKey: Self.storageLocationKey)
+        locationStore.reset()
         eventObservers.send(.locationChanged(nil))
         eventObservers.send(.storageAvailabilityChanged)
     }

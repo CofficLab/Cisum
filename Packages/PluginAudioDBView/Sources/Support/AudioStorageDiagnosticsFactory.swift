@@ -13,17 +13,15 @@ enum AudioStorageDiagnosticsFactory {
     /// 按 Capabilities 规范的「不必建」判据：不订阅、不重试、生命周期不重叠。
     /// - Parameters:
     ///   - storage: 存储 Provider（可能为 nil）。
-    ///   - preferences: 偏好存储。生产传 ``PreferenceStore/shared``。
     ///
-    /// - Note: 之前这里硬编码 `UserDefaults.standard`，而 `StoragePlugin`
-    ///   在 UI 测试下写入的是**独立 suite**——读写不同源，导致诊断面板在
-    ///   UI 测试里永远显示「未设置存储位置」。改为注入同一个偏好存储，
-    ///   生产与测试都指向同一份真相。
+    /// - Note: 存储位置的原始值直接取自 Provider。配置已改为落盘
+    ///   （`<dataRoot>/<pluginID>/storage-location.json`），不再经过偏好域——
+    ///   这里若继续读 `UserDefaults` 会永远拿到 nil，诊断面板会误报
+    ///   「未设置存储位置」。
     static func make(
-        storage: (any StorageProviding)?,
-        preferences: PreferenceStore = .shared
+        storage: (any StorageProviding)?
     ) -> AudioStorageDiagnostics {
-        let storageLocationRaw = preferences.defaults.string(forKey: "StorageLocation")
+        let storageLocationRaw = storage?.currentStorageLocation?.rawValue
         let isICloudAvailable = FileManager.default.ubiquityIdentityToken != nil
         let cloudContainer = FileManager.default.url(forUbiquityContainerIdentifier: nil)
         let cloudDocuments = cloudContainer?.appendingPathComponent("Documents")

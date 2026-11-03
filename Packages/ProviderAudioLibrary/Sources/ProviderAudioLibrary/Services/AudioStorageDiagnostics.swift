@@ -28,7 +28,10 @@ public struct AudioStorageDiagnostics: Sendable, Equatable {
         self.dbDirName = dbDirName
     }
 
-    /// 用户配置的存储位置原始值（`UserDefaults["StorageLocation"]`）。
+    /// 用户配置的存储位置原始值。
+    ///
+    /// - Note: 配置已落盘（`<dataRoot>/<pluginID>/storage-location.json`），
+    ///   不再来自 `UserDefaults["StorageLocation"]`。
     public let storageLocationRaw: String?
 
     /// 系统 iCloud 是否可用（`ubiquityIdentityToken` 是否存在）。

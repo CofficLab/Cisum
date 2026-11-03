@@ -12,7 +12,13 @@ import SwiftUI
 
 @MainActor
 public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
-    public let id = "com.coffic.cisum.plugin.storage"
+    /// 插件 id。
+    ///
+    /// 同时是本插件数据目录的目录名——存储位置的配置文件落在
+    /// `<databaseRoot>/com.coffic.cisum.plugin.storage/storage-location.json`。
+    public static let pluginID = "com.coffic.cisum.plugin.storage"
+
+    public let id = StoragePlugin.pluginID
 
     public static let shared = StoragePlugin()
     public nonisolated static let emoji = "💾"
@@ -50,13 +56,17 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
-        let provider = StorageProvider(userDefaults: Self.storageDefaults())
+        let provider = StorageProvider()
         // Keep one concrete service as the source of truth while exposing both
         // the Cisum storage-location contract and Lumi's shared storage
         // contract. This lets shared Lumi plugins resolve ProviderStorage
         // without creating a second data root.
         try kernel.registerProvider((any CisumProviderStorage.StorageProviding).self, provider)
         try kernel.registerProvider((any ProviderStorage.StorageProviding).self, provider)
+
+        // UI 测试需要在启动时钉死存储位置（重置 / 指定 local / 指定 iCloud）。
+        // 配置已改为落盘，因此这里直接写磁盘文件，而不是操纵偏好域。
+        Self.applyUITestStorageOverridesIfNeeded(provider: provider)
 
         // 插件启用状态的持久化存储在此注入（对齐 Lumi `FactoryLumi`）。
         //
@@ -104,31 +114,33 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
         installSettingsState(kernel: kernel)
     }
 
-    /// UI tests use a private preferences suite so onboarding tests never reset
-    /// or overwrite the developer's real Debug-app storage selection.
-    private static func storageDefaults() -> UserDefaults {
+    /// 按 UI 测试的启动参数覆写存储位置配置。
+    ///
+    /// 配置已改为落盘（`<dataRoot>/<pluginID>/storage-location.json`），
+    /// 因此这里直接改磁盘文件，不再操纵偏好域。
+    ///
+    /// - Important: UI 测试的数据根本身已由 `UITestIsolation` 隔离到临时目录，
+    ///   覆写不会碰到开发者真实沙盒里的配置文件。
+    ///
+    /// - Note: iCloud 与本地路径走的是完全不同的目录监控实现
+    ///   （`NSMetadataQuery` vs `DispatchSource`），且 iCloud 容器在无 iCloud
+    ///   账号或容器不可用时会退化为 nil。用例需要显式钉住这一分支，
+    ///   否则「有声书仓库一直显示正在读取」这类缺陷只在真实配置下出现。
+    @MainActor
+    private static func applyUITestStorageOverridesIfNeeded(provider: StorageProvider) {
         #if DEBUG
             let arguments = ProcessInfo.processInfo.arguments
-            guard arguments.contains("--cisum-ui-testing") else { return .standard }
+            guard arguments.contains("--cisum-ui-testing") else { return }
 
-            let suiteName = "\(Bundle.main.bundleIdentifier ?? "com.yueyi.cisum").ui-testing"
-            let defaults = UserDefaults(suiteName: suiteName) ?? .standard
             if arguments.contains("--cisum-ui-testing-reset-storage") {
-                defaults.removeObject(forKey: "StorageLocation")
+                provider.resetStorageLocation()
             }
             if arguments.contains("--cisum-ui-testing-storage-local") {
-                defaults.set(StorageLocation.local.rawValue, forKey: "StorageLocation")
+                provider.setStorageLocation(.local)
             }
-            // iCloud 存储路径与本地路径走的是完全不同的目录监控实现
-            // （NSMetadataQuery vs DispatchSource），且 iCloud 容器在无 iCloud
-            // 账号或容器不可用时会退化为 nil。用例需要显式钉住这一分支，
-            // 否则「有声书仓库一直显示正在读取」这类缺陷只在真实配置下出现。
             if arguments.contains("--cisum-ui-testing-storage-icloud") {
-                defaults.set(StorageLocation.icloud.rawValue, forKey: "StorageLocation")
+                provider.setStorageLocation(.icloud)
             }
-            return defaults
-        #else
-            return .standard
         #endif
     }
 
