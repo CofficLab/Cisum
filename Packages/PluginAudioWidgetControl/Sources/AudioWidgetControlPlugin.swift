@@ -11,7 +11,7 @@ import MagicKit
 
 @MainActor
 public final class AudioWidgetControlPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: AudioWidgetControlPlugin.self)
+    public let id = "com.coffic.cisum.plugin.audio-widget-control"
 
     nonisolated static let verbose = false
 
@@ -19,7 +19,7 @@ public final class AudioWidgetControlPlugin: AsyncSuperPlugin, SuperLog {
     public let order = 100
     public let iconName = AudioWidgetControlPluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: AudioWidgetControlPlugin.self),
+        id: "com.coffic.cisum.plugin.audio-widget-control",
         name: AudioWidgetControlPluginInfo.title,
         description: AudioWidgetControlPluginInfo.description,
         version: "1.0.0",

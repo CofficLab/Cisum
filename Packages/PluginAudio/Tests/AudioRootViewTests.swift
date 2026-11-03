@@ -152,7 +152,7 @@ struct AudioPluginMetadataTests {
     func pluginExposesStableIdentityAndPresentation() {
         let plugin = AudioPlugin.shared
 
-        #expect(plugin.id == "AudioPlugin")
+        #expect(plugin.id == "com.coffic.cisum.plugin.audio")
         #expect(plugin.order == 1)
         #expect(plugin.iconName == "music.note")
     }
@@ -161,7 +161,7 @@ struct AudioPluginMetadataTests {
     func metadataCarriesExpectedLocalizationAndStage() {
         let metadata = AudioPlugin.shared.metadata
 
-        #expect(metadata.id == "AudioPlugin")
+        #expect(metadata.id == "com.coffic.cisum.plugin.audio")
         #expect(metadata.name == "Music")
         #expect(metadata.description == "Audio playback")
         #expect(metadata.version == "1.0.0")

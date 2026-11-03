@@ -56,9 +56,23 @@ public protocol StorageProviding: AnyObject, ObservableObject {
     ///
     /// 每个插件用它保存自己的持久化数据（对齐 Lumi `StorageProviding.pluginDataDirectory(for:)`）。
     ///
+    /// 注意：本方法**会创建目录**。若调用方需要先判断该目录是否已存在
+    /// （例如目录迁移），请改用 `pluginDataDirectoryPath(for:)`——它只解析
+    /// 路径，不产生任何副作用。
+    ///
     /// - Parameter pluginID: 插件 ID。
     /// - Returns: 插件数据目录 URL。
     func pluginDataDirectory(for pluginID: String) -> URL
+
+    /// 解析指定插件的专属数据目录路径：`<databaseRoot>/<pluginID>/`。
+    ///
+    /// 与 `pluginDataDirectory(for:)` 的区别是**不创建目录**。
+    /// 需要「先判断存在性、再决定是否创建」的调用方必须用它，否则目录会被
+    /// 提前创建出来，让基于存在性的判断永远失效。
+    ///
+    /// - Parameter pluginID: 插件 ID。
+    /// - Returns: 插件数据目录 URL（目录可能尚不存在）。
+    func pluginDataDirectoryPath(for pluginID: String) -> URL
 
     /// 设置存储位置并持久化，同时广播变更事件。
     func setStorageLocation(_ location: StorageLocation?)
@@ -74,6 +88,14 @@ public extension StorageProviding {
     @discardableResult
     func addObserver(_ callback: @escaping (StorageProvidingEvent) -> Void) -> any StorageProvidingObserverHandle {
         NoopStorageProvidingObserverHandle()
+    }
+
+    /// 默认实现：直接在数据根下拼接插件 ID，不创建目录。
+    ///
+    /// 目录的创建留给 `pluginDataDirectory(for:)`，保持「解析路径」与
+    /// 「创建目录」两件事分离。
+    func pluginDataDirectoryPath(for pluginID: String) -> URL {
+        databaseRoot.appendingPathComponent(pluginID, isDirectory: true)
     }
 }
 

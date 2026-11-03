@@ -29,7 +29,7 @@ let package = Package(
         .package(path: "../ProviderStoreKit"),
         .package(path: "../ProviderStorage"),
         .package(path: "../ProviderAppState"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.17.0"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.18.0"),
     ],
     targets: [
         .target(

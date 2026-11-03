@@ -17,7 +17,7 @@ import OSLog
 
 @MainActor
 public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: AudioDBViewPlugin.self)
+    public let id = "com.coffic.cisum.plugin.audio-db-view"
 
     nonisolated static let verbose = false
 
@@ -25,7 +25,7 @@ public final class AudioDBViewPlugin: AsyncSuperPlugin, SuperLog {
     public let order = 1
     public let iconName = "externaldrive"
     public let metadata = PluginMetadata(
-        id: String(describing: AudioDBViewPlugin.self),
+        id: "com.coffic.cisum.plugin.audio-db-view",
         name: String(localized: String.LocalizationValue(AudioDBPluginInfo.titleKey), bundle: .module),
         version: "1.0.0",
         category: .feature,

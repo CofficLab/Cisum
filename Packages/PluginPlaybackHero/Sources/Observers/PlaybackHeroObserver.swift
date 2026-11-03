@@ -53,11 +53,42 @@ final class PlaybackHeroObserver: SuperLog {
             self.viewModel?.applyMusicSceneActive(newScene == .music)
             self.publishHeroVisibility()
         }
+
+        seedRepositoryConclusion(library: library)
+        publishHeroVisibility()
+    }
+
+    /// 补上仓库状态的**初值**。
+    ///
+    /// 事件流只报告**变化**，订阅时仓库可能早已扫完（数据层在
+    /// `addObserver` 时会重放一次「确认为空」，但「确认非空」不会重放）。
+    /// 不补初值的话，仓库有歌的情况下 idle 占位永远不会亮起——
+    /// 这正是启动态空播放器要修的那一屏。
+    private func seedRepositoryConclusion(library: any HeroLibraryCapability) {
+        switch library.repositoryScanState {
+        case .unknown:
+            // 还没扫过：不下结论。占位若在此刻出现，启动瞬间会闪一下。
+            return
+        case .empty:
+            viewModel?.applyRepositoryEmpty(true)
+        case .nonEmpty:
+            viewModel?.applyRepositoryEmpty(false)
+        }
     }
 
     /// 把封面呈现状态广播给控制区与根布局（替代失效的 preference 链路）。
+    ///
+    /// 「呈现」包含两种形态：真实封面（有当前曲目）与 idle 占位
+    /// （仓库有歌但还没选）。两者都需要控制区给这块区域留出高度，
+    /// 否则占位态下区域仍然空着——那就等于没修。
+    ///
+    /// 仓库为空时归空仓库引导管：引导占据顶部，Hero 与占位都不出现。
     private func publishHeroVisibility() {
-        ControlHeroVisibility.shared.isVisible = viewModel?.isHeroVisible ?? true
+        guard let viewModel else {
+            ControlHeroVisibility.shared.isVisible = true
+            return
+        }
+        ControlHeroVisibility.shared.isVisible = viewModel.isHeroVisible || viewModel.showsIdlePlaceholder
     }
 
     func cancel() {

@@ -10,8 +10,16 @@ import UIKit
 ///
 /// 引导面板要「像真的播放器」，封面位得放 app 自己的图标，而不是随手画一个
 /// SF Symbol 占位。插件包拿不到宿主 target 的资源，只能在运行时向系统要：
-/// macOS 直接用 `NSApplication.applicationIconImage`；iOS 需要从 Info.plist
-/// 解析图标文件名。取不到时返回 `nil`，调用方回退到 SF Symbol。
+/// macOS 用 `NSWorkspace.icon(forFile:)` 读取 app 包路径获取原始高清图标；
+/// iOS 需要从 Info.plist 解析图标文件名。取不到时返回 `nil`，调用方回退到
+/// SF Symbol。
+///
+/// ### 为什么不用 `NSApplication.shared.applicationIconImage`？
+///
+/// 该属性返回系统缓存的显示尺寸图标，分辨率通常只有 128×128 或 512×512。
+/// 引导面板封面区域会将图标拉伸到 200+pt（Retina 下需要 400+px），小图标
+/// 放大后会明显模糊。改用 `NSWorkspace.icon(forFile:)` 直接读取 app 包路径，
+/// 系统会从 .iconset 中挑选匹配尺寸的最佳分辨率表示。
 @MainActor
 enum HostAppIcon {
     /// 当前 app 的图标；取不到时返回 `nil`。
@@ -19,8 +27,13 @@ enum HostAppIcon {
         #if os(macOS)
         // 只有跑在真正的 .app 里才有「宿主图标」可言；测试进程（xctest）
         // 的主 bundle 不是 .app，直接放弃，避免把测试宿主自己的图标画出来。
-        guard Bundle.main.bundlePath.hasSuffix(".app") else { return nil }
-        return Image(nsImage: NSApplication.shared.applicationIconImage)
+        let appPath = Bundle.main.bundlePath
+        guard appPath.hasSuffix(".app") else { return nil }
+        let nsImage = NSWorkspace.shared.icon(forFile: appPath)
+        // 显式设为大尺寸，让 NSImage 从 .iconset 中加载最佳分辨率表示，
+        // 避免系统返回缓存的小尺寸图标导致放大模糊。
+        nsImage.size = NSSize(width: 1024, height: 1024)
+        return Image(nsImage: nsImage)
         #elseif os(iOS)
         return iOSImage()
         #endif

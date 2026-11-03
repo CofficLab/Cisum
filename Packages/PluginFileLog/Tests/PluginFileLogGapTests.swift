@@ -14,7 +14,7 @@ struct PluginFileLogGapTests {
         let plugin = FileLogPlugin.shared
         let metadata = plugin.metadata
         
-        #expect(metadata.id == "FileLogPlugin")
+        #expect(metadata.id == "com.coffic.cisum.plugin.file-log")
         #expect(metadata.name == "File Log")
         #expect(!metadata.description.isEmpty)
         #expect(metadata.version == "1.0.0")

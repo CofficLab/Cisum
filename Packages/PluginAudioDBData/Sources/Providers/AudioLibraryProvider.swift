@@ -55,7 +55,12 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
                 return cachedRepo
             }
             guard let disk = audioDisk else { return nil }
-            guard let databaseURL = try? storage.databaseFile(name: "audio") else { return nil }
+            let pluginID = "com.coffic.cisum.plugin.audio-db-data"
+            // 迁移旧目录（audio → AudioDBDataPlugin → 当前 id）。
+            // 必须在目标目录被创建之前迁移，否则迁移永远不执行。
+            migrateLegacyDirectoryIfNeeded(pluginID: pluginID)
+            let pluginDir = storage.pluginDataDirectory(for: pluginID)
+            let databaseURL = pluginDir.appendingPathComponent("audio.db", isDirectory: false)
             guard let container = try? AudioConfigRepo.getContainer(databaseURL: databaseURL) else { return nil }
             let repo = try? AudioRepo(
                 container: container,
@@ -68,6 +73,18 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
             cachedRepo = repo
             return repo
         }
+    }
+
+    /// 迁移历史目录到当前插件目录（如果需要）。
+    ///
+    /// 目录名随插件 id 变过两轮（`audio` → `AudioDBDataPlugin` → 反向 DNS），
+    /// 历史目录名由存储层统一登记，这里只负责调用。
+    private func migrateLegacyDirectoryIfNeeded(pluginID: String) {
+        PluginDataDirectoryMigration.migrate(
+            legacyDirectoryNames: PluginDataDirectoryHistory.legacyDirectoryNames(for: pluginID),
+            pluginID: pluginID,
+            dataRootDirectory: storage.databaseRoot
+        )
     }
 
     func currentRepository() async -> AudioRepo? {
@@ -96,6 +113,19 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
     /// 未扫描时数据库里同样没有记录，那不是空仓库的证据。
     var isRepositoryEmpty: Bool {
         repositoryIsKnownEmpty == true
+    }
+
+    /// 仓库的扫描结论（三态）。
+    ///
+    /// 把内部的三态原样暴露出去：消费方需要区分「确认为空」与「还没扫过」，
+    /// 前者该点亮空仓库引导，后者两者都不该做（不能把「还不知道」
+    /// 当成「确认非空」而让 idle 占位抢跑）。
+    var repositoryScanState: AudioRepositoryScanState {
+        switch repositoryIsKnownEmpty {
+        case .some(true): return .empty
+        case .some(false): return .nonEmpty
+        case .none: return .unknown
+        }
     }
 
     func totalCount() async -> Int {

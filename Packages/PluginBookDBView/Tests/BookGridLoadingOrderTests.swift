@@ -1,3 +1,4 @@
+import MagicKit
 import Foundation
 import Testing
 import ProviderBook
@@ -94,9 +95,10 @@ struct BookGridLoadingOrderTests {
         viewModel.handleOnDisappear()
 
         // 等够长，覆盖防抖延迟（0.25s）与一次异步往返。
-        for _ in 0..<60 where viewModel.isLoading {
-            try await Task.sleep(for: .milliseconds(50))
-        }
+        await DeterministicWait.expect(
+            "viewModel.isLoading 应结束",
+            timeout: 3.0
+        ) { !viewModel.isLoading }
 
         #expect(
             !viewModel.isLoading,
@@ -117,9 +119,10 @@ struct BookGridLoadingOrderTests {
 
         viewModel.handleOnAppear()
 
-        for _ in 0..<60 where viewModel.isLoading {
-            try await Task.sleep(for: .milliseconds(50))
-        }
+        await DeterministicWait.expect(
+            "viewModel.isLoading 应结束",
+            timeout: 3.0
+        ) { !viewModel.isLoading }
 
         #expect(!viewModel.isLoading, "只有 onAppear 时加载状态也应走到 false")
         #expect(probe.callCount > 0, "应当至少真正拉取过一次数据")

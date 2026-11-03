@@ -9,7 +9,7 @@ import MagicKit
 
 @MainActor
 public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: LikeButtonPlugin.self)
+    public let id = "com.coffic.cisum.plugin.like-button"
 
     nonisolated static let verbose = false
 
@@ -17,7 +17,7 @@ public final class LikeButtonPlugin: AsyncSuperPlugin, SuperLog {
     public let order = 9999
     public let iconName = LikeButtonPluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: LikeButtonPlugin.self),
+        id: "com.coffic.cisum.plugin.like-button",
         name: String(localized: "Like Button", bundle: .module),
         description: LikeButtonPluginInfo.description,
         version: "1.0.0",

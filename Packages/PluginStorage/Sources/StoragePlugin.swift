@@ -12,7 +12,13 @@ import SwiftUI
 
 @MainActor
 public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: StoragePlugin.self)
+    /// 插件 id。
+    ///
+    /// 同时是本插件数据目录的目录名——存储位置的配置文件落在
+    /// `<databaseRoot>/com.coffic.cisum.plugin.storage/storage-location.json`。
+    public static let pluginID = "com.coffic.cisum.plugin.storage"
+
+    public let id = StoragePlugin.pluginID
 
     public static let shared = StoragePlugin()
     public nonisolated static let emoji = "💾"
@@ -20,7 +26,7 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
     public let order = 10
     public let iconName = StoragePluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: StoragePlugin.self),
+        id: "com.coffic.cisum.plugin.storage",
         name: String(localized: String.LocalizationValue(StoragePluginInfo.titleKey), bundle: .module),
         version: "1.0.0",
         category: .feature,
@@ -50,7 +56,7 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
-        let provider = StorageProvider(userDefaults: Self.storageDefaults())
+        let provider = StorageProvider()
         // Keep one concrete service as the source of truth while exposing both
         // the Cisum storage-location contract and Lumi's shared storage
         // contract. This lets shared Lumi plugins resolve ProviderStorage
@@ -58,11 +64,49 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
         try kernel.registerProvider((any CisumProviderStorage.StorageProviding).self, provider)
         try kernel.registerProvider((any ProviderStorage.StorageProviding).self, provider)
 
-        // 插件启用状态持久化存储由 PluginPluginManager.onBoot 注入
-        // （解析 kernel.resolveProvider((any CisumProviderStorage.StorageProviding).self)
-        // 的根目录，写入 `<databaseRoot>/PluginManager/`）。
+        // UI 测试需要在启动时钉死存储位置（重置 / 指定 local / 指定 iCloud）。
+        // 配置已改为落盘，因此这里直接写磁盘文件，而不是操纵偏好域。
+        Self.applyUITestStorageOverridesIfNeeded(provider: provider)
+
+        // 插件启用状态的持久化存储在此注入（对齐 Lumi `FactoryLumi`）。
+        //
+        // 为什么放在这里而不是 PluginPluginManager：那个插件自身的策略是
+        // `.disabled`（彻底停用，不注册不启动），它的 `onBoot` 默认不会执行——
+        // 状态存储因此永远不会被注入，「用户关掉的插件」重启后又变回默认。
+        //
+        // 本插件是 `.alwaysOn` 且 order 最小，必然 boot；且它持有数据根目录，
+        // 由它来准备状态存储的落盘位置最自然。
+        installEnabledStateStore(kernel: kernel, storage: provider)
 
         installSettingsState(kernel: kernel)
+    }
+
+    /// 准备插件启用状态的持久化存储。
+    ///
+    /// 状态文件落在**插件管理器**的专属目录里（目录名 = 插件 id），
+    /// 与 Lumi 的布局一致。迁移同样在这里完成：插件管理器默认不启动，
+    /// 不能指望它自己搬运旧目录。
+    private func installEnabledStateStore(
+        kernel: KernelCoreContainer,
+        storage: any ProviderStorage.StorageProviding
+    ) {
+        let pluginManagerID = "com.coffic.cisum.plugin.plugin-manager"
+        let dataRoot = storage.dataRootDirectory
+        let currentDirectory = dataRoot.appendingPathComponent(pluginManagerID, isDirectory: true)
+
+        // 迁移历史目录。必须先迁移、再创建目录——`pluginDataDirectory(for:)`
+        // 会创建目录，若先用它拿到目标路径，「目标不存在」的判断恒为真，
+        // 迁移就永远不会执行。
+        for legacyName in PluginDataDirectoryHistory.legacyDirectoryNames(for: pluginManagerID) {
+            let legacyDirectory = dataRoot.appendingPathComponent(legacyName, isDirectory: true)
+            if PluginDataDirectoryMigration.migrate(from: legacyDirectory, to: currentDirectory) {
+                break
+            }
+        }
+
+        kernel.stateStore = PluginEnabledStateStore(
+            pluginDirectory: storage.pluginDataDirectory(for: pluginManagerID)
+        )
     }
 
     @MainActor
@@ -70,31 +114,33 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
         installSettingsState(kernel: kernel)
     }
 
-    /// UI tests use a private preferences suite so onboarding tests never reset
-    /// or overwrite the developer's real Debug-app storage selection.
-    private static func storageDefaults() -> UserDefaults {
+    /// 按 UI 测试的启动参数覆写存储位置配置。
+    ///
+    /// 配置已改为落盘（`<dataRoot>/<pluginID>/storage-location.json`），
+    /// 因此这里直接改磁盘文件，不再操纵偏好域。
+    ///
+    /// - Important: UI 测试的数据根本身已由 `UITestIsolation` 隔离到临时目录，
+    ///   覆写不会碰到开发者真实沙盒里的配置文件。
+    ///
+    /// - Note: iCloud 与本地路径走的是完全不同的目录监控实现
+    ///   （`NSMetadataQuery` vs `DispatchSource`），且 iCloud 容器在无 iCloud
+    ///   账号或容器不可用时会退化为 nil。用例需要显式钉住这一分支，
+    ///   否则「有声书仓库一直显示正在读取」这类缺陷只在真实配置下出现。
+    @MainActor
+    private static func applyUITestStorageOverridesIfNeeded(provider: StorageProvider) {
         #if DEBUG
             let arguments = ProcessInfo.processInfo.arguments
-            guard arguments.contains("--cisum-ui-testing") else { return .standard }
+            guard arguments.contains("--cisum-ui-testing") else { return }
 
-            let suiteName = "\(Bundle.main.bundleIdentifier ?? "com.yueyi.cisum").ui-testing"
-            let defaults = UserDefaults(suiteName: suiteName) ?? .standard
             if arguments.contains("--cisum-ui-testing-reset-storage") {
-                defaults.removeObject(forKey: "StorageLocation")
+                provider.resetStorageLocation()
             }
             if arguments.contains("--cisum-ui-testing-storage-local") {
-                defaults.set(StorageLocation.local.rawValue, forKey: "StorageLocation")
+                provider.setStorageLocation(.local)
             }
-            // iCloud 存储路径与本地路径走的是完全不同的目录监控实现
-            // （NSMetadataQuery vs DispatchSource），且 iCloud 容器在无 iCloud
-            // 账号或容器不可用时会退化为 nil。用例需要显式钉住这一分支，
-            // 否则「有声书仓库一直显示正在读取」这类缺陷只在真实配置下出现。
             if arguments.contains("--cisum-ui-testing-storage-icloud") {
-                defaults.set(StorageLocation.icloud.rawValue, forKey: "StorageLocation")
+                provider.setStorageLocation(.icloud)
             }
-            return defaults
-        #else
-            return .standard
         #endif
     }
 

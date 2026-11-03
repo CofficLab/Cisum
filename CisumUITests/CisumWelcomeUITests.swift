@@ -18,8 +18,25 @@ import XCTest
 /// 交互模型（已确认）：**默认预选 + 继续按钮直接提交** ——
 /// 用户不碰任何选项行时，点「继续」即可用预选完成引导。
 final class CisumWelcomeUITests: CisumUITestBase {
+    /// 只**追加**重置存储位置的参数，保留基类的隔离与显隐覆盖。
+    ///
+    /// 历史上这里整体覆写成 `["--cisum-ui-testing", "--cisum-ui-testing-reset-storage"]`，
+    /// 连带丢掉了 `--cisum-ui-testing-isolated-storage=`：该用例于是跑在真实
+    /// 沙盒里，并读取真实 `UserDefaults`——被别的用例写坏的显隐偏好
+    /// （`UI.ContentViewVisible = 0`）会让内容区保持收起，断言「音乐库可见」
+    /// 随之失败，且结论依赖执行顺序。
     override var additionalLaunchArguments: [String] {
-        ["--cisum-ui-testing", "--cisum-ui-testing-reset-storage"]
+        // 从基类参数派生，两处调整：
+        //
+        // 1. 去掉 `--cisum-ui-testing-storage-local`：它会在启动时直接写入
+        //    存储位置，首启引导就不再需要，引导层不会出现。
+        // 2. 追加 `--cisum-ui-testing-reset-storage`：清掉上一次运行留下的
+        //    存储位置，让引导确实按「首次启动」呈现。
+        //
+        // 隔离参数与显隐覆盖参数**必须保留**（历史上这里整体覆写参数列表，
+        // 连带丢掉了隔离参数，于是用例跑在真实沙盒与真实偏好上，结论依赖
+        // 执行顺序）。
+        launchArgumentsWithoutStoragePreset + ["--cisum-ui-testing-reset-storage"]
     }
 
     private var setupGate: XCUIElement {

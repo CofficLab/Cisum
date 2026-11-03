@@ -12,10 +12,10 @@ import Testing
 @Test func pluginPlayBackExposesStableIdentityAndMetadata() {
     let plugin = PluginPlayBack.shared
 
-    #expect(plugin.id == "PluginPlayBack")
+    #expect(plugin.id == "com.coffic.cisum.plugin.playback")
     #expect(plugin.order == 12)
     #expect(plugin.iconName == "play.circle")
-    #expect(plugin.metadata.id == "PluginPlayBack")
+    #expect(plugin.metadata.id == "com.coffic.cisum.plugin.playback")
     #expect(plugin.metadata.name == "Play")
     #expect(plugin.metadata.version == "1.0.0")
     #expect(plugin.metadata.category == .system)
@@ -120,7 +120,7 @@ struct PlaybackSettingsTests {
         var playback: PlaybackStub? = PlaybackStub()
         weak var weakPlayback = playback
         playback?.state = .playing
-        let store = PlaybackStateStore(rootDirectory: root)
+        let store = PlaybackStateStore(pluginDirectory: root)
         let capability = SettingsCapabilityAdapter(playback: playback)
         let viewModel = PluginPlayBackSettingsViewModel(store: store, playback: capability)
 
@@ -140,7 +140,7 @@ struct PlaybackSettingsTests {
     func settingsViewModelInitializesFromProviderAndTracksEvents() throws {
         let root = try temporaryRoot()
         defer { try? FileManager.default.removeItem(at: root) }
-        let store = PlaybackStateStore(rootDirectory: root)
+        let store = PlaybackStateStore(pluginDirectory: root)
         let savedURL = URL(fileURLWithPath: "/library/saved-book.mp3")
         store.saveCurrentFile(savedURL, for: .audiobooks)
         let playback = PlaybackStub()
@@ -184,7 +184,7 @@ struct PlaybackSettingsTests {
     @Test
     func playbackObserverForwardsEventsAndStopsAfterCancellation() {
         let playback = PlaybackStub()
-        let viewModel = PluginPlayBackSettingsViewModel(store: PlaybackStateStore(rootDirectory: temporaryRootURL()))
+        let viewModel = PluginPlayBackSettingsViewModel(store: PlaybackStateStore(pluginDirectory: temporaryRootURL()))
         let observer = SettingsPlaybackObserver(
             playback: SettingsCapabilityAdapter(playback: playback),
             viewModel: viewModel
@@ -212,7 +212,7 @@ struct PlaybackSettingsTests {
     func sceneObserverSynchronizesInitialStateAndCancelsUpdates() {
         let provider = SceneProviderStub(currentScene: .audiobooks)
         let viewModel = PluginPlayBackSettingsViewModel(
-            store: PlaybackStateStore(rootDirectory: temporaryRootURL())
+            store: PlaybackStateStore(pluginDirectory: temporaryRootURL())
         )
         let observer = SettingsSceneObserver(
             scene: SceneCapabilityAdapter(scene: provider),

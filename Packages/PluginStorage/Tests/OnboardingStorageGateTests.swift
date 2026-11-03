@@ -1,8 +1,8 @@
 import CisumProviderStorage
-import Foundation
-@testable import PluginStorage
-import ProviderStorage
 import Testing
+@testable import PluginStorage
+import Foundation
+import ProviderStorage
 
 /// 首启存储引导依赖的 storage gate 契约。
 ///
@@ -13,13 +13,16 @@ import Testing
 /// - 用户点「继续」提交（`setStorageLocation`）→ gate 打开 → 引导关闭；
 /// - 提交的值不可用（如 iCloud 未登录）→ gate 保持关闭，引导不得假关闭，
 ///   否则用户会进入一个存储位置无效的主界面。
+///
+/// - Note: 配置落在插件自己的数据目录（磁盘），测试用临时目录隔离，
+///   不触碰开发者真实沙盒，也不写偏好域。
 @MainActor
 @Test func onboardingGateOpensOnlyAfterStorageChoiceIsCommitted() {
-    let suiteName = "OnboardingStorageGateTests.\(UUID().uuidString)"
-    let defaults = UserDefaults(suiteName: suiteName)!
-    defer { defaults.removePersistentDomain(forName: suiteName) }
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent("OnboardingStorageGateTests-\(UUID().uuidString)", isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: root) }
 
-    let provider = StorageProvider(userDefaults: defaults)
+    let provider = StorageProvider(databaseRoot: root)
 
     // 新用户首启：没有任何已保存位置 → 引导必须显示。
     #expect(provider.currentStorageLocation == nil)
@@ -38,11 +41,11 @@ import Testing
 
 @MainActor
 @Test func committingUnavailableICloudKeepsOnboardingGateClosed() {
-    let suiteName = "OnboardingStorageGateICloudTests.\(UUID().uuidString)"
-    let defaults = UserDefaults(suiteName: suiteName)!
-    defer { defaults.removePersistentDomain(forName: suiteName) }
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent("OnboardingStorageGateICloudTests-\(UUID().uuidString)", isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: root) }
 
-    let provider = StorageProvider(userDefaults: defaults)
+    let provider = StorageProvider(databaseRoot: root)
 
     // 本机 iCloud 可用时该场景由 UI 层正常提交，这里只验证不可用分支。
     guard !provider.isICloudStorageAvailable else { return }

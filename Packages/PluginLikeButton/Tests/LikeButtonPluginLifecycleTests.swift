@@ -186,7 +186,7 @@ struct LikeButtonPluginLifecycleTests {
     func pluginMetadataDescribesLikeEntry() {
         let plugin = LikeButtonPlugin()
 
-        #expect(plugin.id == "LikeButtonPlugin")
+        #expect(plugin.id == "com.coffic.cisum.plugin.like-button")
         #expect(plugin.order == 9999)
         #expect(plugin.metadata.name == "Like Button")
         #expect(plugin.metadata.category == .feature)

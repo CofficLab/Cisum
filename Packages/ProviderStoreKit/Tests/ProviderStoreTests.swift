@@ -1,3 +1,4 @@
+import MagicKit
 import Foundation
 import ProviderStore
 import StoreKit
@@ -249,7 +250,7 @@ struct ProviderStoreKitTests {
     /// 权益缓存写入后能读回；清除后回到免费档。
     @Test
     func storeStatePersistsAndClearsEntitlement() {
-        withPreservedPurchaseCache { defaults in
+        withIsolatedPurchaseCache { defaults in
             let purchaseKey = "store.purchase"
             let checkedKey = "store.lastCheckedAt"
 
@@ -274,7 +275,7 @@ struct ProviderStoreKitTests {
     /// 缓存访问器反映当前数据，并拒绝非法缓存。
     @Test
     func cachedAccessorsRejectInvalidCache() {
-        withPreservedPurchaseCache { defaults in
+        withIsolatedPurchaseCache { defaults in
             let active = StoreEntitlementSnapshot(tier: .ultimate, expiresAt: .distantFuture)
             StoreState.update(entitlement: active)
 
@@ -410,17 +411,40 @@ struct ProviderStoreKitTests {
 
 // MARK: - Helpers
 
-/// 在保留原缓存的前提下执行断言，避免污染真实 `UserDefaults`。
-private func withPreservedPurchaseCache(_ body: (UserDefaults) -> Void) {
-    let defaults = UserDefaults.standard
-    let keys = ["store.purchase", "store.lastCheckedAt"]
+/// 在**完全隔离**的偏好存储下执行断言。
+///
+/// ## 为什么不再「保存-恢复」真实 `UserDefaults`
+///
+/// 旧写法读写 `UserDefaults.standard`，再在 defer 里把原值写回去。
+/// 这仍然有两个问题：
+///
+/// 1. 读写的过程中真实偏好处于**被改写**的中间态，若进程崩溃或断言
+///    提前退出，开发者真实的购买缓存就丢了；
+/// 2. 断言的结论取决于「运行测试前开发者的缓存长什么样」——
+///    换了机器结论就可能不同。
+///
+/// 现在改为给断言一份独立的 `UserDefaults` suite，读写都在里面完成，
+/// 真实偏好完全不被触碰，结论也与机器状态无关。
+///
+/// ## 为什么必须同时改写 `StoreState` 的偏好存储
+///
+/// `StoreState` 是权益缓存的唯一写入方，`StoreService` 的所有读也都经由它。
+/// 只隔离断言体里的 `defaults` 是不够的——`StoreState.update` 仍会写进
+/// 生产存储。因此这里把 `StoreState` 的偏好存储一并指向同一份隔离实例，
+/// 保证「写的」和「读的」落在同一个地方。
+private func withIsolatedPurchaseCache(_ body: (UserDefaults) -> Void) {
+    let suiteName = "ProviderStoreTests-\(UUID().uuidString)"
+    let defaults = UserDefaults(suiteName: suiteName)!
+    defaults.removePersistentDomain(forName: suiteName)
 
-    let previous = keys.map { defaults.object(forKey: $0) }
+    let preferences = PreferenceStore(
+        defaults: defaults,
+        cloud: InMemoryCloudKeyValueStore()
+    )
+    StoreState.setPreferencesForTesting(preferences)
     defer {
-        for (key, value) in zip(keys, previous) {
-            if let value { defaults.set(value, forKey: key) }
-            else { defaults.removeObject(forKey: key) }
-        }
+        StoreState.setPreferencesForTesting(nil)
+        defaults.removePersistentDomain(forName: suiteName)
     }
     body(defaults)
 }

@@ -2,6 +2,7 @@ import Foundation
 import KernelCore
 import LumiThemePack
 import LumiUI
+import MagicKit
 import ProviderPlugin
 import ProviderSettingView
 import ProviderTheme
@@ -14,8 +15,24 @@ import SwiftUI
 enum CisumThemeBridge {
     private static var controllers: [ObjectIdentifier: Controller] = [:]
 
-    static func migrateLegacySelection(in provider: DefaultThemeProviding) {
-        guard let legacyID = UserDefaults.standard.string(forKey: "Cisum.SelectedThemeID"),
+    /// Legacy 主题键。
+    ///
+    /// 旧版本把选中的主题 ID 直接写进 `UserDefaults.standard`。这里改为
+    /// 可注入的偏好存储：生产仍用真实偏好，单元测试可以给它一份独立
+    /// suite——既不污染开发者的真实配置，结论也不依赖那台机器上
+    /// 之前选过什么主题。
+    static let legacyThemeIDKey = "Cisum.SelectedThemeID"
+
+    /// 把旧版保存的主题选择迁移到新的主题 Provider。
+    ///
+    /// - Parameters:
+    ///   - provider: 主题 Provider。
+    ///   - preferences: 偏好存储。生产传 ``PreferenceStore/shared``。
+    static func migrateLegacySelection(
+        in provider: DefaultThemeProviding,
+        preferences: PreferenceStore = .shared
+    ) {
+        guard let legacyID = preferences.defaults.string(forKey: legacyThemeIDKey),
               provider.themes.contains(where: { $0.id == legacyID }) else { return }
         try? provider.selectTheme(id: legacyID)
     }

@@ -134,7 +134,7 @@ import Testing
 @MainActor
 @Test func pluginMetadataIsStable() {
     let plugin = AudioControlButtonsPlugin()
-    #expect(plugin.id == "AudioControlButtonsPlugin")
+    #expect(plugin.id == "com.coffic.cisum.plugin.audio-control-buttons")
     #expect(plugin.order == 20)
     #expect(plugin.iconName == "playpause.fill")
     #expect(plugin.metadata.category == .feature)

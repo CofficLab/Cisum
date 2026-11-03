@@ -13,7 +13,7 @@ import MagicKit
 
 @MainActor
 public final class BookProgressPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: BookProgressPlugin.self)
+    public let id = "com.coffic.cisum.plugin.book-progress"
 
     nonisolated static let verbose = false
 
@@ -21,7 +21,7 @@ public final class BookProgressPlugin: AsyncSuperPlugin, SuperLog {
     public let order = BookProgressPluginInfo.order
     public let iconName = BookProgressPluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: BookProgressPlugin.self),
+        id: "com.coffic.cisum.plugin.book-progress",
         name: BookProgressPluginInfo.title,
         description: BookProgressPluginInfo.description,
         version: "1.0.0",

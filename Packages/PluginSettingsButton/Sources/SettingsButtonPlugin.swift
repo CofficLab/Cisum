@@ -18,7 +18,7 @@ import SwiftUI
 ///   由宿主（`IOSSettingsAppShell`）以 sheet 形式呈现设置页。
 @MainActor
 public final class SettingsButtonPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: SettingsButtonPlugin.self)
+    public let id = "com.coffic.cisum.plugin.settings-button"
 
     nonisolated static let verbose = false
 
@@ -26,7 +26,7 @@ public final class SettingsButtonPlugin: AsyncSuperPlugin, SuperLog {
     public let order = 9999
     public let iconName = SettingsButtonPluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: SettingsButtonPlugin.self),
+        id: "com.coffic.cisum.plugin.settings-button",
         name: String(localized: "Settings", bundle: .module),
         description: SettingsButtonPluginInfo.description,
         version: "1.0.0",

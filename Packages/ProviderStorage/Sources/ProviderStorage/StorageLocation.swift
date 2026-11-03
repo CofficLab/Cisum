@@ -3,8 +3,12 @@ import Foundation
 /// 数据存储位置类型。
 ///
 /// 由 `StorageProviding` 暴露，统一描述应用持久化数据可落入的根位置。
-/// 取值与历史 `Config` / `StoragePluginLocation` 保持一致，以保证
-/// `UserDefaults` key `"StorageLocation"` 与 iCloud 容器向后兼容。
+/// 取值与历史 `Config` / `StoragePluginLocation` 保持一致。
+///
+/// - Note: 配置本身**不**存在 `UserDefaults` 里，而是由 `PluginStorage`
+///   写进自己的数据目录（`<dataRoot>/<pluginID>/storage-location.json`）。
+///   历史版本曾用 `UserDefaults` key `"StorageLocation"`，该键已废弃且
+///   **不做迁移**——旧值作废，重新走一次首启选择即可。
 public enum StorageLocation: String, Sendable, Codable, CaseIterable {
     /// iCloud 云端文档目录。
     case icloud

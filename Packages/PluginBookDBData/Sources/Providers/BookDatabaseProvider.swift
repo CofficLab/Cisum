@@ -15,8 +15,15 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
     private var storageObserver: (any StorageProvidingObserverHandle)?
     private var observers: [WeakBookProvidingObserver] = []
 
-    init(storage: any StorageProviding) {
+    /// 当前书籍的持久化仓库。
+    ///
+    /// 注入而非直接用 `BookSettingRepo.shared`：让单元测试可以给它一个
+    /// 独立的偏好存储，避免读写开发者的真实偏好与真实 iCloud 键值库。
+    private let bookSettings: BookSettingRepo
+
+    init(storage: any StorageProviding, bookSettings: BookSettingRepo = .shared) {
         self.storage = storage
+        self.bookSettings = bookSettings
         storageObserver = storage.addObserver { [weak self] event in
             self?.invalidateRepository()
         }
@@ -49,9 +56,13 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
         }
 
         guard let disk = bookDisk else { return nil }
-        let dbRoot = databaseRoot
+        let pluginID = "com.coffic.cisum.plugin.book-db-data"
+        // 迁移旧目录（books_db/books_cover → BookDBDataPlugin → 当前 id）。
+        // 必须在目标目录被创建之前迁移，否则迁移永远不执行。
+        migrateLegacyDirectoryIfNeeded(pluginID: pluginID)
+        let pluginDir = storage.pluginDataDirectory(for: pluginID)
         let container = await Task.detached(priority: .utility) {
-            try? BookConfig.getContainer(dbRootURL: dbRoot)
+            try? BookConfig.getContainer(pluginDirectory: pluginDir)
         }.value
         guard let container else { return nil }
 
@@ -65,6 +76,31 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
         )
         cachedRepository = repository
         return repository
+    }
+
+    /// 迁移历史目录到当前插件目录（如果需要）。
+    ///
+    /// 目录名随插件 id 变过两轮（`books_db` → `BookDBDataPlugin` → 反向 DNS），
+    /// 历史目录名由存储层统一登记，这里只负责调用。
+    ///
+    /// 封面目录 `books_cover` 历史上与数据库目录**平级**，而插件目录里它
+    /// 在 `books_cover/` 子目录下，因此需要单独搬一次。
+    private func migrateLegacyDirectoryIfNeeded(pluginID: String) {
+        let dataRoot = storage.databaseRoot
+        let currentDirectory = dataRoot.appendingPathComponent(pluginID, isDirectory: true)
+
+        PluginDataDirectoryMigration.migrate(
+            legacyDirectoryNames: PluginDataDirectoryHistory.legacyDirectoryNames(for: pluginID),
+            pluginID: pluginID,
+            dataRootDirectory: dataRoot
+        )
+
+        // 封面目录：历史布局里与数据库目录平级，插件布局里是子目录。
+        let legacyCoverDirectory = dataRoot.appendingPathComponent("books_cover", isDirectory: true)
+        if FileManager.default.fileExists(atPath: legacyCoverDirectory.path) {
+            let newCoverDirectory = currentDirectory.appendingPathComponent("books_cover", isDirectory: true)
+            PluginDataDirectoryMigration.migrate(from: legacyCoverDirectory, to: newCoverDirectory)
+        }
     }
 
     func totalCount() async -> Int {
@@ -113,19 +149,19 @@ final class BookDatabaseProvider: BookDatabaseProviding, SuperLog {
     }
 
     func currentBookURL() -> URL? {
-        BookSettingRepo.getCurrent()
+        bookSettings.getCurrent()
     }
 
     func currentBookTime() -> TimeInterval? {
-        BookSettingRepo.getCurrentTime()
+        bookSettings.getCurrentTime()
     }
 
     func storeCurrentBookURL(_ url: URL?) {
-        BookSettingRepo.storeCurrent(url)
+        bookSettings.storeCurrent(url)
     }
 
     func storeCurrentBookTime(_ time: TimeInterval) {
-        BookSettingRepo.storeCurrentTime(time)
+        bookSettings.storeCurrentTime(time)
     }
 
     @discardableResult

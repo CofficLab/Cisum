@@ -12,19 +12,175 @@ class CisumUITestBase: XCTestCase {
 
     /// 启动参数。
     ///
+    /// ## 默认隔离
+    ///
+    /// 默认参数里带 `--cisum-ui-testing-isolated-storage=<隔离目录名>`，
+    /// 让本次启动的数据根落到临时目录下的独立子目录，与真实沙盒完全隔离。
+    /// 配合 App 启动时的**幂等重建**（``UITestIsolation``），每次启动都是
+    /// 全新环境：磁盘目录、SwiftData 数据库行、插件数据全部清空后重建。
+    ///
+    /// 于是「仓库为空」「仓库只有我造的那几首」都成为**确定性前提**，
+    /// 不再依赖上一次运行的残留，也不受开发者本地环境影响。
+    ///
+    /// 隔离目录名由**用例类名**派生（而非随机）：结构固定，失败现场可寻址、
+    /// 可复现。同一类的不同用例共享一个隔离目录，但每次启动都会重建，
+    /// 因此用例之间仍然互不影响。
+    ///
+    /// ## 显隐覆盖
+    ///
     /// `-UI.ContentViewVisible YES` 通过 UserDefaults 的**参数域**强制内容区可见。
     /// 参数域的优先级高于持久化域，因此整条 UI 测试链路对「内容区显隐」是
     /// 封闭的：任何用例收起过内容区都不会污染后续用例的启动状态。
     /// 需要验证「落盘偏好真正生效」的用例必须另起一个**不带该参数**的 App 实例
     /// （见 `CisumContentVisibilityUITests`）。
     ///
-    /// - Important: `-UI.ContentViewVisible YES` **必须放在参数列表末尾**。
+    /// - Important: `-UI.ContentViewVisible YES` **必须放在参数列表最前面**。
     ///   UserDefaults 的参数域在遇到第一个**不含 `=`** 的参数时就停止解析，
-    ///   而 `YES` 正是这样一个参数。把它放在中间会让排在它后面的所有
-    ///   `-key=value` 形式参数（例如 `--foo=bar`）被整段丢弃。
-    ///   子类覆写本属性时也必须保持这一顺序约定。
+    ///   而 `YES` 正是这样的裸值——把它放在前面，它必定已被解析；放在后面，
+    ///   它前面那些裸值参数（如 `--cisum-ui-testing-seed-audio Tone.wav` 的
+    ///   `Tone.wav`）会截断解析，让覆盖**静默失效**。
+    ///   静默失效的后果很隐蔽：内容区保持收起 → `cisum.kernel.ready` 不出现
+    ///   → 报「主界面未组装」，看起来像启动超时，实际是显隐覆盖没生效。
+    ///
+    ///   子类追加参数时必须用 ``appendingLaunchArguments(_:)``（它把追加项放在
+    ///   显隐覆盖参数**之后**），不要用 `+` 直接拼到最前面——那会让裸值参数
+    ///   跑到显隐覆盖参数之前，把覆盖截断掉。
+    ///
+    /// ## 覆写约定（重要）
+    ///
+    /// **不要**整体覆写本属性。历史上 `CisumWelcomeUITests` 覆写成
+    /// `["--cisum-ui-testing", "--cisum-ui-testing-reset-storage"]`，
+    /// 连带丢掉了隔离参数——于是该用例既跑在真实沙盒里，又读到了真实
+    /// `UserDefaults` 里被别的用例写坏的显隐偏好，测试结论因此依赖执行顺序。
+    ///
+    /// 正确做法是**只追加**需要的参数，且必须用 ``appendingLaunchArguments(_:)``：
+    ///
+    /// ```swift
+    /// override var additionalLaunchArguments: [String] {
+    ///     appendingLaunchArguments(["--cisum-ui-testing-reset-storage"])
+    /// }
+    /// ```
+    ///
+
+    ///
+    /// 需要「落盘偏好真正生效」（不带显隐覆盖）时，用
+    /// ``launchArgumentsWithoutVisibilityOverride`` 派生，而不是手写参数列表。
+    ///
+    /// - Important: 用 ``appendingLaunchArguments(_:)`` 追加，不要用 `+` 直接
+    ///   拼接——显隐覆盖参数必须在列表最前面（见上文），拼接会让追加的裸值
+    ///   参数跑到它之前，把覆盖截断掉。
     var additionalLaunchArguments: [String] {
-        ["--cisum-ui-testing", "--cisum-ui-testing-storage-local", "-UI.ContentViewVisible", "YES"]
+        defaultLaunchArguments
+    }
+
+    /// 派生一份**不预设存储位置**的启动参数。
+    ///
+    /// `--cisum-ui-testing-storage-local` 会在 App 启动时直接写入存储位置，
+    /// 于是「首启引导」不再需要——引导层不会出现。首启引导专项用例必须
+    /// 在**保留隔离**的前提下去掉这个参数（而不是像历史上那样整体覆写
+    /// 整个参数列表，那会连带丢掉隔离）。
+    var launchArgumentsWithoutStoragePreset: [String] {
+        defaultLaunchArguments.filter { $0 != "--cisum-ui-testing-storage-local" }
+    }
+
+    /// 把追加的参数并入启动参数（放在显隐覆盖参数**之后**）。
+    ///
+    /// 用它而不是 `+` 直接拼接，是为了守住两条约定：
+    ///
+    /// 1. **不手写参数列表**——手抄一次就可能漏掉隔离参数或显隐覆盖参数，
+    ///    而漏掉不会有任何报错，只会让用例悄悄跑在错误的隔离环境里；
+    /// 2. **不破坏参数顺序**——显隐覆盖参数必须在最前面（UserDefaults 参数域
+    ///    遇裸值即止），追加项必须落在它之后。
+    func appendingLaunchArguments(_ extra: [String]) -> [String] {
+        defaultLaunchArguments + extra
+    }
+
+    /// 基类的默认启动参数（隔离 + 显隐覆盖）。
+    ///
+    /// 拆成独立属性，是为了让「派生无覆盖变体」与「子类追加参数」都不必
+    /// 重抄参数列表——手抄就会漏，漏了就会让隔离失效。
+    var defaultLaunchArguments: [String] {
+        [
+            "-UI.ContentViewVisible", "YES",
+            "--cisum-ui-testing",
+            "--cisum-ui-testing-storage-local",
+            "--cisum-ui-testing-reset-scene",
+            "--cisum-ui-testing-isolated-storage=\(Self.isolatedStorageName)",
+        ]
+    }
+
+    /// 去掉显隐覆盖参数的启动参数变体。
+    ///
+    /// 用于「必须验证落盘偏好真正生效」的用例：显隐覆盖参数一旦在位，
+    /// 启动参数就会盖过落盘值，落盘值永远不参与判定。
+    ///
+    /// **隔离参数必须保留**——去掉它等于让用例跑在真实沙盒与真实偏好上，
+    /// 既污染开发者环境，又让结论依赖其它用例的残留。
+    var launchArgumentsWithoutVisibilityOverride: [String] {
+        defaultLaunchArguments.filter { $0 != "-UI.ContentViewVisible" && $0 != "YES" }
+    }
+
+    /// 本次启动的**隔离作用域**名。
+    ///
+    /// 隔离的磁盘目录与偏好 suite 都按这个名字派生，因此作用域是「一个
+    /// 用例能看见哪些状态」的**唯一决定因素**。
+    ///
+    /// 默认按**用例类名**派生：同一类的用例共享同一份状态（失败现场可寻址、
+    /// 可复现），不同类互不干扰。App 启动时会幂等重建磁盘目录，因此共享
+    /// 不带来磁盘残留。
+    ///
+    /// 但**偏好**不会被幂等重建——同一类里的多个用例会互相影响落盘值。
+    /// 需要「自己的状态不被同类的其它用例看到」的用例，必须覆写本属性
+    /// 给出**专属作用域**。
+    ///
+    /// - Important: 覆写时要用**用例自己的名字**，不能用随机的值：随机会让
+    ///   「上次失败的场景」这次不复现，只剩一句「它昨天挂过一次」。
+    static var isolationScope: String {
+        String(describing: self)
+    }
+
+    /// 本次启动使用的隔离数据根目录名。
+    ///
+    /// 由 ``isolationScope`` 派生：同一作用域的用例共享目录（便于失败现场
+    /// 可复现），不同作用域互不干扰。App 启动时会幂等重建该目录，因此共享
+    /// 不带来污染。
+    static var isolatedStorageName: String {
+        let sanitized = isolationScope
+            .replacingOccurrences(of: "[^A-Za-z0-9_-]", with: "-", options: .regularExpression)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+        return sanitized.isEmpty ? "default" : sanitized
+    }
+
+    /// 真实 iCloud 容器是否可用。
+    ///
+    /// iCloud 容器需要设备**已登录 iCloud 账号**。没有账号（或容器被系统
+    /// 禁用）时，容器路径根本不存在——这是真实的系统约束，任何实现都绕不过去。
+    ///
+    /// 因此 iCloud 专项用例必须显式判断并 `XCTSkip`，**绝不能**让它
+    /// 「因为容器不存在而顺带通过」——那样这条用例在没登录 iCloud 的机器上
+    /// 根本没测到任何东西，却和其它机器一样显示为绿色。
+    ///
+    /// 跨机一致性由这条约定保证：要么真的测了 iCloud 路径，要么**明确**
+    /// 报告「本机未覆盖」，而不是混进全绿结果里。
+    var isRealICloudContainerAvailable: Bool {
+        FileManager.default.ubiquityIdentityToken != nil
+            && FileManager.default.url(forUbiquityContainerIdentifier: nil) != nil
+    }
+
+    /// 要求真实 iCloud 容器可用，否则显式跳过。
+    ///
+    /// - Parameter reason: 跳过原因（会出现在测试报告中）。
+    func requireRealICloudContainer(reason: String) throws {
+        guard isRealICloudContainerAvailable else {
+            throw XCTSkip(
+                """
+                \(reason) 需要真实 iCloud 容器，但当前设备未登录 iCloud 账号
+                （或容器不可用）。本用例在未覆盖 iCloud 路径的机器上被显式跳过，
+                而不是「因为容器不存在而顺带通过」——
+                否则它会与其它机器一样显示为绿色，却什么都没测。
+                """
+            )
+        }
     }
 
     /// 主容器元素：macOS 是名为 `Cisum` 的可调整窗口，iOS 是整个屏幕窗口。

@@ -12,7 +12,7 @@ import MagicKit
 
 @MainActor
 public final class BookPlayModePlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: BookPlayModePlugin.self)
+    public let id = "com.coffic.cisum.plugin.book-play-mode"
 
     nonisolated static let verbose = false
 
@@ -20,7 +20,7 @@ public final class BookPlayModePlugin: AsyncSuperPlugin, SuperLog {
     public let order = BookPlayModePluginInfo.order
     public let iconName = BookPlayModePluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: BookPlayModePlugin.self),
+        id: "com.coffic.cisum.plugin.book-play-mode",
         name: BookPlayModePluginInfo.title,
         description: BookPlayModePluginInfo.description,
         version: "1.0.0",

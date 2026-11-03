@@ -1,23 +1,22 @@
 #if canImport(AppKit)
 import AppKit
 #endif
+#if canImport(UIKit)
+import UIKit
+#endif
 import MagicKit
 import LumiUI
-import ProviderDocsView
+import CisumProviderStorage
 import SwiftUI
 
 /// 通用设置详情视图 —— 设置窗口「通用」标签页。
 ///
 /// 对齐 Lumi `GeneralSettingsDetailView` 的分组卡片形态：保留「应用信息」
-/// 分组（DEBUG 下附加「调试」分组），新增「说明书」分组（打开说明书浏览器，
-/// 浏览各插件贡献的说明书），删减了依赖 Lumi 特有能力的分组（官网 / 更新 /
-/// 引导重放）。
+/// 分组（DEBUG 下附加「调试」分组）。
 ///
-/// 只依赖 `GeneralSettingsViewModel`；说明书条目由组装层注入。
+/// 只依赖 `GeneralSettingsViewModel`。
 struct GeneralSettingsDetailView: View {
     @ObservedObject private var viewModel: GeneralSettingsViewModel
-
-    @State private var isShowingManuals = false
 
     init(viewModel: GeneralSettingsViewModel) {
         self.viewModel = viewModel
@@ -27,15 +26,12 @@ struct GeneralSettingsDetailView: View {
         AppSettingsContentScaffold(maxContentWidth: nil) {
             VStack(alignment: .leading, spacing: 16) {
                 appInfoSection
-                manualsSection
+                aboutUsSection
                 #if DEBUG
                 debugSection
                 #endif
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .sheet(isPresented: $isShowingManuals) {
-            ManualsBrowserView(manuals: viewModel.manualEntries)
         }
     }
 
@@ -50,16 +46,34 @@ struct GeneralSettingsDetailView: View {
         }
     }
 
-    // MARK: - 说明书
+    // MARK: - 关于我们
 
-    private var manualsSection: some View {
-        AppSettingSection(title: String(localized: "Manual", bundle: .module)) {
+    private var aboutUsSection: some View {
+        AppSettingSection(title: String(localized: "About Us", bundle: .module)) {
             AppSettingRow(
-                title: String(localized: "Browse the manuals contributed by plugins", bundle: .module),
-                icon: "book",
-                action: { isShowingManuals = true }
+                title: String(localized: "Official Website", bundle: .module),
+                icon: "globe",
+                action: { openURL("https://coffic.cn/cisum") }
             ) {
-                Image(systemName: "chevron.right")
+                Image(systemName: "arrow.up.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            AppSettingRow(
+                title: String(localized: "Privacy Policy", bundle: .module),
+                icon: "hand.raised",
+                action: { openURL("https://coffic.cn/privacy") }
+            ) {
+                Image(systemName: "arrow.up.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            AppSettingRow(
+                title: String(localized: "Terms of Service", bundle: .module),
+                icon: "doc.text",
+                action: { openURL("https://coffic.cn/terms") }
+            ) {
+                Image(systemName: "arrow.up.right")
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(.tertiary)
             }
@@ -83,11 +97,26 @@ struct GeneralSettingsDetailView: View {
         }
     }
 
+    /// 打开应用的数据根目录。
+    ///
+    /// 目录结构：
+    ///
+    /// ```text
+    /// <Application Support>/<bundleID>/
+    /// └── db_debug_v<N> | db_production_v<N>   ← 数据根目录
+    ///     ├── <pluginID>/                     ← 各插件数据
+    ///     └── Core/
+    /// ```
+    ///
+    /// 数据根目录名复用 `DataRootDirectoryNaming`（与 `StorageProvider` 同一份
+    /// 定义）——在视图里另抄一份 `db_debug_v<N>` 的话，改版本号策略时必然
+    /// 漏改，打开的就是一个不存在的目录。
     private func openDataDirectory() {
-        let bundleID = Bundle.main.bundleIdentifier ?? "com.coffic.cisum"
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
+        let bundleID = Bundle.main.bundleIdentifier ?? "com.yueyi.cisum"
+        let dataRoot = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
             .appendingPathComponent(bundleID, isDirectory: true)
-        guard let url = appSupport else { return }
+            .appendingPathComponent(DataRootDirectoryNaming.directoryName(), isDirectory: true)
+        guard let url = dataRoot else { return }
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         #if canImport(AppKit)
         NSWorkspace.shared.open(url)
@@ -105,5 +134,15 @@ struct GeneralSettingsDetailView: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
         }
+    }
+
+    /// 在默认浏览器中打开链接。
+    private func openURL(_ urlString: String) {
+        guard let url = URL(string: urlString) else { return }
+        #if canImport(AppKit)
+        NSWorkspace.shared.open(url)
+        #elseif canImport(UIKit)
+        UIApplication.shared.open(url)
+        #endif
     }
 }

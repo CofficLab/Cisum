@@ -27,6 +27,20 @@ public protocol AudioLibraryProvidingObserverHandle: AnyObject {
     func cancel()
 }
 
+/// 音乐仓库的**扫描结论**（三态）。
+///
+/// 仓库「有没有歌」这个问题，在扫描完成前是**答不了的**：
+/// 还没扫过时数据库里同样没有记录，那不是「仓库是空的」的证据。
+/// 把三态显式建模，消费方就不必各自重新解释一遍计数。
+public enum AudioRepositoryScanState: Sendable, Equatable {
+    /// 还没扫过——不知道。
+    case unknown
+    /// 扫完了，确认为空。
+    case empty
+    /// 扫完了，确认非空。
+    case nonEmpty
+}
+
 /// 音频库能力协议。
 ///
 /// Kernel 只定义 AudioDB 所需的抽象能力，不依赖 `AudioRepo` 或任何具体
@@ -49,6 +63,14 @@ public protocol AudioLibraryProviding: AnyObject, Sendable {
     /// 消费方（如空仓库引导、「更多」按钮的提示）直接读这个结论，不必各自
     /// 重新解释一遍计数。
     var isRepositoryEmpty: Bool { get }
+
+    /// 音乐仓库的**扫描结论**（三态）。
+    ///
+    /// `isRepositoryEmpty` 是二值的：`false` 同时涵盖「确认为空」与
+    /// 「还没扫过」两种截然不同的状态。需要区分这三态的消费方
+    /// （如播放器的 idle 占位：只有「确认非空」才说明「仓库里有歌但用户还没选」）
+    /// 读这个属性。
+    var repositoryScanState: AudioRepositoryScanState { get }
 
     /// 当前音频库中的项目数量。
     func totalCount() async -> Int
@@ -86,6 +108,12 @@ public extension AudioLibraryProviding {
     /// 不跟踪扫描状态的实现方（如测试替身）会落到这个默认值——引导不出现，
     /// 而不是误报「仓库是空的」。
     var isRepositoryEmpty: Bool { false }
+
+    /// 默认**不知道**扫描结论。
+    ///
+    /// 不跟踪扫描状态的实现方拿不出「确认非空」这个结论，
+    /// 于是依赖它的 UI 不会抢跑（播放器的 idle 占位要等明确的非空信号）。
+    var repositoryScanState: AudioRepositoryScanState { .unknown }
 
     @discardableResult
     func addObserver(_ callback: @escaping (AudioLibraryProvidingEvent) -> Void) -> any AudioLibraryProvidingObserverHandle {

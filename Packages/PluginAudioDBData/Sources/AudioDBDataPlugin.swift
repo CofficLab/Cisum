@@ -14,7 +14,7 @@ import OSLog
 /// UI 插件通过 `AudioLibraryProviding` 使用它，不再自行构造数据库。
 @MainActor
 public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: AudioDBDataPlugin.self)
+    public let id = "com.coffic.cisum.plugin.audio-db-data"
 
     public nonisolated static let emoji = "💾"
     public nonisolated static let verbose = false
@@ -23,7 +23,7 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     public let order = 1
     public let iconName = "externaldrive.badge.timemachine"
     public let metadata = PluginMetadata(
-        id: String(describing: AudioDBDataPlugin.self),
+        id: "com.coffic.cisum.plugin.audio-db-data",
         name: "Audio Database Data",
         description: "Provides the audio database and keeps the audio library synchronized.",
         version: "1.0.0",
@@ -91,6 +91,16 @@ public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
     /// cleanup is not reliable when XCUITest terminates the app). Clearing the
     /// disk directory on startup makes the empty-repository precondition hold
     /// regardless of what the previous run left behind.
+    ///
+    /// ## 与隔离数据根的关系
+    ///
+    /// 启用 `--cisum-ui-testing-isolated-storage` 时，隔离根已在 App 启动
+    /// 阶段被**整体重建**（含 SwiftData 数据库文件），本方法清理的内容
+    /// 本就不存在——它保留下来是为了覆盖「未启用隔离」的旧路径
+    /// （例如某些用例刻意要复用同一个仓库目录）。
+    ///
+    /// 注意：本方法只清**磁盘目录**，不删数据库里的行。数据库行的清理
+    /// 依赖隔离根的整体重建——这正是「删磁盘目录不够」的历史原因。
     @MainActor
     private func resetUITestAudioStateIfRequested() {
         #if DEBUG

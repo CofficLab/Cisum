@@ -16,13 +16,19 @@ private typealias CisumStorageProvidingEvent = CisumProviderStorage.StorageProvi
 /// - 数据库文件：`<root>/<name>/<name>.db`
 ///
 /// 吸收了旧版 `Config` 的存储位置逻辑（iCloud / 本地 / 自定义）与数据库目录
-/// 管理，成为存储能力的唯一数据源。保持向后兼容：
-/// - `UserDefaults` key `"StorageLocation"`（与旧版 `Config` 一致）。
-/// - 存储变更通过 `StorageProvidingEvent` 广播。
+/// 管理，成为存储能力的唯一数据源。
+///
+/// 存储位置配置本身**不**存在 `UserDefaults` 里，而是写进本插件自己的
+/// 数据目录（`<root>/<pluginID>/storage-location.json`），详见
+/// `StorageLocationStore`。存储变更通过 `StorageProvidingEvent` 广播。
 @MainActor
 public final class StorageProvider: ObservableObject, CisumProviderStorage.StorageProviding, ProviderStorage.StorageProviding {
-    private static let storageLocationKey = "StorageLocation"
-    private let userDefaults: UserDefaults
+    /// 存储位置配置的磁盘存储。
+    ///
+    /// 配置写进本插件自己的数据目录（`<databaseRoot>/<pluginID>/storage-location.json`），
+    /// 不再用 `UserDefaults`——偏好域会被 iCloud 同步，而「数据放在哪」是
+    /// 设备本地的决策。详见 `StorageLocationStore`。
+    private let locationStore: StorageLocationStore
 
     /// 数据根目录名：`db_<debug|production>_v<majorVersion>`（对齐 Lumi/GitOK 命名规则）。
     private let dataRootDirectoryName: String
@@ -31,21 +37,20 @@ public final class StorageProvider: ObservableObject, CisumProviderStorage.Stora
     public let databaseRoot: URL
     private let eventObservers = EventObserverStore<CisumStorageProvidingEvent>()
 
-    public init(userDefaults: UserDefaults = .standard) {
-        self.userDefaults = userDefaults
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1"
-        let majorVersion = Self.majorVersion(from: version)
-
-        #if DEBUG
-            dataRootDirectoryName = Self.dataRootDirectoryName(debug: true, majorVersion: majorVersion)
-        #else
-            dataRootDirectoryName = Self.dataRootDirectoryName(debug: false, majorVersion: majorVersion)
-        #endif
-
-        let root = MagicApp.getAppSpecificSupportDirectory()
-            .appendingPathComponent(dataRootDirectoryName, isDirectory: true)
+    /// - Parameters:
+    ///   - databaseRoot: 数据根目录。缺省按标准规则解析。
+    ///   - pluginID: 本插件 id，决定配置文件的落盘目录。
+    public init(
+        databaseRoot: URL? = nil,
+        pluginID: String = StoragePlugin.pluginID
+    ) {
+        dataRootDirectoryName = DataRootDirectoryNaming.directoryName()
+        let root = databaseRoot
+            ?? MagicApp.getAppSpecificSupportDirectory()
+                .appendingPathComponent(dataRootDirectoryName, isDirectory: true)
         try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
-        databaseRoot = root
+        self.databaseRoot = root
+        locationStore = StorageLocationStore(databaseRoot: root, pluginID: pluginID)
     }
 
     // MARK: - Lumi ProviderStorage compatibility
@@ -64,8 +69,7 @@ public final class StorageProvider: ObservableObject, CisumProviderStorage.Stora
     }
 
     public var currentStorageLocation: StorageLocation? {
-        guard let raw = userDefaults.string(forKey: Self.storageLocationKey),
-              let location = StorageLocation(rawValue: raw) else { return nil }
+        guard let location = locationStore.load() else { return nil }
         guard storageRoot(for: location) != nil else { return nil }
         return location
     }
@@ -94,19 +98,27 @@ public final class StorageProvider: ObservableObject, CisumProviderStorage.Stora
     }
 
     public func pluginDataDirectory(for pluginID: String) -> URL {
-        let dir = databaseRoot.appendingPathComponent(pluginID, isDirectory: true)
+        let dir = pluginDataDirectoryPath(for: pluginID)
         try? Self.ensureDirectory(at: dir)
         return dir
     }
 
+    /// 解析插件数据目录路径，**不创建目录**。
+    ///
+    /// 与 `pluginDataDirectory(for:)` 分开，是为了让目录迁移能在目录被
+    /// 创建之前判断「新目录是否已存在」——若先创建再判断，迁移永远不会执行。
+    public func pluginDataDirectoryPath(for pluginID: String) -> URL {
+        databaseRoot.appendingPathComponent(pluginID, isDirectory: true)
+    }
+
     public func setStorageLocation(_ location: StorageLocation?) {
-        userDefaults.set(location?.rawValue, forKey: Self.storageLocationKey)
+        locationStore.save(location)
         eventObservers.send(.locationChanged(location))
         eventObservers.send(.storageAvailabilityChanged)
     }
 
     public func resetStorageLocation() {
-        userDefaults.removeObject(forKey: Self.storageLocationKey)
+        locationStore.reset()
         eventObservers.send(.locationChanged(nil))
         eventObservers.send(.storageAvailabilityChanged)
     }
@@ -121,14 +133,16 @@ public final class StorageProvider: ObservableObject, CisumProviderStorage.Stora
     // MARK: - 数据根目录命名（对齐 GitOK DefaultStorageProvider）
 
     /// 数据根目录名：`db_<debug|production>_v<majorVersion>`。
+    ///
+    /// 转发到 `DataRootDirectoryNaming`——命名规则只有一份定义，
+    /// 其它插件与调试入口一律复用它，避免各处抄一份后改版本号策略时漏改。
     static func dataRootDirectoryName(debug: Bool, majorVersion: Int) -> String {
-        let environment = debug ? "debug" : "production"
-        return "db_\(environment)_v\(majorVersion)"
+        DataRootDirectoryNaming.directoryName(isDebug: debug, majorVersion: majorVersion)
     }
 
     /// 解析主版本号：`"5.3.1" -> 5`；无法解析时回退 1。
     static func majorVersion(from versionString: String) -> Int {
-        versionString.split(separator: ".").first.flatMap { Int($0) } ?? 1
+        DataRootDirectoryNaming.majorVersion(from: versionString)
     }
 
     private static func ensureDirectory(at url: URL) throws {

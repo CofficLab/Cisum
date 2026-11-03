@@ -465,6 +465,81 @@ Legacy XCTest suites may remain; they do not need to be migrated.
 - Add a UI test in `CisumUITests/` for end-to-end user flows (launch, playback,
   library, iCloud download, copy, storage location, store, settings navigation).
 
+### Test isolation and determinism
+
+**Different developers must get the same result on their own machines.** This
+requires two orthogonal properties:
+
+| | Solves | How |
+|---|---|---|
+| **Isolation** | different inputs | no leftover state from previous runs |
+| **Determinism** | different outputs for the same input | fixed ordering, no wall-clock, no fixed sleeps |
+
+The full rules live in `.agent/rules/testing-hermetic-determinism.md`. The
+non-negotiable parts:
+
+**Never touch process-global state in a test.** No `UserDefaults.standard`,
+no `NSUbiquitousKeyValueStore.default` — the latter's behaviour depends on
+whether the device is signed into iCloud, so the same assertion can pass on one
+machine and fail on another.
+
+```swift
+// ❌ reads and writes the developer's real preferences
+UserDefaults.standard.set(url, forKey: "currentBookURL")
+
+// ✅ isolated instance
+let defaults = UserDefaults(suiteName: "BookSettingRepoTests-\(UUID().uuidString)")!
+let preferences = PreferenceStore(
+    defaults: defaults,
+    cloud: InMemoryCloudKeyValueStore()
+)
+```
+
+Production state stores must therefore take their preference storage as an
+injectable dependency (`BookSettingRepo(preferences:)`,
+`AudioStateRepo(preferences:)`, `AudioPlayModeStore(preferences:)`), with
+`shared` as the production default.
+
+**Never wait with a fixed sleep.** Use `DeterministicWait`, which budgets by
+wall-clock time and reports a diagnosable message on timeout:
+
+```swift
+await DeterministicWait.expect(
+    "library.totalCount() 应等于 2",
+    timeout: 2.0
+) { await library.totalCount() == 2 }
+```
+
+**Do not assert on real wall-clock time.** Assert the *semantics* instead —
+a timeout override being honoured is a fact about the configuration, not about
+how fast the machine is.
+
+**`.serialized` is not a fix.** If a suite needs `@Suite(.serialized)` to pass,
+it is probably reading or writing global state. Isolate instead.
+
+### UI test isolation
+
+The UI test base class enables isolation by default — data roots are rebuilt
+from scratch on every launch, so "the repository is empty" is a deterministic
+precondition rather than an eventually-consistent one.
+
+Seed data is synthesised at runtime and must be **genuinely usable**:
+
+| Capability | Launch argument |
+|---|---|
+| Music repository | `--cisum-ui-testing-seed-audio <name>[,<name>]` |
+| Music duration | `--cisum-ui-testing-seed-duration <seconds>` |
+| Audiobook repository | `--cisum-ui-testing-seed-book <book>[/<chapter>,...][;...]` |
+
+Seed files are real decodable PCM WAVs, and audiobook seeds mirror the real
+layout (a folder per book, audio files as chapters) so the actual scanning and
+indexing path is exercised.
+
+Tests that need a capability the machine may not have (a real iCloud container,
+the system file picker) must **skip explicitly** rather than pass vacuously —
+see `requireRealICloudContainer(reason:)` in `CisumUITestCase`.
+
+
 ### Running tests
 
 ```bash

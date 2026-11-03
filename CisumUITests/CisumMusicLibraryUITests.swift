@@ -5,7 +5,9 @@ final class CisumMusicLibraryUITests: CisumUITestBase {
     private let layoutRegressionAudioName = "Cisum-UI-Playback-Test-Tone-Long-Name-For-List-Layout.wav"
 
     override var additionalLaunchArguments: [String] {
-        super.additionalLaunchArguments + ["--cisum-ui-testing-seed-audio", layoutRegressionAudioName]
+        // 用 `appendingLaunchArguments` 而不是直接拼接：它保证追加项落在显隐覆盖参数之后，
+        // 且不手写参数列表（手抄容易漏掉隔离参数）。
+        appendingLaunchArguments(["--cisum-ui-testing-seed-audio", layoutRegressionAudioName])
     }
 
     func testMusicLibrarySceneIsShown() throws {

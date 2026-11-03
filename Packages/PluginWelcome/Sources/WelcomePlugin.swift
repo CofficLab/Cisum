@@ -10,7 +10,7 @@ import SwiftUI
 
 @MainActor
 public final class WelcomePlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: WelcomePlugin.self)
+    public let id = "com.coffic.cisum.plugin.welcome"
 
     public static let shared = WelcomePlugin()
     public nonisolated static let emoji = WelcomePluginInfo.emoji
@@ -18,7 +18,7 @@ public final class WelcomePlugin: AsyncSuperPlugin, SuperLog {
     public let order = WelcomePluginInfo.order
     public let iconName = WelcomePluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: WelcomePlugin.self),
+        id: "com.coffic.cisum.plugin.welcome",
         name: WelcomePluginInfo.title,
         description: WelcomePluginInfo.description,
         version: "1.0.0",

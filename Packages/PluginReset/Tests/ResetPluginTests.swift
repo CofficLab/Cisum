@@ -23,10 +23,10 @@ import Testing
 @Test func systemPluginExposesStableIdentityAndMetadata() {
     let plugin = SystemPlugin.shared
 
-    #expect(plugin.id == "SystemPlugin")
+    #expect(plugin.id == "com.coffic.cisum.plugin.system")
     #expect(plugin.order == 90)
     #expect(plugin.iconName == "gearshape")
-    #expect(plugin.metadata.id == "SystemPlugin")
+    #expect(plugin.metadata.id == "com.coffic.cisum.plugin.system")
     #expect(plugin.metadata.name == "System")
     #expect(plugin.metadata.version == "1.0.0")
     #expect(plugin.metadata.category == .system)

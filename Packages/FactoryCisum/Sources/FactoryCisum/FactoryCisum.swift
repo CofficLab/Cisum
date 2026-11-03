@@ -80,7 +80,27 @@ public enum CisumBuilder: SuperLog {
     ) async throws -> KernelCoreContainer {
         let kernel = KernelCoreContainer()
 
-        // 0. UI 测试注入：必须在任何插件 boot 之前完成，否则播放插件可能在
+        // 0. 插件 ID 兼容映射：新 id → 旧 id。
+        //
+        // 插件 id 从类型名（如 `AudioPlugin`）改为反向 DNS
+        // （`com.coffic.cisum.plugin.audio`）后，用户此前保存的「插件启用状态」
+        // 仍以旧 id 为键。这张表让内核在读取时回退到旧 id，写入时同时写两者，
+        // 于是升级不丢状态、回滚旧版本也仍然生效。
+        //
+        // 必须在任何插件 boot 之前配置：启用状态在插件 boot 阶段就要被读取。
+        kernel.legacyPluginIDAliases = PluginIDCompatibility.legacyAliases
+
+        // 0a. UI 测试隔离：**幂等重建**隔离数据根。
+        //
+        // 必须早于任何插件读取数据根——隔离要覆盖全部数据：磁盘目录、
+        // SwiftData 数据库文件、插件数据目录都在同一棵树下。晚于这一步
+        // 的读取都会看到上一次运行留下的残留，「仓库为空」就只是
+        // 最终一致而非确定。
+        //
+        // 目录名由启动参数给出且保持稳定（不随机），失败现场可寻址、可复现。
+        UITestIsolation.resetIsolatedRootIfNeeded()
+
+        // 0b. UI 测试注入：必须在任何插件 boot 之前完成，否则播放插件可能在
         //    安装替身之前就已经发起过 iCloud 下载。无参数时不做任何改动。
         ICloudDownloadControl.shared.bootstrapFromLaunchArguments()
 
@@ -92,7 +112,16 @@ public enum CisumBuilder: SuperLog {
         let plugins: [any SuperPlugin] = [RootViewPlugin()] + factory.makePlugins()
 
         // 2. 注册基础设施 Provider
-        let appState = BasicAppStateService()
+        //
+        // UI 测试下显隐偏好必须与「隔离存储根」同源隔离：`UserDefaults.standard`
+        // 是进程级全局状态，跨用例共享。一个用例收起内容区后，另一个不带
+        // `-UI.ContentViewVisible` 覆盖参数的用例就会读到那个值，于是测试结论
+        // 依赖执行顺序——同一份测试在不同机器上可能得到不同结论。
+        //
+        // 详见 `UITestIsolation.isolatedDefaults`。
+        let appState = BasicAppStateService(
+            defaults: UITestIsolation.isolatedDefaults() ?? .standard
+        )
         try kernel.registerProvider((any AppStateProviding).self, appState)
 
         let pluginService = PluginContributionService(kernel: kernel)

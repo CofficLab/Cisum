@@ -15,7 +15,7 @@ import SwiftUI
 
 @MainActor
 public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: BookControlButtonsPlugin.self)
+    public let id = "com.coffic.cisum.plugin.book-control-buttons"
 
     nonisolated static let verbose = false
 
@@ -31,7 +31,7 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
     public let order = order
     public let iconName = iconName
     public let metadata = PluginMetadata(
-        id: String(describing: BookControlButtonsPlugin.self),
+        id: "com.coffic.cisum.plugin.book-control-buttons",
         name: title,
         description: description,
         version: "1.0.0",

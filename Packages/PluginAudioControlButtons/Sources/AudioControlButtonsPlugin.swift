@@ -18,13 +18,13 @@ import SwiftUI
 /// （更多 / 上一曲 / 播放暂停 / 下一曲 / 播放模式）。
 @MainActor
 public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
-    public let id = String(describing: AudioControlButtonsPlugin.self)
+    public let id = "com.coffic.cisum.plugin.audio-control-buttons"
 
     public static let shared = AudioControlButtonsPlugin()
     public let order = 20
     public let iconName = "playpause.fill"
     public let metadata = PluginMetadata(
-        id: String(describing: AudioControlButtonsPlugin.self),
+        id: "com.coffic.cisum.plugin.audio-control-buttons",
         name: String(localized: "Playback Control Buttons", bundle: .module),
         description: String(localized: "Provides the previous / play / next control buttons at the bottom of the player.", bundle: .module),
         version: "1.0.0",

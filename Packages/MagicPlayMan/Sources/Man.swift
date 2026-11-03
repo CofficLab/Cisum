@@ -201,6 +201,9 @@ extension MagicPlayMan {
         if oldIsPlaying != isPlaying {
             sendStateChanged(isPlaying: isPlaying)
         }
+
+        // 同步系统远程命令的激活态，确保 macOS 控制中心/锁屏正确显示播放或暂停图标
+        syncRemoteCommandActiveStates()
     }
 
     /// 设置当前播放的资源 URL

@@ -6,6 +6,7 @@ import ProviderAudioLibrary
 import ProviderToast
 import SwiftData
 import SwiftUI
+import CisumProviderStorage
 
 @MainActor
 public enum AudioCopyService {
@@ -18,6 +19,7 @@ public enum AudioCopyService {
     static var toast: (any AudioCopyToastCapability)?
     static var capacity: (any AudioCopyCapacityCapability)?
     static var purchase: (any AudioCopyPurchaseCapability)?
+    static var storage: (any AudioCopyStorageCapability)?
     static var copyViewModel: CopyViewModel?
     static var copyObserver: CopyTaskObserver?
 
@@ -26,12 +28,14 @@ public enum AudioCopyService {
         library: any AudioCopyLibraryCapability,
         toast: (any AudioCopyToastCapability)?,
         capacity: any AudioCopyCapacityCapability,
-        purchase: any AudioCopyPurchaseCapability
+        purchase: any AudioCopyPurchaseCapability,
+        storage: any AudioCopyStorageCapability
     ) {
         Self.library = library
         Self.toast = toast
         Self.capacity = capacity
         Self.purchase = purchase
+        Self.storage = storage
         installCopyState()
     }
 
@@ -156,12 +160,28 @@ public enum AudioCopyService {
     }
 
     private static func createDatabaseFile(name: String) throws -> URL {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1"
-        let majorVersion = version.split(separator: ".").first.flatMap { Int($0) } ?? 1
-        let env = Self.dbDirName(majorVersion: majorVersion)
+        // 优先使用插件专属数据目录（对齐 Lumi 规范）
+        if let pluginDir = storage?.pluginDataDirectoryPath() {
+            // 迁移旧目录（copy_db → CopyPlugin → 当前 id）。
+            // 必须在目录被创建之前迁移，否则迁移目标已经存在、永远不执行。
+            migrateLegacyDirectoryIfNeeded(pluginDirectory: pluginDir)
+            let url = pluginDir.appendingPathComponent("\(name).db", isDirectory: false)
+            try FileManager.default.createDirectory(
+                at: pluginDir,
+                withIntermediateDirectories: true
+            )
+            return url
+        }
+
+        // 回退：使用旧版路径（如果 storage 能力未注入）
+        //
+        // 数据根目录名复用共享命名规则 `DataRootDirectoryNaming`，
+        // 不在本插件内另抄一份 `db_debug_v<N>`——改版本号策略时必然漏改，
+        // 漏改的后果是复制任务数据被写进另一个目录，用户看不到历史任务。
+        let dataRootName = DataRootDirectoryNaming.directoryName()
         let appSupport = MagicApp.getAppSpecificSupportDirectory()
         let url = appSupport
-            .appendingPathComponent(env, isDirectory: true)
+            .appendingPathComponent(dataRootName, isDirectory: true)
             .appendingPathComponent(name, isDirectory: true)
             .appendingPathComponent("\(name).db")
 
@@ -173,12 +193,22 @@ public enum AudioCopyService {
         return url
     }
 
-    private static func dbDirName(majorVersion: Int) -> String {
-        #if DEBUG
-            "db_debug_v\(majorVersion)"
-        #else
-            "db_production_v\(majorVersion)"
-        #endif
+    /// 迁移旧目录到新目录（如果需要）。
+    ///
+    /// 旧版本使用 `<databaseRoot>/copy_db/` 目录，
+    /// 新版本改用 `pluginDataDirectory(for: "CopyPlugin")` 目录。
+    /// 此方法在首次启动时迁移旧数据，确保用户的复制任务数据不丢失。
+    private static func migrateLegacyDirectoryIfNeeded(pluginDirectory: URL) {
+        // 数据根目录名复用共享命名规则 `DataRootDirectoryNaming`。
+        let dataRoot = MagicApp.getAppSpecificSupportDirectory()
+            .appendingPathComponent(DataRootDirectoryNaming.directoryName(), isDirectory: true)
+
+        for legacyName in PluginDataDirectoryHistory.legacyDirectoryNames(for: AudioCopyStorageCapabilityAdapter.pluginID) {
+            let legacyDirectory = dataRoot.appendingPathComponent(legacyName, isDirectory: true)
+            if PluginDataDirectoryMigration.migrate(from: legacyDirectory, to: pluginDirectory) {
+                return
+            }
+        }
     }
 }
 #endif
