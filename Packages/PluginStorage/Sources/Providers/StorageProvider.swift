@@ -33,15 +33,8 @@ public final class StorageProvider: ObservableObject, CisumProviderStorage.Stora
 
     public init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1"
-        let majorVersion = Self.majorVersion(from: version)
 
-        #if DEBUG
-            dataRootDirectoryName = Self.dataRootDirectoryName(debug: true, majorVersion: majorVersion)
-        #else
-            dataRootDirectoryName = Self.dataRootDirectoryName(debug: false, majorVersion: majorVersion)
-        #endif
-
+        dataRootDirectoryName = DataRootDirectoryNaming.directoryName()
         let root = MagicApp.getAppSpecificSupportDirectory()
             .appendingPathComponent(dataRootDirectoryName, isDirectory: true)
         try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -129,14 +122,16 @@ public final class StorageProvider: ObservableObject, CisumProviderStorage.Stora
     // MARK: - 数据根目录命名（对齐 GitOK DefaultStorageProvider）
 
     /// 数据根目录名：`db_<debug|production>_v<majorVersion>`。
+    ///
+    /// 转发到 `DataRootDirectoryNaming`——命名规则只有一份定义，
+    /// 其它插件与调试入口一律复用它，避免各处抄一份后改版本号策略时漏改。
     static func dataRootDirectoryName(debug: Bool, majorVersion: Int) -> String {
-        let environment = debug ? "debug" : "production"
-        return "db_\(environment)_v\(majorVersion)"
+        DataRootDirectoryNaming.directoryName(isDebug: debug, majorVersion: majorVersion)
     }
 
     /// 解析主版本号：`"5.3.1" -> 5`；无法解析时回退 1。
     static func majorVersion(from versionString: String) -> Int {
-        versionString.split(separator: ".").first.flatMap { Int($0) } ?? 1
+        DataRootDirectoryNaming.majorVersion(from: versionString)
     }
 
     private static func ensureDirectory(at url: URL) throws {

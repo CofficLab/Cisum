@@ -174,12 +174,14 @@ public enum AudioCopyService {
         }
 
         // 回退：使用旧版路径（如果 storage 能力未注入）
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1"
-        let majorVersion = version.split(separator: ".").first.flatMap { Int($0) } ?? 1
-        let env = Self.dbDirName(majorVersion: majorVersion)
+        //
+        // 数据根目录名复用共享命名规则 `DataRootDirectoryNaming`，
+        // 不在本插件内另抄一份 `db_debug_v<N>`——改版本号策略时必然漏改，
+        // 漏改的后果是复制任务数据被写进另一个目录，用户看不到历史任务。
+        let dataRootName = DataRootDirectoryNaming.directoryName()
         let appSupport = MagicApp.getAppSpecificSupportDirectory()
         let url = appSupport
-            .appendingPathComponent(env, isDirectory: true)
+            .appendingPathComponent(dataRootName, isDirectory: true)
             .appendingPathComponent(name, isDirectory: true)
             .appendingPathComponent("\(name).db")
 
@@ -197,11 +199,9 @@ public enum AudioCopyService {
     /// 新版本改用 `pluginDataDirectory(for: "CopyPlugin")` 目录。
     /// 此方法在首次启动时迁移旧数据，确保用户的复制任务数据不丢失。
     private static func migrateLegacyDirectoryIfNeeded(pluginDirectory: URL) {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1"
-        let majorVersion = version.split(separator: ".").first.flatMap { Int($0) } ?? 1
-        let env = Self.dbDirName(majorVersion: majorVersion)
-        let appSupport = MagicApp.getAppSpecificSupportDirectory()
-        let dataRoot = appSupport.appendingPathComponent(env, isDirectory: true)
+        // 数据根目录名复用共享命名规则 `DataRootDirectoryNaming`。
+        let dataRoot = MagicApp.getAppSpecificSupportDirectory()
+            .appendingPathComponent(DataRootDirectoryNaming.directoryName(), isDirectory: true)
 
         for legacyName in PluginDataDirectoryHistory.legacyDirectoryNames(for: AudioCopyStorageCapabilityAdapter.pluginID) {
             let legacyDirectory = dataRoot.appendingPathComponent(legacyName, isDirectory: true)
@@ -209,14 +209,6 @@ public enum AudioCopyService {
                 return
             }
         }
-    }
-
-    private static func dbDirName(majorVersion: Int) -> String {
-        #if DEBUG
-            "db_debug_v\(majorVersion)"
-        #else
-            "db_production_v\(majorVersion)"
-        #endif
     }
 }
 #endif
