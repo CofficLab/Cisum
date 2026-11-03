@@ -59,6 +59,10 @@ public struct WindowMain: View {
 #if os(macOS)
         .overlay {
             ThemeWindowAppearanceBridge().allowsHitTesting(false)
+            // 恢复工具栏 placement 语义：标题不可见时 SwiftUI 会把工具栏项
+            // 一律降级到前导侧（紧挨红绿灯），详见 MacToolbarPlacementBridge。
+            MacToolbarPlacementBridge(accessibilityTitle: AppBootstrap.appName)
+                .allowsHitTesting(false)
             MainWindowMinimumSizeBridge(
                 minimumSize: CGSize(
                     width: AppResponsivePlayerLayoutMetrics.shared.minimumWindowSize.width,
