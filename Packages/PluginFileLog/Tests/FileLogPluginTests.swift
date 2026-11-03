@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import PluginFileLog
+import CisumProviderStorage
 #if os(macOS)
     import AppKit
 
@@ -22,9 +23,18 @@ private final class LockedCounter: @unchecked Sendable {
 }
 #endif
 
-@Test func defaultConfigurationReturnsFileLogDirectory() {
+@Test func defaultConfigurationUsesPluginOwnedDirectory() {
     let url = DefaultFileLogConfiguration().logsDirectory()
-    #expect(url.lastPathComponent == "FileLog")
+
+    // 目录名 = 插件 id（反向 DNS），与所有插件的数据目录规则一致。
+    // 历史目录名 `FileLog` 已登记在 PluginDataDirectoryHistory 的 legacy
+    // 列表里，只用于迁移，不该再被当作默认写入位置。
+    #expect(url.lastPathComponent == "com.coffic.cisum.plugin.file-log")
+
+    // 数据根目录名复用共享命名规则，不在插件内另抄一份。
+    let expectedRootName = DataRootDirectoryNaming.directoryName()
+    #expect(url.deletingLastPathComponent().lastPathComponent == expectedRootName)
+    #expect(url.deletingLastPathComponent().lastPathComponent.hasPrefix("db_"))
 }
 
 @Test func logRotationUsesUniqueNameWhenTimestampAlreadyExists() {
