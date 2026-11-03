@@ -39,6 +39,16 @@ protocol RootEnvironmentCapability: AnyObject {
     /// 当前激活场景；尚未恢复时为 `nil`。
     var currentScene: AppScene? { get }
 
+    /// 音乐仓库的扫描结论（三态）。
+    ///
+    /// 根布局据此判断「无当前曲目」的 idle 占位是否呈现：只有
+    /// 「确认非空」才说明仓库里有歌但用户还没选，这时控制区需要
+    /// 为占位留出高度（否则占位渲染了也没有空间）。
+    ///
+    /// 事件流只报告**变化**；订阅时仓库可能早已扫完，因此这里
+    /// 额外暴露一次查询，让消费方在装配时补上初始结论。
+    var repositoryScanState: AudioRepositoryScanState { get }
+
     /// 订阅播放环境信号；返回句柄需自行 `cancel()`。
     @discardableResult
     func addObserver(
@@ -68,6 +78,14 @@ final class RootEnvironmentCapabilityAdapter: RootEnvironmentCapability {
 
     var currentURL: URL? { playback?.currentURL }
     var currentScene: AppScene? { scene?.currentScene }
+
+    /// 仓库的扫描结论（三态）。
+    ///
+    /// Provider 缺席时按「不知道」处理：根布局据此决定是否给 idle 占位
+    /// 留高度，数据没就绪时不该按「仓库里有歌」处理。
+    var repositoryScanState: AudioRepositoryScanState {
+        library?.repositoryScanState ?? .unknown
+    }
 
     @discardableResult
     func addObserver(

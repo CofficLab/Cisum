@@ -35,11 +35,17 @@ PluginRootView 通过插件生命周期装配 Cisum 的根视图：`RootViewPlug
 | 4 | 行为 | macOS 高度 > 阈值时保持内容区可见 | 注入 `isMacOS: true` | 271 / 900pt 求判定 | 均为 `false` | P1 | ✅ 已覆盖 | `macOSKeepsContentViewAboveThreshold` |
 | 5 | 视图 | `RootLayoutView` 在真实窗口/safe-area 过渡下的端到端显隐 | 需宿主窗口与实机 | 启动、旋转、拉窗 | 内容区不被瞬时小高度误收起 | P1 | ❌ 缺失 | - |
 | 6 | 插件 | `RootViewPlugin` 生命周期注册 provider、贡献布局 | 需内核与插件装配 | boot/ready/shutdown | provider 注册、贡献生效、拆除干净 | P1 | ❌ 缺失 | - |
-| 7 | 视图模型 | `RootLayoutViewModel` 由播放/场景/仓库事件驱动 `isPlaybackHeroPresenting` | 需环境事件替身 | 触发 asset/scene/repo 事件 | 收起/展开判定正确 | P1 | ❌ 缺失 | - |
+| 7 | 视图模型 | `RootLayoutViewModel` 由播放/场景/仓库事件驱动 `isPlaybackHeroPresenting` | 注入环境能力替身 | 触发 asset/scene/repo 事件 | 收起/展开判定正确 | P1 | ✅ 已覆盖 | `RootLayoutHeroPresentingTests`（6 条用例） |
 
 > 说明：本次仅针对 p4.4.3 iOS「音乐库被隐藏、只剩浮在中央的空播放器」bug 追加回归用例
 > （ID 1–4，锁定 `RootContentVisibility` 的平台隔离）。ID 5–7 依赖真实窗口、内核装配或
 > 事件替身，超出纯函数单测范围，标注为 ❌ 缺失而非虚假打勾。
+
+> **ID 7 的补充**：「仓库有歌但没有当前曲目」这一态此前无人负责——真实封面需要
+> 当前曲目，空仓库引导需要仓库为空，两者都不成立时控制区顶部整片空白。
+> 该态由 `PluginPlaybackHero` 的 idle 占位接管，根布局必须同步保持展开高度，
+> 否则占位渲染了也没有空间。ID 7 的 6 条用例锁定这一判定：有曲目、idle 占位、
+> 扫描结论未知、仓库为空、非音乐场景、仓库转非空后的接管。
 
 > 内容区**显隐协调**（落盘真源 ↔ 根视图投影、用户显式切换、内存态/落盘态分歧恢复）
 > 不在本包：它同时依赖 `AppStateProviding` 与 `RootViewProviding`，属于组合根职责，
@@ -49,8 +55,8 @@ PluginRootView 通过插件生命周期装配 Cisum 的根视图：`RootViewPlug
 ## 覆盖率统计
 
 - P0: 已覆盖 2 / 2
-- P1: 已覆盖 2 / 5
-- **合计: 4 / 7**（仅表示清单场景，非源码覆盖率）
+- P1: 已覆盖 3 / 5
+- **合计: 5 / 7**（仅表示清单场景，非源码覆盖率）
 
 ## 优先级说明
 

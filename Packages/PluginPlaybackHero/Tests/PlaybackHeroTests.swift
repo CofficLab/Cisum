@@ -67,9 +67,15 @@ private final class MediaStub: PlaybackMediaProviding {
 private final class AudioLibraryStub: AudioLibraryProviding {
     private var observers: [UUID: (AudioLibraryProvidingEvent) -> Void] = [:]
 
+    /// 仓库的扫描结论（三态）。默认「还没扫过」，与真实数据层的初值一致。
+    var scanState: AudioRepositoryScanState = .unknown
+
     var audioDisk: URL? { nil }
     var supportedExtensions: [String] { [] }
     var isAvailable: Bool { true }
+
+    var isRepositoryEmpty: Bool { scanState == .empty }
+    var repositoryScanState: AudioRepositoryScanState { scanState }
 
     func totalCount() async -> Int { 0 }
     func allURLs(reason: String) async -> [URL] { [] }
@@ -406,5 +412,178 @@ struct PlaybackHeroTests {
         #expect(contributions.getHeroView() != nil)
         #expect(contributions.getRightAlbumView() != nil)
         try await kernel.stopAsync()
+    }
+
+    // MARK: - Idle placeholder（无当前曲目）
+
+    /// 仓库非空但没有当前曲目时，占位态必须亮起。
+    ///
+    /// 复现用户报告的启动态空播放器：仓库里有歌、用户还没选，
+    /// 空仓库引导不亮、真实封面也没有——控制区顶部整片空白。
+    /// 占位态接手这块区域。
+    @Test
+    func idlePlaceholderShowsWhenLibraryHasTracksButNoTrackIsSelected() {
+        let library = AudioLibraryStub()
+        library.scanState = .nonEmpty
+        let scene = SceneStub(currentScene: .music)
+        let playback = PlaybackStub()
+        // 无当前曲目：这是本用例的前提。
+        playback.currentURL = nil
+
+        let playbackCapability = HeroPlaybackCapabilityAdapter(playback: playback)
+        let libraryCapability = HeroLibraryCapabilityAdapter(library: library)
+        let sceneCapability = HeroSceneCapabilityAdapter(scene: scene)
+        let viewModel = PlaybackHeroViewModel(
+            playback: playbackCapability,
+            isMusicSceneActive: true
+        )
+        let observer = PlaybackHeroObserver(
+            playback: playbackCapability,
+            library: libraryCapability,
+            scene: sceneCapability,
+            viewModel: viewModel
+        )
+
+        #expect(viewModel.isRepositoryKnownNonEmpty)
+        #expect(!viewModel.isHeroVisible, "没有当前曲目时不应呈现真实封面")
+        #expect(viewModel.showsIdlePlaceholder, "仓库非空且无当前曲目时应呈现占位")
+
+        observer.cancel()
+    }
+
+    /// 仓库还没扫过时不得呈现占位。
+    ///
+    /// 「还没扫过」不是「确认非空」：若此刻就亮占位，启动瞬间会闪一下，
+    /// 随后扫描完成再变成别的状态。
+    @Test
+    func idlePlaceholderStaysHiddenUntilLibraryScanConcludes() {
+        let library = AudioLibraryStub()
+        // 默认即「还没扫过」。
+        #expect(library.scanState == .unknown)
+        let scene = SceneStub(currentScene: .music)
+        let playback = PlaybackStub()
+        playback.currentURL = nil
+
+        let playbackCapability = HeroPlaybackCapabilityAdapter(playback: playback)
+        let libraryCapability = HeroLibraryCapabilityAdapter(library: library)
+        let sceneCapability = HeroSceneCapabilityAdapter(scene: scene)
+        let viewModel = PlaybackHeroViewModel(
+            playback: playbackCapability,
+            isMusicSceneActive: true
+        )
+        let observer = PlaybackHeroObserver(
+            playback: playbackCapability,
+            library: libraryCapability,
+            scene: sceneCapability,
+            viewModel: viewModel
+        )
+
+        #expect(!viewModel.isRepositoryKnownNonEmpty)
+        #expect(!viewModel.showsIdlePlaceholder, "扫描结论未知时不得呈现占位")
+
+        // 扫描完成、确认非空 → 占位亮起。
+        library.send(.synced(totalCount: 3))
+        #expect(viewModel.isRepositoryKnownNonEmpty)
+        #expect(viewModel.showsIdlePlaceholder)
+
+        observer.cancel()
+    }
+
+    /// 仓库为空时不得呈现占位——那块区域归空仓库引导管。
+    @Test
+    func idlePlaceholderHiddenWhenLibraryIsEmpty() {
+        let library = AudioLibraryStub()
+        library.scanState = .empty
+        let scene = SceneStub(currentScene: .music)
+        let playback = PlaybackStub()
+        playback.currentURL = nil
+
+        let playbackCapability = HeroPlaybackCapabilityAdapter(playback: playback)
+        let libraryCapability = HeroLibraryCapabilityAdapter(library: library)
+        let sceneCapability = HeroSceneCapabilityAdapter(scene: scene)
+        let viewModel = PlaybackHeroViewModel(
+            playback: playbackCapability,
+            isMusicSceneActive: true
+        )
+        let observer = PlaybackHeroObserver(
+            playback: playbackCapability,
+            library: libraryCapability,
+            scene: sceneCapability,
+            viewModel: viewModel
+        )
+
+        #expect(viewModel.isRepositoryEmpty)
+        #expect(!viewModel.isRepositoryKnownNonEmpty)
+        #expect(!viewModel.showsIdlePlaceholder, "仓库为空时不得呈现占位（引导接管该区域）")
+
+        observer.cancel()
+    }
+
+    /// 有当前曲目时占位必须让位给真实封面。
+    @Test
+    func idlePlaceholderYieldsToRealHeroWhenTrackIsSelected() {
+        let library = AudioLibraryStub()
+        library.scanState = .nonEmpty
+        let scene = SceneStub(currentScene: .music)
+        let playback = PlaybackStub()
+        // 起始状态：尚未选中任何曲目。
+        playback.currentURL = nil
+
+        let playbackCapability = HeroPlaybackCapabilityAdapter(playback: playback)
+        let libraryCapability = HeroLibraryCapabilityAdapter(library: library)
+        let sceneCapability = HeroSceneCapabilityAdapter(scene: scene)
+        let viewModel = PlaybackHeroViewModel(
+            playback: playbackCapability,
+            isMusicSceneActive: true
+        )
+        let observer = PlaybackHeroObserver(
+            playback: playbackCapability,
+            library: libraryCapability,
+            scene: sceneCapability,
+            viewModel: viewModel
+        )
+
+        // 尚未选中任何曲目 → 占位。
+        #expect(viewModel.showsIdlePlaceholder)
+
+        // 选中曲目 → 真实封面接管，占位退场。
+        playback.send(.assetChanged(URL(fileURLWithPath: "/library/picked.mp3")))
+        #expect(viewModel.isHeroVisible)
+        #expect(!viewModel.showsIdlePlaceholder, "有当前曲目时占位必须让位")
+
+        // 取消选择 → 占位重新接管。
+        playback.send(.assetChanged(nil))
+        #expect(!viewModel.isHeroVisible)
+        #expect(viewModel.showsIdlePlaceholder)
+
+        observer.cancel()
+    }
+
+    /// 非音乐场景不得呈现占位。
+    @Test
+    func idlePlaceholderHiddenOutsideMusicScene() {
+        let library = AudioLibraryStub()
+        library.scanState = .nonEmpty
+        let scene = SceneStub(currentScene: .audiobooks)
+        let playback = PlaybackStub()
+        playback.currentURL = nil
+
+        let playbackCapability = HeroPlaybackCapabilityAdapter(playback: playback)
+        let libraryCapability = HeroLibraryCapabilityAdapter(library: library)
+        let sceneCapability = HeroSceneCapabilityAdapter(scene: scene)
+        let viewModel = PlaybackHeroViewModel(
+            playback: playbackCapability,
+            isMusicSceneActive: false
+        )
+        let observer = PlaybackHeroObserver(
+            playback: playbackCapability,
+            library: libraryCapability,
+            scene: sceneCapability,
+            viewModel: viewModel
+        )
+
+        #expect(!viewModel.showsIdlePlaceholder, "非音乐场景不得呈现占位")
+
+        observer.cancel()
     }
 }

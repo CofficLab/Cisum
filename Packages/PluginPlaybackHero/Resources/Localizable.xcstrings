@@ -365,6 +365,35 @@
         }
       }
     },
+    "Pick a track to start playing" : {
+      "comment" : "Shown in the player cover area when the library has tracks but none is selected yet.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick a track to start playing"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选一首开始播放"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選一首開始播放"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選一首開始播放"
+          }
+        }
+      }
+    },
     "Playback Control" : {
       "localizations" : {
         "en" : {
