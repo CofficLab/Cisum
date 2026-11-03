@@ -38,13 +38,13 @@ final class CisumAudiobooksICloudLoadingUITests: CisumUITestBase {
     ///
     /// 隔离的是「状态残留」，不是「系统行为」。
     override var additionalLaunchArguments: [String] {
-        [
-            "--cisum-ui-testing",
-            "--cisum-ui-testing-storage-icloud",
-            "--cisum-ui-testing-reset-scene",
-            "--cisum-ui-testing-isolated-storage=\(Self.isolatedStorageName)",
-            "-UI.ContentViewVisible", "YES",
-        ]
+        // 从基类参数派生，只把存储模式换成 iCloud：手写整份参数列表容易漏掉
+        // 隔离参数（漏掉就跑在真实沙盒与真实偏好上）。
+        var arguments = defaultLaunchArguments
+        if let index = arguments.firstIndex(of: "--cisum-ui-testing-storage-local") {
+            arguments[index] = "--cisum-ui-testing-storage-icloud"
+        }
+        return arguments
     }
 
     /// iCloud 容器解析（`ubiquityIdentityToken` /

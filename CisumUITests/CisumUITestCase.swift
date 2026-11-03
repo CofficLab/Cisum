@@ -26,7 +26,7 @@ class CisumUITestBase: XCTestCase {
     /// 可复现。同一类的不同用例共享一个隔离目录，但每次启动都会重建，
     /// 因此用例之间仍然互不影响。
     ///
-    /// ## 参数域约定
+    /// ## 显隐覆盖
     ///
     /// `-UI.ContentViewVisible YES` 通过 UserDefaults 的**参数域**强制内容区可见。
     /// 参数域的优先级高于持久化域，因此整条 UI 测试链路对「内容区显隐」是
@@ -34,28 +34,118 @@ class CisumUITestBase: XCTestCase {
     /// 需要验证「落盘偏好真正生效」的用例必须另起一个**不带该参数**的 App 实例
     /// （见 `CisumContentVisibilityUITests`）。
     ///
-    /// - Important: `-UI.ContentViewVisible YES` **必须放在参数列表末尾**。
+    /// - Important: `-UI.ContentViewVisible YES` **必须放在参数列表最前面**。
     ///   UserDefaults 的参数域在遇到第一个**不含 `=`** 的参数时就停止解析，
-    ///   而 `YES` 正是这样一个参数。把它放在中间会让排在它后面的所有
-    ///   `-key=value` 形式参数（例如 `--foo=bar`）被整段丢弃。
-    ///   子类覆写本属性时也必须保持这一顺序约定。
+    ///   而 `YES` 正是这样的裸值——把它放在前面，它必定已被解析；放在后面，
+    ///   它前面那些裸值参数（如 `--cisum-ui-testing-seed-audio Tone.wav` 的
+    ///   `Tone.wav`）会截断解析，让覆盖**静默失效**。
+    ///   静默失效的后果很隐蔽：内容区保持收起 → `cisum.kernel.ready` 不出现
+    ///   → 报「主界面未组装」，看起来像启动超时，实际是显隐覆盖没生效。
+    ///
+    ///   子类追加参数时必须用 ``appendingLaunchArguments(_:)``（它把追加项放在
+    ///   显隐覆盖参数**之后**），不要用 `+` 直接拼到最前面——那会让裸值参数
+    ///   跑到显隐覆盖参数之前，把覆盖截断掉。
+    ///
+    /// ## 覆写约定（重要）
+    ///
+    /// **不要**整体覆写本属性。历史上 `CisumWelcomeUITests` 覆写成
+    /// `["--cisum-ui-testing", "--cisum-ui-testing-reset-storage"]`，
+    /// 连带丢掉了隔离参数——于是该用例既跑在真实沙盒里，又读到了真实
+    /// `UserDefaults` 里被别的用例写坏的显隐偏好，测试结论因此依赖执行顺序。
+    ///
+    /// 正确做法是**只追加**需要的参数，且必须用 ``appendingLaunchArguments(_:)``：
+    ///
+    /// ```swift
+    /// override var additionalLaunchArguments: [String] {
+    ///     appendingLaunchArguments(["--cisum-ui-testing-reset-storage"])
+    /// }
+    /// ```
+    ///
+
+    ///
+    /// 需要「落盘偏好真正生效」（不带显隐覆盖）时，用
+    /// ``launchArgumentsWithoutVisibilityOverride`` 派生，而不是手写参数列表。
+    ///
+    /// - Important: 用 ``appendingLaunchArguments(_:)`` 追加，不要用 `+` 直接
+    ///   拼接——显隐覆盖参数必须在列表最前面（见上文），拼接会让追加的裸值
+    ///   参数跑到它之前，把覆盖截断掉。
     var additionalLaunchArguments: [String] {
+        defaultLaunchArguments
+    }
+
+    /// 派生一份**不预设存储位置**的启动参数。
+    ///
+    /// `--cisum-ui-testing-storage-local` 会在 App 启动时直接写入存储位置，
+    /// 于是「首启引导」不再需要——引导层不会出现。首启引导专项用例必须
+    /// 在**保留隔离**的前提下去掉这个参数（而不是像历史上那样整体覆写
+    /// 整个参数列表，那会连带丢掉隔离）。
+    var launchArgumentsWithoutStoragePreset: [String] {
+        defaultLaunchArguments.filter { $0 != "--cisum-ui-testing-storage-local" }
+    }
+
+    /// 把追加的参数并入启动参数（放在显隐覆盖参数**之后**）。
+    ///
+    /// 用它而不是 `+` 直接拼接，是为了守住两条约定：
+    ///
+    /// 1. **不手写参数列表**——手抄一次就可能漏掉隔离参数或显隐覆盖参数，
+    ///    而漏掉不会有任何报错，只会让用例悄悄跑在错误的隔离环境里；
+    /// 2. **不破坏参数顺序**——显隐覆盖参数必须在最前面（UserDefaults 参数域
+    ///    遇裸值即止），追加项必须落在它之后。
+    func appendingLaunchArguments(_ extra: [String]) -> [String] {
+        defaultLaunchArguments + extra
+    }
+
+    /// 基类的默认启动参数（隔离 + 显隐覆盖）。
+    ///
+    /// 拆成独立属性，是为了让「派生无覆盖变体」与「子类追加参数」都不必
+    /// 重抄参数列表——手抄就会漏，漏了就会让隔离失效。
+    var defaultLaunchArguments: [String] {
         [
+            "-UI.ContentViewVisible", "YES",
             "--cisum-ui-testing",
             "--cisum-ui-testing-storage-local",
             "--cisum-ui-testing-reset-scene",
             "--cisum-ui-testing-isolated-storage=\(Self.isolatedStorageName)",
-            "-UI.ContentViewVisible", "YES",
         ]
+    }
+
+    /// 去掉显隐覆盖参数的启动参数变体。
+    ///
+    /// 用于「必须验证落盘偏好真正生效」的用例：显隐覆盖参数一旦在位，
+    /// 启动参数就会盖过落盘值，落盘值永远不参与判定。
+    ///
+    /// **隔离参数必须保留**——去掉它等于让用例跑在真实沙盒与真实偏好上，
+    /// 既污染开发者环境，又让结论依赖其它用例的残留。
+    var launchArgumentsWithoutVisibilityOverride: [String] {
+        defaultLaunchArguments.filter { $0 != "-UI.ContentViewVisible" && $0 != "YES" }
+    }
+
+    /// 本次启动的**隔离作用域**名。
+    ///
+    /// 隔离的磁盘目录与偏好 suite 都按这个名字派生，因此作用域是「一个
+    /// 用例能看见哪些状态」的**唯一决定因素**。
+    ///
+    /// 默认按**用例类名**派生：同一类的用例共享同一份状态（失败现场可寻址、
+    /// 可复现），不同类互不干扰。App 启动时会幂等重建磁盘目录，因此共享
+    /// 不带来磁盘残留。
+    ///
+    /// 但**偏好**不会被幂等重建——同一类里的多个用例会互相影响落盘值。
+    /// 需要「自己的状态不被同类的其它用例看到」的用例，必须覆写本属性
+    /// 给出**专属作用域**。
+    ///
+    /// - Important: 覆写时要用**用例自己的名字**，不能用随机的值：随机会让
+    ///   「上次失败的场景」这次不复现，只剩一句「它昨天挂过一次」。
+    static var isolationScope: String {
+        String(describing: self)
     }
 
     /// 本次启动使用的隔离数据根目录名。
     ///
-    /// 由用例类名派生：同一类的用例共享目录（便于失败现场复现），
-    /// 不同类互不干扰。App 启动时会幂等重建该目录，因此共享不带来污染。
+    /// 由 ``isolationScope`` 派生：同一作用域的用例共享目录（便于失败现场
+    /// 可复现），不同作用域互不干扰。App 启动时会幂等重建该目录，因此共享
+    /// 不带来污染。
     static var isolatedStorageName: String {
-        let raw = String(describing: self)
-        let sanitized = raw
+        let sanitized = isolationScope
             .replacingOccurrences(of: "[^A-Za-z0-9_-]", with: "-", options: .regularExpression)
             .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
         return sanitized.isEmpty ? "default" : sanitized

@@ -24,18 +24,18 @@ final class CisumAudioPlaybackUITests: CisumUITestBase {
     private var fixtureURL: URL?
 
     override var additionalLaunchArguments: [String] {
-        var arguments = super.additionalLaunchArguments
+        // 用 `appendingLaunchArguments` 而不是直接拼接：它保证追加项落在显隐覆盖参数之后，
+        // 且不手写参数列表（手抄容易漏掉隔离参数）。
         #if os(macOS)
-        arguments += ["-StorageLocation", "local"]
+        appendingLaunchArguments(["-StorageLocation", "local"])
         #else
         // iOS：注入两份种子音频，让「切歌」用例有两个可切换条目。
         // 逗号分隔的多名称由 AudioDBDataPlugin 解析；显式时长保证进度断言有观察窗口。
-        arguments += [
+        appendingLaunchArguments([
             "--cisum-ui-testing-seed-audio", "\(seededAudioName),\(seededAudioName2)",
             "--cisum-ui-testing-seed-duration", "60",
-        ]
+        ])
         #endif
-        return arguments
     }
 
     override func setUpWithError() throws {

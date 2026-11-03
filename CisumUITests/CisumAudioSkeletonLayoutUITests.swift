@@ -24,10 +24,12 @@ final class CisumAudioSkeletonLayoutUITests: CisumUITestBase {
     private let loadDelaySeconds = 20
 
     override var additionalLaunchArguments: [String] {
-        super.additionalLaunchArguments + [
+        // 用 `appendingLaunchArguments` 而不是直接拼接：它保证追加项落在显隐覆盖参数之后，
+        // 且不手写参数列表（手抄容易漏掉隔离参数）。
+        appendingLaunchArguments([
             "--cisum-ui-testing-seed-audio", seedAudioName,
             "--cisum-ui-testing-audio-load-delay=\(loadDelaySeconds)",
-        ]
+        ])
     }
 
     func testLoadingSkeletonStaysInsideMusicLibraryContentArea() throws {

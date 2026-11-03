@@ -114,4 +114,58 @@ public enum UITestIsolation {
             return nil
         #endif
     }
+
+    // MARK: - 偏好存储隔离
+
+    /// UI 测试模式下的隔离偏好 suite 名。
+    ///
+    /// 与 ``isolatedStorageName`` 同源：**同一个用例类**的多次运行共享同一份
+    /// 偏好，**不同用例类**之间互不影响。
+    ///
+    /// ## 为什么偏好也要隔离
+    ///
+    /// `UserDefaults.standard` 是**进程级全局状态**，跨用例共享。于是：
+    ///
+    /// - `CisumContentVisibilityUITests` 收起内容区 → 写真实偏好；
+    /// - `CisumWelcomeUITests` 不带 `-UI.ContentViewVisible` 覆盖参数
+    ///   （它需要走真实落盘路径），于是读到那个被写坏的偏好 → 内容区保持收起
+    ///   → 断言「音乐库可见」失败。
+    ///
+    /// 这类污染让测试结论依赖**执行顺序**，违反「同一份测试在不同机器上
+    /// 必须得到相同结论」的底线。偏好与数据根同源隔离后，用例之间不再互相
+    /// 干扰，顺序也不再影响结论。
+    ///
+    /// ## 命名
+    ///
+    /// 用 suite 名而非文件路径，因为 `UserDefaults(suiteName:)` 本身就
+    /// 提供独立命名空间，无需再手工建目录或清文件。
+    public static func isolatedDefaultsSuiteName(
+        arguments: [String] = ProcessInfo.processInfo.arguments
+    ) -> String? {
+        #if DEBUG
+            guard isUITesting(arguments: arguments),
+                  let name = isolatedStorageName(arguments: arguments) else { return nil }
+            return "cisum.ui-testing.\(name)"
+        #else
+            return nil
+        #endif
+    }
+
+    /// UI 测试模式下的隔离偏好存储。
+    ///
+    /// - Returns: 隔离的 `UserDefaults`；未启用隔离时返回 `nil`
+    ///   （调用方应回落到 `UserDefaults.standard`）。
+    public static func isolatedDefaults(
+        arguments: [String] = ProcessInfo.processInfo.arguments
+    ) -> UserDefaults? {
+        #if DEBUG
+            guard let suiteName = isolatedDefaultsSuiteName(arguments: arguments) else { return nil }
+            // suite 独立于标准域：写入不会污染开发者真实偏好，
+            // 也不会被参数域（`-UI.ContentViewVisible YES`）之外的持久化域影响。
+            guard let defaults = UserDefaults(suiteName: suiteName) else { return nil }
+            return defaults
+        #else
+            return nil
+        #endif
+    }
 }

@@ -35,15 +35,16 @@ class CisumICloudTestBase: CisumUITestBase {
     }
 
     override var additionalLaunchArguments: [String] {
-        super.additionalLaunchArguments
-            + [
-                "--cisum-ui-testing-icloud-download=\(icloudMode)",
-                // 必须同时**播种**被播放的文件：`--cisum-ui-testing-playback-file`
-                // 只是把路径写进播放槽位，App 启动后会去恢复播放它。若文件不存在，
-                // 恢复流程卡住，主窗口根本不会出现（表现为「主界面未组装」）。
-                "--cisum-ui-testing-seed-audio", seededAudioName,
-                "--cisum-ui-testing-playback-file", seededAudioName,
-            ]
+        // 用 `appendingLaunchArguments` 而不是直接拼接：它保证追加项落在显隐覆盖参数之后，
+        // 且不手写参数列表（手抄容易漏掉隔离参数）。
+        appendingLaunchArguments([
+            "--cisum-ui-testing-icloud-download=\(icloudMode)",
+            // 必须同时**播种**被播放的文件：`--cisum-ui-testing-playback-file`
+            // 只是把路径写进播放槽位，App 启动后会去恢复播放它。若文件不存在，
+            // 恢复流程卡住，主窗口根本不会出现（表现为「主界面未组装」）。
+            "--cisum-ui-testing-seed-audio", seededAudioName,
+            "--cisum-ui-testing-playback-file", seededAudioName,
+        ])
     }
 
     var pauseButton: XCUIElement {
@@ -191,7 +192,9 @@ final class CisumICloudLibraryUITests: CisumUITestBase {
     private let seededAudioName = "Cisum-ICloud-Download-Test.wav"
 
     override var additionalLaunchArguments: [String] {
-        super.additionalLaunchArguments + ["--cisum-ui-testing-seed-audio", seededAudioName]
+        // 用 `appendingLaunchArguments` 而不是直接拼接：它保证追加项落在显隐覆盖参数之后，
+        // 且不手写参数列表（手抄容易漏掉隔离参数）。
+        appendingLaunchArguments(["--cisum-ui-testing-seed-audio", seededAudioName])
     }
 
     func testSeededTrackAppearsInLibrary() throws {
@@ -224,8 +227,9 @@ final class CisumPlayerDownloadRingUITests: CisumICloudTestBase {
     override var icloudMode: String { "timeout" }
 
     override var additionalLaunchArguments: [String] {
-        super.additionalLaunchArguments
-            + ["--cisum-ui-testing-download-progress=\(injectedProgress)"]
+        // 用 `appendingLaunchArguments` 而不是直接拼接：它保证追加项落在显隐覆盖参数之后，
+        // 且不手写参数列表（手抄容易漏掉隔离参数）。
+        appendingLaunchArguments(["--cisum-ui-testing-download-progress=\(injectedProgress)"])
     }
 
     /// 下载期间播放按钮位置应出现进度环，且无障碍值等于注入的百分比。
@@ -277,7 +281,7 @@ final class CisumPlayerDownloadRingUITests: CisumICloudTestBase {
         healthyApp.launchArguments += [
             "--cisum-ui-testing",
             "--cisum-ui-testing-storage-local",
-            "-UI.ContentViewVisible", "YES",
+            "--cisum-ui-testing-content-visible",
             "--cisum-ui-testing-seed-audio", seededAudioName,
             "--cisum-ui-testing-icloud-download=success",
         ]

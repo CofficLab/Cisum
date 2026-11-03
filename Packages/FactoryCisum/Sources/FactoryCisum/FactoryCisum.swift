@@ -112,7 +112,16 @@ public enum CisumBuilder: SuperLog {
         let plugins: [any SuperPlugin] = [RootViewPlugin()] + factory.makePlugins()
 
         // 2. 注册基础设施 Provider
-        let appState = BasicAppStateService()
+        //
+        // UI 测试下显隐偏好必须与「隔离存储根」同源隔离：`UserDefaults.standard`
+        // 是进程级全局状态，跨用例共享。一个用例收起内容区后，另一个不带
+        // `-UI.ContentViewVisible` 覆盖参数的用例就会读到那个值，于是测试结论
+        // 依赖执行顺序——同一份测试在不同机器上可能得到不同结论。
+        //
+        // 详见 `UITestIsolation.isolatedDefaults`。
+        let appState = BasicAppStateService(
+            defaults: UITestIsolation.isolatedDefaults() ?? .standard
+        )
         try kernel.registerProvider((any AppStateProviding).self, appState)
 
         let pluginService = PluginContributionService(kernel: kernel)

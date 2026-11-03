@@ -46,9 +46,11 @@ final class CisumPlayerUITests: CisumUITestBase {
     /// 进度条按设计让位），因此单独起一个注入种子音频的 App 实例。
     private func makeAppWithSeededAudio() -> XCUIApplication {
         let instance = XCUIApplication()
-        instance.launchArguments = additionalLaunchArguments + [
+        // 用 `appendingLaunchArguments` 而不是直接拼接：它保证追加项落在显隐覆盖参数之后，
+        // 且不手写参数列表（手抄容易漏掉隔离参数）。
+        instance.launchArguments = appendingLaunchArguments([
             "--cisum-ui-testing-seed-audio", "Cisum-UI-Player-Progress-Test-Tone.wav",
-        ]
+        ])
         return instance
     }
 

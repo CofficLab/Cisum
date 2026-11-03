@@ -17,7 +17,9 @@ final class CisumPlayerHeroAndLibraryUITests: CisumUITestBase {
 
     /// 注入一枚种子音频，使仓库非空。
     override var additionalLaunchArguments: [String] {
-        super.additionalLaunchArguments + ["--cisum-ui-testing-seed-audio", seedAudioName]
+        // 用 `appendingLaunchArguments` 而不是直接拼接：它保证追加项落在显隐覆盖参数之后，
+        // 且不手写参数列表（手抄容易漏掉隔离参数）。
+        appendingLaunchArguments(["--cisum-ui-testing-seed-audio", seedAudioName])
     }
 
     // MARK: - Hero 区
