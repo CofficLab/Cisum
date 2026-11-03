@@ -115,6 +115,19 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
         repositoryIsKnownEmpty == true
     }
 
+    /// 仓库的扫描结论（三态）。
+    ///
+    /// 把内部的三态原样暴露出去：消费方需要区分「确认为空」与「还没扫过」，
+    /// 前者该点亮空仓库引导，后者两者都不该做（不能把「还不知道」
+    /// 当成「确认非空」而让 idle 占位抢跑）。
+    var repositoryScanState: AudioRepositoryScanState {
+        switch repositoryIsKnownEmpty {
+        case .some(true): return .empty
+        case .some(false): return .nonEmpty
+        case .none: return .unknown
+        }
+    }
+
     func totalCount() async -> Int {
         guard let repo = await repository else { return 0 }
         return await repo.getTotalCount()
