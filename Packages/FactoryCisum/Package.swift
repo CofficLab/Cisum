@@ -20,7 +20,7 @@ let package = Package(
         .package(url: "https://github.com/CofficLab/LumiPluginSettingView.git", from: "1.0.3"),
         .package(name: "PluginRootView", path: "../PluginRootView"),
         .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.18.0"),
-        .package(url: "https://github.com/CofficLab/LumiPluginToast.git", from: "1.2.2"),
+        .package(url: "https://github.com/CofficLab/LumiPluginToast.git", from: "1.2.3"),
         // 1.0.8 起支持按 id 白名单只注册部分目录主题（Cisum 只加载少量配色）。
         // 1.0.10 起移除了主题搜索入口，外观页改为「外观筛选 + 双栏浏览」。
         .package(url: "https://github.com/CofficLab/LumiThemePack.git", from: "1.0.12"),
