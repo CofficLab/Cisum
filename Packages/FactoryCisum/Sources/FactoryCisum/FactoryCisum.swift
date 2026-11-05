@@ -164,13 +164,16 @@ public enum CisumBuilder: SuperLog {
         )
         #endif
 
-        // 3. 启动内核（插件 onBoot 注册 Storage 等服务 → 校验 → onReady → 贡献聚合）
-        try await kernel.startAsync(plugins: plugins)
-
-        // 主题目录来自远程 LumiThemePack；宿主只负责注册共享主题、迁移旧选择，
-        // 并把 ProviderTheme 状态桥接到 Cisum 现有 LumiUI 根视图。
-        // Cisum 定位在播放器 / 有声书，只加载少量代表性配色而非全量目录，
-        // 因此按白名单注册子集（见 `CisumThemeSelection`）。
+        // 3. 主题目录来自远程 LumiThemePack；宿主只负责注册共享主题、迁移旧选择，
+        //    并把 ProviderTheme 状态桥接到 Cisum 现有 LumiUI 根视图。
+        //    Cisum 定位在播放器 / 有声书，只加载少量代表性配色而非全量目录，
+        //    因此按白名单注册子集（见 `CisumThemeSelection`）。
+        //
+        //    **必须在内核启动之前完成**：主题注册会把配色写进全局主题注册中心，
+        //    而加载页的背景与品牌标记都取自那里。若等到内核启动完再注册，
+        //    加载页只能用回退配色（暗色）渲染，随后主界面切到真实配色（可能是
+        //    亮色）——启动瞬间出现一次明显的明暗闪烁。提前注册让加载页与主界面
+        //    从第一帧起就是同一套配色。
         let unknownThemeIDs = LumiThemeRegistration.unknownIDs(in: CisumThemeSelection.catalogueIDs)
         if !unknownThemeIDs.isEmpty {
             logger.warning("\(Self.t)主题白名单包含未知 id，将被忽略：\(unknownThemeIDs.joined(separator: ", "))")
@@ -179,7 +182,10 @@ public enum CisumBuilder: SuperLog {
         CisumThemeBridge.migrateLegacySelection(in: themeProvider)
         CisumThemeBridge.install(themeProvider, in: kernel)
 
-        // 3.5 视图 Provider 已在启动前注册，确保根覆盖层可以参与 makeRootView。
+        // 4. 启动内核（插件 onBoot 注册 Storage 等服务 → 校验 → onReady → 贡献聚合）
+        try await kernel.startAsync(plugins: plugins)
+
+        // 5. 视图 Provider 已在启动前注册，确保根覆盖层可以参与 makeRootView。
         //     内容区显隐由 ContentViewVisibilityCoordinator 统一协调：
         //     AppState 是唯一真源（只有用户显式操作才写它），根视图是它的投影。
         //     历史上的双向割裂会造成「冷启动只剩空播放器」与「更多按钮点了没反应」。
@@ -190,10 +196,10 @@ public enum CisumBuilder: SuperLog {
             contentVisibilityCoordinators[ObjectIdentifier(kernel)] = visibility
         }
 
-        // 4. 订阅插件变更
+        // 6. 订阅插件变更
         subscribeToPluginChanges(kernel: kernel)
 
-        // 5. 订阅场景变更：切换场景后重建内容 Tab
+        // 7. 订阅场景变更：切换场景后重建内容 Tab
         subscribeToSceneChanges(kernel: kernel)
 
         kernels.append(kernel)
