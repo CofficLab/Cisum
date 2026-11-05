@@ -112,9 +112,10 @@ struct AudioContentViewShowcase: View {
                 Label("Default Cover", systemImage: "photo.artframe")
             }
 
-            // Priority: External > Local > Default
+            // 优先级：外部 > 本地 > 默认
+            // 注意：字符串目录的 key 不能含 `>`，否则 Xcode 编译 .strings 时会丢弃该条目。
             VStack(spacing: 12) {
-                Text("Priority: External > Local > Default", bundle: .module)
+                Text("Cover Priority: External, Local, then Default", bundle: .module)
                     .font(.headline)
                     .padding(.top)
 

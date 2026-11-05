@@ -365,6 +365,34 @@
         }
       }
     },
+    "Cover Priority: External, Local, then Default" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cover Priority: External, Local, then Default"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "封面优先级：外部、本地、然后默认"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "封面優先級：外部、本地、然後預設"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "封面優先順序：外部、本地、然後預設"
+          }
+        }
+      }
+    },
     "Dark Mode" : {
       "localizations" : {
         "en" : {
@@ -1761,34 +1789,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "優先順序"
-          }
-        }
-      }
-    },
-    "Priority: External > Local > Default" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Priority: External > Local > Default"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "优先级：外部 > 本地 > 默认"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "優先級：外部 > 本地 > 默認"
-          }
-        },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "優先順序：外部 > 本地 > 預設"
           }
         }
       }

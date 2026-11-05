@@ -1783,13 +1783,13 @@
         "zh-Hant-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开当前的仓库"
+            "value" : "打開目前的倉庫"
           }
         },
         "zh-Hant-TW" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开当前的仓库"
+            "value" : "打開目前的倉庫"
           }
         }
       }

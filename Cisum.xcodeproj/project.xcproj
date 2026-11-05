@@ -10,6 +10,7 @@
       "Base",
       "zh-HK",
       "zh-Hans",
+      "zh-TW",
     ],
   },
   "packages": [

@@ -926,7 +926,34 @@
         }
       }
     },
-    "File limit reached": {},
+    "File limit reached": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File limit reached"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已达到文件数量上限"
+          }
+        },
+        "zh-Hant-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已達到檔案數量上限"
+          }
+        },
+        "zh-Hant-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已達到檔案數量上限"
+          }
+        }
+      }
+    },
     "Filters or sorts music records as needed.": {
       "localizations": {
         "en": {
@@ -1375,7 +1402,34 @@
         }
       }
     },
-    "Only %lld files were added because the free file limit is almost full": {},
+    "Only %lld files were added because the free file limit is almost full": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only %lld files were added because the free file limit is almost full"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "免费版文件数量上限将满，仅添加了 %lld 个文件"
+          }
+        },
+        "zh-Hant-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "免費版檔案數量上限將滿，僅添加了 %lld 個檔案"
+          }
+        },
+        "zh-Hant-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "免費版檔案數量上限將滿，僅加入 %lld 個檔案"
+          }
+        }
+      }
+    },
     "Open repository folder": {
       "localizations": {
         "en": {
