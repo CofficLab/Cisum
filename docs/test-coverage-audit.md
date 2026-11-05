@@ -2,6 +2,161 @@
 
 > 生成时间：2026-10-18 · 仓库：`dev` 分支
 > 本文已按**实测覆盖率数据**重写，替代此前基于「静态清点 + 管线可行性推断」的版本。
+>
+> 另见：[测试体系审计与改造](#7-测试体系审计与改造)（2026-10 第二轮）——
+> 覆盖率回答「测了多少」，本文回答「测得**稳不稳**」。
+
+---
+
+## 7. 测试体系审计与改造
+
+> 第二轮审计（2026-10）。目标是回答一个具体问题：
+> **不同开发者在自己的机器上跑同一份测试，结论是否一致？**
+> 答案在改造前是「否」，本节记录证据、改造与验证结果。
+
+### 7.1 结论先行
+
+改造前的状态可以概括为：**机制齐全，但执行层有两处没闭合**。
+
+| 维度 | 改造前 | 改造后 |
+|---|---|---|
+| 单测文件系统隔离 | ✅ 良好（临时目录 + UUID） | 不变 |
+| 单测数据库隔离 | ✅ 良好（纯内存容器） | 不变 |
+| 单测偏好/全局状态隔离 | ⚠️ **9 处破口** | ✅ **0 处** |
+| 单测等待的确定性 | ⚠️ 37 处固定轮数 + sleep | ✅ 统一 `DeterministicWait` |
+| UI 测试隔离机制 | ⚠️ 机制齐全但**默认路径没开** | ✅ 默认开启 + 幂等重建 |
+| UI 测试造数 | ⚠️ 音频 ✅ / 有声书 ❌ | ✅ 两边对齐 |
+| UI 测试跨机一致性 | ❌ iCloud 依赖真实账号 | ✅ 显式 skip，明确报告覆盖差异 |
+
+### 7.2 审计证据
+
+#### 单测全局状态破口（9 处）
+
+生产代码把 `UserDefaults.standard` / `NSUbiquitousKeyValueStore.default` 硬编码在
+状态仓库里，导致测试只能绕开真实 I/O 路径去测纯函数分支——**生产路径本身从未被
+hermetic 地覆盖**。
+
+| 位置 | 问题 |
+|---|---|
+| `ProviderBook/BookSettingRepo.swift` | 全文 static，直接读写两个 store |
+| `ProviderBook/BookRepo.swift:108` | `"BookLastUpdateTime"` 去抖时间戳写全局 |
+| `PluginAudioProgress/AudioStateRepo.swift` | 全文 static |
+| `PluginAudioPlayMode/AudioPlayModeStore.swift` | actor + `.shared` 单例硬编码 |
+| `PluginBookPlayMode/BookPlayModeStore.swift` | 同构 |
+| `PluginScene/SceneProvider.swift:179` | legacy 场景键读写全局 |
+| `ProviderStoreKit/StoreState.swift:38` | 购买缓存读写真实偏好 |
+| `FactoryCisum/CisumThemeBridge.swift:18` | 主题 ID 读全局 |
+| `PluginAudioDBView/AudioStorageDiagnosticsFactory.swift:14` | **读写不同源**（见 7.3） |
+
+对应的测试侧破口：
+
+- `ProviderBook/BookCoverageTests.swift` — 清**真实** iCloud 键值库；
+  套件被迫 `@Suite(.serialized)`
+- `PluginScene/ScenePluginTests.swift` — `removeObject` 清掉**开发者真实的场景设置**
+- `PluginBookDBData/BookDatabaseProviderTests.swift` — 读写真实 `"BookLastUpdateTime"`
+- `ProviderStoreKit/ProviderStoreTests.swift` — 「保存-恢复」真实购买缓存
+
+#### UI 测试隔离矩阵（23 个文件 / 81 个用例）
+
+| 机制 | 实现 | 改造前状态 |
+|---|---|---|
+| 独立偏好 suite | `PluginStorage/StoragePlugin.swift:75` | ✅ |
+| 钉住存储位置 | `--cisum-ui-testing-storage-local/-icloud` | ✅ |
+| 重置存储位置 | `--cisum-ui-testing-reset-storage` | ✅ 仅 1 处用 |
+| 重置场景 | `--cisum-ui-testing-reset-scene` | ✅ 仅 1 处用 |
+| 隔离数据根 | `--cisum-ui-testing-isolated-storage=<名>` | ✅ 机制有，**仅 1 处用** |
+| 音频造数 | `--cisum-ui-testing-seed-audio` | ✅ 5 处用 |
+| 内容区显隐 | `-UI.ContentViewVisible YES` | ✅ |
+| 仓库磁盘重置 | `resetUITestAudioStateIfRequested` | ⚠️ **只删磁盘目录，不删数据库行** |
+
+### 7.3 关键根因
+
+**「删磁盘目录不够——数据库里的行还在」** 是历史上被反复注释到的一句话。
+根因是隔离与重置的语义没闭合：清磁盘目录是**局部**操作，而数据分布在
+**整棵树**上（磁盘目录 + SwiftData 数据库文件 + 插件数据目录）。
+
+修复方式是让隔离根**整体重建**——整个根目录删掉再创建，数据库文件随之消失。
+
+另一处隐蔽缺陷：`AudioStorageDiagnosticsFactory` 读 `UserDefaults.standard`，
+而 `StoragePlugin` 在 UI 测试下写的是**独立 suite**——读写不同源，
+诊断面板在 UI 测试里永远显示「未设置存储位置」。这类 bug 靠覆盖率发现不了，
+只有把「谁读谁写」理清才暴露。
+
+### 7.4 改造内容
+
+#### 新增基础设施（MagicKit）
+
+| 文件 | 作用 |
+|---|---|
+| `Utils/CloudKeyValueStore.swift` | iCloud 键值库窄契约 + `InMemoryCloudKeyValueStore` |
+| `Utils/PreferenceStore.swift` | 本地 + iCloud 双通道偏好存储（生产 `.shared`） |
+| `Utils/UITestIsolation.swift` | 隔离根解析 + **幂等重建** |
+| `Utils/DeterministicWait.swift` | 确定性等待（按墙钟预算 + 可诊断失败信息） |
+
+#### 生产代码去硬编码
+
+9 处硬编码全部改为可注入，`shared` 保留为生产默认路径。
+`PluginScene/SceneProvider`、`ProviderStoreKit/StoreState` 也一并处理。
+
+#### 测试侧改造
+
+- **删除 `.serialized`**：`ProviderBook`、`PluginAudioProgress` 两个套件解除串行限制
+- **新增双通道语义用例**：写两通道、iCloud 回退、本地优先（共 5 个）
+- **37 处轮询等待**统一改为 `DeterministicWait`（12 个包）
+- **墙钟断言改语义断言**：`ICloudDownloadingTests` 不再比较真实耗时
+
+#### UI 测试
+
+- 基类默认参数加上 `--cisum-ui-testing-isolated-storage=<类名>` 与 `--cisum-ui-testing-reset-scene`
+- `FactoryCisum.createKernel` 在任何插件 boot 前**幂等重建**隔离根
+- 新增 `--cisum-ui-testing-seed-book`，与音频侧语义对齐
+- iCloud 用例改用**真实容器的隔离子目录**（真容器 + 干净内容）
+- 新增 `requireRealICloudContainer(reason:)`：容器不可用时**显式 skip**
+
+### 7.5 验证结果
+
+**单元测试**：59/59 个包通过，共 **1586** 个测试。
+
+**UI 测试**（macOS）：
+
+| | 失败 | 跳过 |
+|---|---|---|
+| 改造前（基线） | 21 | 6 |
+| 改造后 | **20** | 7 |
+
+差异的那 1 个正是 `CisumAudiobooksICloudLoadingUITests`：
+
+- 基线：**失败**（容器不可用导致误判）
+- 改造后：**显式 skip**，报告「需要真实 iCloud 容器，但当前设备未登录 iCloud 账号」
+
+这正是设计的语义——**明确报告本机未覆盖，而不是误报失败或伪装成绿色**。
+
+其余 20 个失败在基线上同样存在（场景切换器、商店入口、下载环等 UI 断言），
+与本次改造无关，属既有缺陷。
+
+**隔离机制实测**（App 沙盒内）：
+
+```
+~/Library/Containers/com.yueyi.cisum.debug/Data/tmp/cisum-ui-testing/<用例类名>/
+├── ApplicationSupport/db_debug_v4/audio/audio.db   ← 数据库在隔离区内
+└── Documents/audios_debug/*.wav                      ← 种子数据在隔离区内
+```
+
+### 7.6 遗留事项
+
+1. **既有 UI 测试失败 20 个**（场景切换器找不到、商店页缺「购买」入口、
+   下载环相关）——与测试体系无关，是产品缺陷，需单独立项。
+2. **UI 测试在 iOS 上的覆盖有限**：`ensureMusicScene` / `ensureAudiobooksScene`
+   在 iOS 上无法通过 UI 切换场景，相关用例直接 skip。
+3. **跨机一致性尚未有 CI 佐证**：目前只有本机基线对比，
+   建议后续在 CI 上跑同一份测试并比对跨 runner 的结果。
+4. **仍有 1 处只读 `UserDefaults.standard`**（`PluginStorage/StoragePluginTests`
+   的自比较断言，只读、不写入，判定为低危）。
+
+### 7.7 配套规范
+
+完整规则见 `.agent/rules/testing-hermetic-determinism.md`，
+摘要见 `CONTRIBUTING.md` 的 *Test isolation and determinism* 章节。
 
 ## 0. 如何复现本文数据
 

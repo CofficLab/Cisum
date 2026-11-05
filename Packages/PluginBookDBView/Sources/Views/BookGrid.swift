@@ -146,13 +146,13 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
             } else {
                 VStack(spacing: 0) {
                     HStack {
-                        Text("Total \(total)", bundle: .module)
+                        Text(String(localized: String.LocalizationValue("Total \(total)"), bundle: .module))
                         Spacer()
                         if viewModel.isSyncing {
                             HStack(spacing: 6) {
                                 ProgressView()
                                     .controlSize(.small)
-                                Text("Reading repository", bundle: .module)
+                                Text("Reading book repository", bundle: .module)
                                     .font(.footnote)
                                     .foregroundStyle(.secondary)
                             }

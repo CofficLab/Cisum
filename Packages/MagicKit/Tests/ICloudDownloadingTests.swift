@@ -165,12 +165,25 @@ final class ICloudDownloadingTests: XCTestCase {
         control.overrideTimeout(0.2)
 
         // 调用方传了 60s，但覆写为 0.2s，应当快速超时。
+        //
+        // 断言**语义**而非墙钟：覆写的超时值被采用了，而不是调用方传入的
+        // 60s。用真实挂钟比较（`elapsed < 15`）测的是「机器有多快」——
+        // CI 慢机与负载高的开发机都会挂，结论也与机器状态相关。
+        //
+        // 这里改用「在 0.2s 覆写值的若干倍内就返回」来表达同一件事：
+        // 预算相对**被测配置**而非绝对墙钟，慢机上同样成立。
         let start = Date()
         do {
             try await file.ensureLocalAvailability(timeout: 60, pollInterval: 0.05)
             XCTFail("应超时")
         } catch {
-            XCTAssertLessThan(Date().timeIntervalSince(start), 15, "覆写超时未生效")
+            // 覆写值 0.2s；给 5 倍余量覆盖调度抖动，仍远小于调用方的 60s。
+            let budget = (control.effectiveTimeout ?? 0.2) * 5
+            XCTAssertLessThan(
+                Date().timeIntervalSince(start),
+                budget,
+                "覆写超时未生效：\(control.effectiveTimeout ?? -1)s 的覆写值应在 \(budget)s 内触发"
+            )
         }
     }
 

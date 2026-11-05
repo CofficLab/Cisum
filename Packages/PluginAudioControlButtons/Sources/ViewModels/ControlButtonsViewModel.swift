@@ -18,11 +18,6 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
     /// 下载/加载等待期间为 true：播放按钮据此禁用，
     /// 避免用户点击后被状态机静默忽略（点了没任何反应）。
     @Published private(set) var isBusy = false
-    /// 下载进度（0...1）；仅 `.loading(.downloading(p))` 时有效，其余状态为 nil。
-    ///
-    /// 播放按钮在该状态下改渲染进度环，让「正在下载」有直接反馈——此前只有
-    /// 图标变淡，叠加标题下方状态行被移除后完全看不出在下载。
-    @Published private(set) var downloadProgress: Double?
     @Published private(set) var playMode: PlaybackMode = .sequence
     /// 音乐仓库是否为空：为空时「⋯」按钮给出引导，提示用户去仓库添加音乐。
     @Published private(set) var isRepositoryEmpty = false
@@ -91,13 +86,6 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
     func applyStateChanged(_ state: PlaybackStatus) {
         isPlaying = state == .playing
         isBusy = state.isLoading
-        // 仅下载态携带进度；其余 loading 子态（缓冲 / 准备 / 连接）没有百分比，
-        // 置 nil 让播放按钮回退到常规播放图标。
-        if case let .loading(.downloading(progress)) = state {
-            downloadProgress = progress
-        } else {
-            downloadProgress = nil
-        }
 
         guard case .failed(let failure) = state else {
             lastPresentedFailure = nil

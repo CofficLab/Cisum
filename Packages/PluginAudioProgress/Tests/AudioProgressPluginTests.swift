@@ -1,4 +1,5 @@
 import Foundation
+import MagicKit
 import ProviderPlayback
 import MagicPlayMan
 import Testing
@@ -481,39 +482,90 @@ import Testing
 
 // MARK: - AudioStateRepo 存取 round-trip
 
-@Suite(.serialized)
+/// `AudioStateRepo` 的持久化契约。
+///
+/// ## 隔离策略
+///
+/// 每个用例拿到一份**独立的** `UserDefaults` suite 与一份**内存版** iCloud
+/// 键值库。因此不触碰开发者的真实偏好、不依赖设备是否登录 iCloud，
+/// 用例之间互不干扰——**不需要 `.serialized`**（旧写法必须串行，
+/// 是因为它写的是进程级全局状态）。
 struct AudioStateRepoTests {
+    /// 构造一份隔离的偏好存储。
+    private func makePreferences(
+        suiteName: String = "AudioStateRepoTests-\(UUID().uuidString)",
+        cloudValues: [String: String] = [:]
+    ) -> (preferences: PreferenceStore, cloud: InMemoryCloudKeyValueStore) {
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        let cloud = InMemoryCloudKeyValueStore(initialValues: cloudValues)
+        return (PreferenceStore(defaults: defaults, cloud: cloud), cloud)
+    }
+
     @Test
     func playModeRoundTrip() {
-        defer { AudioStateRepo.storePlayMode(PlaybackMode.sequence.rawValue) }
+        let (preferences, _) = makePreferences()
+        let repo = AudioStateRepo(preferences: preferences)
 
-        AudioStateRepo.storePlayMode(PlaybackMode.shuffle.rawValue)
-        #expect(AudioStateRepo.getPlayMode() == .shuffle)
+        repo.storePlayMode(PlaybackMode.shuffle.rawValue)
+        #expect(repo.getPlayMode() == .shuffle)
     }
 
     @Test
     func currentURLRoundTripAndClear() {
-        defer { AudioStateRepo.storeCurrent(nil) }
+        let (preferences, _) = makePreferences()
+        let repo = AudioStateRepo(preferences: preferences)
 
         let url = URL(fileURLWithPath: "/tmp/state-repo.mp3")
-        AudioStateRepo.storeCurrent(url)
-        #expect(AudioStateRepo.getCurrent() == url)
+        repo.storeCurrent(url)
+        #expect(repo.getCurrent() == url)
 
-        AudioStateRepo.storeCurrent(nil)
-        #expect(AudioStateRepo.getCurrent() == nil)
+        repo.storeCurrent(nil)
+        #expect(repo.getCurrent() == nil)
     }
 
     @Test
     func currentTimeRoundTripAndNormalization() {
-        defer { AudioStateRepo.storeCurrentTime(0) }
+        let (preferences, _) = makePreferences()
+        let repo = AudioStateRepo(preferences: preferences)
 
-        AudioStateRepo.storeCurrentTime(123.5)
-        #expect(AudioStateRepo.getCurrentTime() == 123.5)
+        repo.storeCurrentTime(123.5)
+        #expect(repo.getCurrentTime() == 123.5)
 
         // 非法时间归一化为 0。
         #expect(AudioStateRepo.normalizedTimeForStorage(.nan) == 0)
         #expect(AudioStateRepo.normalizedTimeForStorage(-5) == 0)
         #expect(AudioStateRepo.normalizedTimeForStorage(8) == 8)
+    }
+
+    /// 写入必须同时落到本地与 iCloud 两个通道。
+    @Test
+    func storeWritesToBothLocalAndCloudChannels() {
+        let (preferences, cloud) = makePreferences()
+        let repo = AudioStateRepo(preferences: preferences)
+
+        let url = URL(fileURLWithPath: "/tmp/state-repo.mp3")
+        repo.storeCurrent(url)
+        repo.storeCurrentTime(12.5)
+        repo.storePlayMode(PlaybackMode.loop.rawValue)
+
+        #expect(preferences.defaults.url(forKey: "AudioPluginCurrentAudioURL") == url)
+        #expect(cloud.string(forKey: "AudioPluginCurrentAudioURL") == url.absoluteString)
+        #expect(cloud.string(forKey: "AudioPluginCurrentAudioTime") == "12.5")
+        #expect(cloud.string(forKey: "AudioPluginCurrentPlayMode") == PlaybackMode.loop.rawValue)
+    }
+
+    /// 本地缺失但 iCloud 有值时，读取回退到 iCloud 并回填本地。
+    @Test
+    func readFallsBackToCloudWhenLocalIsMissing() {
+        let url = URL(fileURLWithPath: "/tmp/cloud.mp3")
+        let (preferences, _) = makePreferences(
+            cloudValues: ["AudioPluginCurrentAudioURL": url.absoluteString]
+        )
+        let repo = AudioStateRepo(preferences: preferences)
+
+        #expect(repo.getCurrent() == url)
+        #expect(preferences.defaults.url(forKey: "AudioPluginCurrentAudioURL") == url)
     }
 
     @Test

@@ -19,6 +19,8 @@ final class PlaybackProgressObserver: SuperLog {
                 self?.viewModel?.handleDurationChanged(duration)
             case .assetChanged:
                 self?.viewModel?.handleAssetChanged()
+            case .stateChanged(let state):
+                self?.viewModel?.handleStateChanged(state)
             }
         }
     }

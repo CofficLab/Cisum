@@ -6,6 +6,7 @@ import LumiUI
 import KernelCore
 import ProviderPlugin
 import ProviderStorage
+import CisumProviderStorage
 import KitAppEvents
 import MagicPlayMan
 import ProviderSettingView
@@ -22,20 +23,20 @@ import SwiftUI
 /// 内核存在场景概念（`AppScene` 固定枚举），因此当前播放文件按「场景 + 文件」
 /// 持久化到 `<dataRootDirectory>/PluginPlayBack/current-playback.plist`：
 /// - `onBoot` 时从 Lumi `StorageProviding` 解析数据根目录，创建 `PlaybackStateStore`；
-/// - `onReady` 时创建 `PlaybackSceneObserver`（Observers 目录）订阅场景变动，
+/// - `onReady` 时创建 `SceneObserver`（Observers 目录）订阅场景变动，
 ///   在启动与场景切换时恢复对应场景上次播放的文件（`autoPlay: false`，
 ///   仅加载不自动播放）；
 /// - 播放引擎的 `.assetChanged` 事件把当前播放文件写入当前场景的槽位。
 /// 该功能仅有此插件维护。
 @MainActor
 public final class PluginPlayBack: AsyncSuperPlugin {
-    public let id = String(describing: PluginPlayBack.self)
+    public let id = "com.coffic.cisum.plugin.playback"
 
     public static let shared = PluginPlayBack()
     public let order = 12
     public let iconName = "play.circle"
     public let metadata = PluginMetadata(
-        id: String(describing: PluginPlayBack.self),
+        id: "com.coffic.cisum.plugin.playback",
         name: String(localized: "Play", bundle: .module),
         version: "1.0.0",
         category: .system,
@@ -52,18 +53,18 @@ public final class PluginPlayBack: AsyncSuperPlugin {
     nonisolated(unsafe) private var stateStore: PlaybackStateStore?
 
     /// 场景观察者（onReady 时创建）：监听场景变动并按场景恢复/记录播放文件。
-    nonisolated(unsafe) private var sceneObserver: PlaybackSceneObserver?
+    nonisolated(unsafe) private var sceneObserver: SceneObserver?
 
     /// 设置页与场景观察者消费的 Adapter。ViewModel / Observer 以 `weak`
     /// 或不持有 Adapter，故此处必须显式强持有，否则能力会随装配调用返回而释放。
-    nonisolated(unsafe) private var sceneCapability: PlaybackSceneCapabilityAdapter?
-    nonisolated(unsafe) private var settingsSceneCapability: PlaybackSceneCapabilityAdapter?
-    nonisolated(unsafe) private var settingsPlaybackCapability: PlaybackSettingsCapabilityAdapter?
+    nonisolated(unsafe) private var sceneCapability: SceneCapabilityAdapter?
+    nonisolated(unsafe) private var settingsSceneCapability: SceneCapabilityAdapter?
+    nonisolated(unsafe) private var settingsPlaybackCapability: SettingsCapabilityAdapter?
 
     /// 设置页 ViewModel 与场景观察者（onReady 时创建，设置页导航项注入同一实例）。
     nonisolated(unsafe) private var settingsViewModel: PluginPlayBackSettingsViewModel?
-    nonisolated(unsafe) private var settingsSceneObserver: PlaybackSettingsSceneObserver?
-    nonisolated(unsafe) private var settingsPlaybackObserver: PlaybackSettingsPlaybackObserver?
+    nonisolated(unsafe) private var settingsSceneObserver: SettingsSceneObserver?
+    nonisolated(unsafe) private var settingsPlaybackObserver: SettingsPlaybackObserver?
 
     /// 播放状态变化监听句柄（记录当前文件到当前场景的磁盘槽位）。
     nonisolated(unsafe) private var observerHandle: (any PlaybackProvidingObserverHandle)?
@@ -94,7 +95,11 @@ public final class PluginPlayBack: AsyncSuperPlugin {
 
         // 持久化存储（order 12 在 StoragePlugin 之后，Lumi StorageProviding 已可用）
         guard let storage = kernel.resolveProvider((any ProviderStorage.StorageProviding).self) else { return }
-        let store = PlaybackStateStore(rootDirectory: storage.dataRootDirectory)
+        // 迁移旧目录（PluginPlayBack → 当前 id）。必须在目标目录被创建之前
+        // 迁移，否则迁移永远不执行。
+        migrateLegacyDirectoryIfNeeded(storage: storage)
+        let pluginDir = storage.pluginDataDirectory(for: self.id)
+        let store = PlaybackStateStore(pluginDirectory: pluginDir)
         #if DEBUG
         // UI 测试隔离：清空上次运行遗留的「当前播放记录」，保证每次 UI 测试启动
         // 都处于确定的「无当前曲目」状态；否则场景切换/播放器收起类断言会被
@@ -136,7 +141,7 @@ public final class PluginPlayBack: AsyncSuperPlugin {
         #endif
         let capability = makeSceneCapability(kernel: kernel)
         sceneCapability = capability
-        sceneObserver = PlaybackSceneObserver(
+        sceneObserver = SceneObserver(
             scene: capability,
             player: player,
             store: store
@@ -170,13 +175,13 @@ public final class PluginPlayBack: AsyncSuperPlugin {
 
     // MARK: - Settings state assembly
 
-    /// 组装场景能力：把内核 `SceneProviding` 收窄为本插件的 `PlaybackSceneCapability`。
+    /// 组装场景能力：把内核 `SceneProviding` 收窄为本插件的 `SceneCapability`。
     ///
     /// 场景 Provider 可能尚未注册（如 onReady 早于 ScenePlugin），此时退化为
     /// 「无当前场景」的能力，Observer 仍能安装并等待后续事件。
     @MainActor
-    private func makeSceneCapability(kernel: KernelCoreContainer) -> PlaybackSceneCapabilityAdapter {
-        PlaybackSceneCapabilityAdapter(scene: kernel.resolveProvider((any SceneProviding).self))
+    private func makeSceneCapability(kernel: KernelCoreContainer) -> SceneCapabilityAdapter {
+        SceneCapabilityAdapter(scene: kernel.resolveProvider((any SceneProviding).self))
     }
 
     /// 创建并持有设置页的 ViewModel 与场景观察者（幂等）。
@@ -185,14 +190,14 @@ public final class PluginPlayBack: AsyncSuperPlugin {
         guard settingsSceneObserver == nil else { return }
         guard let viewModel = settingsViewModel ?? makeSettingsViewModel() else { return }
         let sceneCapability = makeSceneCapability(kernel: kernel)
-        let playbackCapability = PlaybackSettingsCapabilityAdapter(playback: playbackProvider)
+        let playbackCapability = SettingsCapabilityAdapter(playback: playbackProvider)
         settingsSceneCapability = sceneCapability
         settingsPlaybackCapability = playbackCapability
-        let observer = PlaybackSettingsSceneObserver(
+        let observer = SettingsSceneObserver(
             scene: sceneCapability,
             viewModel: viewModel
         )
-        let playbackObserver = PlaybackSettingsPlaybackObserver(
+        let playbackObserver = SettingsPlaybackObserver(
             playback: playbackCapability,
             viewModel: viewModel
         )
@@ -203,7 +208,7 @@ public final class PluginPlayBack: AsyncSuperPlugin {
     @MainActor
     private func makeSettingsViewModel() -> PluginPlayBackSettingsViewModel? {
         guard let store = stateStore else { return nil }
-        let capability = PlaybackSettingsCapabilityAdapter(playback: playbackProvider)
+        let capability = SettingsCapabilityAdapter(playback: playbackProvider)
         settingsPlaybackCapability = capability
         let viewModel = PluginPlayBackSettingsViewModel(
             store: store,
@@ -216,7 +221,7 @@ public final class PluginPlayBack: AsyncSuperPlugin {
     /// 设置窗口入口：按场景展示各场景最近播放文件与当前播放详情。
     ///
     /// 视图只接收 `PluginPlayBackSettingsViewModel`，播放详情由
-    /// `PlaybackSettingsPlaybackObserver` 根据 Provider 事件实时刷新
+    /// `SettingsPlaybackObserver` 根据 Provider 事件实时刷新
     /// （`currentURL` / `isPlaying` / `duration` / `currentTime`）。
     @MainActor
     public func makeSettingEntry() -> SettingEntryItem? {
@@ -232,5 +237,26 @@ public final class PluginPlayBack: AsyncSuperPlugin {
         }
         )
     }
+
+    /// 迁移历史目录到当前插件目录（如果需要）。
+    ///
+    /// 目录名随插件 id 变过（`PluginPlayBack` → 反向 DNS），历史目录名
+    /// 由存储层统一登记，这里只负责调用。
+    ///
+    /// Lumi 的 StorageProviding 没有「只解析路径」的 API，因此这里直接
+    /// 在数据根下拼接插件 ID（与 Lumi 的实现保持同一路径规则），再交给
+    /// 存储层搬家——绝不能先用 `pluginDataDirectory(for:)`，它会创建目录。
+    private func migrateLegacyDirectoryIfNeeded(storage: any ProviderStorage.StorageProviding) {
+        let dataRoot = storage.dataRootDirectory
+        let currentDirectory = dataRoot.appendingPathComponent(self.id, isDirectory: true)
+
+        for legacyName in PluginDataDirectoryHistory.legacyDirectoryNames(for: self.id) {
+            let legacyDirectory = dataRoot.appendingPathComponent(legacyName, isDirectory: true)
+            if PluginDataDirectoryMigration.migrate(from: legacyDirectory, to: currentDirectory) {
+                return
+            }
+        }
+    }
+
 }
 

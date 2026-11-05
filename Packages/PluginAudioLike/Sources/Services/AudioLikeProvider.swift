@@ -47,7 +47,24 @@ final class AudioLikeProvider: AudioLikeProviding {
     }
 
     private func configureRepository() {
-        guard let databaseURL = try? storage.databaseFile(name: "audio_like") else { return }
+        let pluginID = "com.coffic.cisum.plugin.audio-like"
+        // 迁移旧目录（audio_like → AudioLikePlugin → 当前 id）。
+        // 必须在目标目录被创建之前迁移，否则迁移永远不执行。
+        migrateLegacyDirectoryIfNeeded(pluginID: pluginID)
+        let pluginDir = storage.pluginDataDirectory(for: pluginID)
+        let databaseURL = pluginDir.appendingPathComponent("audio_like.db", isDirectory: false)
         AudioLikeRepositoryConfiguration.configure(databaseURL: databaseURL)
+    }
+
+    /// 迁移历史目录到当前插件目录（如果需要）。
+    ///
+    /// 目录名随插件 id 变过两轮（`audio_like` → `AudioLikePlugin` → 反向 DNS），
+    /// 历史目录名由存储层统一登记，这里只负责调用。
+    private func migrateLegacyDirectoryIfNeeded(pluginID: String) {
+        PluginDataDirectoryMigration.migrate(
+            legacyDirectoryNames: PluginDataDirectoryHistory.legacyDirectoryNames(for: pluginID),
+            pluginID: pluginID,
+            dataRootDirectory: storage.databaseRoot
+        )
     }
 }

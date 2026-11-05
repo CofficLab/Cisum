@@ -5,10 +5,10 @@ import SwiftUI
 struct CopyPluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Copy", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Copy", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Copy current music files to the clipboard with one click")
+            Text("Copy current music files to the clipboard with one click", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

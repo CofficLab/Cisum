@@ -5,10 +5,10 @@ import SwiftUI
 struct StoragePluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Storage Management", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Storage Management", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Manage app data storage location, migration, and file browsing")
+            Text("Manage app data storage location, migration, and file browsing", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

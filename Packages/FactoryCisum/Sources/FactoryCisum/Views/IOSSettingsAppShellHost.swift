@@ -54,7 +54,7 @@ struct IOSSettingsAppShellHost: View {
     /// 组装设置 sheet 内容：设置外壳 + 主题宿主。
     private func makeSettingsView() -> AnyView {
         guard let settings = kernel.resolveProvider((any SettingViewProviding).self) else {
-            return AnyView(Text("Settings unavailable"))
+            return AnyView(Text("Settings unavailable", bundle: .module))
         }
         guard let theme = kernel.resolveProvider((any ThemeProviding).self) else {
             return AnyView(settings.makeSettingView())

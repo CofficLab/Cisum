@@ -80,7 +80,27 @@ public enum CisumBuilder: SuperLog {
     ) async throws -> KernelCoreContainer {
         let kernel = KernelCoreContainer()
 
-        // 0. UI 测试注入：必须在任何插件 boot 之前完成，否则播放插件可能在
+        // 0. 插件 ID 兼容映射：新 id → 旧 id。
+        //
+        // 插件 id 从类型名（如 `AudioPlugin`）改为反向 DNS
+        // （`com.coffic.cisum.plugin.audio`）后，用户此前保存的「插件启用状态」
+        // 仍以旧 id 为键。这张表让内核在读取时回退到旧 id，写入时同时写两者，
+        // 于是升级不丢状态、回滚旧版本也仍然生效。
+        //
+        // 必须在任何插件 boot 之前配置：启用状态在插件 boot 阶段就要被读取。
+        kernel.legacyPluginIDAliases = PluginIDCompatibility.legacyAliases
+
+        // 0a. UI 测试隔离：**幂等重建**隔离数据根。
+        //
+        // 必须早于任何插件读取数据根——隔离要覆盖全部数据：磁盘目录、
+        // SwiftData 数据库文件、插件数据目录都在同一棵树下。晚于这一步
+        // 的读取都会看到上一次运行留下的残留，「仓库为空」就只是
+        // 最终一致而非确定。
+        //
+        // 目录名由启动参数给出且保持稳定（不随机），失败现场可寻址、可复现。
+        UITestIsolation.resetIsolatedRootIfNeeded()
+
+        // 0b. UI 测试注入：必须在任何插件 boot 之前完成，否则播放插件可能在
         //    安装替身之前就已经发起过 iCloud 下载。无参数时不做任何改动。
         ICloudDownloadControl.shared.bootstrapFromLaunchArguments()
 
@@ -92,7 +112,16 @@ public enum CisumBuilder: SuperLog {
         let plugins: [any SuperPlugin] = [RootViewPlugin()] + factory.makePlugins()
 
         // 2. 注册基础设施 Provider
-        let appState = BasicAppStateService()
+        //
+        // UI 测试下显隐偏好必须与「隔离存储根」同源隔离：`UserDefaults.standard`
+        // 是进程级全局状态，跨用例共享。一个用例收起内容区后，另一个不带
+        // `-UI.ContentViewVisible` 覆盖参数的用例就会读到那个值，于是测试结论
+        // 依赖执行顺序——同一份测试在不同机器上可能得到不同结论。
+        //
+        // 详见 `UITestIsolation.isolatedDefaults`。
+        let appState = BasicAppStateService(
+            defaults: UITestIsolation.isolatedDefaults() ?? .standard
+        )
         try kernel.registerProvider((any AppStateProviding).self, appState)
 
         let pluginService = PluginContributionService(kernel: kernel)
@@ -135,13 +164,16 @@ public enum CisumBuilder: SuperLog {
         )
         #endif
 
-        // 3. 启动内核（插件 onBoot 注册 Storage 等服务 → 校验 → onReady → 贡献聚合）
-        try await kernel.startAsync(plugins: plugins)
-
-        // 主题目录来自远程 LumiThemePack；宿主只负责注册共享主题、迁移旧选择，
-        // 并把 ProviderTheme 状态桥接到 Cisum 现有 LumiUI 根视图。
-        // Cisum 定位在播放器 / 有声书，只加载少量代表性配色而非全量目录，
-        // 因此按白名单注册子集（见 `CisumThemeSelection`）。
+        // 3. 主题目录来自远程 LumiThemePack；宿主只负责注册共享主题、迁移旧选择，
+        //    并把 ProviderTheme 状态桥接到 Cisum 现有 LumiUI 根视图。
+        //    Cisum 定位在播放器 / 有声书，只加载少量代表性配色而非全量目录，
+        //    因此按白名单注册子集（见 `CisumThemeSelection`）。
+        //
+        //    **必须在内核启动之前完成**：主题注册会把配色写进全局主题注册中心，
+        //    而加载页的背景与品牌标记都取自那里。若等到内核启动完再注册，
+        //    加载页只能用回退配色（暗色）渲染，随后主界面切到真实配色（可能是
+        //    亮色）——启动瞬间出现一次明显的明暗闪烁。提前注册让加载页与主界面
+        //    从第一帧起就是同一套配色。
         let unknownThemeIDs = LumiThemeRegistration.unknownIDs(in: CisumThemeSelection.catalogueIDs)
         if !unknownThemeIDs.isEmpty {
             logger.warning("\(Self.t)主题白名单包含未知 id，将被忽略：\(unknownThemeIDs.joined(separator: ", "))")
@@ -150,7 +182,10 @@ public enum CisumBuilder: SuperLog {
         CisumThemeBridge.migrateLegacySelection(in: themeProvider)
         CisumThemeBridge.install(themeProvider, in: kernel)
 
-        // 3.5 视图 Provider 已在启动前注册，确保根覆盖层可以参与 makeRootView。
+        // 4. 启动内核（插件 onBoot 注册 Storage 等服务 → 校验 → onReady → 贡献聚合）
+        try await kernel.startAsync(plugins: plugins)
+
+        // 5. 视图 Provider 已在启动前注册，确保根覆盖层可以参与 makeRootView。
         //     内容区显隐由 ContentViewVisibilityCoordinator 统一协调：
         //     AppState 是唯一真源（只有用户显式操作才写它），根视图是它的投影。
         //     历史上的双向割裂会造成「冷启动只剩空播放器」与「更多按钮点了没反应」。
@@ -161,10 +196,10 @@ public enum CisumBuilder: SuperLog {
             contentVisibilityCoordinators[ObjectIdentifier(kernel)] = visibility
         }
 
-        // 4. 订阅插件变更
+        // 6. 订阅插件变更
         subscribeToPluginChanges(kernel: kernel)
 
-        // 5. 订阅场景变更：切换场景后重建内容 Tab
+        // 7. 订阅场景变更：切换场景后重建内容 Tab
         subscribeToSceneChanges(kernel: kernel)
 
         kernels.append(kernel)
@@ -262,7 +297,7 @@ public enum CisumBuilder: SuperLog {
     @MainActor
     public static func assembleMainView(kernel: KernelCoreContainer) -> AnyView {
         guard let root = kernel.resolveProvider((any RootViewProviding).self) else {
-            return AnyView(Text("RootViewProviding not registered"))
+            return AnyView(Text("RootViewProviding not registered", bundle: .module))
         }
 
         if let control = kernel.resolveProvider((any ControlViewProviding).self) {

@@ -215,6 +215,15 @@ extension MagicPlayMan {
         }
     }
 
+    /// 根据当前播放状态更新系统远程命令的激活态，
+    /// 使 macOS 控制中心 / 锁屏正确显示播放或暂停图标。
+    internal func syncRemoteCommandActiveStates() {
+        let commandCenter = MPRemoteCommandCenter.shared()
+        let isPlaying = (state == .playing)
+        commandCenter.playCommand.isEnabled = !isPlaying
+        commandCenter.pauseCommand.isEnabled = isPlaying
+    }
+
     /// 更新系统Now Playing信息中心
     /// - Parameters:
     ///   - includeThumbnail: 是否包含媒体缩略图，默认为true

@@ -50,7 +50,7 @@ struct AudioItemFileSizeLabel: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         case .loading:
-            Text("...")
+            Text("...", bundle: .module)
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

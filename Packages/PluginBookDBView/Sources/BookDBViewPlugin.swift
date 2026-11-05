@@ -13,7 +13,7 @@ import MagicKit
 
 @MainActor
 public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: BookDBViewPlugin.self)
+    public let id = "com.coffic.cisum.plugin.book-db-view"
 
     nonisolated static let verbose = false
 
@@ -21,7 +21,7 @@ public final class BookDBViewPlugin: AsyncSuperPlugin, SuperLog {
     public let order = 12
     public let iconName = BookDBViewPluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: BookDBViewPlugin.self),
+        id: "com.coffic.cisum.plugin.book-db-view",
         name: String(localized: String.LocalizationValue(BookDBViewPluginInfo.titleKey), bundle: .module),
         version: "1.0.0",
         category: .feature,

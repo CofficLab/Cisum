@@ -1,3 +1,4 @@
+import MagicKit
 import CisumProviderStorage
 @testable import PluginBook
 import ProviderBook
@@ -1090,9 +1091,10 @@ struct BookRootViewModelTests {
         let viewModel = BookRootViewModel(books: BookRootCapabilityAdapter(books: booksProbe))
         viewModel.reloadContainer()
 
-        for _ in 0..<50 where viewModel.isLoading {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "viewModel.isLoading 应结束",
+            timeout: 2.0
+        ) { !viewModel.isLoading }
         #expect(viewModel.isLoading == false)
         #expect(viewModel.error == nil)
     }
@@ -1104,9 +1106,10 @@ struct BookRootViewModelTests {
         let viewModel = BookRootViewModel(books: BookRootCapabilityAdapter(books: unavailable))
         viewModel.reloadContainer()
 
-        for _ in 0..<50 where viewModel.isLoading {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "viewModel.isLoading 应结束",
+            timeout: 2.0
+        ) { !viewModel.isLoading }
         #expect(viewModel.isLoading == false)
         #expect(viewModel.error != nil)
     }
@@ -1118,9 +1121,10 @@ struct BookRootViewModelTests {
         let first = viewModel.storageLocationDidChangeNotice
         viewModel.handleStorageLocationChanged()
 
-        for _ in 0..<50 where viewModel.isLoading {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "viewModel.isLoading 应结束",
+            timeout: 2.0
+        ) { !viewModel.isLoading }
         #expect(viewModel.storageLocationDidChangeNotice != first)
         #expect(viewModel.error == nil)
     }
@@ -1134,9 +1138,10 @@ struct BookRootViewModelTests {
         probe.isAvailable = true
         viewModel.reloadContainer()
 
-        for _ in 0..<50 where viewModel.isLoading {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "viewModel.isLoading 应结束",
+            timeout: 2.0
+        ) { !viewModel.isLoading }
         #expect(viewModel.error == nil)
     }
 }
@@ -1179,15 +1184,17 @@ struct BookStorageObserverTests {
         let viewModel = BookRootViewModel(books: BookRootCapabilityAdapter(books: booksProbe))
         let observer = BookStorageObserver(storage: BookStorageCapabilityAdapter(storage: storage), viewModel: viewModel)
 
-        for _ in 0..<50 where viewModel.isLoading {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "viewModel.isLoading 应结束",
+            timeout: 2.0
+        ) { !viewModel.isLoading }
         #expect(viewModel.isLoading == false)
 
         storage.notify(.storageAvailabilityChanged)
-        for _ in 0..<50 where viewModel.isLoading {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "viewModel.isLoading 应结束",
+            timeout: 2.0
+        ) { !viewModel.isLoading }
         #expect(viewModel.isLoading == false)
 
         observer.cancel()

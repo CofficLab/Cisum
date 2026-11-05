@@ -57,6 +57,8 @@ public final class ContentViewVisibilityCoordinator: ContentViewVisibilityProvid
     }
 
     public func toggleContentView() {
-        setContentViewVisible(!root.isContentViewVisible)
+        let before = root.isContentViewVisible
+        setContentViewVisible(!before)
+        let after = root.isContentViewVisible
     }
 }

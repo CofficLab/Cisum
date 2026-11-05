@@ -16,6 +16,14 @@ struct PlaybackHeroRightAlbumView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .aspectRatio(1, contentMode: .fit)
                     .clipped()
+            } else if viewModel.showsIdlePlaceholder {
+                // 宽窗口下右侧专辑栏是主封面位；没有当前曲目时用品牌占位图，
+                // 否则右栏整片空白，与左栏的占位文案自相矛盾。
+                Image.coffeeReelIcon(useDefaultBackground: true, handleRotation: 0)
+                    .shadowXxxl()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .aspectRatio(1, contentMode: .fit)
+                    .clipped()
             }
         }
     }

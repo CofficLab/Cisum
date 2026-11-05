@@ -72,10 +72,10 @@ private final class ProbeSceneHandle: SceneProvidingObserverHandle {
 @Test func audioDemoPluginExposesStableIdentityAndMetadata() {
     let plugin = AudioDemoPlugin.shared
 
-    #expect(plugin.id == "AudioDemoPlugin")
+    #expect(plugin.id == "com.coffic.cisum.plugin.audio-demo")
     #expect(plugin.order == 1)
     #expect(plugin.iconName == "externaldrive")
-    #expect(plugin.metadata.id == "AudioDemoPlugin")
+    #expect(plugin.metadata.id == "com.coffic.cisum.plugin.audio-demo")
     #expect(plugin.metadata.name == "Audio Repository")
     #expect(plugin.metadata.description == "Audio file database view")
     #expect(plugin.metadata.version == "1.0.0")

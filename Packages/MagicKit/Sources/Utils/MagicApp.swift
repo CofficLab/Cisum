@@ -120,12 +120,39 @@ public enum MagicApp {
 
     /// 获取应用专属 Application Support 目录。
     public static func getAppSpecificSupportDirectory() -> URL {
-        (try? URL.appSpecificSupport) ?? FileManager.default.temporaryDirectory
+        if let isolated = isolatedUITestRoot() {
+            return isolated.appendingPathComponent("ApplicationSupport", isDirectory: true)
+        }
+        return (try? URL.appSpecificSupport) ?? FileManager.default.temporaryDirectory
     }
 
     /// 获取 Documents 目录。
     public static func getDocumentsDirectory() -> URL {
-        (try? URL.documents) ?? FileManager.default.temporaryDirectory
+        if let isolated = isolatedUITestRoot() {
+            return isolated.appendingPathComponent("Documents", isDirectory: true)
+        }
+        return (try? URL.documents) ?? FileManager.default.temporaryDirectory
+    }
+
+    /// UI 测试专用：隔离的数据根目录。
+    ///
+    /// 启动参数 `--cisum-ui-testing-isolated-storage=<目录名>` 让本次启动
+    /// 的数据根落到临时目录下的独立子目录里，与真实沙盒完全隔离。
+    ///
+    /// 用途：需要「仓库确实是空的」这一前提的用例。上一次运行留下的
+    /// 音频文件与数据库行会让仓库非空，单靠清理磁盘目录不够——数据库
+    /// 里的行还在，列表照样有内容。
+    ///
+    /// 解析逻辑集中在 ``UITestIsolation``，本方法只做转发，
+    /// 保证「路径怎么算」只有一处定义。
+    private static func isolatedUITestRoot() -> URL? {
+        #if DEBUG
+            guard let root = UITestIsolation.isolatedRoot() else { return nil }
+            try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+            return root
+        #else
+            return nil
+        #endif
     }
 
     /// 获取应用容器目录。
@@ -139,8 +166,50 @@ public enum MagicApp {
     }
 
     /// 获取 iCloud Documents 目录。
+    ///
+    /// ## UI 测试下的隔离
+    ///
+    /// UI 测试启用 iCloud 存储时，仓库落在**真实 iCloud 容器的隔离子目录**下，
+    /// 而不是容器根部的 `Documents`：
+    ///
+    /// - **保留真实系统行为**：路径仍在 iCloud 容器内，因此
+    ///   `NSMetadataQuery` 那条监控实现（与本地的 `DispatchSource` 是两套
+    ///   完全不同的代码）仍会被走到——这正是 iCloud 专项用例要覆盖的东西；
+    /// - **消除状态残留**：子目录由测试独占并被幂等清空，容器里开发者
+    ///   自己同步的文件不会混进测试的仓库。
+    ///
+    /// 换句话说：**隔离的是「状态残留」，不是「系统行为」**。
+    /// 这两件事可以正交，不必二选一。
+    ///
+    /// 前提是设备确实登录了 iCloud——没有账号时容器不存在，任何路径都
+    /// 无法构造。这是真实的系统约束，UI 测试对此**显式 skip** 而不是
+    /// 悄悄通过（见 `CisumUITestCase`）。
     public static func getCloudDocumentsDirectory() -> URL? {
-        URL.cloudDocuments
+        if let isolated = isolatedUITestCloudSubdirectory() {
+            return isolated
+        }
+        return URL.cloudDocuments
+    }
+
+    /// UI 测试专用的 iCloud 隔离子目录。
+    ///
+    /// 位于真实 iCloud 容器的 `Documents/CisumUITest/<名称>` 下。
+    private static func isolatedUITestCloudSubdirectory() -> URL? {
+        #if DEBUG
+            guard UITestIsolation.isUITesting(),
+                  let container = URL.cloudContainer else { return nil }
+            guard let name = UITestIsolation.isolatedStorageName(), !name.isEmpty else {
+                return nil
+            }
+            let root = container
+                .appendingPathComponent("Documents", isDirectory: true)
+                .appendingPathComponent("CisumUITest", isDirectory: true)
+                .appendingPathComponent(name, isDirectory: true)
+            try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+            return root
+        #else
+            return nil
+        #endif
     }
 
     /// 获取缓存目录。

@@ -34,6 +34,9 @@ struct AudioItemView: View, Equatable, SuperLog {
     /// 删除确认对话框
     @State private var showDeleteConfirmation = false
 
+    /// 移除下载确认对话框
+    @State private var showRemoveDownloadConfirmation = false
+
     nonisolated static func == (lhs: AudioItemView, rhs: AudioItemView) -> Bool {
         lhs.url == rhs.url
     }
@@ -113,6 +116,18 @@ extension AudioItemView {
 
                 Divider()
 
+                if url.checkIsICloud(verbose: false) && url.isDownloaded {
+                    Button {
+                        showRemoveDownloadConfirmation = true
+                    } label: {
+                        Label {
+                            Text("Remove Download", bundle: .module)
+                        } icon: {
+                            Image(systemName: "arrow.down.circle")
+                        }
+                    }
+                }
+
                 Button(role: .destructive) {
                     showDeleteConfirmation = true
                 } label: {
@@ -136,6 +151,22 @@ extension AudioItemView {
                     deleteFile()
                 } label: {
                     Text("Delete", bundle: .module)
+                }
+            } message: {
+                Text(url.lastPathComponent)
+            }
+            .confirmationDialog(
+                Text("Remove the downloaded copy? The file will remain in iCloud.", bundle: .module),
+                isPresented: $showRemoveDownloadConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button {
+                    removeDownload()
+                } label: {
+                    Text("Remove Download", bundle: .module)
+                }
+                Button(role: .cancel) {} label: {
+                    Text("Cancel", bundle: .module)
                 }
             } message: {
                 Text(url.lastPathComponent)
@@ -236,5 +267,27 @@ extension AudioItemView {
     /// 删除文件（经 AudioListViewModel 委托，View 只发意图）。
     private func deleteFile() {
         listViewModel.deleteFile(url)
+    }
+
+    /// 移除 iCloud 文件的本地下载副本，释放磁盘空间。
+    private func removeDownload() {
+        let sourceURL = url
+        Task {
+            do {
+                try await Task.detached(priority: .userInitiated) {
+                    try sourceURL.removeDownload()
+                }.value
+
+                if Self.verbose {
+                    os_log("\(Self.t)✅ Removed download: \(sourceURL.lastPathComponent)")
+                }
+                toastProvider?.info(String(localized: "Download removed. File remains in iCloud.", bundle: .module))
+            } catch {
+                if Self.verbose {
+                    os_log("\(Self.t)❌ Failed to remove download: \(error.localizedDescription)")
+                }
+                toastProvider?.error(String(localized: "Failed to remove download: \(error.localizedDescription)", bundle: .module))
+            }
+        }
     }
 }

@@ -5,10 +5,10 @@ import SwiftUI
 struct AudioWidgetControlPluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Widget Control", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Widget Control", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Control music playback via desktop widgets")
+            Text("Control music playback via desktop widgets", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

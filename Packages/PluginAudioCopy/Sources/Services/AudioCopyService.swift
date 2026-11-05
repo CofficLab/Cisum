@@ -3,10 +3,10 @@ import Foundation
 import MagicKit
 import LumiUI
 import ProviderAudioLibrary
-import ProviderStore
 import ProviderToast
 import SwiftData
 import SwiftUI
+import CisumProviderStorage
 
 @MainActor
 public enum AudioCopyService {
@@ -17,16 +17,25 @@ public enum AudioCopyService {
     /// 能力内部对 Provider 为惰性解析或 `weak`，静态持有不会延长 Provider 生命周期。
     static var library: (any AudioCopyLibraryCapability)?
     static var toast: (any AudioCopyToastCapability)?
+    static var capacity: (any AudioCopyCapacityCapability)?
+    static var purchase: (any AudioCopyPurchaseCapability)?
+    static var storage: (any AudioCopyStorageCapability)?
     static var copyViewModel: CopyViewModel?
     static var copyObserver: CopyTaskObserver?
 
     /// 由插件入口注入能力（能力协议为插件内部类型，故本方法不对外）。
     static func configure(
         library: any AudioCopyLibraryCapability,
-        toast: (any AudioCopyToastCapability)?
+        toast: (any AudioCopyToastCapability)?,
+        capacity: any AudioCopyCapacityCapability,
+        purchase: any AudioCopyPurchaseCapability,
+        storage: any AudioCopyStorageCapability
     ) {
         Self.library = library
         Self.toast = toast
+        Self.capacity = capacity
+        Self.purchase = purchase
+        Self.storage = storage
         installCopyState()
     }
 
@@ -98,29 +107,43 @@ public enum AudioCopyService {
         return container
     }
 
+    /// 仓库是否已被当前用户的容量上限挡住。
+    ///
+    /// 判定经**容量闸门**（`AudioCapacityProviding`）完成：额度规则只在
+    /// 数据层存在一处，各写入入口不再各自重算——否则漏掉一个入口就成了
+    /// 绕过路径。
     static func isOutOfLimit() async -> Bool {
-        guard let library else {
-            return false
-        }
-        let count = await library.totalCount()
-        let pendingCount = await pendingCopyTaskCount()
-        return count + pendingCount >= AudioPluginInfo.maxAudioCount && StoreService.tierCached().isFreeVersion
+        let admission = await admission(requestedCount: 1)
+        return admission.didReject
     }
 
+    /// 本次请求实际能放行几个文件。
     static func allowedTaskCount(requestedTaskCount: Int) async -> Int {
-        guard let library else {
-            return requestedTaskCount
-        }
+        let admission = await admission(requestedCount: requestedTaskCount)
+        return admission.allowedCount(requestedCount: requestedTaskCount)
+    }
 
-        let count = await library.totalCount()
+    /// 向闸门请求准入判定。
+    ///
+    /// `reservedCount` 传入**进行中的复制任务数**：复制是异步的，未落盘的
+    /// 任务已经占了位。不计入它们，连续两次拖放都会读到同一个仓库计数，
+    /// 从而双双放行、最终超限。
+    static func admission(requestedCount: Int) async -> AudioCapacityAdmission {
+        guard let capacity else {
+            return .admitted
+        }
         let pendingCount = await pendingCopyTaskCount()
-        return AudioCopyLimitPolicy.allowedTaskCount(
-            currentAudioCount: count,
-            pendingCopyTaskCount: pendingCount,
-            requestedTaskCount: requestedTaskCount,
-            maxAudioCount: AudioPluginInfo.maxAudioCount,
-            isFreeVersion: StoreService.tierCached().isFreeVersion
-        )
+        return await capacity.admit(requestedCount: requestedCount, reservedCount: pendingCount)
+    }
+
+    /// 撞限后呈现购买面板（可点击的付费入口）。
+    static func presentPurchase() {
+        purchase?.presentPurchase()
+    }
+
+    /// 当前订阅档位的显示名（经容量能力读取，不直接依赖商店服务）。
+    static var tierDisplayName: String {
+        capacity?.tierDisplayName ?? String(localized: "Free version", bundle: .module)
     }
 
     static func getAudioDisk() -> URL? {
@@ -137,12 +160,28 @@ public enum AudioCopyService {
     }
 
     private static func createDatabaseFile(name: String) throws -> URL {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1"
-        let majorVersion = version.split(separator: ".").first.flatMap { Int($0) } ?? 1
-        let env = Self.dbDirName(majorVersion: majorVersion)
+        // 优先使用插件专属数据目录（对齐 Lumi 规范）
+        if let pluginDir = storage?.pluginDataDirectoryPath() {
+            // 迁移旧目录（copy_db → CopyPlugin → 当前 id）。
+            // 必须在目录被创建之前迁移，否则迁移目标已经存在、永远不执行。
+            migrateLegacyDirectoryIfNeeded(pluginDirectory: pluginDir)
+            let url = pluginDir.appendingPathComponent("\(name).db", isDirectory: false)
+            try FileManager.default.createDirectory(
+                at: pluginDir,
+                withIntermediateDirectories: true
+            )
+            return url
+        }
+
+        // 回退：使用旧版路径（如果 storage 能力未注入）
+        //
+        // 数据根目录名复用共享命名规则 `DataRootDirectoryNaming`，
+        // 不在本插件内另抄一份 `db_debug_v<N>`——改版本号策略时必然漏改，
+        // 漏改的后果是复制任务数据被写进另一个目录，用户看不到历史任务。
+        let dataRootName = DataRootDirectoryNaming.directoryName()
         let appSupport = MagicApp.getAppSpecificSupportDirectory()
         let url = appSupport
-            .appendingPathComponent(env, isDirectory: true)
+            .appendingPathComponent(dataRootName, isDirectory: true)
             .appendingPathComponent(name, isDirectory: true)
             .appendingPathComponent("\(name).db")
 
@@ -154,12 +193,22 @@ public enum AudioCopyService {
         return url
     }
 
-    private static func dbDirName(majorVersion: Int) -> String {
-        #if DEBUG
-            "db_debug_v\(majorVersion)"
-        #else
-            "db_production_v\(majorVersion)"
-        #endif
+    /// 迁移旧目录到新目录（如果需要）。
+    ///
+    /// 旧版本使用 `<databaseRoot>/copy_db/` 目录，
+    /// 新版本改用 `pluginDataDirectory(for: "CopyPlugin")` 目录。
+    /// 此方法在首次启动时迁移旧数据，确保用户的复制任务数据不丢失。
+    private static func migrateLegacyDirectoryIfNeeded(pluginDirectory: URL) {
+        // 数据根目录名复用共享命名规则 `DataRootDirectoryNaming`。
+        let dataRoot = MagicApp.getAppSpecificSupportDirectory()
+            .appendingPathComponent(DataRootDirectoryNaming.directoryName(), isDirectory: true)
+
+        for legacyName in PluginDataDirectoryHistory.legacyDirectoryNames(for: AudioCopyStorageCapabilityAdapter.pluginID) {
+            let legacyDirectory = dataRoot.appendingPathComponent(legacyName, isDirectory: true)
+            if PluginDataDirectoryMigration.migrate(from: legacyDirectory, to: pluginDirectory) {
+                return
+            }
+        }
     }
 }
 #endif

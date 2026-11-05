@@ -82,10 +82,10 @@ public struct BookSettingsView: View, SuperLog {
                             icon: AppSymbol.document
                         ) {
                             if Self.shouldUseSingularFileCount(viewModel.fileCount) {
-                                Text("\(viewModel.fileCount) file", bundle: .module)
+                                Text(String(localized: String.LocalizationValue("\(viewModel.fileCount) file"), bundle: .module))
                                     .font(.footnote)
                             } else {
-                                Text("\(viewModel.fileCount) files", bundle: .module)
+                                Text(String(localized: String.LocalizationValue("\(viewModel.fileCount) files"), bundle: .module))
                                     .font(.footnote)
                             }
                         }

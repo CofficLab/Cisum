@@ -59,10 +59,23 @@ final class BookGridViewModel: ObservableObject, SuperLog {
         }
     }
 
+    /// 场景离开时作废在途的**播放**请求。
+    ///
+    /// 这里**不能**取消尚未执行的加载请求（`updateBooksDebounceTask`），
+    /// 也**不能**递增 `updateBooksGeneration`：
+    ///
+    /// - 取消防抖任务会让 `setBooks()` 永远得不到执行，`isLoading` 停在
+    ///   `true`，UI 永远显示「正在读取有声书仓库」；
+    /// - 递增 generation 会把「尚未返回」的那次加载结果一并作废，效果同上。
+    ///
+    /// SwiftUI 在场景切换时给出的 `onAppear` / `onDisappear` 顺序并不固定，
+    /// 「先 appear 后 disappear」是真实存在的顺序之一。
+    ///
+    /// 作废过期结果的职责本来就属于 `scheduleUpdateBooksDebounced()`：
+    /// 每次调度都会递增 generation 并取消上一个任务，因此这里无需重复。
+    /// 本 ViewModel 由插件入口长期持有、跨场景复用，视图离开并不会让
+    /// 已经取到的数据失效。
     func handleOnDisappear() {
-        updateBooksDebounceTask?.cancel()
-        updateBooksDebounceTask = nil
-        updateBooksGeneration += 1
         playBookGeneration = BookGridPlaybackRequestPolicy.generationAfterInvalidatingPendingPlayback(playBookGeneration)
     }
 

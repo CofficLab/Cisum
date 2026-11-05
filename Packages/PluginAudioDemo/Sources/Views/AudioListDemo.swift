@@ -38,7 +38,7 @@ public struct AudioListDemo: View {
     public var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Total \(urls.count)", bundle: .module)
+                Text(String(localized: String.LocalizationValue("Total \(urls.count)"), bundle: .module))
                 Spacer()
 
                 if showAddButton, let addButton {

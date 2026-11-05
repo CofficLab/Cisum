@@ -12,15 +12,26 @@ import OSLog
 final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingProviding, SuperLog {
     nonisolated static let emoji = "💾"
     nonisolated static let verbose = false
+    nonisolated static let logger = Logger(subsystem: "com.coffic.cisum", category: "plugin.audio-db-data")
 
     private let storage: any StorageProviding
     private var cachedRepo: AudioRepo?
+
+    /// 订阅权益能力：数据层据此判断本次同步是否受容量限制。
+    ///
+    /// 惰性解析商店 Provider（boot 顺序不固定）；未就绪时按「受限」处理，
+    /// 宁可先挡住超限文件，也不要让免费用户绕过上限。
+    private let entitlement: any AudioDataEntitlementCapability
     private var storageObserver: AudioStorageObserver?
     private var observers: [WeakAudioLibraryObserver] = []
     private var repositoryIsKnownEmpty: Bool?
 
-    init(storage: any StorageProviding) {
+    init(
+        storage: any StorageProviding,
+        entitlement: any AudioDataEntitlementCapability
+    ) {
         self.storage = storage
+        self.entitlement = entitlement
         storageObserver = AudioStorageObserver(
             storage: AudioDataStorageCapabilityAdapter(storage: storage)
         ) { [weak self] _ in
@@ -44,7 +55,12 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
                 return cachedRepo
             }
             guard let disk = audioDisk else { return nil }
-            guard let databaseURL = try? storage.databaseFile(name: "audio") else { return nil }
+            let pluginID = "com.coffic.cisum.plugin.audio-db-data"
+            // 迁移旧目录（audio → AudioDBDataPlugin → 当前 id）。
+            // 必须在目标目录被创建之前迁移，否则迁移永远不执行。
+            migrateLegacyDirectoryIfNeeded(pluginID: pluginID)
+            let pluginDir = storage.pluginDataDirectory(for: pluginID)
+            let databaseURL = pluginDir.appendingPathComponent("audio.db", isDirectory: false)
             guard let container = try? AudioConfigRepo.getContainer(databaseURL: databaseURL) else { return nil }
             let repo = try? AudioRepo(
                 container: container,
@@ -57,6 +73,18 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
             cachedRepo = repo
             return repo
         }
+    }
+
+    /// 迁移历史目录到当前插件目录（如果需要）。
+    ///
+    /// 目录名随插件 id 变过两轮（`audio` → `AudioDBDataPlugin` → 反向 DNS），
+    /// 历史目录名由存储层统一登记，这里只负责调用。
+    private func migrateLegacyDirectoryIfNeeded(pluginID: String) {
+        PluginDataDirectoryMigration.migrate(
+            legacyDirectoryNames: PluginDataDirectoryHistory.legacyDirectoryNames(for: pluginID),
+            pluginID: pluginID,
+            dataRootDirectory: storage.databaseRoot
+        )
     }
 
     func currentRepository() async -> AudioRepo? {
@@ -85,6 +113,19 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
     /// 未扫描时数据库里同样没有记录，那不是空仓库的证据。
     var isRepositoryEmpty: Bool {
         repositoryIsKnownEmpty == true
+    }
+
+    /// 仓库的扫描结论（三态）。
+    ///
+    /// 把内部的三态原样暴露出去：消费方需要区分「确认为空」与「还没扫过」，
+    /// 前者该点亮空仓库引导，后者两者都不该做（不能把「还不知道」
+    /// 当成「确认非空」而让 idle 占位抢跑）。
+    var repositoryScanState: AudioRepositoryScanState {
+        switch repositoryIsKnownEmpty {
+        case .some(true): return .empty
+        case .some(false): return .nonEmpty
+        case .none: return .unknown
+        }
     }
 
     func totalCount() async -> Int {
@@ -116,7 +157,36 @@ final class AudioLibraryProvider: AudioLibraryProviding, AudioLibraryOrderingPro
 
     func sync(urls: [URL], verbose: Bool, isFirst: Bool) async {
         guard let repo = await repository else { return }
-        await repo.sync(urls, verbose: verbose, isFirst: isFirst)
+
+        // 容量兜底：应用内写入走闸门，但仓库目录对用户可见——用户可以直接
+        // 把文件拷进去。目录监控会把它们同步进来，这里挡住超限的那部分，
+        // 只让它留在磁盘上而不进索引（付费后额度放宽，下一次同步自然回来）。
+        let admitted = await capacityAdmittedURLs(urls, isFirst: isFirst)
+
+        await repo.sync(admitted, verbose: verbose, isFirst: isFirst)
+    }
+
+    /// 按容量上限筛选本次同步允许进入索引的文件。
+    private func capacityAdmittedURLs(_ urls: [URL], isFirst: Bool) async -> [URL] {
+        guard !urls.isEmpty else { return urls }
+        guard entitlement.isCapacityLimited else { return urls }
+
+        // 首次全量同步：索引里还没有任何记录，existingCount 为 0。
+        // 增量同步：索引里已有的文件已占用额度。
+        let existingCount = isFirst ? 0 : await totalCount()
+        let limit = AudioPluginInfo.maxAudioCount
+
+        let admitted = AudioSyncCapacityGuard.admittedURLs(
+            urls: urls,
+            existingCount: existingCount,
+            fileLimit: limit
+        )
+        if admitted.count < urls.count {
+            Self.logger.warning(
+                "\(Self.t)⚠️ Sync capacity guard: admitted \(admitted.count)/\(urls.count) file(s) (limit \(limit), existing \(existingCount))"
+            )
+        }
+        return admitted
     }
 
     func sort(url: URL?, reason: String) async {

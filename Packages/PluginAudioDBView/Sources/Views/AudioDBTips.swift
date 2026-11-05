@@ -66,13 +66,16 @@ struct AudioDBTips: View {
                     .buttonStyle(.bordered)
 
             case .loading:
-                AppLoadingOverlay(message: LocalizedStringKey(String(localized: "Reading repository", bundle: .module)), size: .large)
+                Spacer()
+                AppLoadingOverlay(message: LocalizedStringKey(String(localized: "Reading audiobook repository", bundle: .module)), size: .large)
                     .frame(height: 120)
                 Text("Supported formats: \(supportedFormats)", bundle: .module)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                Spacer()
 
             case .sorting:
+                Spacer()
                 AppLoadingOverlay(
                     message: LocalizedStringKey(sortingMessage ?? String(localized: "Sorting", bundle: .module)),
                     size: .large
@@ -81,6 +84,7 @@ struct AudioDBTips: View {
                 Text("Supported formats: \(supportedFormats)", bundle: .module)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                Spacer()
             }
         }
         .padding()

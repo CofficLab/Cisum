@@ -1,4 +1,9 @@
 import CoreGraphics
+import Foundation
+import ProviderAudioLibrary
+import ProviderPlayback
+import ProviderScene
+import SwiftUI
 import Testing
 @testable import PluginRootView
 
@@ -55,5 +60,153 @@ struct RootContentVisibilityTests {
         #expect(!RootContentVisibility.shouldHideContentView(
             isMacOS: true, newHeight: 900, dropThreshold: threshold
         ))
+    }
+}
+
+/// 播放环境能力替身：只实现根布局消费的三项快照 + 一条事件回调。
+@MainActor
+private final class EnvironmentStub: RootEnvironmentCapability {
+    var currentURL: URL?
+    var currentScene: AppScene?
+    var repositoryScanState: AudioRepositoryScanState = .unknown
+
+    private var callback: ((RootEnvironmentEvent) -> Void)?
+
+    init(
+        currentURL: URL? = nil,
+        currentScene: AppScene? = .music,
+        repositoryScanState: AudioRepositoryScanState = .unknown
+    ) {
+        self.currentURL = currentURL
+        self.currentScene = currentScene
+        self.repositoryScanState = repositoryScanState
+    }
+
+    @discardableResult
+    func addObserver(
+        _ callback: @escaping (RootEnvironmentEvent) -> Void
+    ) -> any RootEnvironmentObserverHandle {
+        self.callback = callback
+        return Handle { [weak self] in self?.callback = nil }
+    }
+
+    func send(_ event: RootEnvironmentEvent) {
+        callback?(event)
+    }
+
+    private final class Handle: RootEnvironmentObserverHandle {
+        private let onCancel: () -> Void
+        init(onCancel: @escaping () -> Void) { self.onCancel = onCancel }
+        func cancel() { onCancel() }
+    }
+}
+
+/// 贡献能力替身：根布局不消费其内容，只为满足协议。
+@MainActor
+private final class ContributionStub: RootContributionCapability {
+    func getToolBarButtons() -> [(id: String, view: AnyView)] { [] }
+    func getStatusViews() -> [AnyView] { [] }
+
+    @discardableResult
+    func addObserver(
+        _ callback: @escaping (RootContributionEvent) -> Void
+    ) -> any RootContributionObserverHandle { ContributionHandle() }
+}
+
+/// 贡献能力的事件枚举与句柄在此不需要真实实现。
+private final class ContributionHandle: RootContributionObserverHandle {
+    func cancel() {}
+}
+
+/// 根布局的播放器呈现态（控制区高度）由播放/场景/仓库事件驱动。
+///
+/// 本组用例锁定「仓库有歌但没有当前曲目」这一态的布局判定：
+/// 控制区必须保持展开高度，否则占位内容渲染了也没有空间可放。
+@MainActor
+struct RootLayoutHeroPresentingTests {
+    private func makeViewModel() -> RootLayoutViewModel {
+        RootLayoutViewModel(contributions: ContributionStub())
+    }
+
+    @Test("有当前曲目时控制区保持展开")
+    func keepsExpandedHeightWhenTrackIsSelected() {
+        let viewModel = makeViewModel()
+        let environment = EnvironmentStub(
+            currentURL: URL(fileURLWithPath: "/library/track.mp3"),
+            repositoryScanState: .nonEmpty
+        )
+        viewModel.attach(environment: environment)
+
+        #expect(viewModel.isPlaybackHeroPresenting)
+    }
+
+    @Test("仓库非空但无当前曲目时控制区仍保持展开（idle 占位需要空间）")
+    func keepsExpandedHeightForIdlePlaceholder() {
+        let viewModel = makeViewModel()
+        let environment = EnvironmentStub(
+            currentURL: nil,
+            repositoryScanState: .nonEmpty
+        )
+        viewModel.attach(environment: environment)
+
+        #expect(
+            viewModel.isPlaybackHeroPresenting,
+            "idle 占位需要高度，否则占位渲染了也没有空间"
+        )
+    }
+
+    @Test("仓库扫描结论未知时不占用展开高度（避免启动瞬间抢跑）")
+    func collapsesWhileScanConclusionIsUnknown() {
+        let viewModel = makeViewModel()
+        let environment = EnvironmentStub(
+            currentURL: nil,
+            repositoryScanState: .unknown
+        )
+        viewModel.attach(environment: environment)
+
+        #expect(!viewModel.isPlaybackHeroPresenting)
+    }
+
+    @Test("仓库为空且无当前曲目时收起（该区域归空仓库引导管）")
+    func collapsesForEmptyRepositoryWithoutTrack() {
+        let viewModel = makeViewModel()
+        let environment = EnvironmentStub(
+            currentURL: nil,
+            repositoryScanState: .empty
+        )
+        viewModel.attach(environment: environment)
+
+        #expect(!viewModel.isPlaybackHeroPresenting)
+    }
+
+    @Test("非音乐场景下不展开")
+    func collapsesOutsideMusicScene() {
+        let viewModel = makeViewModel()
+        let environment = EnvironmentStub(
+            currentURL: nil,
+            currentScene: .audiobooks,
+            repositoryScanState: .nonEmpty
+        )
+        viewModel.attach(environment: environment)
+
+        #expect(!viewModel.isPlaybackHeroPresenting)
+    }
+
+    @Test("仓库转为非空后，idle 占位接管并保持展开")
+    func expandsWhenRepositoryBecomesNonEmpty() {
+        let viewModel = makeViewModel()
+        let environment = EnvironmentStub(
+            currentURL: nil,
+            repositoryScanState: .empty
+        )
+        viewModel.attach(environment: environment)
+        #expect(!viewModel.isPlaybackHeroPresenting)
+
+        environment.send(.repositoryNonEmpty)
+        #expect(viewModel.isPlaybackHeroPresenting)
+
+        // 选中曲目后仍是展开态（真实封面接管）。
+        environment.send(.assetChanged(URL(fileURLWithPath: "/library/track.mp3")))
+        #expect(viewModel.isPlaybackHeroPresenting)
     }
 }

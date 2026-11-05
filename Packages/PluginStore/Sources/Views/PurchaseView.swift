@@ -9,8 +9,15 @@ struct PurchaseView: View, SuperLog {
     nonisolated static let emoji = "🛒"
     nonisolated static let verbose = false
 
+    /// 关闭动作（可选）。
+    ///
+    /// 默认走 SwiftUI 的 `dismiss()`——适用于真正的 sheet。全局引导里
+    /// 购买面板是根视图上的 overlay，`dismiss()` 无物可关，调用方必须
+    /// 显式传入自己的关闭动作。
+    var onClose: (() -> Void)?
+
     var body: some View {
-        SheetContainer {
+        SheetContainer(onClose: onClose) {
             VStack {
                 AppCard(style: .subtle, cornerRadius: 8, showShadow: false) {
                     VStack(spacing: 16) {
@@ -23,37 +30,8 @@ struct PurchaseView: View, SuperLog {
                     }
                 }
 
-                if let privacyURL = URL(string: "https://www.kuaiyizhi.cn/privacy"),
-                   let licenseURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
-                {
-                    // Bottom links
-                    HStack(spacing: 20) {
-                        Link(destination: privacyURL) {
-                            Label {
-                                Text("Privacy Policy", bundle: .module)
-                            } icon: {
-                                Image(systemName: "hand.raised.fill")
-                            }
-                                .font(.footnote)
-                        }
-
-                        Divider()
-                            .frame(height: 12)
-
-                        Link(destination: licenseURL) {
-                            Label {
-                                Text("License Agreement", bundle: .module)
-                            } icon: {
-                                Image(systemName: "doc.text.fill")
-                            }
-                                .font(.footnote)
-                        }
-                    }
-                    .foregroundStyle(.secondary)
-                    .buttonStyle(.plain)
-                    .padding(.vertical, 16)
-                    .infiniteWidth()
-                }
+                // Bottom links
+                StoreLegalLinks()
             }
             .padding(.horizontal, 8)
         }

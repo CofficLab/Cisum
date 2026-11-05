@@ -8,7 +8,7 @@ import SwiftUI
 /// 内核存在场景概念（`AppScene` 固定枚举，如「音乐库」「有声书」），因此本页
 /// 不再只展示单一全局当前文件：
 /// - 「各场景最近播放」：每个场景一行，展示该场景最近播放的文件，当前激活场景
-///   带「当前」标记并高亮；场景切换由 `PlaybackSettingsSceneObserver` 驱动刷新。
+///   带「当前」标记并高亮；场景切换由 `SettingsSceneObserver` 驱动刷新。
 /// - 「播放详情」：当前场景的活动播放状态，随播放引擎实时刷新
 ///   （`currentURL` / `isPlaying` / `duration` / `currentTime`）。
 struct PluginPlayBackSettingView: View {
@@ -65,7 +65,7 @@ struct PluginPlayBackSettingView: View {
                     .foregroundColor(theme.textPrimary)
                 Spacer()
                 if scene == viewModel.currentScene {
-                    Text("Current")
+                    Text("Current", bundle: .module)
                         .font(.appMicro)
                         .foregroundColor(theme.textSecondary)
                         .padding(.horizontal, 8)
@@ -130,7 +130,7 @@ struct PluginPlayBackSettingView: View {
             Image(systemName: "play.circle")
                 .font(.system(size: 34))
                 .foregroundStyle(.secondary)
-            Text("No file is currently playing")
+            Text("No file is currently playing", bundle: .module)
                 .font(.appBody)
                 .foregroundStyle(.secondary)
         }

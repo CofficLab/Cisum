@@ -39,18 +39,26 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
     private let audioLike: @MainActor () -> (any AudioLikeProviding)?
     private let saveWidgetData: @Sendable (String, String, Bool, Data?) -> Void
 
+    /// 播放状态的持久化仓库。
+    ///
+    /// 注入而非直接用 `AudioStateRepo.shared`：让单元测试可以给它一个独立的
+    /// 偏好存储，避免读写开发者的真实偏好与真实 iCloud 键值库。
+    private let audioState: AudioStateRepo
+
     init(
         audioScene: AppScene,
         playback: (any PlaybackProgressCapability)?,
         library: any ProgressAudioLibraryCapability,
         audioLike: @escaping @MainActor () -> (any AudioLikeProviding)?,
-        saveWidgetData: @escaping @Sendable (String, String, Bool, Data?) -> Void
+        saveWidgetData: @escaping @Sendable (String, String, Bool, Data?) -> Void,
+        audioState: AudioStateRepo = .shared
     ) {
         self.audioScene = audioScene
         self.playback = playback
         self.library = library
         self.audioLike = audioLike
         self.saveWidgetData = saveWidgetData
+        self.audioState = audioState
     }
 
     var shouldActivateProgress: Bool {
@@ -113,14 +121,14 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
                 return
             }
 
-            if let url = AudioStateRepo.getCurrent() {
+            if let url = audioState.getCurrent() {
                 let isPlayable = await library.contains(url) && isPlayableAudioURL(url)
 
                 if isPlayable {
                     assetTarget = url
                     liked = await audioLike()?.isLiked(url: url) ?? false
 
-                    if let time = AudioStateRepo.getCurrentTime() {
+                    if let time = audioState.getCurrentTime() {
                         timeTarget = time
                     }
 
@@ -129,10 +137,10 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
                     }
                 } else {
                     if AudioProgressPersistencePolicy.shouldClearRestoredCurrentURL(storedURL: url, isPlayable: isPlayable) {
-                        AudioStateRepo.storeCurrent(nil)
+                        audioState.storeCurrent(nil)
                     }
                     if AudioProgressPersistencePolicy.shouldClearRestoredCurrentTime(storedURL: url, isPlayable: isPlayable) {
-                        AudioStateRepo.storeCurrentTime(0)
+                        audioState.storeCurrentTime(0)
                     }
 
                     if Self.verbose {
@@ -157,7 +165,7 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
             if let asset = assetTarget {
                 let currentAsset = playback.currentURL
 
-                // 恢复文件已被并发加载（如 PlaybackSceneObserver 的场景恢复，
+                // 恢复文件已被并发加载（如 PluginPlayBack 的 SceneObserver 的场景恢复，
                 // 或用户已手动加载同一文件）：只补进度位置，不重复加载，
                 // 避免「无 startTime 的重载」把已恢复的进度清零。
                 if AudioProgressPersistencePolicy.representsSameFile(asset, currentAsset) {
@@ -245,27 +253,27 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
                 isSceneActive: shouldActivateProgress
             ) else { return }
 
-            let storedURL = AudioStateRepo.getCurrent()
+            let storedURL = audioState.getCurrent()
             let urlToStore = AudioProgressPersistencePolicy.currentURLToStore(
                 url,
                 storedURL: storedURL,
                 supportedExtensions: AudioPluginInfo.supportedExtensions
             )
-            AudioStateRepo.storeCurrent(urlToStore)
+            audioState.storeCurrent(urlToStore)
             if AudioProgressPersistencePolicy.shouldResetGlobalTimeWhenCurrentURLChanges(from: storedURL, to: urlToStore) {
-                AudioStateRepo.storeCurrentTime(0)
+                audioState.storeCurrentTime(0)
             }
         }
     }
 
     func handleDBDeleted(deletedURLs: [URL]) {
         guard AudioProgressPersistencePolicy.shouldClearStoredCurrentAfterDelete(
-            storedURL: AudioStateRepo.getCurrent(),
+            storedURL: audioState.getCurrent(),
             deletedURLs: deletedURLs
         ) else { return }
 
-        AudioStateRepo.storeCurrent(nil)
-        AudioStateRepo.storeCurrentTime(0)
+        audioState.storeCurrent(nil)
+        audioState.storeCurrentTime(0)
     }
 
     func handleStorageLocationDidReset() {
@@ -320,7 +328,7 @@ final class AudioProgressViewModel: ObservableObject, SuperLog {
 
     private func persistCurrentTime(reason: String) {
         guard let playback else { return }
-        AudioStateRepo.storeCurrentTime(playback.currentTime)
+        audioState.storeCurrentTime(playback.currentTime)
 
         if Self.verbose {
             Self.log.debug("\(Self.tag)💾 (\(reason)) Saved playback progress: \(playback.currentTime)s")

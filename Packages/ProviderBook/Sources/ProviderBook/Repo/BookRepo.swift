@@ -20,6 +20,16 @@ public class BookRepo: ObservableObject, SuperEvent, SuperLog {
     private var initialSyncWaiters: [CheckedContinuation<Void, Never>] = []
     private var isShutdown = false
 
+    /// 目录变更去抖的时间戳存储。
+    ///
+    /// 过去这里直接写 `UserDefaults.standard["BookLastUpdateTime"]`——
+    /// 进程级全局状态，单元测试无法替换，且会污染开发者的真实偏好。
+    /// 现在改为注入的偏好存储，测试可用独立 suite 精确控制。
+    private let preferences: PreferenceStore
+
+    /// 目录变更去抖间隔（秒）。
+    private let debounceInterval: TimeInterval
+
     // MARK: - State
 
     enum SyncStatusBook: Equatable {
@@ -40,12 +50,27 @@ public class BookRepo: ObservableObject, SuperEvent, SuperLog {
         }
     }
 
-    public init(disk: URL, db: BookDB) throws {
+    /// - Parameters:
+    ///   - disk: 有声书仓库目录。
+    ///   - db: 数据库。
+    ///   - preferences: 偏好存储（去抖时间戳）。生产传 ``PreferenceStore/shared``。
+    ///   - debounceInterval: 目录变更去抖间隔（秒）。
+    public init(
+        disk: URL,
+        db: BookDB,
+        preferences: PreferenceStore = .shared,
+        debounceInterval: TimeInterval = 2.5
+    ) throws {
         self.db = db
         self.disk = disk
+        self.preferences = preferences
+        self.debounceInterval = debounceInterval
         self.coverRepo = BookCoverRepo()
         self.monitor = try self.makeMonitor()
     }
+
+    /// 目录变更去抖时间戳的存储键。
+    static let lastUpdateTimeKey = "BookLastUpdateTime"
 
     /// Stop directory monitoring and release any pending initial-sync readers.
     public func shutdown() {
@@ -66,7 +91,7 @@ public class BookRepo: ObservableObject, SuperEvent, SuperLog {
             throw BookPluginError.DiskNotFound
         }
 
-        let debounceInterval = 2.5
+        let debounceInterval = self.debounceInterval
 
         let monitoredDisk = self.disk
 
@@ -105,11 +130,12 @@ public class BookRepo: ObservableObject, SuperEvent, SuperLog {
                         return
                     }
                 }
-                if !isFirst, let lastTime = UserDefaults.standard.object(forKey: "BookLastUpdateTime") as? Date {
+                if !isFirst,
+                   let lastTime = self.preferences.defaults.object(forKey: Self.lastUpdateTimeKey) as? Date {
                     let now = Date()
                     guard now.timeIntervalSince(lastTime) >= debounceInterval else { return }
                 }
-                UserDefaults.standard.set(Date(), forKey: "BookLastUpdateTime")
+                self.preferences.defaults.set(Date(), forKey: Self.lastUpdateTimeKey)
 
                 let shouldFullSync = isFirst || !monitoredDisk.checkIsICloud(verbose: false)
                 await self.sync(items, isFirst: shouldFullSync)

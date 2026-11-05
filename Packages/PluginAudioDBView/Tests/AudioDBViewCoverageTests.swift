@@ -481,8 +481,18 @@ struct AudioDatabaseObserverTests {
         library.emit(.sortCompleted)
         #expect(!db.isSorting)
 
-        // synced/updated 触发 root 仓库检查；totalCount=0 → showDBView。
+        // synced/updated 触发 root 仓库检查。
+        //
+        // 注意：**仓库为空不再触发 showDBView**。空仓库时音乐库页面自己会
+        // 渲染空态提示；强制展开内容区会覆盖用户显式收起内容区的选择
+        // （那个选择会落盘，重启后本该保持）。
         library.totalCountValue = 0
+        library.emit(.synced)
+        try await Task.sleep(for: .milliseconds(100))
+        #expect(showDBCount == 0)
+
+        // 仓库**不可用**时仍应请求展开——那才是用户需要被引导去处理的情况。
+        library.isAvailable = false
         library.emit(.synced)
         try await Task.sleep(for: .milliseconds(100))
         #expect(showDBCount == 1)

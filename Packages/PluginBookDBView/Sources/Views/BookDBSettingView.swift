@@ -88,7 +88,7 @@ struct BookDBSettingView: View {
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
             Spacer()
-            Text("Total \(viewModel.totalCount.description)", bundle: .module)
+            Text(String(localized: String.LocalizationValue("Total \(viewModel.totalCount.description)"), bundle: .module))
                 .font(.appCaption)
                 .foregroundStyle(.secondary)
             #if os(macOS)

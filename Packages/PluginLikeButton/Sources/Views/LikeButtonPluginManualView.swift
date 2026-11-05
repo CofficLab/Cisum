@@ -5,10 +5,10 @@ import SwiftUI
 struct LikeButtonPluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Like Button", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Like Button", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Provides a unified Favorite button in the toolbar")
+            Text("Provides a unified Favorite button in the toolbar", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

@@ -18,7 +18,7 @@ import SwiftUI
 /// 插件层只提供引导位与呈现内容。
 @MainActor
 public final class RepositoryGuidePlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: RepositoryGuidePlugin.self)
+    public let id = "com.coffic.cisum.plugin.repository-guide"
 
     nonisolated static let verbose = false
 
@@ -26,7 +26,7 @@ public final class RepositoryGuidePlugin: AsyncSuperPlugin, SuperLog {
     public let order = 20
     public let iconName = "sparkles"
     public let metadata = PluginMetadata(
-        id: String(describing: RepositoryGuidePlugin.self),
+        id: "com.coffic.cisum.plugin.repository-guide",
         name: String(localized: String.LocalizationValue("Repository Guide"), bundle: .module),
         description: String(localized: String.LocalizationValue("Shows a first-run guide when the repository is empty."), bundle: .module),
         version: "1.0.0",

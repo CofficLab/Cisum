@@ -40,6 +40,12 @@ struct PlaybackHeroView: View {
                             .frame(maxWidth: .infinity)
                             .frame(height: albumHeight(in: geometry))
                     }
+                } else if viewModel.showsIdlePlaceholder, shouldShowAlbum(in: geometry) {
+                    // 「无当前曲目」占位：仓库里有歌但用户还没选。
+                    // 真实封面缺席时这块区域本会整片空白，占位接手它。
+                    idlePlaceholderAlbumView
+                        .frame(maxWidth: .infinity)
+                        .frame(height: albumHeight(in: geometry))
                 }
 
                 if viewModel.isHeroVisible {
@@ -59,11 +65,33 @@ struct PlaybackHeroView: View {
                     // 前缀就会显示成「0% 正在下载 0%」——同一行两个百分比。
                     // 下载进度改由封面区的大圆环（cisum.player.download.overlay）独占
                     // 呈现；该圆环仅在控制区高度 > 450pt 时渲染。
+                } else if viewModel.showsIdlePlaceholder {
+                    // 占位态的提示文案：占据真实播放器里「曲目标题」的位置，
+                    // 让这一屏看起来仍像一个播放器，而不是一块说明卡片。
+                    Text(Self.idlePlaceholderText)
+                        .font(.system(size: 24))
+                        .accessibilityIdentifier("cisum.player.idle.placeholder")
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.3)
+                        .multilineTextAlignment(.center)
+                        .frame(width: max(0, geometry.size.width - 32))
+                        .frame(height: titleViewHeight)
+                        .foregroundStyle(appTheme.textPrimary)
+                        .shadow(color: appTheme.background.opacity(0.18), radius: 8, y: 2)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
+
+    /// 占位态的提示文案。
+    ///
+    /// 与空仓库引导的「开始使用 Cisum」区分开：那是**仓库空**时的引导，
+    /// 这里说的是**仓库有歌但还没选**——用户该去仓库挑一首。
+    private static let idlePlaceholderText = String(
+        localized: "Pick a track to start playing",
+        bundle: .module
+    )
 
     private func shouldShowAlbum(in geometry: GeometryProxy) -> Bool {
         !AppResponsivePlayerLayoutMetrics.shared.shouldShowSecondaryColumn(width: geometry.size.width)
@@ -76,6 +104,17 @@ struct PlaybackHeroView: View {
 
     private var demoAlbumView: some View {
         Image.coffeeReelIcon(useDefaultBackground: false, handleRotation: 0)
+            .shadowXxxl()
+    }
+
+    /// 占位态的封面：品牌图（咖啡滤杯）。
+    ///
+    /// 用 `useDefaultBackground: true` 让品牌渐变底色一并显示——这是本插件
+    /// 自己的品牌资产（`CoffeeReelIcon`），纯代码绘制、任意尺寸都清晰，
+    /// 与空仓库引导用宿主 app 图标不同：占位态表达的是「播放器还没东西可放」，
+    /// 用品牌图形比用 app 图标更贴近「这是一个播放器」这件事。
+    private var idlePlaceholderAlbumView: some View {
+        Image.coffeeReelIcon(useDefaultBackground: true, handleRotation: 0)
             .shadowXxxl()
     }
 

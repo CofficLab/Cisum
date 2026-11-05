@@ -144,7 +144,7 @@ import Testing
 @MainActor
 @Test func pluginMetadataDescribesOpenCurrentEntry() {
     let plugin = OpenButtonPlugin()
-    #expect(plugin.id == "OpenButtonPlugin")
+    #expect(plugin.id == "com.coffic.cisum.plugin.open-button")
     #expect(plugin.order == 9999)
     #expect(plugin.metadata.name == "Open Current")
     #expect(plugin.metadata.category == .feature)

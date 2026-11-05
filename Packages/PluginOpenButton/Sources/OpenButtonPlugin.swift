@@ -9,7 +9,7 @@ import SwiftUI
 
 @MainActor
 public final class OpenButtonPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: OpenButtonPlugin.self)
+    public let id = "com.coffic.cisum.plugin.open-button"
 
     nonisolated static let verbose = false
 
@@ -17,7 +17,7 @@ public final class OpenButtonPlugin: AsyncSuperPlugin, SuperLog {
     public let order = 9999
     public let iconName = OpenButtonPluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: OpenButtonPlugin.self),
+        id: "com.coffic.cisum.plugin.open-button",
         name: String(localized: "Open Current", bundle: .module),
         description: OpenButtonPluginInfo.description,
         version: "1.0.0",

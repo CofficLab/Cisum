@@ -54,4 +54,13 @@ public extension URL {
             onProgress(1)
         }
     }
+
+    /// 移除 iCloud 文件的本地下载副本，释放磁盘空间。
+    ///
+    /// 文件仍保留在 iCloud 中，下次访问时会重新下载。
+    /// 仅对已下载的 iCloud 文件有效（`checkIsICloud() && isDownloaded`）。
+    func removeDownload() throws {
+        guard checkIsICloud(verbose: false), isDownloaded else { return }
+        try FileManager.default.evictUbiquitousItem(at: self)
+    }
 }

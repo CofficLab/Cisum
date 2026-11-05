@@ -5,10 +5,10 @@ import SwiftUI
 struct AudioProgressPluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Playback Progress", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Playback Progress", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Display and scrub music playback progress")
+            Text("Display and scrub music playback progress", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

@@ -1,3 +1,4 @@
+import MagicKit
 import ProviderToast
 import Foundation
 import ProviderAudioNavigation
@@ -314,9 +315,10 @@ struct ControlButtonsViewModelTests {
         )
         viewModel.handleNextRequested(current)
 
-        for _ in 0..<50 where playback.playedURLs.isEmpty {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "playback.playedURLs 应非空",
+            timeout: 2.0
+        ) { !playback.playedURLs.isEmpty }
         #expect(playback.playedURLs == [next])
     }
 
@@ -339,9 +341,10 @@ struct ControlButtonsViewModelTests {
         )
         viewModel.handleNextRequested(current)
 
-        for _ in 0..<50 where toast.errors.isEmpty {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "toast.errors 应非空",
+            timeout: 2.0
+        ) { !toast.errors.isEmpty }
         #expect(!toast.errors.isEmpty)
         #expect(playback.playedURLs.isEmpty)
     }
@@ -364,9 +367,10 @@ struct ControlButtonsViewModelTests {
         )
         viewModel.handlePreviousRequested(current)
 
-        for _ in 0..<50 where toast.errors.isEmpty {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "toast.errors 应非空",
+            timeout: 2.0
+        ) { !toast.errors.isEmpty }
         #expect(!toast.errors.isEmpty)
         #expect(playback.playedURLs.isEmpty)
     }
@@ -390,9 +394,10 @@ struct ControlButtonsViewModelTests {
         )
         viewModel.handleNextRequested(current)
 
-        for _ in 0..<50 where playback.playedURLs.isEmpty {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "playback.playedURLs 应非空",
+            timeout: 2.0
+        ) { !playback.playedURLs.isEmpty }
         #expect(playback.playedURLs == [first])
     }
 
@@ -437,9 +442,10 @@ struct ControlButtonsViewModelTests {
         )
         viewModel.handleDBDeleted(urlsToDelete: [current])
 
-        for _ in 0..<50 where playback.resetCount == 0 {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await DeterministicWait.expect(
+            "playback.resetCount 应大于 0",
+            timeout: 2.0
+        ) { playback.resetCount != 0 }
         #expect(playback.resetCount == 1)
     }
 

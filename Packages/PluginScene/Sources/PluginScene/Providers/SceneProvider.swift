@@ -1,6 +1,7 @@
 import ProviderScene
 import Combine
 import Foundation
+import MagicKit
 
 /// `SceneProviding` 的磁盘持久化实现。
 ///
@@ -24,13 +25,23 @@ public final class SceneProvider: ObservableObject, SceneProviding {
     private var persistenceURL: URL?
     private var observers: [WeakObserver] = []
 
+    /// 旧版场景键的持久化存储。
+    ///
+    /// 过去这里直接写 `UserDefaults.standard` 与 `NSUbiquitousKeyValueStore.default`
+    /// ——进程级全局状态，单元测试无法替换，且测试会清掉**开发者真实的场景
+    /// 设置**（`currentSceneName` / `currentPluginID`）。改为注入后，
+    /// 生产行为不变，测试可用独立 suite 精确控制。
+    private let preferences: PreferenceStore
+
     @Published public private(set) var currentScene: AppScene?
 
     /// 无持久化目录的临时实例（`onBoot` 阶段使用，此时 StoragePlugin 可能尚未就绪）。
     /// 后续由 `ScenePlugin.onReady` 调用 `enablePersistence(pluginDataDirectory:)`
     /// 挂上目录并恢复上次场景 —— 同一个实例全程存活，身份稳定，
     /// 避免替换实例导致消费方持有的弱引用变成空号。
-    public init() {
+    /// - Parameter preferences: 偏好存储。生产传 ``PreferenceStore/shared``。
+    public init(preferences: PreferenceStore = .shared) {
+        self.preferences = preferences
         self.persistenceURL = nil
         self.currentScene = nil
     }
@@ -41,7 +52,11 @@ public final class SceneProvider: ObservableObject, SceneProviding {
     ///
     /// 主要供测试场景直接构造已挂载目录的实例；生产代码推荐使用 `init()` +
     /// `enablePersistence(pluginDataDirectory:)` 的两阶段初始化。
-    public init(pluginDataDirectory: URL?) {
+    /// - Parameters:
+    ///   - pluginDataDirectory: 插件专属数据目录。传 `nil` 时禁用磁盘持久化。
+    ///   - preferences: 偏好存储。生产传 ``PreferenceStore/shared``。
+    public init(pluginDataDirectory: URL?, preferences: PreferenceStore = .shared) {
+        self.preferences = preferences
         self.persistenceURL = pluginDataDirectory?
             .appendingPathComponent(Self.persistenceFileName, isDirectory: false)
         self.currentScene = nil
@@ -58,7 +73,9 @@ public final class SceneProvider: ObservableObject, SceneProviding {
     }
 
     public var scenes: [AppScene] {
-        AppScene.allCases
+        // 临时只启用音乐场景，有声书功能暂缓上线。
+        // 恢复有声书功能时改回 `AppScene.allCases`。
+        [.music]
     }
 
     public func setCurrentScene(_ scene: AppScene) {
@@ -81,6 +98,17 @@ public final class SceneProvider: ObservableObject, SceneProviding {
             return
         }
 
+        // UI 测试专用：忽略磁盘上持久化的场景，让本次启动固定从首个场景
+        // （音乐库）开始。
+        //
+        // 场景是持久化的，上一次运行留下的状态会决定本次启动落在哪个场景，
+        // 用例因此无法稳定复现「启动于音乐库 → 切到有声书」这条路径
+        // （若上次停在有声书，App 会直接以有声书启动，走的是另一条路径）。
+        if Self.shouldResetPersistedSceneForUITesting {
+            resetPersistedSceneForUITestingIfNeeded()
+            return
+        }
+
         let saved = loadPersistedSceneName() ?? loadLegacySceneName()
         if let saved, let scene = AppScene(rawValue: saved), scenes.contains(scene) {
             updateCurrentScene(scene)
@@ -91,12 +119,48 @@ public final class SceneProvider: ObservableObject, SceneProviding {
         try? persistScene(first)
     }
 
+    /// 忽略磁盘上持久化的场景，回到首个场景（音乐库）。
+    ///
+    /// UI 测试专用（`--cisum-ui-testing-reset-scene`）。
+    func resetPersistedSceneForUITestingIfNeeded() {
+        guard let first = scenes.first else {
+            updateCurrentScene(nil)
+            return
+        }
+        updateCurrentScene(first)
+        try? persistScene(first)
+    }
+
+    /// 是否忽略持久化的场景（UI 测试专用）。
+    ///
+    /// 用**开关式参数**（不含 `=`）：`-key value` 形式的参数会落入
+    /// UserDefaults 的「参数域」，与 `-UI.ContentViewVisible YES` 混用时
+    /// 容易互相干扰；开关式参数只被 `ProcessInfo.processInfo.arguments`
+    /// 消费，互不影响。
+    private static var shouldResetPersistedSceneForUITesting: Bool {
+        #if DEBUG
+            ProcessInfo.processInfo.arguments.contains("--cisum-ui-testing-reset-scene")
+        #else
+            false
+        #endif
+    }
+
     @discardableResult
     public func addObserver(
         _ callback: @escaping (SceneProvidingEvent) -> Void
     ) -> any SceneProvidingObserverHandle {
         let observer = Observer(owner: self, callback: callback)
         observers.append(WeakObserver(observer))
+        // **重放当前场景**：场景恢复发生在 `ScenePlugin.onReady`，而消费方
+        // （如 `PluginAudioDBView`，`order` 更小）的 `onReady` 更早跑完——
+        // 它们订阅时 `currentScene` 可能还是 `nil`，场景是在它们订阅**之后**
+        // 才恢复的，恢复事件它们永远等不到，音乐库内容区就一直是空的。
+        //
+        // 「订阅即重放当前值」等价于订阅后立刻收到一次当前状态，
+        // 消费方不必再自己补一次初值。
+        if let currentScene {
+            callback(.selectionChanged(scene: currentScene))
+        }
         return observer
     }
 
@@ -127,8 +191,8 @@ public final class SceneProvider: ObservableObject, SceneProviding {
     }
 
     private func loadLegacySceneName() -> String? {
-        UserDefaults.standard.string(forKey: Self.legacySceneKey)
-            ?? NSUbiquitousKeyValueStore.default.string(forKey: Self.legacySceneKey)
+        preferences.defaults.string(forKey: Self.legacySceneKey)
+            ?? preferences.cloud.string(forKey: Self.legacySceneKey)
     }
 
     private func persistScene(_ scene: AppScene) throws {
@@ -144,7 +208,7 @@ public final class SceneProvider: ObservableObject, SceneProviding {
         try data.write(to: persistenceURL, options: .atomic)
 
         // 保留旧版键，便于从旧版本升级后继续恢复，也让已有调用方保持兼容。
-        UserDefaults.standard.set(scene.rawValue, forKey: Self.legacySceneKey)
+        preferences.defaults.set(scene.rawValue, forKey: Self.legacySceneKey)
     }
 
     private final class Observer: SceneProvidingObserverHandle {

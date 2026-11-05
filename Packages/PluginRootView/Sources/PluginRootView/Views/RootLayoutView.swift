@@ -112,7 +112,7 @@ struct RootLayoutView: View {
                     // 一颗 Liquid Glass 胶囊，组内的弹性 Spacer 会把胶囊撑宽、
                     // 把按钮推到胶囊尾端，于是图标左边留下一段空白玻璃。
                     // macOS 工具栏不需要它（按钮本就靠右），去掉对两端都无影响。
-                    ToolbarItemGroup(placement: .cancellationAction) {
+                    ToolbarItemGroup(placement: Self.toolbarGroupPlacement) {
                         ForEach(Array(viewModel.toolbarButtons.enumerated()), id: \.offset) { _, item in
                             item.view
                         }
@@ -125,6 +125,55 @@ struct RootLayoutView: View {
     }
 
     // MARK: - Scene Tint Overlay
+
+    /// 工具栏按钮组的落位。
+    ///
+    /// ## macOS 为什么用 `.primaryAction`
+    ///
+    /// macOS 统一工具栏（`windowToolbarStyle(.unified)`）把 placement 映射到
+    /// 窗口标题栏的**物理分区**，而不是 iOS 导航栏的「前导 / 尾随」：
+    ///
+    /// - `.cancellationAction` —— 落在**前导侧**，紧挨红绿灯（traffic lights）。
+    /// - `.primaryAction` —— 落在**尾随侧**，即窗口右上角。
+    ///
+    /// 截图里那颗胶囊紧贴红绿灯，正是因为按钮组用的就是 `.cancellationAction`。
+    ///
+    /// ## 前置条件：窗口标题必须可见
+    ///
+    /// `.primaryAction` 能否落到尾随侧，取决于窗口的 `titleVisibility`。
+    /// 实测（600pt 宽窗口，读取 `NSToolbar` item 的实际 x 坐标）：
+    ///
+    /// | 窗口配置 | 按钮 x 坐标 | 落位 |
+    /// |---|---|---|
+    /// | 默认窗口样式 + `unified(showsTitle: true)` | 524 / 560 | 尾随 ✅ |
+    /// | `hiddenTitleBar` + `unified(showsTitle: true)` | 93 / 129 | 前导 ❌ |
+    /// | 默认窗口样式 + `unified(showsTitle: false)` | 93 / 129 | 前导 ❌ |
+    /// | `hiddenTitleBar` + `unified(showsTitle: false)` | 93 / 129 | 前导 ❌ |
+    ///
+    /// 根因是 `NSWindow.titleVisibility == .hidden`——**无论它由
+    /// `windowStyle(.hiddenTitleBar)` 还是 `unified(showsTitle: false)` 造成**。
+    /// 标题不可见时，SwiftUI 把工具栏项整体降级为前导布局，
+    /// **所有 placement 一律失效**（`.primaryAction` / `.confirmationAction`
+    /// 实测均落在 x≈93）。
+    ///
+    /// 因此本插件只负责声明 placement；把 `titleVisibility` 修正回 `.visible`
+    /// 由 `FactoryCisum.MacToolbarPlacementBridge` 负责（窗口属性属于宿主职责）。
+    ///
+    /// ## 为什么 iOS 仍用 `.cancellationAction`
+    ///
+    /// iOS 侧导航栏项由 `IOSNavigationBarProviding` 单独贡献并挂在
+    /// `IOSNavigationBarToolbarModifier`（`.topBarTrailing`），与这里的
+    /// `toolbarButtons` 不是同一条路径；而这里这组在 iOS 上若改成
+    /// `.primaryAction`，会与导航栏齿轮争抢尾随位。
+    ///
+    /// 故按平台区分：macOS 走尾随，iOS 维持现状。
+    private static var toolbarGroupPlacement: ToolbarItemPlacement {
+        #if os(macOS)
+        .primaryAction
+        #else
+        .cancellationAction
+        #endif
+    }
 
     /// 场景色调叠加层：根据当前场景叠加微妙色调，区分不同场景氛围。
     ///
@@ -190,7 +239,7 @@ struct RootLayoutView: View {
         if !visible, abs(geometry.size.height - rememberedHeight) > 0.5, rememberedHeight > 0 {
             autoResizing = true
             setWindowHeight(rememberedHeight)
-        } else if visible, AppResponsivePlayerLayoutMetrics.shared.needsExpandedWindow(for: geometry.size.height) {
+        } else if visible, AppResponsivePlayerLayoutMetrics.shared.needsExpandedWindow(for: currentWindowHeight(geometry: geometry)) {
             autoResizing = true
             setWindowHeight(AppResponsivePlayerLayoutMetrics.shared.controlMinimumHeight + AppResponsivePlayerLayoutMetrics.shared.contentMinimumHeight)
         }
@@ -206,6 +255,18 @@ struct RootLayoutView: View {
         ) {
             provider.hideContentView()
         }
+    }
+
+    /// 当前**窗口**高度（拿不到窗口时退回布局高度）。
+    ///
+    /// `needsExpandedWindow(for:)` 的语义是「窗口够不够高」，参数必须是
+    /// 窗口高度。若误用 `geometry.size.height`（内容区高度，扣掉了标题栏等
+    /// 窗口装饰），展开内容区时会把一个本来足够高的窗口误判为「不够高」，
+    /// 反而把它**缩小**——缩小后内容区高度又低于收起阈值，于是内容区刚
+    /// 展开就被立刻收起，「更多」按钮表现为「点了没反应」。
+    private func currentWindowHeight(geometry: GeometryProxy) -> CGFloat {
+        let height = windowHeight()
+        return height > 0 ? height : geometry.size.height
     }
 
     private func windowHeight() -> CGFloat {

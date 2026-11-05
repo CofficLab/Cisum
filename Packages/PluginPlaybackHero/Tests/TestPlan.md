@@ -14,7 +14,9 @@
 - **Key scenarios tested:**
   - ViewModel initializes from Provider state, tracks asset/state changes, and falls back to `.idle`/`EmptyView` when Providers are absent.
   - Observer forwards asset and state events but ignores time changes, and stops after cancellation.
-  - Confirmed empty-library events hide the Hero only in the Music scene; positive-count library events restore it, and cancellation stops updates.
+  - Confirmed empty-library events hide the Hero in the Music scene; positive-count library events restore it, and cancellation stops updates.
+  - **Scene switch hides Hero**: switching away from the Music scene hides the Hero even if `currentURL` is preserved for restoration.
+  - **Idle placeholder**: shows when the library is confirmed non-empty and no track is selected; stays hidden while the scan conclusion is unknown; stays hidden for an empty library; yields to the real cover once a track is selected; stays hidden outside the Music scene.
   - Plugin boot registers About/Manual docs, produces both hero and right-album views, and tears them down on shutdown.
 - **Running tests:**
   ```bash
@@ -35,18 +37,24 @@
 | 4 | 存储 | Empty repository hides hero and populated library restores it | P1 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `emptyRepositoryHidesHeroAndPopulatedLibraryRestoresIt` |
 | 5 | 观察者 | Plugin assembles docs and playback views then releases observer | P2 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `pluginAssemblesDocsAndPlaybackViewsThenReleasesObserver` |
 | 6 | 插件 | Plugin contributes hero views after playback providers are ready | P2 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `pluginContributesHeroViewsAfterPlaybackProvidersAreReady` |
+| 7 | 视图模型 | 场景切换时 Hero 可见性必须跟随场景：切离音乐场景后 Hero 必须隐藏 | P0 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `switchingAwayFromMusicSceneHidesHero` |
+| 8 | 视图模型 | 仓库非空但没有当前曲目时，占位态必须亮起 | P0 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `idlePlaceholderShowsWhenLibraryHasTracksButNoTrackIsSelected` |
+| 9 | 视图模型 | 仓库还没扫过时不得呈现占位 | P0 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `idlePlaceholderStaysHiddenUntilLibraryScanConcludes` |
+| 10 | 视图模型 | 仓库为空时不得呈现占位（引导接管该区域） | P0 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `idlePlaceholderHiddenWhenLibraryIsEmpty` |
+| 11 | 视图模型 | 有当前曲目时占位必须让位给真实封面 | P0 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `idlePlaceholderYieldsToRealHeroWhenTrackIsSelected` |
+| 12 | 视图模型 | 非音乐场景不得呈现占位 | P1 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `idlePlaceholderHiddenOutsideMusicScene` |
 
 ## 覆盖率统计
 
-- P0: 0 / 0
-- P1: 2 / 2 ✅
+- P0: 6 / 6 ✅
+- P1: 3 / 3 ✅
 - P2: 4 / 4 ✅
 
-**总计: 6 / 6**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
+**总计: 13 / 13**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
 
 ## 测试文件
 
-- `PlaybackHeroTests.swift` — 6 条用例
+- `PlaybackHeroTests.swift` — 13 条用例
 
 ## 优先级说明
 

@@ -1,7 +1,7 @@
 import Foundation
 import ProviderPlayback
 
-/// 播放进度条事件：只保留进度相关的三种事件。
+/// 播放进度条事件：保留进度、时长、文件切换与状态变化四类事件。
 @MainActor
 enum ProgressBarEvent {
     /// 当前播放位置变化。
@@ -10,6 +10,8 @@ enum ProgressBarEvent {
     case durationChanged(TimeInterval)
     /// 当前播放文件变化（进度需按新文件重新同步）。
     case assetChanged
+    /// 播放状态变化（用于检测下载态以切换进度条显示模式）。
+    case stateChanged(PlaybackStatus)
 }
 
 /// 播放进度监听句柄。
@@ -22,10 +24,9 @@ protocol ProgressBarObserverHandle: AnyObject {
 /// 播放进度条所需的最小播放能力。
 ///
 /// 内核 `PlaybackProviding` 还包含播放控制、收藏、播放模式等大量能力，
-/// 进度条只消费「时长快照 + 跳转 + 三类事件」，故在此收窄。
+/// 进度条只消费「时长快照 + 跳转 + 四类事件」，故在此收窄。
 ///
-/// 刻意不暴露 `currentTime` / `duration` 之外的只读快照：`assetChanged` 事件
-/// 已通知「重新读取」，进度条无需感知 `state` / `progress` / `playMode`。
+/// `state` 用于检测下载态（`.loading(.downloading)`），此时进度条切换为下载进度显示。
 @MainActor
 protocol ProgressBarCapability: AnyObject {
     /// 当前播放位置（秒）。
@@ -33,6 +34,9 @@ protocol ProgressBarCapability: AnyObject {
 
     /// 当前音频总时长（秒）。
     var duration: TimeInterval { get }
+
+    /// 当前播放状态（用于检测下载态）。
+    var state: PlaybackStatus { get }
 
     /// 跳转到指定时间点（秒）。
     func seek(toTime time: TimeInterval)
@@ -57,6 +61,7 @@ final class ProgressBarCapabilityAdapter: ProgressBarCapability {
 
     var currentTime: TimeInterval { playback?.currentTime ?? 0 }
     var duration: TimeInterval { playback?.duration ?? 0 }
+    var state: PlaybackStatus { playback?.state ?? .idle }
 
     func seek(toTime time: TimeInterval) {
         playback?.seek(toTime: time)
@@ -77,6 +82,9 @@ final class ProgressBarCapabilityAdapter: ProgressBarCapability {
             case .assetChanged:
                 // 内核携带新文件 URL；进度条只需知道「需重新同步」，故剥除载荷。
                 callback(.assetChanged)
+            case .stateChanged(let state):
+                // 转发状态变化，用于检测下载态以切换进度条显示模式。
+                callback(.stateChanged(state))
             default:
                 break
             }

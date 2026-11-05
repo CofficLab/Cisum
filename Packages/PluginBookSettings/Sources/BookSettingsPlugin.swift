@@ -11,7 +11,7 @@ import MagicKit
 
 @MainActor
 public final class BookSettingsPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: BookSettingsPlugin.self)
+    public let id = "com.coffic.cisum.plugin.book-settings"
 
     nonisolated static let verbose = false
 
@@ -19,7 +19,7 @@ public final class BookSettingsPlugin: AsyncSuperPlugin, SuperLog {
     public let order = BookSettingsPluginInfo.order
     public let iconName = BookSettingsPluginInfo.iconName
     public let metadata = PluginMetadata(
-        id: String(describing: BookSettingsPlugin.self),
+        id: "com.coffic.cisum.plugin.book-settings",
         name: BookSettingsPluginInfo.title,
         version: "1.0.0",
         category: .system,

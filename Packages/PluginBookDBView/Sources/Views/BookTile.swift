@@ -124,7 +124,7 @@ struct BookTile: View, SuperThread, SuperLog, Equatable {
                     Spacer()
 
                     if childCount > 0, noCover {
-                        Text("Total \(childCount)", bundle: .module)
+                        Text(String(localized: String.LocalizationValue("Total \(childCount)"), bundle: .module))
                     }
 
                     Spacer()

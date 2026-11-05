@@ -19,7 +19,14 @@ struct KernelRootView: View {
     /// 插件贡献版本号：插件启用/禁用变化时 +1，触发根视图重新组装。
     @StateObject private var providerObserver: KernelRootProviderObserver
     /// 已组装的根视图。组装会更新各个 ObservableObject Provider，不能在 body 求值期间执行。
+    ///
+    /// 初值由宿主在创建内核后**同步**装配好（`WindowMain`）：若让本视图自己在
+    /// `.task` 里装配，写入与首次求值存在竞态——视图可能先用「尚未装配」的旧值
+    /// 求值，之后 `@State` 里的 `AnyView` 又因没有稳定身份而不再触发重算，
+    /// 主窗口就永远停在空态（只有背景，没有音乐库）。
     @State private var assembledContent: AnyView?
+    /// 组装计数：每次重新组装 +1，参与视图身份，确保子树重建。
+    @State private var assemblyToken: Int = 0
     #if os(iOS)
     /// iOS 导航栏贡献项桥接器。
     ///
@@ -28,8 +35,10 @@ struct KernelRootView: View {
     @StateObject private var navigationBarItems: IOSNavigationBarItemsBridge
     #endif
 
-    init(kernel: KernelCoreContainer) {
+    init(kernel: KernelCoreContainer, initialContent: AnyView? = nil) {
         self.kernel = kernel
+        _assembledContent = State(initialValue: initialContent)
+        _assemblyToken = State(initialValue: initialContent == nil ? 0 : 1)
         _providerObserver = StateObject(wrappedValue: KernelRootProviderObserver(kernel: kernel))
         #if os(iOS)
         // Provider 可能在插件启动后才注入贡献项，桥接器订阅其变更信号。
@@ -76,6 +85,7 @@ struct KernelRootView: View {
 #endif
         .task(id: providerObserver.revision) {
             assembledContent = FactoryCisum.assembleMainView(kernel: kernel)
+            assemblyToken &+= 1
         }
         .onAppear { providerObserver.start() }
         .onDisappear { providerObserver.cancel() }
@@ -86,7 +96,12 @@ struct KernelRootView: View {
         if let assembledContent {
             let bridged = wrap(assembledContent)
             // 插件贡献变化（.id 变化）时整棵子树重建，重新注入内容 Tab 等。
-            .id(providerObserver.revision)
+            //
+            // 身份必须**每次组装都不同**：只用 `providerObserver.revision` 时，
+            // 首次组装（revision 未变）会复用上一轮（内容尚未就绪）的子树，
+            // 结果主窗口永远停在空态。`assemblyToken` 每次组装 +1，
+            // 保证子树必然重建。
+            .id("\(providerObserver.revision)-\(assemblyToken)")
             bridged
         } else {
             ProgressView("Loading…")

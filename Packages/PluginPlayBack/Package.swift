@@ -18,11 +18,12 @@ let package = Package(
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.0"),
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
+        .package(path: "../ProviderStorage"),
         .package(name: "KitPlayback", path: "../MagicPlayMan"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
         .package(name: "ProviderAudioLibrary", path: "../ProviderAudioLibrary"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.13.0"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.18.0"),
     ],
     targets: [
         .target(
@@ -40,6 +41,7 @@ let package = Package(
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "ProviderStorage", package: "LumiProviders"),
+                .product(name: "ProviderStorage", package: "ProviderStorage"),
             ],
             path: ".",
             exclude: ["README.md", "Tests"],

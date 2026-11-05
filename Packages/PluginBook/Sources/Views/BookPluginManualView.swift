@@ -5,10 +5,10 @@ import SwiftUI
 struct BookPluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Audiobook Library", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Audiobook Library", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Manage, browse, and play local audiobooks")
+            Text("Manage, browse, and play local audiobooks", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

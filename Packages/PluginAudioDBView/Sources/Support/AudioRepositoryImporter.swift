@@ -27,23 +27,35 @@ final class AudioRepositoryImporter: ObservableObject, SuperLog {
     private let audioDisk: @MainActor @Sendable () -> URL?
     private let supportedExtensions: [String]
     private let toast: any AudioLibraryToastCapability
+    private let capacity: any AudioLibraryCapacityCapability
+    private let purchase: any AudioPurchasePresentingCapability
 
     init(
         library: any AudioLibraryCapability,
         audioDisk: @escaping @MainActor @Sendable () -> URL?,
         supportedExtensions: [String],
-        toast: any AudioLibraryToastCapability
+        toast: any AudioLibraryToastCapability,
+        capacity: any AudioLibraryCapacityCapability,
+        purchase: any AudioPurchasePresentingCapability
     ) {
         self.library = library
         self.audioDisk = audioDisk
         self.supportedExtensions = supportedExtensions
         self.toast = toast
+        self.capacity = capacity
+        self.purchase = purchase
     }
 
-    /// 导入一批文件：复制进仓库目录 → 同步索引。
+    /// 导入一批文件：容量准入 → 复制进仓库目录 → 同步索引。
     ///
     /// 复制与同步是同一件事的两半：文件先落到仓库目录（用户可见、可在 Finder
     /// 里管理），再把新文件并入索引（列表可见）。任一步失败都会给出提示。
+    ///
+    /// ## 容量准入在前
+    ///
+    /// 准入必须在**复制之前**：先复制再判断，等于把超限文件落到了磁盘上，
+    /// 既浪费了空间，又让「仓库里到底有几个文件」与索引不一致。这里先问一次
+    /// 闸门「这批文件能进几个」，只把放行的部分交给复制流程。
     func importFiles(_ urls: [URL]) async {
         guard AudioDBView.shouldStartImport(isImporting: isImporting) else {
             toast.warning(String(localized: "Import is already in progress", bundle: .module))
@@ -53,8 +65,11 @@ final class AudioRepositoryImporter: ObservableObject, SuperLog {
         isImporting = true
         defer { isImporting = false }
 
+        let admitted = await admit(urls: urls)
+        guard !admitted.isEmpty else { return }
+
         let outcome = await AudioRepositoryImportService.importFiles(
-            urls,
+            admitted,
             audioDisk: audioDisk(),
             supportedExtensions: supportedExtensions,
             isLibraryAvailable: { [library] in library.isAvailable },
@@ -62,6 +77,40 @@ final class AudioRepositoryImporter: ObservableObject, SuperLog {
         )
 
         report(outcome)
+    }
+
+    /// 容量准入：问闸门这批文件能进几个。
+    ///
+    /// 返回放行的文件；被挡住时给出提示并提供购买入口。
+    func admit(urls: [URL]) async -> [URL] {
+        guard !urls.isEmpty else { return [] }
+
+        let admission = await capacity.admit(requestedCount: urls.count, reservedCount: 0)
+        guard admission.didReject else { return urls }
+
+        let allowed = admission.allowedCount(requestedCount: urls.count)
+        if allowed > 0 {
+            toast.warning(
+                String(
+                    localized: String.LocalizationValue("Only \(allowed) files were added because the free file limit is almost full"),
+                    bundle: .module
+                )
+            )
+        } else {
+            toast.error(String(localized: "File limit reached", bundle: .module))
+        }
+        presentPurchaseEntry()
+
+        return Array(urls.prefix(allowed))
+    }
+
+    /// 撞限后给出购买入口。
+    ///
+    /// 提示本身由 Toast 承载（一闪而过），但**必须有可点击的付费入口**——
+    /// 否则用户只看到「已达上限」，却不知道去哪付费，这条链路就断在这里。
+    /// 这里在容量被挡住时直接请商店呈现购买面板。
+    private func presentPurchaseEntry() {
+        purchase.presentPurchase()
     }
 
     /// 处理文件选择器的结果。
@@ -99,7 +148,7 @@ final class AudioRepositoryImporter: ObservableObject, SuperLog {
                     .replacingOccurrences(of: "%@", with: error.localizedDescription))
             } else if AudioDBView.shouldReportPartialDroppedURLLoadFailure(droppedFiles.urls, errors: droppedFiles.errors) {
                 if Self.verbose {
-                    os_log(.error, "\(Self.t)⚠️ Some dropped files failed to load")
+                    os_log("\(Self.t)⚠️ Some dropped files could not be loaded")
                 }
                 toast.warning(String(localized: "Some dropped files could not be loaded", bundle: .module))
             }

@@ -12,7 +12,7 @@ import MagicKit
 
 @MainActor
 public final class AudioPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: AudioPlugin.self)
+    public let id = "com.coffic.cisum.plugin.audio"
 
     nonisolated static let verbose = false
 
@@ -20,7 +20,7 @@ public final class AudioPlugin: AsyncSuperPlugin, SuperLog {
     public let order = 1
     public let iconName: String = AppSymbol.musicNote
     public let metadata = PluginMetadata(
-        id: String(describing: AudioPlugin.self),
+        id: "com.coffic.cisum.plugin.audio",
         name: String(localized: String.LocalizationValue(AudioPluginInfo.titleKey), bundle: .module),
         description: String(localized: String.LocalizationValue(AudioPluginInfo.descriptionKey), bundle: .module),
         version: "1.0.0",

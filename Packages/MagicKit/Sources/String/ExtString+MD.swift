@@ -87,8 +87,20 @@ extension String {
         markdown = markdown.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
         
         // 去除多余的空行
-        markdown = markdown.replacingOccurrences(of: "\n\n\n", with: "\n\n")
-        
+        //
+        // 单次 `replacingOccurrences(of: "\n\n\n", with: "\n\n")` 只能收敛**一层**：
+        // 四个连续换行里两处 `\n\n\n` 相互重叠，替换后仍剩 `\n\n\n`。
+        // 因此改用正则一次性把「三个及以上连续换行」收敛成两个。
+        if let blankLineRegex = try? NSRegularExpression(pattern: "\n{3,}", options: []) {
+            let range = NSRange(location: 0, length: markdown.utf16.count)
+            markdown = blankLineRegex.stringByReplacingMatches(
+                in: markdown,
+                options: [],
+                range: range,
+                withTemplate: "\n\n"
+            )
+        }
+
         return markdown.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     

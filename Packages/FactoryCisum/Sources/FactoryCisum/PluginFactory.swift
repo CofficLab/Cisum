@@ -116,7 +116,15 @@ public struct DefaultPluginFactory: PluginFactory {
                         .removeOverlays(ids: [ToastSuperPlugin.overlayID])
                 }
             ),
-            PluginPluginManager.shared,
+            // 共享远程包 LumiPluginPluginManager，注入 Cisum 品牌 id。
+            //
+            // policy: .disabled —— Cisum 的插件策略全是 alwaysOn / disabled，
+            // 没有用户可配置的插件；插件管理器在本宿主不启用，内核启动时
+            // 彻底排除它，设置侧边栏也就不会出现「插件管理」入口。
+            PluginPluginManager(
+                id: "com.coffic.cisum.plugin.plugin-manager",
+                policy: .disabled
+            ),
             StoragePlugin.shared,
             StorePlugin.shared,
             SystemPlugin.shared,

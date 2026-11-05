@@ -10,11 +10,10 @@ import MagicKit
 /// 设置 - 通用 插件（复刻 Lumi `PluginSettingGeneral`）。
 ///
 /// 在设置窗口注册「通用」导航入口（gearshape，order 1 排最前），详情展示
-/// 应用信息与说明书浏览器。说明书浏览器读取内核 `DocsViewProviding`
-/// 贡献的 manual 条目。
+/// 应用信息。说明书条目注册到内核 `DocsViewProviding`，供其他地方消费。
 @MainActor
 public final class SettingGeneralPlugin: AsyncSuperPlugin, SuperLog {
-    public let id = String(describing: SettingGeneralPlugin.self)
+    public let id = "com.coffic.cisum.plugin.setting-general"
 
     nonisolated static let verbose = false
 
@@ -22,7 +21,7 @@ public final class SettingGeneralPlugin: AsyncSuperPlugin, SuperLog {
     public let order = 1
     public let iconName = "gearshape"
     public let metadata = PluginMetadata(
-        id: String(describing: SettingGeneralPlugin.self),
+        id: "com.coffic.cisum.plugin.setting-general",
         name: String(localized: "General Settings", bundle: .module),
         version: "1.0.0",
         category: .core,
@@ -46,9 +45,6 @@ public final class SettingGeneralPlugin: AsyncSuperPlugin, SuperLog {
         kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["general"])
     }
 
-    /// onBoot 时保存的内核引用，用于构造说明书浏览器的数据源。
-    nonisolated(unsafe) private var kernel: KernelCoreContainer?
-
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             if let view = self.addSettingView() { contrib.addSettingView(ownerPluginID: id, view) }
@@ -57,7 +53,6 @@ public final class SettingGeneralPlugin: AsyncSuperPlugin, SuperLog {
            let entry = makeSettingEntry() {
             settings.addEntries([entry])
         }
-        self.kernel = kernel
     }
 
     @MainActor
@@ -73,11 +68,7 @@ public final class SettingGeneralPlugin: AsyncSuperPlugin, SuperLog {
             systemImage: iconName,
             order: order,
             detail: {
-            GeneralSettingsDetailView(
-                            viewModel: GeneralSettingsViewModel(
-                                manualEntries: self.kernel?.resolveProvider((any DocsViewProviding).self)?.manualEntries ?? []
-                            )
-                        )
+            GeneralSettingsDetailView(viewModel: GeneralSettingsViewModel())
         }
         )
     }

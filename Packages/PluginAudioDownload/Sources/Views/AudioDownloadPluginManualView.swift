@@ -5,10 +5,10 @@ import SwiftUI
 struct AudioDownloadPluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Download Manager", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Download Manager", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Download and manage music files with offline playback support")
+            Text("Download and manage music files with offline playback support", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)

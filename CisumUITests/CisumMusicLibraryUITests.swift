@@ -5,7 +5,9 @@ final class CisumMusicLibraryUITests: CisumUITestBase {
     private let layoutRegressionAudioName = "Cisum-UI-Playback-Test-Tone-Long-Name-For-List-Layout.wav"
 
     override var additionalLaunchArguments: [String] {
-        super.additionalLaunchArguments + ["--cisum-ui-testing-seed-audio", layoutRegressionAudioName]
+        // 用 `appendingLaunchArguments` 而不是直接拼接：它保证追加项落在显隐覆盖参数之后，
+        // 且不手写参数列表（手抄容易漏掉隔离参数）。
+        appendingLaunchArguments(["--cisum-ui-testing-seed-audio", layoutRegressionAudioName])
     }
 
     func testMusicLibrarySceneIsShown() throws {
@@ -22,7 +24,7 @@ final class CisumMusicLibraryUITests: CisumUITestBase {
         // 轮询等待任一状态出现，超时才判定失败。
         let candidates = [
             element(labelBeginsWith: ["Total", "共"]),
-            element(anyLabelOf: ["Reading repository", "正在读取仓库"]),
+            element(anyLabelOf: ["Reading audiobook repository", "正在读取音频仓库"]),
             element(anyLabelOf: [
                 "Drop music files here to add them",
                 "将音乐文件拖到这里可添加",

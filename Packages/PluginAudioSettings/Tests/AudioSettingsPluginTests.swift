@@ -1,3 +1,4 @@
+import MagicKit
 import Foundation
 @testable import PluginAudioSettings
 import Testing
@@ -87,9 +88,10 @@ struct AudioSettingsViewModelTests {
 
         let viewModel = AudioSettingsViewModel(audioDisk: { directory })
         viewModel.refresh()
-        for _ in 0..<50 where viewModel.fileCount == 0 {
-            try await Task.sleep(for: .milliseconds(50))
-        }
+        await DeterministicWait.expect(
+            "viewModel.fileCount 应大于 0",
+            timeout: 2.5
+        ) { viewModel.fileCount != 0 }
         #expect(viewModel.disk == directory)
 
         // 磁盘不可用后，refresh 应清空全部指标。
@@ -117,9 +119,10 @@ struct AudioSettingsViewModelTests {
         #expect(viewModel.description.contains("Local"))
 
         // 等待异步 metrics 落地。
-        for _ in 0..<50 where viewModel.fileCount == 0 {
-            try await Task.sleep(for: .milliseconds(50))
-        }
+        await DeterministicWait.expect(
+            "viewModel.fileCount 应大于 0",
+            timeout: 2.5
+        ) { viewModel.fileCount != 0 }
         #expect(viewModel.fileCount == 2)
         #expect(viewModel.diskSize != nil)
     }
@@ -144,9 +147,10 @@ struct AudioSettingsViewModelTests {
         let viewModel2 = AudioSettingsViewModel(audioDisk: { second })
         viewModel2.refresh()
 
-        for _ in 0..<50 where viewModel2.fileCount == 0 {
-            try await Task.sleep(for: .milliseconds(50))
-        }
+        await DeterministicWait.expect(
+            "viewModel2.fileCount 应大于 0",
+            timeout: 2.5
+        ) { viewModel2.fileCount != 0 }
         #expect(viewModel2.fileCount == 1)
     }
 }

@@ -14,7 +14,6 @@ enum HeroLibraryEvent {
     /// 仓库恢复为非空（应展示封面）。
     case becameNonEmpty
 }
-
 /// 音乐仓库监听句柄。
 @MainActor
 protocol HeroLibraryObserverHandle: AnyObject {
@@ -30,6 +29,17 @@ protocol HeroLibraryObserverHandle: AnyObject {
 protocol HeroLibraryCapability: AnyObject {
     /// 当前音频库中的项目数量。
     func totalCount() async -> Int
+
+    /// 音乐仓库的**扫描结论**（三态）。
+    ///
+    /// 需要三态而非二值：`isRepositoryEmpty` 的 `false` 同时涵盖
+    /// 「确认为空」与「还没扫过」两种截然不同的状态。封面区要区分它们——
+    /// 只有「确认非空」才说明「仓库里有歌但用户还没选」，这时才轮到
+    /// idle 占位接手；而「还没扫过」时占位不该出现（否则启动瞬间会闪一下）。
+    ///
+    /// 事件流只能给出**变化**，无法给出**初值**——订阅时仓库可能早已扫完，
+    /// 因此这里额外暴露一次查询，让消费方在装配时补上初始结论。
+    var repositoryScanState: AudioRepositoryScanState { get }
 
     /// 订阅仓库空/非空变化；返回句柄需自行 `cancel()`。
     @discardableResult
@@ -51,6 +61,14 @@ final class HeroLibraryCapabilityAdapter: HeroLibraryCapability {
 
     func totalCount() async -> Int {
         await library?.totalCount() ?? 0
+    }
+
+    /// 仓库的扫描结论（三态）。
+    ///
+    /// Provider 缺席时返回 `.unknown`（不知道）：能力缺失不该让消费方
+    /// 误以为「仓库里有歌」，那会让 idle 占位在数据未就绪时抢跑。
+    var repositoryScanState: AudioRepositoryScanState {
+        library?.repositoryScanState ?? .unknown
     }
 
     @discardableResult

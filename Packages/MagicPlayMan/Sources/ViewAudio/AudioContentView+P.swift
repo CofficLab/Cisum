@@ -10,7 +10,7 @@ struct AudioContentViewShowcase: View {
         TabView {
             // Basic Usage - Verbose
             VStack(spacing: 12) {
-                Text("Basic Usage (Verbose)")
+                Text("Basic Usage (Verbose)", bundle: .module)
                     .font(.headline)
                     .padding(.top)
 
@@ -33,7 +33,7 @@ struct AudioContentViewShowcase: View {
 
             // Basic Usage - Non-Verbose
             VStack(spacing: 12) {
-                Text("Basic Usage (Non-Verbose)")
+                Text("Basic Usage (Non-Verbose)", bundle: .module)
                     .font(.headline)
                     .padding(.top)
 
@@ -56,7 +56,7 @@ struct AudioContentViewShowcase: View {
 
             // External Artwork
             VStack(spacing: 12) {
-                Text("External Artwork")
+                Text("External Artwork", bundle: .module)
                     .font(.headline)
                     .padding(.top)
 
@@ -74,7 +74,7 @@ struct AudioContentViewShowcase: View {
                 )
                 .frame(width: 400)
 
-                Text("Pass custom artwork using the artwork parameter")
+                Text("Pass custom artwork using the artwork parameter", bundle: .module)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal)
@@ -85,7 +85,7 @@ struct AudioContentViewShowcase: View {
 
             // Default Cover Image
             VStack(spacing: 12) {
-                Text("Default Cover Image")
+                Text("Default Cover Image", bundle: .module)
                     .font(.headline)
                     .padding(.top)
 
@@ -103,7 +103,7 @@ struct AudioContentViewShowcase: View {
                 )
                 .frame(width: 400)
 
-                Text("Set default artwork using the defaultArtwork parameter")
+                Text("Set default artwork using the defaultArtwork parameter", bundle: .module)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal)
@@ -112,9 +112,10 @@ struct AudioContentViewShowcase: View {
                 Label("Default Cover", systemImage: "photo.artframe")
             }
 
-            // Priority: External > Local > Default
+            // 优先级：外部 > 本地 > 默认
+            // 注意：字符串目录的 key 不能含 `>`，否则 Xcode 编译 .strings 时会丢弃该条目。
             VStack(spacing: 12) {
-                Text("Priority: External > Local > Default")
+                Text("Cover Priority: External, Local, then Default", bundle: .module)
                     .font(.headline)
                     .padding(.top)
 
@@ -133,7 +134,7 @@ struct AudioContentViewShowcase: View {
                 )
                 .frame(width: 400)
 
-                Text("External cover has highest priority, default cover as fallback")
+                Text("External cover has highest priority, default cover as fallback", bundle: .module)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal)
@@ -144,7 +145,7 @@ struct AudioContentViewShowcase: View {
 
             // Loading State
             VStack(spacing: 12) {
-                Text("Loading State")
+                Text("Loading State", bundle: .module)
                     .font(.headline)
                     .padding(.top)
 
@@ -161,7 +162,7 @@ struct AudioContentViewShowcase: View {
                 )
                 .frame(width: 400)
 
-                Text("Show Loading Indicator")
+                Text("Show Loading Indicator", bundle: .module)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal)
@@ -172,7 +173,7 @@ struct AudioContentViewShowcase: View {
 
             // Error State
             VStack(spacing: 12) {
-                Text("Error State (No Default Cover)")
+                Text("Error State (No Default Cover)", bundle: .module)
                     .font(.headline)
                     .padding(.top)
 
@@ -188,7 +189,7 @@ struct AudioContentViewShowcase: View {
                 AudioContentView(asset: errorAsset)
                     .frame(width: 400, height: 500)
 
-                Text("Show Error Message and Retry Button")
+                Text("Show Error Message and Retry Button", bundle: .module)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal)
@@ -199,7 +200,7 @@ struct AudioContentViewShowcase: View {
 
             // Error State with Default Cover
             VStack(spacing: 12) {
-                Text("Error State (With Default Cover)")
+                Text("Error State (With Default Cover)", bundle: .module)
                     .font(.headline)
                     .padding(.top)
 
@@ -218,7 +219,7 @@ struct AudioContentViewShowcase: View {
                 )
                 .frame(width: 400, height: 500)
 
-                Text("Use the default cover as a fallback")
+                Text("Use the default cover as a fallback", bundle: .module)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal)

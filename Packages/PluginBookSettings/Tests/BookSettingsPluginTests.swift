@@ -1,3 +1,4 @@
+import MagicKit
 import Foundation
 @testable import PluginBookSettings
 import Testing
@@ -86,9 +87,10 @@ struct BookSettingsViewModelTests {
 
         let viewModel = BookSettingsViewModel(bookDisk: { directory })
         viewModel.refresh()
-        for _ in 0..<50 where viewModel.fileCount == 0 {
-            try await Task.sleep(for: .milliseconds(50))
-        }
+        await DeterministicWait.expect(
+            "viewModel.fileCount 应大于 0",
+            timeout: 2.5
+        ) { viewModel.fileCount != 0 }
         #expect(viewModel.disk == directory)
 
         let emptyViewModel = BookSettingsViewModel(bookDisk: { nil })
@@ -114,9 +116,10 @@ struct BookSettingsViewModelTests {
         #expect(viewModel.disk == directory)
         #expect(viewModel.description.contains("Local"))
 
-        for _ in 0..<50 where viewModel.fileCount == 0 {
-            try await Task.sleep(for: .milliseconds(50))
-        }
+        await DeterministicWait.expect(
+            "viewModel.fileCount 应大于 0",
+            timeout: 2.5
+        ) { viewModel.fileCount != 0 }
         #expect(viewModel.fileCount == 2)
         #expect(viewModel.diskSize != nil)
     }
@@ -138,9 +141,10 @@ struct BookSettingsViewModelTests {
         let viewModel = BookSettingsViewModel(bookDisk: { second })
         viewModel.refresh()
 
-        for _ in 0..<50 where viewModel.fileCount == 0 {
-            try await Task.sleep(for: .milliseconds(50))
-        }
+        await DeterministicWait.expect(
+            "viewModel.fileCount 应大于 0",
+            timeout: 2.5
+        ) { viewModel.fileCount != 0 }
         #expect(viewModel.fileCount == 1)
     }
 }

@@ -1,3 +1,4 @@
+import MagicKit
 import CisumProviderStorage
 import Combine
 import Foundation
@@ -5,6 +6,7 @@ import KernelCore
 import ProviderPlugin
 import KitAppEvents
 import ProviderBook
+import ProviderBookData
 import Testing
 @testable import PluginBookDBData
 
@@ -170,14 +172,13 @@ struct BookDatabaseProviderTests {
         try FileManager.default.createDirectory(at: secondDisk, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
 
-        let previousSyncTime = UserDefaults.standard.object(forKey: "BookLastUpdateTime")
-        defer {
-            if let previousSyncTime {
-                UserDefaults.standard.set(previousSyncTime, forKey: "BookLastUpdateTime")
-            } else {
-                UserDefaults.standard.removeObject(forKey: "BookLastUpdateTime")
-            }
-        }
+        // 去抖时间戳写入的是 `UserDefaults.standard`——进程级全局状态。
+        // 这里改为一份隔离的 suite：不读写开发者的真实偏好，断言结论
+        // 也不依赖「运行测试前那台机器上留了什么」。
+        let suiteName = "BookDatabaseProviderTests-\(UUID().uuidString)"
+        let isolatedDefaults = UserDefaults(suiteName: suiteName)!
+        isolatedDefaults.removePersistentDomain(forName: suiteName)
+        defer { isolatedDefaults.removePersistentDomain(forName: suiteName) }
 
         let firstBook = firstDisk.appendingPathComponent("first.mp3")
         let importedBook = firstDisk.appendingPathComponent("imported.m4b")
@@ -186,7 +187,15 @@ struct BookDatabaseProviderTests {
         try Data([0x05, 0x06]).write(to: secondBook)
 
         let storage = BookTestStorageProvider(storageRoot: firstStorageRoot, databaseRoot: root.appendingPathComponent("FallbackDB"))
-        let provider = BookDatabaseProvider(storage: storage)
+        let provider = BookDatabaseProvider(
+            storage: storage,
+            bookSettings: BookSettingRepo(
+                preferences: PreferenceStore(
+                    defaults: isolatedDefaults,
+                    cloud: InMemoryCloudKeyValueStore()
+                )
+            )
+        )
         defer { provider.shutdown() }
 
         #expect(provider.isAvailable)
@@ -241,9 +250,10 @@ struct BookDatabaseProviderTests {
         storage.setStorageLocation(.local)
 
         let expectedEvents: Set<String> = ["syncing", "changed:1", "playback:novel.mp3", "storage"]
-        for _ in 0..<100 where !expectedEvents.isSubset(of: Set(recorder.events)) {
-            try await Task.sleep(nanoseconds: 10_000_000)
-        }
+        await DeterministicWait.expect(
+            "expectedEvents 应为 recorder.events 的子集",
+            timeout: 2.0
+        ) { !expectedEvents.isSubset(of: Set(recorder.events)) }
 
         #expect(expectedEvents.isSubset(of: Set(recorder.events)))
 

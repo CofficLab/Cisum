@@ -5,10 +5,10 @@ import SwiftUI
 struct WelcomePluginManualView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ManualHeader(title: String(localized: "Welcome Page", bundle: .module), subtitle: "User Manual")
+            ManualHeader(title: String(localized: "Welcome Page", bundle: .module), subtitle: String(localized: "User Manual", bundle: .module))
 
             ManualSectionHeader(number: 1, title: String(localized: "Overview", bundle: .module))
-            Text("Shows a welcome guide on first launch to help you get started")
+            Text("Shows a welcome guide on first launch to help you get started", bundle: .module)
                 .font(.appBody)
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)
