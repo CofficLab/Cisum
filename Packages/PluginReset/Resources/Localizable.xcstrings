@@ -16,13 +16,19 @@
             "value": "应用信息"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "應用信息"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "應用信息"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "應用資訊"
@@ -45,13 +51,19 @@
             "value": "应用版本"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "應用版本"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "應用版本"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "應用版本"
@@ -73,13 +85,19 @@
             "value": "清除媒体存储位置选择"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除媒體存儲位置選擇"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "清除媒體存儲位置選擇"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "清除媒體儲存位置選擇"
@@ -101,13 +119,19 @@
             "value": "关闭"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關閉"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "關閉"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "關閉"
@@ -129,13 +153,19 @@
             "value": "继续重置"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "繼續重置"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "繼續重置"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "繼續重置"
@@ -158,13 +188,19 @@
             "value": "当前版本"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當前版本"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "當前版本"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "當前版本"
@@ -186,13 +222,19 @@
             "value": "不可撤销"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不可撤銷"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "不可撤銷"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "不可撤銷"
@@ -214,13 +256,19 @@
             "value": "播放、主题和媒体库记录不会被删除"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放、主題和媒體庫記錄不會被刪除"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "播放、主題和媒體庫記錄不會被刪除"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "播放、主題和媒體庫記錄不會被刪除"
@@ -242,13 +290,19 @@
             "value": "保留偏好设置"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保留偏好設置"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "保留偏好設置"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "保留偏好設定"
@@ -271,13 +325,19 @@
             "value": "将设置重置为系统默认状态"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將設置重置為系統默認狀態"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "將設置重置為系統默認狀態"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "將設定重置為系統預設狀態"
@@ -299,13 +359,19 @@
             "value": "重置存储位置"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置存儲位置"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "重置存儲位置"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "重置儲存位置"
@@ -327,13 +393,19 @@
             "value": "正在重置…"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在重置…"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "正在重置…"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "正在重置…"
@@ -355,13 +427,19 @@
             "value": "正在恢复存储位置选择，请稍候"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在恢復存儲位置選擇，請稍候"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "正在恢復存儲位置選擇，請稍候"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "正在恢復儲存位置選擇，請稍候"
@@ -383,13 +461,19 @@
             "value": "存储位置重置"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "存儲位置重置"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "存儲位置重置"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "儲存位置重置"
@@ -411,13 +495,19 @@
             "value": "系统"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系統"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "系統"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "系統"
@@ -439,13 +529,19 @@
             "value": "系统设置"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系統設置"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "系統設置"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "系統設定"
@@ -467,13 +563,19 @@
             "value": "媒体存储位置选择将被清除"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒體存儲位置選擇將被清除"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "媒體存儲位置選擇將被清除"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "媒體儲存位置選擇將被清除"
@@ -495,13 +597,19 @@
             "value": "此操作无法撤销，请谨慎操作"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此操作無法撤銷，請謹慎操作"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "此操作無法撤銷，請謹慎操作"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "此操作無法撤銷，請謹慎操作"
@@ -523,13 +631,19 @@
             "value": "重置应用状态或数据，恢复初始状态。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重設應用程式狀態或資料，恢復初始狀態。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "重設應用程式狀態或資料，恢復初始狀態。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "重設應用程式狀態或資料，恢復初始狀態。"
@@ -551,13 +665,19 @@
             "value": "重置"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "重置"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "重置"
@@ -579,13 +699,19 @@
             "value": "概述"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "概述"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "概述"
@@ -607,13 +733,19 @@
             "value": "核心能力"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "核心能力"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "核心能力"
@@ -635,13 +767,19 @@
             "value": "重置：将应用恢复至初始状态。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置：將應用程式恢復至初始狀態。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "重置：將應用程式恢復至初始狀態。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "重置：將應用程式恢復至初始狀態。"
@@ -663,13 +801,19 @@
             "value": "风险提示：重置前给出风险提示。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "風險提示：重置前提供風險提示。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "風險提示：重置前提供風險提示。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "風險提示：重置前提供風險提示。"
@@ -691,13 +835,19 @@
             "value": "基本操作"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "基本操作"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "基本操作"
@@ -719,13 +869,19 @@
             "value": "在设置中打开「重置」。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在設定中開啟「重置」。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "在設定中開啟「重置」。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "在設定中開啟「重置」。"
@@ -747,13 +903,19 @@
             "value": "确认后执行重置操作。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "確認後執行重置操作。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "確認後執行重置操作。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "確認後執行重置操作。"
@@ -775,13 +937,19 @@
             "value": "说明"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "說明"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "說明"
@@ -803,13 +971,19 @@
             "value": "重置会清除相关数据，请谨慎操作。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置會清除相關資料，請謹慎操作。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "重置會清除相關資料，請謹慎操作。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "重置會清除相關資料，請謹慎操作。"
@@ -831,13 +1005,19 @@
             "value":"用户手册"
           }
         },
-        "zh-Hant-HK":{
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用者手冊"
+          }
+        },
+        "zh-HK":{
           "stringUnit":{
             "state":"translated",
             "value":"使用者手冊"
           }
         },
-        "zh-Hant-TW":{
+        "zh-TW":{
           "stringUnit":{
             "state":"translated",
             "value":"使用者手冊"
@@ -859,13 +1039,19 @@
             "value": "版本"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "版本"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "版本"
@@ -887,13 +1073,19 @@
             "value": "类型"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "類型"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "類型"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "類型"
@@ -915,13 +1107,19 @@
             "value": "插件"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "外掛程式"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "外掛程式"
@@ -943,13 +1141,19 @@
             "value": "将应用恢复至初始状态。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將應用程式恢復至初始狀態。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "將應用程式恢復至初始狀態。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "將應用程式恢復至初始狀態。"
@@ -971,13 +1175,19 @@
             "value": "重置前给出风险提示。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置前提供風險提示。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "重置前提供風險提示。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "重置前提供風險提示。"
@@ -999,13 +1209,19 @@
             "value": "风险提示"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "風險提示"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "風險提示"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "風險提示"

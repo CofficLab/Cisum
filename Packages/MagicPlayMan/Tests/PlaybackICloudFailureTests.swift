@@ -160,7 +160,7 @@ final class PlaybackICloudFailureTests: XCTestCase {
             "The file could not be downloaded from iCloud",
             "Check your internet connection and iCloud storage space, then try again",
         ]
-        let languages = ["en", "zh-Hans", "zh-Hant-HK", "zh-Hant-TW"]
+        let languages = ["en", "zh-Hans", "zh-Hant", "zh-HK", "zh-TW"]
 
         for key in keys {
             let entry = try XCTUnwrap(strings[key] as? [String: Any], "缺少键：\(key)")
@@ -199,7 +199,9 @@ final class PlaybackICloudFailureTests: XCTestCase {
             return try XCTUnwrap(stringUnit["value"] as? String)
         }
 
-        XCTAssertNotEqual(try value("zh-Hans"), try value("zh-Hant-HK"), "简繁文案不应相同")
+        XCTAssertNotEqual(try value("zh-Hans"), try value("zh-Hant"), "简繁文案不应相同")
+        XCTAssertNotEqual(try value("zh-Hans"), try value("zh-HK"), "简繁文案不应相同")
+        XCTAssertNotEqual(try value("zh-Hans"), try value("zh-TW"), "简繁文案不应相同")
     }
 
     /// 读取 `Resources/Localizable.xcstrings` 源文件。

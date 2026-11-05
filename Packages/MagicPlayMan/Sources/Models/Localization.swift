@@ -27,15 +27,45 @@ public struct Localization {
         return Self.lookupInStringCatalog(key: key, locale: catalogLocale, bundle: bundle) ?? key
     }
 
-    /// 将 `zh_CN` 等系统 locale 映射到 String Catalog 中的 `zh-Hans` / `zh-HK`。
+    /// 将系统 locale 映射到 String Catalog 中真实存在的语言 id。
+    ///
+    /// Catalog 使用上游 Lumi 的语言集合：`zh-Hans` / `zh-HK` / `zh-TW` / `zh-Hant`。
+    /// 系统可能给出 `zh_CN`、`zh-Hant-HK`、`zh-Hant-TW` 等写法，这里归一化到
+    /// 上述集合中的真实条目，避免映射到不存在的 id 而被迫依赖 fallback 侥幸命中。
+    ///
+    /// - `zh-HK` 与 `zh-Hant-HK` → `zh-HK`（香港）
+    /// - `zh-TW` 与 `zh-Hant-TW` → `zh-TW`（台湾）
+    /// - `zh-Hant` / `zh-MO` → `zh-Hant`（通用繁体）
+    /// - 其余 `zh-*` → `zh-Hans`（简体）
     static func catalogLocale(for locale: Locale) -> Locale {
         let id = locale.identifier.replacingOccurrences(of: "_", with: "-")
         guard id.hasPrefix("zh") else { return locale }
 
-        if id.contains("Hant") || id == "zh-TW" || id == "zh-HK" || id.hasSuffix("-HK") {
-            return Locale(identifier: id.contains("HK") ? "zh-HK" : "zh-Hant")
+        // 香港：显式 zh-HK / zh-Hant-HK，或任何以 -HK 结尾的繁体变体
+        if id == "zh-HK" || id == "zh-Hant-HK" || id.hasSuffix("-HK") {
+            return Locale(identifier: "zh-HK")
+        }
+        // 台湾：显式 zh-TW / zh-Hant-TW，或任何以 -TW 结尾的繁体变体
+        if id == "zh-TW" || id == "zh-Hant-TW" || id.hasSuffix("-TW") {
+            return Locale(identifier: "zh-TW")
+        }
+        // 澳门与通用繁体
+        if id == "zh-Hant" || id == "zh-MO" {
+            return Locale(identifier: "zh-Hant")
         }
         return Locale(identifier: "zh-Hans")
+    }
+
+    /// 同一书写系统内的回退顺序，与上游 Lumi 的 `variantFallbacks` 保持一致。
+    ///
+    /// 没有这层回退时，`zh-Hant` 这类通用繁体 id 会取不到值而直接掉到英文。
+    static func variantFallbacks(for languageID: String) -> [String] {
+        switch languageID {
+        case "zh-Hant": ["zh-Hant", "zh-TW", "zh-HK"]
+        case "zh-TW": ["zh-TW", "zh-Hant", "zh-HK"]
+        case "zh-HK": ["zh-HK", "zh-Hant", "zh-TW"]
+        default: [languageID]
+        }
     }
 
     /// 仅在 bundle 内仍包含源 `Localizable.xcstrings` 时使用（如 SPM 测试）。
@@ -49,13 +79,15 @@ public struct Localization {
             return nil
         }
 
-        let preferredLocales = [
-            locale.identifier,
-            locale.identifier.replacingOccurrences(of: "_", with: "-"),
-            catalogLocale(for: locale).identifier,
-            "zh-Hans",
-            "en",
-        ]
+        // 候选顺序：目标语言 → 同书写系统的其它变体 → 简体 → 英文。
+        let target = catalogLocale(for: locale).identifier
+        var preferredLocales: [String] = []
+        for candidate in [target, locale.identifier] {
+            for id in variantFallbacks(for: candidate) where !preferredLocales.contains(id) {
+                preferredLocales.append(id)
+            }
+        }
+        preferredLocales.append(contentsOf: ["zh-Hans", "en"])
 
         for localeId in preferredLocales {
             guard let loc = localizations[localeId] as? [String: Any],

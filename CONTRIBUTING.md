@@ -345,11 +345,51 @@ String(localized: "Only %lld files were added because the free file limit is alm
 ### Adding a language
 
 1. Add the key with an English source value to the package's `.xcstrings`.
-2. Add `zh-Hans` (Simplified Chinese) and `zh-HK` (Traditional Chinese) entries.
+2. Add every supported language entry. The set matches the upstream Lumi
+   packages and must stay in sync with them:
+
+   | Language id | Meaning |
+   |-------------|---------|
+   | `en` | English (source language) |
+   | `zh-Hans` | Simplified Chinese |
+   | `zh-Hant` | Generic Traditional Chinese |
+   | `zh-HK` | Traditional Chinese (Hong Kong) |
+   | `zh-TW` | Traditional Chinese (Taiwan) |
+
 3. Keep the source language English — never use Chinese as the key.
-4. If the package lists `sources:` explicitly, confirm the `Resources` directory is
+4. `zh-Hant` is the generic Traditional fallback and normally mirrors
+   `zh-HK`. Only give `zh-HK` and `zh-TW` different wording where the two
+   markets genuinely differ.
+5. If the package lists `sources:` explicitly, confirm the `Resources` directory is
    included in `resources: [.process("Resources")]` or
    `.process("Resources/Localizable.xcstrings")`.
+
+### Locale naming
+
+- Use the ids above verbatim. `zh-Hant-HK` and `zh-Hant-TW` are **not** valid
+  catalog ids — Xcode still compiles them, but they are not standard locale
+  identifiers and only match by string approximation.
+- The app target (`CisumApp/Localizable.xcstrings`) uses the same ids. Its
+  `zh-Hant` / `zh-HK` / `zh-TW` entries also have to be listed in
+  `Cisum.xcodeproj/project.xcproj` under `localizations.supported`, otherwise
+  Xcode does not emit the matching `.lproj`.
+- A catalog key must not contain `>`. Xcode's string catalog compiler silently
+  drops such entries, which leaves the UI showing the raw English key.
+
+### Resolving a locale at runtime
+
+`String(localized:bundle:locale:)` ignores its `locale` argument — the result
+is decided by `Bundle.preferredLocalizations`, which for a plugin bundle is
+driven by the app bundle's own localizations. A plugin that needs an explicit
+language must look the value up itself, the way
+`MagicPlayMan`'s `Localization` does, following the upstream `LumiLocalization`
+fallback chain:
+
+```text
+zh-Hant → zh-TW → zh-HK
+zh-TW   → zh-Hant → zh-HK
+zh-HK   → zh-Hant → zh-TW
+```
 
 ---
 

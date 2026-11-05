@@ -26,6 +26,12 @@
             "state" : "translated",
             "value" : "Cisum"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cisum"
+          }
         }
       }
     },
@@ -50,6 +56,12 @@
           }
         },
         "zh-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跳到上一首曲目。"
+          }
+        },
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "跳到上一首曲目。"
@@ -82,6 +94,12 @@
             "state" : "translated",
             "value" : "下一首曲目"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一首曲目"
+          }
         }
       }
     },
@@ -106,6 +124,12 @@
           }
         },
         "zh-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放/暫停"
+          }
+        },
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放/暫停"
@@ -138,6 +162,12 @@
             "state" : "translated",
             "value" : "上一首曲目"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上一首曲目"
+          }
         }
       }
     },
@@ -162,6 +192,12 @@
           }
         },
         "zh-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定"
+          }
+        },
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "設定"
@@ -194,6 +230,12 @@
             "state" : "translated",
             "value" : "跳到下一首曲目。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跳到下一首曲目。"
+          }
         }
       }
     },
@@ -218,6 +260,12 @@
           }
         },
         "zh-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換播放狀態。"
+          }
+        },
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "切換播放狀態。"
