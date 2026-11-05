@@ -2,7 +2,7 @@ import Combine
 import ProviderToolbar
 import SwiftUI
 
-#if os(iOS)
+#if os(iOS) || os(visionOS)
 /// 直接渲染 iOS 顶部导航栏贡献项的宿主。
 ///
 /// 不依赖 SwiftUI 系统 `.toolbar`，避免不同 NavigationStack 宿主下工具栏不显示。

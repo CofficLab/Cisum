@@ -157,7 +157,7 @@ public enum CisumBuilder: SuperLog {
         // iOS 导航栏贡献：macOS 用 ToolbarProviding（窗口工具栏），iOS 用
         // IOSNavigationBarProviding（系统导航栏）。两端契约不同，必须分别注册，
         // 否则 iOS 侧设置齿轮无处可挂（对齐 BookletMaker 的 IOSSettingsProviderFactory）。
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         try kernel.registerProvider(
             (any IOSNavigationBarProviding).self,
             DefaultIOSNavigationBarProviding()

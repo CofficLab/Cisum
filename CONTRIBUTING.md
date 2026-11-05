@@ -290,14 +290,78 @@ indirection without narrowing, which is the actual defect the pattern exists to 
 
 ### Swift Package Manager
 
-- Packages declare `swift-tools-version: 6.0` (`MagicPlayMan` is still on 5.9) and use
-  the Swift 6 language mode.
-- Platforms are `.macOS(.v14)` and `.iOS(.v17)`.
+- Packages declare `swift-tools-version: 6.0` and use the Swift 5 language mode
+  (`swiftLanguageModes: [.v5]`).
+- Platforms are `.macOS(.v14)`, `.iOS(.v17)` and `.visionOS(.v2)`. Every package
+  under `Packages/` declares all three — see [Platform support](#platform-support).
 - Packages that ship resources declare `defaultLocalization: "en"`. The four
   resource-free packages (`KitAppEvents`, `KitAudioRepositoryImport`,
   `KitEventObservation`, `ProviderSettingsHost`) omit it.
 - Local dependencies use `.package(path: "../OtherPackage")`; shared packages use
   `.package(url: "https://github.com/CofficLab/...", from: "x.y.z")`.
+
+### Platform support
+
+Cisum ships on three platforms: **macOS 14+**, **iOS/iPadOS 17+** and
+**visionOS 2+**.
+
+```bash
+xcodebuild -project Cisum.xcodeproj -scheme Cisum -destination 'platform=macOS' build
+xcodebuild -project Cisum.xcodeproj -scheme Cisum -destination 'generic/platform=iOS' build
+xcodebuild -project Cisum.xcodeproj -scheme Cisum -destination 'generic/platform=visionOS' build
+```
+
+> **Use `-jobs 1`.** Concurrent Swift compilation of `LumiUI` crashes the SDK's
+> `swift-plugin-server` ("produced malformed response"), which surfaces as
+> bogus errors in `PreviewsMacros`/`SwiftUIMacros` expansion. It is a
+> concurrency bug in the toolchain, not in this codebase; `-jobs 1` avoids it.
+
+#### Writing platform-conditional code
+
+visionOS is a **UIKit** platform, not an AppKit one. Anything that works on
+iOS should also work on visionOS, so prefer `#if os(iOS) || os(visionOS)` over
+platform-specific forks. Watch for these traps:
+
+| Trap | Why | What to do |
+|------|-----|------------|
+| `#elseif os(iOS)` | visionOS falls into the empty branch — the code silently disappears | Use `#elseif os(iOS) \|\| os(visionOS)` |
+| `UIScreen.main` | `UIScreen` is **unavailable** on visionOS | Return a zero size; visionOS layouts follow the window, not a main screen |
+| `UIDevice.current.userInterfaceIdiom` | visionOS has no iPad idiom | `isPad` must be `false` there |
+| `Product.purchase(options:)` | StoreKit marks it **unavailable** on visionOS | Use `purchase(confirmIn: scene)` with a `UIScene` |
+| `WidgetCenter` | Only available from visionOS 26.0 | Guard with `#available(visionOS 26.0, *)` |
+| `Process` / shell execution | Not permitted on visionOS | Keep the iOS-style no-op placeholder |
+
+#### Vendored upstream packages
+
+Two upstream packages are vendored under `Packages/` because they have not
+been adapted to visionOS yet. Both keep the upstream source structure so
+upstream changes stay easy to merge:
+
+| Package | Upstream | Why vendored |
+|---------|----------|--------------|
+| `Packages/LumiStoreKit` | [CofficLab/LumiStoreKit](https://github.com/CofficLab/LumiStoreKit) | `purchase(options:)` is unavailable on visionOS |
+| `Packages/LumiPluginSettingView` | [CofficLab/LumiPluginSettingView](https://github.com/CofficLab/LumiPluginSettingView) | `#elseif os(iOS)` leaves the settings shell out of visionOS builds |
+
+`Packages/MagicKit` is also vendored (see `git log --grep="vendor MagicKit"`).
+
+#### App targets and Info.plist
+
+Each platform has its own Info.plist, selected by build-setting condition:
+
+| Platform | Release | Debug |
+|----------|---------|-------|
+| iOS / iPadOS | `CisumApp/Cisum-Info.plist` | `CisumApp/Cisum-Info-Debug.plist` |
+| macOS | `CisumApp/Cisum-Info-macOS.plist` | `CisumApp/Cisum-Info-macOS-Debug.plist` |
+| visionOS | `CisumApp/Cisum-Info-visionOS.plist` | `CisumApp/Cisum-Info-visionOS-Debug.plist` |
+
+iOS-only keys (`UILaunchScreen`, interface orientations) live in the iOS
+plists only — the visionOS plist omits them. Interface orientations are
+declared in the plist rather than in `INFOPLIST_KEY_*` build settings, because
+Xcode applies the `~ipad` orientation variant on every SDK regardless of the
+`sdk=` build-setting condition.
+
+The visionOS app icon is a layered icon: `Assets.xcassets/AppIcon.solidimagestack`
+holds the three visionOS layers (`idiom: vision`, `2x`).
 
 ---
 

@@ -201,7 +201,14 @@ public enum StoreService: SuperLog {
         }
 
         #if os(visionOS)
-            return nil
+            // visionOS 的 StoreKit 没有无场景的 `purchase(options:)`：购买面板
+            // 必须由一个 `UIScene` 承载，而「当前场景」只有 UI 层知道。
+            // 机制层（KitStoreKit）为此提供了 `purchase(productID:scene:)`，
+            // 但 Cisum 的购买入口目前没有把场景传进来。
+            //
+            // 这里明确抛错而不是静默返回 nil：静默失败会让用户点了购买按钮
+            // 却毫无反馈，比报错更难排查。
+            throw StoreError.purchaseUnsupportedOnPlatform
         #else
             let result = try await product.purchase()
 
@@ -436,6 +443,8 @@ struct SubscriptionStatusSnapshot: Equatable, Sendable {
 public enum StoreError: Error, LocalizedError {
     case failedVerification
     case canNotGetProducts
+    /// 当前平台不支持发起购买（如 visionOS 的购买面板必须绑定场景）。
+    case purchaseUnsupportedOnPlatform
 
     public var errorDescription: String? {
         switch self {
@@ -443,6 +452,8 @@ public enum StoreError: Error, LocalizedError {
             String(localized: "App Store verification failed", bundle: .module)
         case .canNotGetProducts:
             String(localized: "Could not load products from the App Store", bundle: .module)
+        case .purchaseUnsupportedOnPlatform:
+            String(localized: "Purchases are not available on this platform", bundle: .module)
         }
     }
 }

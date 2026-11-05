@@ -8,7 +8,8 @@ let package = Package(
     defaultLocalization: "en",
     platforms: [
         .macOS(.v14),  // 最低支持 macOS 14
-        .iOS(.v17)     // 最低支持 iOS 17
+        .iOS(.v17), // 最低支持 iOS 17
+        .visionOS(.v2) // 最低支持 visionOS 2
     ],
     // 定义对外提供的库（可被其他项目导入）
     products: [

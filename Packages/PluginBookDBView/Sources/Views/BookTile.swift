@@ -5,7 +5,7 @@ import ProviderBook
 import SwiftUI
 #if os(macOS)
 import AppKit
-#elseif os(iOS)
+#elseif os(iOS) || os(visionOS)
 import UIKit
 #endif
 
@@ -195,7 +195,7 @@ extension BookTile {
 #if os(macOS)
         guard let image = NSImage(data: data) else { return nil }
         return Image(nsImage: image)
-#elseif os(iOS)
+#elseif os(iOS) || os(visionOS)
         guard let image = UIImage(data: data) else { return nil }
         return Image(uiImage: image)
 #else

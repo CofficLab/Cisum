@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 
 #if os(macOS)
     import AppKit
-#elseif os(iOS)
+#elseif os(iOS) || os(visionOS)
     import UIKit
 #endif
 
@@ -426,7 +426,7 @@ public extension URL {
         case .openDirectory:
             #if os(macOS)
                 NSWorkspace.shared.open(self)
-            #elseif os(iOS)
+            #elseif os(iOS) || os(visionOS)
                 UIApplication.shared.open(self)
             #endif
         case .revealInParent:
@@ -442,7 +442,7 @@ public extension URL {
 
         #if os(macOS)
             NSWorkspace.shared.activateFileViewerSelecting([self])
-        #elseif os(iOS)
+        #elseif os(iOS) || os(visionOS)
             UIApplication.shared.open(self)
         #endif
     }
@@ -451,7 +451,7 @@ public extension URL {
     func open() {
         #if os(macOS)
             NSWorkspace.shared.open(self)
-        #elseif os(iOS)
+        #elseif os(iOS) || os(visionOS)
             UIApplication.shared.open(self)
         #endif
     }
@@ -672,7 +672,7 @@ public extension URL {
             if let image = NSImage(contentsOf: self) {
                 return Image(nsImage: image)
             }
-        #elseif os(iOS)
+        #elseif os(iOS) || os(visionOS)
             if let image = UIImage(contentsOfFile: path) {
                 return Image(uiImage: image)
             }

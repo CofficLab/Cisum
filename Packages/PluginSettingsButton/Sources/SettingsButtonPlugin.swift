@@ -47,7 +47,7 @@ public final class SettingsButtonPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         kernel.resolveProvider((any IOSNavigationBarProviding).self)?
             .removeNavigationBarItems(ids: [SettingsButtonPluginInfo.navigationBarItemId])
         #endif
@@ -59,7 +59,7 @@ public final class SettingsButtonPlugin: AsyncSuperPlugin, SuperLog {
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             contrib.addToolBarButtons(ownerPluginID: id, self.addToolBarButtons())
         }
-        #elseif os(iOS)
+        #elseif os(iOS) || os(visionOS)
         if let navigationBar = kernel.resolveProvider((any IOSNavigationBarProviding).self) {
             navigationBar.addNavigationBarItems([makeNavigationBarItem()])
         }
@@ -73,7 +73,7 @@ public final class SettingsButtonPlugin: AsyncSuperPlugin, SuperLog {
     }
     #endif
 
-    #if os(iOS)
+    #if os(iOS) || os(visionOS)
     /// iOS 导航栏齿轮项。
     ///
     /// 挂在 `trailing` 位、order 靠后，保证它出现在导航栏右侧且不抢其他

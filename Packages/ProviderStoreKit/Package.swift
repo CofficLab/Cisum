@@ -16,6 +16,7 @@ let package = Package(
     platforms: [
         .macOS(.v14),
         .iOS(.v17),
+        .visionOS(.v2),
     ],
     products: [
         .library(name: "ProviderStoreKit", targets: ["ProviderStoreKit"]),
@@ -23,8 +24,10 @@ let package = Package(
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
         .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.18.0"),
-        .package(url: "https://github.com/CofficLab/LumiStoreKit.git", from: "1.0.1"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.11.1"),
+        // 本地 vendor：上游 LumiStoreKit 尚未适配 visionOS（StoreKit 的
+        // purchase(options:) 在 visionOS 上 unavailable），详见该包 Package.swift。
+        .package(name: "LumiStoreKit", path: "../LumiStoreKit"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.12.0"),
     ],
     targets: [
         .target(

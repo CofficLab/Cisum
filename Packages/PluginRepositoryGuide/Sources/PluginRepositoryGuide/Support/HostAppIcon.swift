@@ -2,7 +2,7 @@ import SwiftUI
 
 #if os(macOS)
 import AppKit
-#elseif os(iOS)
+#elseif os(iOS) || os(visionOS)
 import UIKit
 #endif
 
@@ -34,13 +34,13 @@ enum HostAppIcon {
         // 避免系统返回缓存的小尺寸图标导致放大模糊。
         nsImage.size = NSSize(width: 1024, height: 1024)
         return Image(nsImage: nsImage)
-        #elseif os(iOS)
+        #elseif os(iOS) || os(visionOS)
         return iOSImage()
         #endif
     }
 
-    #if os(iOS)
-    /// iOS 没有公开的「取 app 图标」接口，只能从 Info.plist 解析图标文件名，
+    #if os(iOS) || os(visionOS)
+    /// iOS / visionOS 没有公开的「取 app 图标」接口，只能从 Info.plist 解析图标文件名，
     /// 再退回扫描 bundle 根目录里以 AppIcon 开头的 png。
     private static func iOSImage() -> Image? {
         var candidates: [String] = []
