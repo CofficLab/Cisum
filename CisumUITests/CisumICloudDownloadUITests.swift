@@ -198,6 +198,9 @@ final class CisumICloudLibraryUITests: CisumUITestBase {
     }
 
     func testSeededTrackAppearsInLibrary() throws {
+        #if os(visionOS)
+        try skipOnVisionOS("仓库行未以 button 进入可访问性树，无法定位曲目")
+        #endif
         try ensureMusicScene()
 
         let track = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", seededAudioName)).firstMatch

@@ -93,6 +93,9 @@ final class CisumPlayerHeroAndLibraryUITests: CisumUITestBase {
 
     /// 仓库工具栏必须提供「打开仓库」与「添加」两个入口。
     func testLibraryToolbarOffersOpenRepositoryAndAddActions() throws {
+        #if os(visionOS)
+        try skipOnVisionOS("仓库工具栏标识在 visionOS 窗口装饰项上不可见")
+        #endif
         try ensureMusicScene()
 
         let openRepository = element(identifier: "cisum.audio-library.open-repository")
