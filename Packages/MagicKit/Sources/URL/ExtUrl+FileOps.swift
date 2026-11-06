@@ -66,6 +66,37 @@ public enum URLOpenActionPolicy {
         case none
     }
 
+    /// 当前平台是否支持「用系统文件管理器打开本地目录」。
+    ///
+    /// ## 为什么 iOS 上不成立
+    ///
+    /// macOS 的访达能打开任意本地路径；iOS / visionOS 没有等价能力：
+    /// 应用容器目录（`/var/mobile/Containers/Data/Application/<uuid>/…`）
+    /// 没有暴露给「文件」App，`UIApplication.shared.open(_:)` 对这类
+    /// 路径**必然失败且无任何反馈**——用户点了按钮，界面毫无变化。
+    ///
+    /// 因此凡是「打开仓库目录 / 在 Finder 中显示」这类入口，
+    /// **在 iOS 上必须整条隐藏**，而不是留着按钮点了没反应。
+    ///
+    /// 这是 UI 层的**唯一判断真源**：各处散落的 `#if os(macOS)` 与
+    /// 运行时的 `isDesktop` 都应改为引用它，避免再次出现「某处漏判」
+    /// 导致平台行为不一致。
+    public static var supportsSystemFileManager: Bool {
+        #if os(macOS)
+            return true
+        #else
+            return false
+        #endif
+    }
+
+    /// 当前平台是否应展示「打开仓库目录 / 在文件管理器中显示」类入口。
+    ///
+    /// 与 ``supportsSystemFileManager`` 同义，保留此别名是为了让调用点
+    /// 读起来是在问「该不该展示这个按钮」，而不是在问「平台支不支持」。
+    public static var shouldOfferFileManagerEntry: Bool {
+        supportsSystemFileManager
+    }
+
     public static func canOpen(_ url: URL) -> Bool {
         guard url.isFileURL else {
             return true
@@ -421,13 +452,21 @@ public extension URL {
     /// 目录用 `NSWorkspace.open` 打开，使访达窗口的当前目录就是该目录；
     /// `activateFileViewerSelecting` 只会打开父目录并在其中选中它，
     /// 「打开仓库目录」这类入口用它会停在父目录。
+    ///
+    /// ## 平台说明
+    ///
+    /// 只有桌面端会真的打开。iOS / visionOS 上应用容器目录没有暴露给
+    /// 「文件」App，`UIApplication.shared.open(_:)` 对沙盒路径**必然失败且
+    /// 无任何反馈**——因此这里直接不做任何事，而不是发起一个注定失败的
+    /// 打开请求（那只会让调用方误以为「已处理」）。
+    ///
+    /// UI 层面应当用 ``URLOpenActionPolicy/shouldOfferFileManagerEntry``
+    /// 判断是否**展示**这个入口；本方法是它背后的执行层。
     func openFolder() {
         switch URLOpenActionPolicy.finderPresentation(for: self) {
         case .openDirectory:
             #if os(macOS)
                 NSWorkspace.shared.open(self)
-            #elseif os(iOS) || os(visionOS)
-                UIApplication.shared.open(self)
             #endif
         case .revealInParent:
             openInFinder()
@@ -437,13 +476,13 @@ public extension URL {
     }
 
     /// 在 Finder 中显示当前文件或目录。
+    ///
+    /// 平台说明同 ``openFolder()``：仅桌面端生效。
     func openInFinder() {
         guard URLOpenActionPolicy.canRevealInFinder(self) else { return }
 
         #if os(macOS)
             NSWorkspace.shared.activateFileViewerSelecting([self])
-        #elseif os(iOS) || os(visionOS)
-            UIApplication.shared.open(self)
         #endif
     }
 

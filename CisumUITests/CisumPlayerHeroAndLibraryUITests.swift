@@ -91,24 +91,73 @@ final class CisumPlayerHeroAndLibraryUITests: CisumUITestBase {
 
     // MARK: - 仓库工具栏
 
-    /// 仓库工具栏必须提供「打开仓库」与「添加」两个入口。
+    /// 仓库工具栏必须提供「打开仓库」入口（仅桌面端）与「添加」入口。
+    ///
+    /// ## 平台差异
+    ///
+    /// 「打开仓库」入口**仅桌面端存在**：iOS 上应用容器目录没有暴露给
+    /// 「文件」App，打开必然失败且毫无反馈，因此入口整条隐藏
+    /// （见 `URLOpenActionPolicy.shouldOfferFileManagerEntry`）。
+    ///
+    /// 「添加」入口走系统文件选择器，iOS / macOS 都可用。
+    ///
+    /// - Important: 「添加」按钮**只在仓库非空时常驻表头**（空仓库由空状态
+    ///   视图自带入口）。因此断言它之前必须先确认仓库确实有内容；
+    ///   否则断言的是「种子音频有没有注入成功」，那是另一条链路，
+    ///   失败时不该记到本用例头上。
     func testLibraryToolbarOffersOpenRepositoryAndAddActions() throws {
         #if os(visionOS)
         try skipOnVisionOS("仓库工具栏标识在 visionOS 窗口装饰项上不可见")
         #endif
         try ensureMusicScene()
 
+        #if os(macOS)
         let openRepository = element(identifier: "cisum.audio-library.open-repository")
         XCTAssertTrue(
             openRepository.waitForExistence(timeout: 20),
             "音乐仓库缺少「打开仓库」入口 cisum.audio-library.open-repository"
         )
+        #endif
+
+        // 表头「添加」按钮只在仓库非空时存在。
+        let countBar = element(identifier: "cisum.audio-library.count")
+        guard countBar.waitForExistence(timeout: 30) else {
+            throw XCTSkip("仓库为空（种子音频未注入），表头「添加」按钮本就不存在")
+        }
 
         let addButton = element(identifier: "cisum.audio-library.add")
         XCTAssertTrue(
             addButton.waitForExistence(timeout: 10),
             "音乐仓库缺少「添加」入口 cisum.audio-library.add"
         )
+    }
+
+    /// iOS 上不得出现「打开仓库」入口。
+    ///
+    /// 该入口在 iOS 上**必然无效**（容器目录没有暴露给「文件」App），
+    /// 留着按钮点了没反应，比没有按钮更糟。因此它必须整条隐藏。
+    ///
+    /// - Important: 必须先确认仓库**确实非空**（表头按钮只在非空时渲染），
+    ///   否则断言的是「按钮没渲染」而不是「按钮被平台能力过滤掉了」——
+    ///   两者失败原因完全不同。
+    func testLibraryToolbarHidesOpenRepositoryOnUnsupportedPlatforms() throws {
+        #if os(macOS)
+        throw XCTSkip("「打开仓库」入口在桌面端本就存在，此处只覆盖 iOS")
+        #else
+        try ensureMusicScene()
+
+        // 仓库非空时表头才会渲染按钮——这是断言的前置条件。
+        let countBar = element(identifier: "cisum.audio-library.count")
+        guard countBar.waitForExistence(timeout: 30) else {
+            throw XCTSkip("仓库为空（种子音频未注入），表头本就不渲染按钮")
+        }
+
+        let openRepository = element(identifier: "cisum.audio-library.open-repository")
+        XCTAssertFalse(
+            openRepository.exists,
+            "iOS 上不应出现「打开仓库」入口——打开沙盒目录必然失败"
+        )
+        #endif
     }
 
     /// 仓库有内容时，计数栏必须显示。

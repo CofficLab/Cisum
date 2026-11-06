@@ -133,12 +133,20 @@ enum AudioListHeaderPolicy {
 
     /// 表头是否展示「打开仓库目录」按钮。
     ///
-    /// - Parameter hasContent: 仓库列表是否已有内容。
+    /// - Parameters:
+    ///   - hasContent: 仓库列表是否已有内容。
+    ///   - supportsFileManager: 平台是否支持「用系统文件管理器打开本地目录」。
     ///
     /// 说明：与「添加」按钮同节奏——仓库有内容时常驻表头右侧，方便直接跳到
     /// 访达里的仓库目录；空仓库时改由空状态视图自带的入口承担，表头不重复。
-    static func shouldShowOpenRepositoryButton(hasContent: Bool) -> Bool {
-        hasContent
+    ///
+    /// **iOS 上不展示**：应用容器目录没有暴露给「文件」App，打开必然失败
+    /// 且毫无反馈。判定真源见 `URLOpenActionPolicy.shouldOfferFileManagerEntry`。
+    static func shouldShowOpenRepositoryButton(
+        hasContent: Bool,
+        supportsFileManager: Bool = URLOpenActionPolicy.shouldOfferFileManagerEntry
+    ) -> Bool {
+        hasContent && supportsFileManager
     }
 }
 

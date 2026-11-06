@@ -33,6 +33,30 @@ import Testing
     #expect(URLOpenActionPolicy.buttonAccessibilityLabel(for: remoteURL) == "Open example.com")
 }
 
+/// 平台能力判定：只有桌面端提供「用系统文件管理器打开本地目录」。
+///
+/// 这是全仓「打开仓库目录 / 在访达中显示」类入口的**唯一判断真源**。
+/// iOS / visionOS 上打开应用沙盒目录必然失败（容器目录没有暴露给
+/// 「文件」App），因此入口必须整条隐藏——留着按钮点了没反应，
+/// 比没有按钮更糟。
+///
+/// 这条断言同时锁住两件事：
+/// 1. 判定结果与当前构建平台一致；
+/// 2. 两个入口名同义，避免调用点各写各的判断再次走偏。
+@Test func fileManagerEntryIsOnlyOfferedOnDesktopPlatforms() {
+    #if os(macOS)
+    #expect(URLOpenActionPolicy.supportsSystemFileManager)
+    #expect(URLOpenActionPolicy.shouldOfferFileManagerEntry)
+    #else
+    #expect(!URLOpenActionPolicy.supportsSystemFileManager)
+    #expect(!URLOpenActionPolicy.shouldOfferFileManagerEntry)
+    #endif
+
+    // 别名必须与真源同值：调用点问「该不该展示」，
+    // 底层问「平台支不支持」，两者不能各说各话。
+    #expect(URLOpenActionPolicy.shouldOfferFileManagerEntry == URLOpenActionPolicy.supportsSystemFileManager)
+}
+
 @Test func finderPresentationOpensDirectoryItselfInsteadOfItsParent() throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
