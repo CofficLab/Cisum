@@ -50,9 +50,9 @@ struct ScenePluginTests {
 
         try await kernel.startAsync(plugins: [plugin])
 
-        // 当前只启用音乐场景（有声书暂缓上线）
-        #expect(kernel.resolveProvider((any SceneProviding).self)?.scenes == [.music])
-        // 场景切换器仍然被添加到工具栏，但视图层面在 scenes.count == 1 时不渲染内容
+        // 场景为内置固定枚举：音乐库 + 有声书
+        #expect(kernel.resolveProvider((any SceneProviding).self)?.scenes == [.music, .audiobooks])
+        // 场景切换器仍然被添加到工具栏；视图层面在 scenes.count == 1 时不渲染内容
         #expect(pluginProvider.getToolBarButtons().map(\.id) == ["scene-switcher"])
         #expect(plugin.selectionViewModel?.currentScene == .music)
     }
@@ -91,8 +91,9 @@ struct ScenePluginTests {
             .appendingPathComponent("PluginSceneTests-\(UUID().uuidString)", isDirectory: true)
         let service = SceneProvider(pluginDataDirectory: tempDir)
 
-        // 当前只启用音乐场景（有声书暂缓上线）
-        #expect(service.scenes == [.music])
+        // 场景为内置固定枚举：音乐库 + 有声书
+        #expect(service.scenes == AppScene.allCases)
+        #expect(service.scenes == [.music, .audiobooks])
     }
 
     private func makePluginDataDirectory() throws -> URL {
@@ -133,13 +134,13 @@ struct ScenePluginTests {
 
         let first = SceneProvider(pluginDataDirectory: pluginDir, preferences: makePreferences())
         first.restoreCurrentScene()
-        // 当前只有音乐场景可用，测试音乐场景的持久化与恢复
-        first.setCurrentScene(.music)
+        // 有声书场景的持久化与恢复
+        first.setCurrentScene(.audiobooks)
 
         let second = SceneProvider(pluginDataDirectory: pluginDir, preferences: makePreferences())
         second.restoreCurrentScene()
 
-        #expect(second.currentScene == .music)
+        #expect(second.currentScene == .audiobooks)
         #expect(FileManager.default.fileExists(atPath: fileURL.path))
     }
 
@@ -194,8 +195,7 @@ struct ScenePluginTests {
             preferences: makePreferences()
         )
         service.restoreCurrentScene()
-        // 当前只有音乐场景可用
-        service.setCurrentScene(.music)
+        service.setCurrentScene(.audiobooks)
 
         // 走真实 SceneProvider + Adapter：验证 Adapter 的转发与句柄取消正确。
         let capability = SceneSelectionCapabilityAdapter(scene: service)
@@ -204,9 +204,8 @@ struct ScenePluginTests {
         defer { observer.cancel() }
 
         // 监听安装前已经存在的状态不能丢失。
-        // 当前只启用音乐场景（有声书暂缓上线）
-        #expect(viewModel.scenes == [.music])
-        #expect(viewModel.currentScene == .music)
+        #expect(viewModel.scenes == AppScene.allCases)
+        #expect(viewModel.currentScene == .audiobooks)
     }
 
     @Test

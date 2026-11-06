@@ -24,7 +24,7 @@ public final class BookSettingsPlugin: AsyncSuperPlugin, SuperLog {
         version: "1.0.0",
         category: .system,
         stage: .stable,
-        policy: .disabled,
+        policy: .alwaysOn,
         permissions: []
     )
 
@@ -46,11 +46,23 @@ public final class BookSettingsPlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        // 必须先持有 kernel 再贡献设置入口：`makeSettingEntry()` 会解析
+        // `BookDatabaseProviding`，而该 Provider 由 BookDBDataPlugin 注册。
+        self.kernel = kernel
+        if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
+        installState()
         if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
             if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
         }
+    }
+
+    /// Provider 插件完成 onBoot 后再补装观察者。
+    ///
+    /// 本插件与 BookDBDataPlugin 同为 order 11，谁先启动取决于工厂清单顺序；
+    /// 若书籍 Provider 尚未就绪，onBoot 时装不上观察者，这里再试一次。
+    @MainActor
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
-        if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
         installState()
     }
 
@@ -78,7 +90,9 @@ public final class BookSettingsPlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     public func makeSettingEntry() -> SettingEntryItem? {
-        let viewModel = resolveViewModel()
+        // 书籍 Provider 尚未注册时没有可用的 ViewModel：
+        // 此时不贡献设置入口，而不是用 nil ViewModel 强行构造一个坏页面。
+        guard let viewModel = resolveViewModel() else { return nil }
         return SettingEntryItem(
             id: "book-settings",
             title: BookSettingsPluginInfo.title,
@@ -117,11 +131,17 @@ public final class BookSettingsPlugin: AsyncSuperPlugin, SuperLog {
     }
 
     @MainActor
-    private func resolveViewModel() -> BookSettingsViewModel {
+    private func resolveViewModel() -> BookSettingsViewModel? {
         if let settingsViewModel {
             return settingsViewModel
         }
         installState()
-        return settingsViewModel!
+        // `installState()` 在书籍 Provider 尚未注册时会提前返回，
+        // 此时 `settingsViewModel` 仍是 nil——**不能**强制解包，
+        // 否则插件启动阶段就会崩溃。
+        //
+        // 返回 nil 表示「现在还没有可用的 ViewModel」：调用方据此跳过
+        // 贡献设置入口，Provider 就绪后 `onEnable` 会重新装配。
+        return settingsViewModel
     }
 }
