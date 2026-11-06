@@ -69,7 +69,7 @@ let package = Package(
         .package(name: "PluginPlaybackHero", path: "../PluginPlaybackHero"),
         .package(url: "https://github.com/CofficLab/LumiPluginPluginManager.git", from: "1.7.0"),
         // 共享远程包：Coffic 应用目录（设置界面的「我们的应用」入口）。
-        .package(url: "https://github.com/CofficLab/LumiPluginAppDirectory.git", from: "1.0.0"),
+        .package(url: "https://github.com/CofficLab/LumiPluginAppDirectory.git", from: "1.0.2"),
         .package(name: "PluginPlaybackProgress", path: "../PluginPlaybackProgress"),
         .package(name: "PluginRepositoryGuide", path: "../PluginRepositoryGuide"),
         .package(name: "PluginReset", path: "../PluginReset"),
