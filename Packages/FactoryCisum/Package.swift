@@ -68,6 +68,8 @@ let package = Package(
         .package(name: "PluginPlayBack", path: "../PluginPlayBack"),
         .package(name: "PluginPlaybackHero", path: "../PluginPlaybackHero"),
         .package(url: "https://github.com/CofficLab/LumiPluginPluginManager.git", from: "1.7.0"),
+        // 共享远程包：Coffic 应用目录（设置界面的「我们的应用」入口）。
+        .package(url: "https://github.com/CofficLab/LumiPluginAppDirectory.git", from: "1.0.0"),
         .package(name: "PluginPlaybackProgress", path: "../PluginPlaybackProgress"),
         .package(name: "PluginRepositoryGuide", path: "../PluginRepositoryGuide"),
         .package(name: "PluginReset", path: "../PluginReset"),
@@ -136,6 +138,7 @@ let package = Package(
                 .product(name: "PluginPlayBack", package: "PluginPlayBack"),
                 .product(name: "PluginPlaybackHero", package: "PluginPlaybackHero"),
                 .product(name: "PluginPluginManager", package: "LumiPluginPluginManager"),
+                .product(name: "PluginAppDirectory", package: "LumiPluginAppDirectory"),
                 .product(name: "PluginPlaybackProgress", package: "PluginPlaybackProgress"),
                 .product(name: "PluginRepositoryGuide", package: "PluginRepositoryGuide"),
                 .product(name: "PluginReset", package: "PluginReset"),
