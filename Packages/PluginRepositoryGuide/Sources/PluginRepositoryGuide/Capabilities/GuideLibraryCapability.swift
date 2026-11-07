@@ -1,5 +1,6 @@
 import Foundation
 import ProviderAudioLibrary
+import ProviderBook
 
 /// 引导关心的仓库信号：仓库内容变化，需要复核一次结论。
 @MainActor
@@ -135,5 +136,123 @@ private final class GuideLibraryObserverHandleBox: GuideLibraryObserverHandle {
     func cancel() {
         cancelAction?()
         cancelAction = nil
+    }
+}
+
+/// 将内核书籍库收窄为引导用的「仓库是否为空」能力。
+///
+/// 书籍库只提供异步的 `totalCount()` 与变化事件，没有音乐库那样的三态
+/// 「扫描结论」。这里把首次查询与每次变化都折算成缓存结论：
+/// - 查询前是「不知道」，按非空处理（引导不出现）；
+/// - `libraryChanged(totalCount:)` 直接给出计数，可立即下结论；
+/// - 其它事件（同步完成、删除、存储位置变化）触发一次重新查询。
+///
+/// 与音乐库 Adapter 一样惰性解析 Provider：数据层插件的 boot 顺序不固定。
+@MainActor
+final class GuideBookLibraryCapabilityAdapter: GuideLibraryCapability {
+    private let resolve: @MainActor @Sendable () -> (any BookDatabaseProviding)?
+
+    /// 已得到的结论；`hasConclusion == false` 表示还没查到过。
+    private var cachedIsEmpty = false
+    private var hasConclusion = false
+
+    private var callback: ((GuideLibraryEvent) -> Void)?
+    private var providerHandle: (any BookProvidingObserverHandle)?
+    private var refreshTask: Task<Void, Never>?
+    private var retryTask: Task<Void, Never>?
+
+    private static let maxRetryCount = 10
+    private static let retryInterval: UInt64 = 200_000_000
+
+    init(resolve: @escaping @MainActor @Sendable () -> (any BookDatabaseProviding)?) {
+        self.resolve = resolve
+    }
+
+    var isRepositoryEmpty: Bool {
+        hasConclusion && cachedIsEmpty
+    }
+
+    @discardableResult
+    func addObserver(
+        _ callback: @escaping (GuideLibraryEvent) -> Void
+    ) -> any GuideLibraryObserverHandle {
+        self.callback = callback
+        attachIfPossible()
+        return GuideLibraryObserverHandleBox { [weak self] in
+            self?.stop()
+        }
+    }
+
+    /// 已有 Provider 就订阅并查询；没有则稍后重试。
+    private func attachIfPossible() {
+        guard let library = resolve() else {
+            scheduleRetry()
+            return
+        }
+
+        retryTask?.cancel()
+        retryTask = nil
+
+        providerHandle = library.addObserver { [weak self] event in
+            switch event {
+            case let .libraryChanged(totalCount):
+                self?.apply(totalCount: totalCount)
+            case .librarySynced, .libraryDeleted, .storageLocationChanged:
+                self?.refresh()
+            case .librarySyncing, .playbackStateChanged:
+                break
+            }
+        }
+        refresh()
+    }
+
+    private func refresh() {
+        guard let library = resolve() else {
+            scheduleRetry()
+            return
+        }
+
+        refreshTask?.cancel()
+        refreshTask = Task { @MainActor [weak self] in
+            let count = await library.totalCount()
+            guard let self, !Task.isCancelled else { return }
+            self.apply(totalCount: count)
+        }
+    }
+
+    private func apply(totalCount: Int) {
+        let isEmpty = totalCount == 0
+        let changed = !hasConclusion || cachedIsEmpty != isEmpty
+        hasConclusion = true
+        cachedIsEmpty = isEmpty
+
+        if changed {
+            callback?(.changed)
+        }
+    }
+
+    private func scheduleRetry() {
+        guard retryTask == nil else { return }
+
+        retryTask = Task { @MainActor [weak self] in
+            for _ in 0 ..< Self.maxRetryCount {
+                try? await Task.sleep(nanoseconds: Self.retryInterval)
+                guard let self, self.callback != nil else { return }
+                if self.resolve() != nil {
+                    self.attachIfPossible()
+                    return
+                }
+            }
+        }
+    }
+
+    private func stop() {
+        callback = nil
+        providerHandle?.cancel()
+        providerHandle = nil
+        refreshTask?.cancel()
+        refreshTask = nil
+        retryTask?.cancel()
+        retryTask = nil
     }
 }

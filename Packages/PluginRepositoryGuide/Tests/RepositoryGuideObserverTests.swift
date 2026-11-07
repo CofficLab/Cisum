@@ -111,17 +111,35 @@ struct RepositoryGuideObserverTests {
         )
     }
 
+    private func makeObserver(
+        music: GuideLibraryProbe,
+        books: GuideLibraryProbe,
+        scene: GuideSceneProbe,
+        slot: ControlGuideSlot
+    ) -> (RepositoryGuideObserver, RepositoryGuideContent) {
+        let content = RepositoryGuideContent()
+        let observer = RepositoryGuideObserver(
+            slot: slot,
+            musicLibrary: music,
+            bookLibrary: books,
+            scene: scene,
+            content: content
+        )
+        return (observer, content)
+    }
+
     @Test
     func emptyRepositoryActivatesGuide() {
-        let probe = GuideLibraryProbe()
+        let music = GuideLibraryProbe()
+        let books = GuideLibraryProbe()
         let sceneProbe = GuideSceneProbe()
         let slot = makeSlot()
-        let observer = RepositoryGuideObserver(slot: slot, library: probe, scene: sceneProbe)
+        let (observer, _) = makeObserver(music: music, books: books, scene: sceneProbe, slot: slot)
 
         #expect(!slot.isActive)
 
-        probe.isRepositoryEmpty = true
-        probe.emit(.changed)
+        music.isRepositoryEmpty = true
+        music.emit(.changed)
         #expect(slot.isActive)
 
         observer.cancel()
@@ -130,17 +148,18 @@ struct RepositoryGuideObserverTests {
 
     @Test
     func repositoryBecomesNonEmptyTurnsGuideOff() {
-        let probe = GuideLibraryProbe()
+        let music = GuideLibraryProbe()
+        let books = GuideLibraryProbe()
         let sceneProbe = GuideSceneProbe()
         let slot = makeSlot()
-        let observer = RepositoryGuideObserver(slot: slot, library: probe, scene: sceneProbe)
+        let (observer, _) = makeObserver(music: music, books: books, scene: sceneProbe, slot: slot)
 
-        probe.isRepositoryEmpty = true
-        probe.emit(.changed)
+        music.isRepositoryEmpty = true
+        music.emit(.changed)
         #expect(slot.isActive)
 
-        probe.isRepositoryEmpty = false
-        probe.emit(.changed)
+        music.isRepositoryEmpty = false
+        music.emit(.changed)
         #expect(!slot.isActive)
 
         observer.cancel()
@@ -149,48 +168,83 @@ struct RepositoryGuideObserverTests {
     @Test
     func unknownRepositoryKeepsGuideHidden() {
         // 数据层没给出结论（仓库还没扫过）时，不该点亮引导。
-        let probe = GuideLibraryProbe()
+        let music = GuideLibraryProbe()
+        let books = GuideLibraryProbe()
         let sceneProbe = GuideSceneProbe()
         let slot = makeSlot()
-        let observer = RepositoryGuideObserver(slot: slot, library: probe, scene: sceneProbe)
+        let (observer, _) = makeObserver(music: music, books: books, scene: sceneProbe, slot: slot)
 
-        probe.isRepositoryEmpty = false
-        probe.emit(.changed)
+        music.isRepositoryEmpty = false
+        music.emit(.changed)
         #expect(!slot.isActive)
 
         observer.cancel()
     }
 
+    /// 有声书场景、书籍仓库为空：头部引导同样要点亮。
     @Test
-    func nonMusicSceneKeepsGuideHidden() {
-        let probe = GuideLibraryProbe()
+    func audiobookSceneWithEmptyBookLibraryActivatesGuide() {
+        let music = GuideLibraryProbe()
+        let books = GuideLibraryProbe()
         let sceneProbe = GuideSceneProbe()
         sceneProbe.currentScene = .audiobooks
         let slot = makeSlot()
-        let observer = RepositoryGuideObserver(slot: slot, library: probe, scene: sceneProbe)
+        let (observer, content) = makeObserver(music: music, books: books, scene: sceneProbe, slot: slot)
 
-        probe.isRepositoryEmpty = true
-        probe.emit(.changed)
+        #expect(!slot.isActive)
+
+        books.isRepositoryEmpty = true
+        books.emit(.changed)
+
+        #expect(slot.isActive)
+        #expect(content.scene == .audiobooks)
+
+        observer.cancel()
+    }
+
+    /// 有声书场景、书籍仓库非空：不得点亮引导。
+    @Test
+    func audiobookSceneWithNonEmptyBookLibraryKeepsGuideHidden() {
+        let music = GuideLibraryProbe()
+        let books = GuideLibraryProbe()
+        let sceneProbe = GuideSceneProbe()
+        sceneProbe.currentScene = .audiobooks
+        let slot = makeSlot()
+        let (observer, _) = makeObserver(music: music, books: books, scene: sceneProbe, slot: slot)
+
+        music.isRepositoryEmpty = true
+        books.isRepositoryEmpty = false
+        books.emit(.changed)
+
         #expect(!slot.isActive)
 
         observer.cancel()
     }
 
+    /// 场景切换后按新场景的仓库重新判定，而不是沿用音乐仓库的结论。
     @Test
-    func sceneChangeReevaluatesActivation() {
-        let probe = GuideLibraryProbe()
+    func sceneChangeReevaluatesActivationPerScene() {
+        let music = GuideLibraryProbe()
+        let books = GuideLibraryProbe()
         let sceneProbe = GuideSceneProbe()
         let slot = makeSlot()
-        let observer = RepositoryGuideObserver(slot: slot, library: probe, scene: sceneProbe)
+        let (observer, content) = makeObserver(music: music, books: books, scene: sceneProbe, slot: slot)
 
-        probe.isRepositoryEmpty = true
-        probe.emit(.changed)
+        music.isRepositoryEmpty = true
+        music.emit(.changed)
         #expect(slot.isActive)
+        #expect(content.scene == nil)
 
-        // 切到有声书场景：引导必须熄灭。
+        // 切到有声书：音乐仓库空不再决定激活态，书籍仓库非空则引导熄灭。
         sceneProbe.currentScene = .audiobooks
         sceneProbe.emit(.selectionChanged(scene: .audiobooks))
         #expect(!slot.isActive)
+        #expect(content.scene == .audiobooks)
+
+        // 书籍仓库变空：有声书空态重新点亮头部引导。
+        books.isRepositoryEmpty = true
+        books.emit(.changed)
+        #expect(slot.isActive)
 
         observer.cancel()
     }

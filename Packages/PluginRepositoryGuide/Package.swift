@@ -22,6 +22,7 @@ let package = Package(
         .package(path: "../ProviderPlugin"),
         .package(name: "ProviderControlView", path: "../ProviderControlView"),
         .package(name: "ProviderAudioLibrary", path: "../ProviderAudioLibrary"),
+        .package(name: "ProviderBook", path: "../ProviderBook"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
         .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.18.0"),
     ],
@@ -35,6 +36,7 @@ let package = Package(
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "ProviderControlView", package: "ProviderControlView"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+                .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
             ],
@@ -51,6 +53,7 @@ let package = Package(
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "ProviderControlView", package: "ProviderControlView"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+                .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
             ],
             path: "Tests"

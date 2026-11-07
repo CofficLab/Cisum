@@ -69,6 +69,40 @@
         }
       }
     },
+    "Audiobook repository is empty. Tap the ⋯ button below to add audiobooks." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audiobook repository is empty. Tap the ⋯ button below to add audiobooks."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有声书仓库为空，点下方「⋯」添加有声书。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書倉庫為空，點下方「⋯」新增有聲書。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書倉庫為空，點下方「⋯」新增有聲書。"
+          }
+        },
+        "zh-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書倉庫為空，點下方「⋯」新增有聲書。"
+          }
+        }
+      }
+    },
     "Brand Header" : {
       "localizations" : {
         "en" : {

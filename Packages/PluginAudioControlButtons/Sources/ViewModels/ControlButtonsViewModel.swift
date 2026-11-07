@@ -63,9 +63,18 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
         currentScene == targetScene
     }
 
-    /// 是否应该展示空仓库引导：仓库为空，且仓库视图还没有展开。
+    /// 是否应该展示空仓库引导：当前是该按钮组的场景、仓库为空，且仓库视图
+    /// 还没有展开。
+    ///
+    /// 场景未恢复（`nil`）时按本组场景处理：这与首启时按音乐场景点亮引导的
+    /// 约定一致。切到有声书等其它场景后，音乐仓库的提示气泡不应继续出现。
     var shouldShowRepositoryGuidance: Bool {
-        isRepositoryEmpty && !isContentViewVisible
+        isRepositoryEmpty && !isContentViewVisible && isTargetSceneActive
+    }
+
+    /// 当前是否仍处于本按钮组所属的场景。
+    private var isTargetSceneActive: Bool {
+        currentScene == nil || currentScene == targetScene
     }
 
     /// 接收仓库空/非空结论。

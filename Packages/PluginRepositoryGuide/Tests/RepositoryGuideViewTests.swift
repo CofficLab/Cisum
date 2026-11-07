@@ -112,6 +112,26 @@ struct RepositoryGuideViewTests {
         #expect(bright.min()! > coverBottom, "标题应在封面图标下方")
     }
 
+    /// 有声书场景：头部（封面 + 标题）必须与音乐场景一样存在且居中，
+    /// 额外的提示行不得把整块内容顶到边缘或造成布局塌陷。
+    @Test
+    func audiobookSceneKeepsBrandBlockCentered() async throws {
+        let content = RepositoryGuideContent(scene: .audiobooks)
+        let renderer = ImageRenderer(
+            content: RepositoryGuideView(content: content)
+                .frame(width: viewWidth, height: viewHeight)
+        )
+        renderer.scale = 1
+        let image = try #require(renderer.cgImage)
+        let bounds = try await contentBounds(in: image)
+
+        let topGap = Int(bounds.minY)
+        let bottomGap = image.height - Int(bounds.maxY)
+
+        #expect(abs(topGap - bottomGap) < 90, "上下留白应大致对称，实际 top=\(topGap) bottom=\(bottomGap)")
+        #expect(Int(bounds.maxY) < image.height - 60, "头部下方应仍留白，实际 maxY=\(Int(bounds.maxY))")
+    }
+
     @Test
     func injectedCoverIconIsRendered() async throws {
         #if os(macOS) || os(iOS)

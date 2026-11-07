@@ -293,6 +293,33 @@ struct RepositoryGuidanceViewModelTests {
         viewModel.applyContentVisibility(false)
         #expect(viewModel.shouldShowRepositoryGuidance)
     }
+
+    /// 音乐仓库的提示气泡只属于音乐场景：切到有声书后不得继续出现。
+    @Test
+    func guidanceHidesOutsideItsTargetScene() {
+        let viewModel = ControlButtonsViewModel(
+            playback: nil,
+            targetScene: .music,
+            currentScene: .audiobooks
+        )
+        viewModel.applyRepositoryState(.empty)
+
+        #expect(!viewModel.shouldShowRepositoryGuidance)
+        #expect(!viewModel.shouldActivateControl)
+    }
+
+    /// 场景尚未恢复（`nil`）时按本按钮组的场景处理，首启引导照常出现。
+    @Test
+    func guidanceShowsBeforeSceneIsRestored() {
+        let viewModel = ControlButtonsViewModel(
+            playback: nil,
+            targetScene: .music,
+            currentScene: nil
+        )
+        viewModel.applyRepositoryState(.empty)
+
+        #expect(viewModel.shouldShowRepositoryGuidance)
+    }
 }
 
 // MARK: - 气泡渲染
