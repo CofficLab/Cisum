@@ -40,6 +40,7 @@ public struct WelcomeView: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity)
                         .accessibilityAddTraits(.isHeader)
+                        .accessibilityIdentifier("cisum.welcome.storage.setup")
 
                     Text("Choose where Cisum stores your music and audiobooks. You can change this later in Settings.", bundle: .module)
                         .font(.title3)

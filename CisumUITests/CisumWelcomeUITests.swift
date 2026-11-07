@@ -66,9 +66,6 @@ final class CisumWelcomeUITests: CisumUITestBase {
     /// [R1][R2][R3] 首启必须展示完整的选择界面：标题、两个选项、继续按钮，
     /// 且点击空白区域不能跳过引导。
     func testFirstLaunchShowsStorageChoiceAndCannotBeSkippedByBackgroundTap() throws {
-        #if os(visionOS)
-        try skipOnVisionOS("首启引导的标题/选项/继续按钮未进入 visionOS 可访问性树")
-        #endif
         XCTAssertTrue(setupGate.waitForExistence(timeout: 10), "首次启动应阻止进入主界面并要求选择存储位置")
         XCTAssertTrue(storageChoiceTitle.waitForExistence(timeout: 5), "欢迎页标题未出现")
         XCTAssertTrue(iCloudOption.exists, "缺少 iCloud 云盘选项")
@@ -99,7 +96,9 @@ final class CisumWelcomeUITests: CisumUITestBase {
 #endif
 
         // [R1] 点击引导页空白区域不应关闭引导。
-        let backgroundPoint = setupGate.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.30))
+        // 用窗口坐标定位「空白」，而不是 setupGate 的坐标：
+        // setupGate 现在是标题文字（叶子节点），以它为基准会点在标题上。
+        let backgroundPoint = app.windows.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.30))
         backgroundPoint.tap()
         XCTAssertTrue(
             setupGate.exists,
@@ -111,9 +110,6 @@ final class CisumWelcomeUITests: CisumUITestBase {
     ///
     /// 这是"用户看着已勾选的 iCloud 却找不到下一步"缺陷的回归测试。
     func testFirstLaunchCompletesWithDefaultSelectionAfterTappingContinue() throws {
-        #if os(visionOS)
-        try skipOnVisionOS("首启引导的「继续」按钮未进入 visionOS 可访问性树")
-        #endif
         XCTAssertTrue(setupGate.waitForExistence(timeout: 10), "首次启动应阻止进入主界面并要求选择存储位置")
         XCTAssertTrue(
             continueButton.waitForExistence(timeout: 5),
@@ -142,9 +138,6 @@ final class CisumWelcomeUITests: CisumUITestBase {
 
     /// [R4][R5] 点击选项行只切换选择、不关闭引导；必须再点「继续」才提交。
     func testFirstLaunchPersistsChosenLocalOnlyAfterTappingContinue() throws {
-        #if os(visionOS)
-        try skipOnVisionOS("首启引导的「继续」按钮未进入 visionOS 可访问性树")
-        #endif
         XCTAssertTrue(setupGate.waitForExistence(timeout: 10), "首次启动应阻止进入主界面并要求选择存储位置")
         XCTAssertTrue(
             continueButton.waitForExistence(timeout: 5),
@@ -202,7 +195,13 @@ final class CisumWelcomeUITests: CisumUITestBase {
     /// 2. 整个工具栏不应留下任何可交互控件。
     func testStorageSetupScreenHidesTopToolbar() throws {
         #if os(visionOS)
-        try skipOnVisionOS("首启引导与顶部装饰项在 visionOS 上的可访问性未适配")
+        try skipOnVisionOS(
+            "visionOS 的设置齿轮由 SettingsButtonPlugin 作为 IOSNavigationBarItem 挂在系统导航栏"
+                + "（KernelRootView -> IOSNavigationBarToolbarModifier），而引导期的 "
+                + "setToolbarViewHidden 只抑制 RootLayoutView 的 .toolbar，不会移除导航栏项；"
+                + "因此 cisum.settings.button 仍留在可访问性树里。要隐藏它需按存储引导状态"
+                + "动态过滤 IOSNavigationBarProviding 的贡献项（宿主级改动），本轮未实现。"
+        )
         #endif
         XCTAssertTrue(setupGate.waitForExistence(timeout: 10), "首次启动应展示存储引导")
 
@@ -276,16 +275,18 @@ final class CisumConfiguredWelcomeUITests: CisumUITestBase {
     /// 工具栏，它会永久消失。本用例从「引导压根不展示」的入口验证恢复路径，
     /// 不依赖点击「继续」——该交互当前受另一个已知缺陷（提交后引导不关闭）阻塞。
     func testToolbarIsPresentWhenWelcomeGuideIsNotShown() throws {
-        #if os(visionOS)
-        try skipOnVisionOS("visionOS 上不存在 cisum.scene.switcher 装饰项")
-        #endif
         XCTAssertTrue(
             element(identifier: "cisum.settings.button").waitForExistence(timeout: 15),
             "引导未展示时设置按钮应可见：工具栏被错误地永久隐藏了"
         )
+        #if os(macOS)
         XCTAssertTrue(
             element(identifier: "cisum.scene.switcher").waitForExistence(timeout: 10),
             "引导未展示时场景切换器应可见：工具栏被错误地永久隐藏了"
         )
+        #else
+        // visionOS / iOS 没有 macOS 的 NSToolbar，场景切换器由窗口装饰 /
+        // 导航栏承载，标识与桌面端不同，这里不做等同类比。
+        #endif
     }
 }
