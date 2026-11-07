@@ -68,8 +68,8 @@ let package = Package(
         .package(name: "PluginPlayBack", path: "../PluginPlayBack"),
         .package(name: "PluginPlaybackHero", path: "../PluginPlaybackHero"),
         .package(url: "https://github.com/CofficLab/LumiPluginPluginManager.git", from: "1.7.0"),
-        // 共享远程包：Coffic「关于」页（我们的应用 + 官方网站 / 隐私政策 / 服务条款）。
-        .package(url: "https://github.com/CofficLab/LumiPluginAbout.git", from: "2.0.0"),
+        // 本地 vendor 的「关于」页：上游写死的产品清单与脚注不满足 Cisum 的需求。
+        .package(name: "LumiPluginAbout", path: "../LumiPluginAbout"),
         .package(name: "PluginPlaybackProgress", path: "../PluginPlaybackProgress"),
         .package(name: "PluginRepositoryGuide", path: "../PluginRepositoryGuide"),
         .package(name: "PluginReset", path: "../PluginReset"),
