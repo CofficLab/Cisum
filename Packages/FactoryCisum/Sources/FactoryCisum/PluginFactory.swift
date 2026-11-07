@@ -23,7 +23,7 @@ import PluginBookProgress
 import PluginBookScene
 import PluginBookSettings
 import PluginAudioControlButtons
-import PluginAppDirectory
+import PluginAbout
 import PluginFileLog
 import PluginLikeButton
 import PluginOpenButton
@@ -130,9 +130,16 @@ public struct DefaultPluginFactory: PluginFactory {
             StorePlugin.shared,
             SystemPlugin.shared,
             SettingGeneralPlugin.shared,
-            // 共享远程包 LumiPluginAppDirectory：设置界面的「我们的应用」入口，
-            // 列出 Coffic Lab 旗下其他应用。注入 Cisum 品牌 id。
-            AppDirectoryPlugin(id: "com.coffic.cisum.plugin.app-directory"),
+            // 共享远程包 LumiPluginAbout：设置界面的「关于」入口。
+            // 页面含 Coffic Lab 旗下其他应用 + Cisum 自己的官网与法律链接。
+            AboutPlugin(
+                id: "com.coffic.cisum.plugin.about",
+                configuration: AboutConfiguration(
+                    officialWebsiteURLString: "https://coffic.cn/cisum",
+                    privacyPolicyURLString: "https://coffic.cn/privacy",
+                    termsOfServiceURLString: "https://coffic.cn/terms"
+                )
+            ),
             PlaybackHeroPlugin.shared,
             AudioControlButtonsPlugin.shared,
             PlaybackProgressPlugin.shared,

@@ -38,12 +38,12 @@
       }
     },
     {
-      "identity" : "lumipluginappdirectory",
+      "identity" : "lumipluginabout",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CofficLab/LumiPluginAppDirectory.git",
+      "location" : "https://github.com/CofficLab/LumiPluginAbout.git",
       "state" : {
-        "revision" : "b72acdfb7811f1a153229d0b1cda5a0230ce6417",
-        "version" : "1.0.2"
+        "revision" : "12e2cc088510c23333394dfeddb2bdc0cd17aa3e",
+        "version" : "2.0.0"
       }
     },
     {
