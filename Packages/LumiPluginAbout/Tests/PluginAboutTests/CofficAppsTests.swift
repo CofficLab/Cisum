@@ -26,10 +26,56 @@ struct CofficAppsTests {
 
     @Test
     func everyAppUsesHttpsCofficURL() throws {
-        for app in CofficApps.all {
+        for app in CofficApps.apps {
             let url = try #require(URL(string: app.urlString))
             #expect(url.scheme == "https")
             #expect(url.host == "coffic.cn")
+        }
+    }
+
+    /// 网站条目与 App 条目必须能区分开，页面上才能分组展示。
+    @Test
+    func websitesAreSeparatedFromApps() {
+        #expect(CofficApps.apps.allSatisfy { $0.kind == .app })
+        #expect(CofficApps.websites.allSatisfy { $0.kind == .website })
+        #expect(CofficApps.apps.count + CofficApps.websites.count == CofficApps.all.count)
+    }
+
+    /// 网站条目指向站点首页，不得混入 App 的官网路径。
+    @Test
+    func websiteEntryPointsToKuzee() throws {
+        let kuzee = try #require(CofficApps.websites.first { $0.id == "kuzee" })
+        #expect(kuzee.nameKey == "Kuzee")
+
+        let url = try #require(URL(string: kuzee.urlString))
+        #expect(url.absoluteString == "https://kuaiyizhi.cn")
+        #expect(url.scheme == "https")
+        #expect(url.host == "kuaiyizhi.cn")
+    }
+
+    /// 网站名称必须随系统语言切换：中文显示「快易知」，英文显示 Kuzee。
+    ///
+    /// 直接读编译产物里的各语言 `.lproj`，断言的是用户实际会看到的文案，
+    /// 而不是「catalog 里存在这个 key」。
+    @Test
+    func websiteNameFollowsSystemLanguage() throws {
+        let kuzee = try #require(CofficApps.websites.first { $0.id == "kuzee" })
+
+        for language in ["zh-Hans", "zh-Hant", "zh-HK", "zh-TW"] {
+            #expect(try #require(Self.localizedIn(language: language, kuzee.nameKey)) == "快易知")
+        }
+        #expect(try #require(Self.localizedIn(language: "en", kuzee.nameKey)) == "Kuzee")
+    }
+
+    /// App 条目的名称不参与改写：各语言下都应保持品牌原拼写。
+    ///
+    /// 这些名称没有目录条目，运行时解析会回退为 key 本身——这里按中英文
+    /// locale 各取一次，确认回退结果就是品牌名。
+    @Test
+    func appNamesStayBrandSpelling() {
+        for app in CofficApps.apps {
+            #expect(pluginLocalization.string(app.nameKey, locale: Locale(identifier: "zh-Hans")) == app.nameKey)
+            #expect(pluginLocalization.string(app.nameKey, locale: Locale(identifier: "en")) == app.nameKey)
         }
     }
 
@@ -39,11 +85,28 @@ struct CofficAppsTests {
         #expect(url.absoluteString == "https://coffic.cn/products")
     }
 
+    /// 关于页的无障碍与 AI 使用说明入口必须指向真实页面。
+    ///
+    /// 两个站点写法不同（一个带 `www`，一个不带），按实际地址断言，
+    /// 避免有人为了「整齐」把域名统一掉。
+    @Test
+    func statementEntryPointsToCofficPages() throws {
+        let accessibility = try #require(URL(string: CofficApps.accessibilityURLString))
+        #expect(accessibility.absoluteString == "https://coffic.cn/accessibility")
+        #expect(accessibility.scheme == "https")
+        #expect(accessibility.host == "coffic.cn")
+
+        let aiUsage = try #require(URL(string: CofficApps.aiUsageURLString))
+        #expect(aiUsage.absoluteString == "https://www.coffic.cn/ai-usage")
+        #expect(aiUsage.scheme == "https")
+        #expect(aiUsage.host == "www.coffic.cn")
+    }
+
     /// 每个应用都必须有名字、图标和简介 key——缺一项列表里就会出现空行。
     @Test
     func everyAppHasCompletePresentationData() {
         for app in CofficApps.all {
-            #expect(!app.name.isEmpty)
+            #expect(!app.nameKey.isEmpty)
             #expect(!app.systemImage.isEmpty)
             #expect(!app.taglineKey.isEmpty)
         }
@@ -88,6 +151,7 @@ struct CofficAppsTests {
     @Test
     func sectionStringsHaveChineseTranslation() throws {
         #expect(try #require(Self.localizedIn(language: "zh-Hans", "Our Apps")) == "我们的应用")
+        #expect(try #require(Self.localizedIn(language: "zh-Hans", "Websites")) == "网站")
         #expect(try #require(Self.localizedIn(language: "zh-Hans", "All Products")) == "全部产品")
     }
 
@@ -99,6 +163,8 @@ struct CofficAppsTests {
         #expect(try #require(Self.localizedIn(language: "zh-Hans", "Official Website")) == "官方网站")
         #expect(try #require(Self.localizedIn(language: "zh-Hans", "Privacy Policy")) == "隐私政策")
         #expect(try #require(Self.localizedIn(language: "zh-Hans", "Terms of Service")) == "服务条款")
+        #expect(try #require(Self.localizedIn(language: "zh-Hans", "Accessibility")) == "无障碍")
+        #expect(try #require(Self.localizedIn(language: "zh-Hans", "AI Usage")) == "AI 使用说明")
     }
 
     /// 按编译产物里的 `.lproj` 解析字符串，验证译文确实被打包进去。
