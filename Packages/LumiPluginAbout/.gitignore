@@ -1,6 +1,0 @@
-.build/
-.swiftpm/
-DerivedData/
-Package.resolved
-xcuserdata/
-.DS_Store

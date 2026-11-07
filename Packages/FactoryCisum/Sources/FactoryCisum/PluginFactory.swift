@@ -131,7 +131,7 @@ public struct DefaultPluginFactory: PluginFactory {
             SystemPlugin.shared,
             SettingGeneralPlugin.shared,
             // 共享远程包 LumiPluginAbout：设置界面的「关于」入口。
-            // 页面含 Coffic Lab 旗下其他应用 + Cisum 自己的官网与法律链接。
+            // 页面含 Coffic Lab 旗下产品（应用与网站）+ Cisum 自己的官网与法律链接。
             AboutPlugin(
                 id: "com.coffic.cisum.plugin.about",
                 configuration: AboutConfiguration(
