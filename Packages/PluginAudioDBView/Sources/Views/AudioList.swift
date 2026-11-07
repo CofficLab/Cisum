@@ -251,7 +251,10 @@ struct AudioList: View, SuperLog {
                 audioListView
 
                 if viewModel.isLoading && viewModel.urls.isEmpty {
-                    AudioLibrarySkeletonView()
+                    AudioLibrarySkeletonView(
+                        phase: viewModel.loadingPhase ?? .openingLibrary,
+                        onRetry: { viewModel.retryLoading() }
+                    )
                 } else if viewModel.urls.isEmpty && !viewModel.isLoading {
                     AudioDBTips(dependencies: dependencies, variant: .empty, isDropping: isDropping)
                 }

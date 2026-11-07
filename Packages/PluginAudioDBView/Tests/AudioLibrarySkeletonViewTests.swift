@@ -70,3 +70,28 @@ struct AudioLibrarySkeletonRowCountTests {
         }
     }
 }
+
+/// 提示强度随时间升级：正常 → 补充原因 → 可操作重试。
+@Suite("AudioLibraryLoadingHintLevel")
+struct AudioLibraryLoadingHintLevelTests {
+    @Test("常见等待只说明当前阶段")
+    func normalWhileFast() {
+        for seconds in [0, 1, 14] {
+            #expect(AudioLibraryLoadingHintLevel.level(forElapsedSeconds: seconds) == .normal)
+        }
+    }
+
+    @Test("超过 15 秒补充「为什么可能更久」")
+    func slowAfterFifteenSeconds() {
+        for seconds in [15, 30, 59] {
+            #expect(AudioLibraryLoadingHintLevel.level(forElapsedSeconds: seconds) == .slow)
+        }
+    }
+
+    @Test("超过 60 秒给出可操作的排查与重试")
+    func stalledAfterOneMinute() {
+        for seconds in [60, 120, 600] {
+            #expect(AudioLibraryLoadingHintLevel.level(forElapsedSeconds: seconds) == .stalled)
+        }
+    }
+}

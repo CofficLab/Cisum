@@ -32,6 +32,9 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     @Published private(set) var totalCount = 0
     @Published private(set) var hasSuccessfullyLoadedRepository = false
 
+    /// 当前骨架屏对应的真实加载阶段；没有加载时为 `nil`。
+    @Published private(set) var loadingPhase: AudioLibraryLoadingPhase?
+
     /// 下载进度状态源。
     ///
     /// 独立于本 ViewModel 发布：进度环子视图只观察这个容器，下载进度变化
@@ -95,7 +98,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
 
     /// 视图出现：加载首页并恢复当前播放选中项。
     func handleOnAppear() {
-        loadInitial()
+        loadInitial(phase: .openingLibrary)
 
         if let asset = currentAsset {
             setSelection(asset)
@@ -243,19 +246,20 @@ final class AudioListViewModel: ObservableObject, SuperLog {
 
     /// 数据库同步完成。
     func handleDBSynced() {
-        refreshCurrentPage(reason: "handleDBSynced")
         isSyncing = false
+        refreshCurrentPage(reason: "handleDBSynced", phase: .reloadingLibrary)
     }
 
     /// 数据库同步开始。
     func handleDBSyncing() {
         isSyncing = true
+        loadingPhase = .syncingRepository
     }
 
     /// 数据库更新（文件新增等）。
     func handleDBUpdated() {
-        refreshCurrentPage(reason: "handleDBUpdated")
         isSyncing = false
+        refreshCurrentPage(reason: "handleDBUpdated", phase: .reloadingLibrary)
     }
 
     /// 数据库删除。
@@ -288,6 +292,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                 selection = nil
             }
         }
+        endLoadingPhaseIfIdle()
     }
 
     /// 数据库排序完成：全量刷新。
@@ -307,12 +312,13 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     // MARK: - Loading
 
     /// 加载首页。
-    private func loadInitial() {
+    private func loadInitial(phase: AudioLibraryLoadingPhase) {
         guard !isLoading else { return }
 
         loadGeneration += 1
         let generation = loadGeneration
         isLoading = true
+        loadingPhase = phase
         hasSuccessfullyLoadedRepository = false
 
         Task { @MainActor in
@@ -324,6 +330,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                 // storage location actually exists.
                 isLoading = false
                 hasSuccessfullyLoadedRepository = false
+                endLoadingPhaseIfIdle()
                 presentLoadFailureIfNeeded()
                 return
             }
@@ -355,6 +362,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                     self.currentPage = 1
                     self.hasMore = urls.count == pageSize
                     self.isLoading = false
+                    self.endLoadingPhaseIfIdle()
                     self.autoSelectFirstIfNeeded()
                 }
             }
@@ -421,8 +429,8 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     }
 
     /// 刷新当前页，保留分页状态。
-    private func refreshCurrentPage(reason: String) {
-        loadCurrentPageData(reason: reason)
+    private func refreshCurrentPage(reason: String, phase: AudioLibraryLoadingPhase) {
+        loadCurrentPageData(reason: reason, phase: phase)
     }
 
     /// 全量重置并刷新，且**文件身份已失效**（存储位置切换）。
@@ -433,7 +441,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         AudioItemFileSizeCache.removeAll()
         downloadStore.removeAll()
 
-        resetListState(reason: reason)
+        resetListState(reason: reason, phase: .openingLibrary)
     }
 
     /// 全量重置并刷新，**文件级状态继续有效**（排序完成、库内文件数量变化）。
@@ -444,11 +452,11 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     private func refresh(reason: String) {
         AudioItemFileSizeCache.removeAll()
 
-        resetListState(reason: reason)
+        resetListState(reason: reason, phase: .reloadingLibrary)
     }
 
     /// 只重置列表自身的分页与加载状态。
-    private func resetListState(reason: String) {
+    private func resetListState(reason: String, phase: AudioLibraryLoadingPhase) {
         loadGeneration += 1
         currentPage = 0
         hasMore = true
@@ -456,7 +464,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         isLoading = false
         isLoadingMore = false
 
-        loadInitial()
+        loadInitial(phase: phase)
     }
 
     /// 重载当前页数据以刷新已加载内容。
@@ -464,7 +472,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     /// 同 `refresh(reason:)`：数据库 `synced` / `updated` 在 iCloud 下载期间会随
     /// 百分比变化高频触发（`NSMetadataQuery` 把每次进度更新都算作目录变更），
     /// 在此清空进度即等于让进度环以刷新频率反复闪烁。
-    private func loadCurrentPageData(reason: String) {
+    private func loadCurrentPageData(reason: String, phase: AudioLibraryLoadingPhase) {
         AudioItemFileSizeCache.removeAll()
 
         loadGeneration += 1
@@ -472,6 +480,9 @@ final class AudioListViewModel: ObservableObject, SuperLog {
         let loadingState = AudioListLoadPolicy.loadingStateWhenStartingCurrentPageRefresh(displayedCount: urls.count)
         isLoading = loadingState.isLoading
         isLoadingMore = loadingState.isLoadingMore
+        // 列表已有内容时不显示骨架屏，阶段提示也就没有承载物；清掉阶段，
+        // 只保留表头的同步指示器。
+        loadingPhase = loadingState.isLoading ? phase : nil
         if urls.isEmpty {
             hasSuccessfullyLoadedRepository = false
         }
@@ -481,6 +492,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                 isLoading = false
                 isLoadingMore = false
                 hasSuccessfullyLoadedRepository = false
+                endLoadingPhaseIfIdle()
                 presentRefreshFailureIfNeeded()
                 return
             }
@@ -526,6 +538,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                                 self.hasSuccessfullyLoadedRepository = true
                                 self.isLoading = false
                                 self.isLoadingMore = false
+                                self.endLoadingPhaseIfIdle()
                             }
                         }
                     } else {
@@ -533,6 +546,7 @@ final class AudioListViewModel: ObservableObject, SuperLog {
                         self.hasSuccessfullyLoadedRepository = true
                         self.isLoading = false
                         self.isLoadingMore = false
+                        self.endLoadingPhaseIfIdle()
                     }
                 }
             }
@@ -540,6 +554,20 @@ final class AudioListViewModel: ObservableObject, SuperLog {
     }
 
     // MARK: - Helpers
+
+    /// 用户从骨架屏点击「重新加载」：重新读取当前曲库列表。
+    ///
+    /// 只重建列表侧的状态并重新读取；不触碰文件级缓存与下载进度——
+    /// 重试的是「读取列表」，不是「丢弃已有事实」。
+    func retryLoading() {
+        refresh(reason: "Manual retry")
+    }
+
+    /// 所有加载 / 同步都结束后清空阶段，避免骨架屏消失后仍残留提示状态。
+    private func endLoadingPhaseIfIdle() {
+        guard !isLoading, !isLoadingMore, !isSyncing else { return }
+        loadingPhase = nil
+    }
 
     /// 首次加载失败时按需提示。
     ///
