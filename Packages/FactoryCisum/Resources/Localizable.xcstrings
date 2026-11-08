@@ -15,13 +15,19 @@
             "value" : "应用支持目录不存在"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "應用支持目錄不存在"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "應用支持目錄不存在"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "應用支援目錄不存在"
@@ -43,19 +49,28 @@
             "value" : "外观"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "外觀"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外觀"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "外觀"
           }
         }
       }
+    },
+    "Cisum" : {
+
     },
     "Container directory does not exist" : {
       "localizations" : {
@@ -71,13 +86,19 @@
             "value" : "容器目录不存在"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "容器目錄不存在"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "容器目錄不存在"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "容器目錄不存在"
@@ -99,13 +120,19 @@
             "value" : "数据库目录不存在"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "數據庫目錄不存在"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "數據庫目錄不存在"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "資料庫目錄不存在"
@@ -127,13 +154,19 @@
             "value" : "调试"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "調試"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "調試"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "除錯"
@@ -155,13 +188,19 @@
             "value" : "文稿目录不存在"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "文稿目錄不存在"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文稿目錄不存在"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "文稿目錄不存在"
@@ -183,16 +222,56 @@
             "value" : "打开目录出错"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "打開目錄出錯"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開目錄出錯"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟目錄出錯"
+          }
+        }
+      }
+    },
+    "Loading media library…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading media library…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在加载媒体库…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在載入媒體庫…"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在載入媒體庫…"
+          }
+        },
+        "zh-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在載入媒體庫…"
           }
         }
       }
@@ -211,13 +290,19 @@
             "value" : "正在加载…"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在載入…"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在載入…"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在載入…"
@@ -239,13 +324,19 @@
             "value" : "好"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "好"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "好"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "好"
@@ -267,13 +358,19 @@
             "value" : "打开应用支持目录"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "打開應用支持目錄"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開應用支持目錄"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟應用支援目錄"
@@ -295,13 +392,19 @@
             "value" : "打开容器目录"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "打開容器目錄"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開容器目錄"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟容器目錄"
@@ -323,13 +426,19 @@
             "value" : "打开数据库目录"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "打開數據庫目錄"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開數據庫目錄"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟資料庫目錄"
@@ -351,16 +460,56 @@
             "value" : "打开文稿目录"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "打開文稿目錄"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開文稿目錄"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟文稿目錄"
+          }
+        }
+      }
+    },
+    "Preparing the interface…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing the interface…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在准备界面…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在準備介面…"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在準備介面…"
+          }
+        },
+        "zh-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在準備介面…"
           }
         }
       }
@@ -379,13 +528,19 @@
             "value" : "RootViewProviding 未注册"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "RootViewProviding 未註冊"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RootViewProviding 未註冊"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "RootViewProviding 未註冊"
@@ -407,13 +562,19 @@
             "value" : "设置不可用"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "設定不可用"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定不可用"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "設定不可用"
@@ -435,16 +596,56 @@
             "value" : "设置…"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "設定…"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "設定…"
+          }
+        },
+        "zh-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定…"
+          }
+        }
+      }
+    },
+    "Starting Cisum…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starting Cisum…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在启动 Cisum…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在啟動 Cisum…"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在啟動 Cisum…"
+          }
+        },
+        "zh-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在啟動 Cisum…"
           }
         }
       }
@@ -463,13 +664,19 @@
             "value" : "主题"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "主題"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主題"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "主題"
@@ -491,13 +698,19 @@
             "value" : "无法启动 Cisum"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法啟動 Cisum"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法啟動 Cisum"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法啟動 Cisum"

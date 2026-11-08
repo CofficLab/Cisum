@@ -7,6 +7,7 @@ let package = Package(
     platforms: [
         .macOS(.v14),
         .iOS(.v17),
+        .visionOS(.v2),
     ],
     products: [
         .library(
@@ -16,11 +17,12 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.11.1"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.12.0"),
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.0"),
         .package(path: "../ProviderPlugin"),
         .package(name: "ProviderControlView", path: "../ProviderControlView"),
         .package(name: "ProviderAudioLibrary", path: "../ProviderAudioLibrary"),
+        .package(name: "ProviderBook", path: "../ProviderBook"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
         .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.18.0"),
     ],
@@ -34,6 +36,7 @@ let package = Package(
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "ProviderControlView", package: "ProviderControlView"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+                .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
             ],
@@ -50,6 +53,7 @@ let package = Package(
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "ProviderControlView", package: "ProviderControlView"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+                .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
             ],
             path: "Tests"

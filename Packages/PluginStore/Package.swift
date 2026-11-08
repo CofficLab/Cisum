@@ -6,7 +6,8 @@ let package = Package(
     defaultLocalization: "en",
     platforms: [
         .macOS(.v14),
-        .iOS(.v17)
+        .iOS(.v17),
+        .visionOS(.v2),
     ],
     products: [
         .library(
@@ -17,7 +18,7 @@ let package = Package(
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
         .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.1.0"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.11.1"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.12.0"),
         .package(path: "../ProviderStoreKit"),
         .package(path: "../ProviderAudioLibrary"),
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.0"),

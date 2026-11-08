@@ -290,14 +290,78 @@ indirection without narrowing, which is the actual defect the pattern exists to 
 
 ### Swift Package Manager
 
-- Packages declare `swift-tools-version: 6.0` (`MagicPlayMan` is still on 5.9) and use
-  the Swift 6 language mode.
-- Platforms are `.macOS(.v14)` and `.iOS(.v17)`.
+- Packages declare `swift-tools-version: 6.0` and use the Swift 5 language mode
+  (`swiftLanguageModes: [.v5]`).
+- Platforms are `.macOS(.v14)`, `.iOS(.v17)` and `.visionOS(.v2)`. Every package
+  under `Packages/` declares all three — see [Platform support](#platform-support).
 - Packages that ship resources declare `defaultLocalization: "en"`. The four
   resource-free packages (`KitAppEvents`, `KitAudioRepositoryImport`,
   `KitEventObservation`, `ProviderSettingsHost`) omit it.
 - Local dependencies use `.package(path: "../OtherPackage")`; shared packages use
   `.package(url: "https://github.com/CofficLab/...", from: "x.y.z")`.
+
+### Platform support
+
+Cisum ships on three platforms: **macOS 14+**, **iOS/iPadOS 17+** and
+**visionOS 2+**.
+
+```bash
+xcodebuild -project Cisum.xcodeproj -scheme Cisum -destination 'platform=macOS' build
+xcodebuild -project Cisum.xcodeproj -scheme Cisum -destination 'generic/platform=iOS' build
+xcodebuild -project Cisum.xcodeproj -scheme Cisum -destination 'generic/platform=visionOS' build
+```
+
+> **Use `-jobs 1`.** Concurrent Swift compilation of `LumiUI` crashes the SDK's
+> `swift-plugin-server` ("produced malformed response"), which surfaces as
+> bogus errors in `PreviewsMacros`/`SwiftUIMacros` expansion. It is a
+> concurrency bug in the toolchain, not in this codebase; `-jobs 1` avoids it.
+
+#### Writing platform-conditional code
+
+visionOS is a **UIKit** platform, not an AppKit one. Anything that works on
+iOS should also work on visionOS, so prefer `#if os(iOS) || os(visionOS)` over
+platform-specific forks. Watch for these traps:
+
+| Trap | Why | What to do |
+|------|-----|------------|
+| `#elseif os(iOS)` | visionOS falls into the empty branch — the code silently disappears | Use `#elseif os(iOS) \|\| os(visionOS)` |
+| `UIScreen.main` | `UIScreen` is **unavailable** on visionOS | Return a zero size; visionOS layouts follow the window, not a main screen |
+| `UIDevice.current.userInterfaceIdiom` | visionOS has no iPad idiom | `isPad` must be `false` there |
+| `Product.purchase(options:)` | StoreKit marks it **unavailable** on visionOS | Use `purchase(confirmIn: scene)` with a `UIScene` |
+| `WidgetCenter` | Only available from visionOS 26.0 | Guard with `#available(visionOS 26.0, *)` |
+| `Process` / shell execution | Not permitted on visionOS | Keep the iOS-style no-op placeholder |
+
+#### Vendored upstream packages
+
+Two upstream packages are vendored under `Packages/` because they have not
+been adapted to visionOS yet. Both keep the upstream source structure so
+upstream changes stay easy to merge:
+
+| Package | Upstream | Why vendored |
+|---------|----------|--------------|
+| `Packages/LumiStoreKit` | [CofficLab/LumiStoreKit](https://github.com/CofficLab/LumiStoreKit) | `purchase(options:)` is unavailable on visionOS |
+| `Packages/LumiPluginSettingView` | [CofficLab/LumiPluginSettingView](https://github.com/CofficLab/LumiPluginSettingView) | `#elseif os(iOS)` leaves the settings shell out of visionOS builds |
+
+`Packages/MagicKit` is also vendored (see `git log --grep="vendor MagicKit"`).
+
+#### App targets and Info.plist
+
+Each platform has its own Info.plist, selected by build-setting condition:
+
+| Platform | Release | Debug |
+|----------|---------|-------|
+| iOS / iPadOS | `CisumApp/Cisum-Info.plist` | `CisumApp/Cisum-Info-Debug.plist` |
+| macOS | `CisumApp/Cisum-Info-macOS.plist` | `CisumApp/Cisum-Info-macOS-Debug.plist` |
+| visionOS | `CisumApp/Cisum-Info-visionOS.plist` | `CisumApp/Cisum-Info-visionOS-Debug.plist` |
+
+iOS-only keys (`UILaunchScreen`, interface orientations) live in the iOS
+plists only — the visionOS plist omits them. Interface orientations are
+declared in the plist rather than in `INFOPLIST_KEY_*` build settings, because
+Xcode applies the `~ipad` orientation variant on every SDK regardless of the
+`sdk=` build-setting condition.
+
+The visionOS app icon is a layered icon: `Assets.xcassets/AppIcon.solidimagestack`
+holds the three visionOS layers (`idiom: vision`, `2x`).
 
 ---
 
@@ -345,11 +409,51 @@ String(localized: "Only %lld files were added because the free file limit is alm
 ### Adding a language
 
 1. Add the key with an English source value to the package's `.xcstrings`.
-2. Add `zh-Hans` (Simplified Chinese) and `zh-HK` (Traditional Chinese) entries.
+2. Add every supported language entry. The set matches the upstream Lumi
+   packages and must stay in sync with them:
+
+   | Language id | Meaning |
+   |-------------|---------|
+   | `en` | English (source language) |
+   | `zh-Hans` | Simplified Chinese |
+   | `zh-Hant` | Generic Traditional Chinese |
+   | `zh-HK` | Traditional Chinese (Hong Kong) |
+   | `zh-TW` | Traditional Chinese (Taiwan) |
+
 3. Keep the source language English — never use Chinese as the key.
-4. If the package lists `sources:` explicitly, confirm the `Resources` directory is
+4. `zh-Hant` is the generic Traditional fallback and normally mirrors
+   `zh-HK`. Only give `zh-HK` and `zh-TW` different wording where the two
+   markets genuinely differ.
+5. If the package lists `sources:` explicitly, confirm the `Resources` directory is
    included in `resources: [.process("Resources")]` or
    `.process("Resources/Localizable.xcstrings")`.
+
+### Locale naming
+
+- Use the ids above verbatim. `zh-Hant-HK` and `zh-Hant-TW` are **not** valid
+  catalog ids — Xcode still compiles them, but they are not standard locale
+  identifiers and only match by string approximation.
+- The app target (`CisumApp/Localizable.xcstrings`) uses the same ids. Its
+  `zh-Hant` / `zh-HK` / `zh-TW` entries also have to be listed in
+  `Cisum.xcodeproj/project.xcproj` under `localizations.supported`, otherwise
+  Xcode does not emit the matching `.lproj`.
+- A catalog key must not contain `>`. Xcode's string catalog compiler silently
+  drops such entries, which leaves the UI showing the raw English key.
+
+### Resolving a locale at runtime
+
+`String(localized:bundle:locale:)` ignores its `locale` argument — the result
+is decided by `Bundle.preferredLocalizations`, which for a plugin bundle is
+driven by the app bundle's own localizations. A plugin that needs an explicit
+language must look the value up itself, the way
+`MagicPlayMan`'s `Localization` does, following the upstream `LumiLocalization`
+fallback chain:
+
+```text
+zh-Hant → zh-TW → zh-HK
+zh-TW   → zh-Hant → zh-HK
+zh-HK   → zh-Hant → zh-TW
+```
 
 ---
 

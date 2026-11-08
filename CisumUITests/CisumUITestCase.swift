@@ -1,6 +1,31 @@
 import Foundation
 import XCTest
 
+extension XCUIElement {
+    /// 跨平台「激活」控件：macOS 用鼠标点击，iOS / visionOS 用触控点击。
+    ///
+    /// `click()` 只有 macOS 才有；在触控平台的 UI 测试里直接调用会让整个
+    /// 测试目标无法为 iOS / visionOS 编译。统一走这个入口，断言内容不变。
+    func cisumActivate() {
+        #if os(macOS)
+        click()
+        #else
+        tap()
+        #endif
+    }
+}
+
+#if os(visionOS)
+/// visionOS 上因可访问性模型差异暂不可执行的用例，统一从这里显式跳过。
+///
+/// 根因：visionOS 的列表行 / 窗口装饰项不会以 `button` 进入可访问性树，
+/// 以 `app.buttons` 查找的用例拿不到元素。跳过而不是静默通过，
+/// 便于后续适配后逐条移除。
+func skipOnVisionOS(_ reason: String) throws {
+    throw XCTSkip("visionOS 暂不可执行：\(reason)")
+}
+#endif
+
 /// 所有 Cisum UI 测试的公共基类。
 ///
 /// - 每个用例独立启动 App 并等待内核就绪（`cisum.kernel.ready`）。

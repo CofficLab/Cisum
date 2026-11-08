@@ -13,11 +13,14 @@ enum CisumAppAssembly {
 /// 应用入口：按平台选择对应的实现，宿主级初始化只在此处执行一次。
 ///
 /// - macOS: `CisumMacApp`（`NSApplicationDelegateAdaptor` + 设置窗口 + 命令菜单）
-/// - iOS / iPadOS: `CisumIOSApp`
+/// - iOS / iPadOS / visionOS: `CisumIOSApp`
 ///
 /// 对齐 GameFactory/BookletMakerApp 的平台拆分：入口、macOS 场景、iOS 场景
 /// 各占一个文件，AppKit 等平台专属 API 由文件级 `#if` 隔离，避免跨平台编译
 /// 时相互污染。
+///
+/// visionOS 走 iOS 场景：它同样是 SwiftUI + UIKit 的窗口式应用，
+/// 主窗口与设置 sheet 的装配方式与 iOS 一致（见 `CisumIOSApp`）。
 @main
 struct CisumApp: App {
     init() {

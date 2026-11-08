@@ -15,13 +15,19 @@
             "value" : "插件初始化过程中发生错误"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "插件初始化過程中發生錯誤"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "插件初始化過程中發生錯誤"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "外掛初始化過程中發生錯誤"
@@ -43,13 +49,19 @@
             "value" : "有声书"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "有聲書"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "有聲書"
@@ -71,13 +83,19 @@
             "value" : "有声书播放功能"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "有聲書播放功能"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書播放功能"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "有聲書播放功能"
@@ -99,13 +117,19 @@
             "value" : "有声书插件宿主配置未完成"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "有聲書插件宿主配置未完成"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書插件宿主配置未完成"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "有聲書外掛宿主配置未完成"
@@ -127,13 +151,19 @@
             "value" : "请检查磁盘权限与路径设置"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "請檢查磁盤權限與路徑設置"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請檢查磁盤權限與路徑設置"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "請檢查磁碟許可權與路徑設定"
@@ -155,13 +185,19 @@
             "value" : "请检查应用启动流程"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "請檢查應用啓動流程"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請檢查應用啓動流程"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "請檢查應用啟動流程"
@@ -183,13 +219,19 @@
             "value" : "请检查播放顺序或选择其他条目"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "請檢查播放順序或選擇其他條目"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請檢查播放順序或選擇其他條目"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "請檢查播放順序或選擇其他條目"
@@ -211,13 +253,19 @@
             "value" : "磁盘未找到"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "磁盤未找到"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "磁盤未找到"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "磁碟未找到"
@@ -239,13 +287,19 @@
             "value" : "初始化失败: %@"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "初始化失敗: %@"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "初始化失敗: %@"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "初始化失敗: %@"
@@ -267,13 +321,19 @@
             "value" : "没有下一个章节/文件"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "沒有下一個章節/文件"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有下一個章節/文件"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "沒有下一個章節/檔案"
@@ -295,13 +355,19 @@
             "value" : "没有上一个章节/文件"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "沒有上一個章節/文件"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有上一個章節/文件"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "沒有上一個章節/檔案"
@@ -324,13 +390,19 @@
             "value" : "无"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "無"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "無"
@@ -352,13 +424,19 @@
             "value" : "应用尚未注入数据库和存储路径配置"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "應用尚未注入數據庫和存儲路徑配置"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "應用尚未注入數據庫和存儲路徑配置"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "應用尚未注入資料庫和儲存路徑配置"
@@ -380,13 +458,19 @@
             "value" : "当前已是第一个条目"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "當前已是第一個條目"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當前已是第一個條目"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "當前已是第一個條目"
@@ -408,13 +492,19 @@
             "value" : "当前已是最后一个条目"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "當前已是最後一個條目"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當前已是最後一個條目"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "當前已是最後一個條目"
@@ -436,13 +526,19 @@
             "value" : "指定的磁盘路径不存在或无法访问"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "指定的磁盤路徑不存在或無法訪問"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指定的磁盤路徑不存在或無法訪問"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "指定的磁碟路徑不存在或無法訪問"
@@ -464,13 +560,19 @@
             "value" : "请尝试重启应用或检查设置"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "請嘗試重啓應用或檢查設置"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請嘗試重啓應用或檢查設置"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "請嘗試重啟應用或檢查設定"
@@ -492,13 +594,19 @@
             "value" : "无法访问磁盘"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法訪問磁盤"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法訪問磁盤"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法訪問磁碟"

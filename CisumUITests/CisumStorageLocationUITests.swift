@@ -84,7 +84,7 @@ final class CisumStorageLocationUITests: CisumUITestBase {
             throw XCTSkip("iCloud 不可用，无法验证位置切换")
         }
 
-        icloud.click()
+        icloud.cisumActivate()
 
         // 迁移进度以 sheet 形式呈现。
         let sheet = app.sheets.firstMatch
@@ -101,7 +101,7 @@ final class CisumStorageLocationUITests: CisumUITestBase {
         let current = element(identifier: "cisum.settings.storage.local")
         XCTAssertTrue(current.waitForExistence(timeout: 10), "存储设置页缺少本地存储选项")
 
-        current.click()
+        current.cisumActivate()
 
         // 迁移面板不应出现。
         XCTAssertFalse(

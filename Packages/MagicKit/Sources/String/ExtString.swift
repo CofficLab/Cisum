@@ -1,7 +1,7 @@
 import Foundation
 import CoreFoundation
 import OSLog
-#if os(iOS)
+#if os(iOS) || os(visionOS)
     import UIKit
 #endif
 #if os(macOS)
@@ -284,7 +284,7 @@ extension String {
         #if os(macOS)
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(self, forType: .string)
-        #elseif os(iOS) || os(tvOS)
+        #elseif os(iOS) || os(tvOS) || os(visionOS)
             UIPasteboard.general.string = self
         #endif
     }

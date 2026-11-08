@@ -15,13 +15,19 @@
             "value" : "基本操作"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "基本操作"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "基本操作"
@@ -43,13 +49,19 @@
             "value" : "浏览并播放音乐。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "瀏覽並播放音樂。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "瀏覽並播放音樂。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "瀏覽並播放音樂。"
@@ -71,13 +83,19 @@
             "value" : "核心能力"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "核心能力"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "核心能力"
@@ -99,13 +117,19 @@
             "value" : "进入音乐仓库"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "進入音樂倉庫"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "進入音樂倉庫"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "進入音樂倉庫"
@@ -127,13 +151,19 @@
             "value" : "在场景切换器中进入音乐库。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "在場景切換器中進入音樂庫。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在場景切換器中進入音樂庫。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "在場景切換器中進入音樂庫。"
@@ -155,13 +185,19 @@
             "value" : "音乐库"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音樂庫"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂庫"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音樂庫"
@@ -183,13 +219,19 @@
             "value" : "音乐库：音乐场景的主界面。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音樂庫：音樂場景的主介面。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂庫：音樂場景的主介面。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音樂庫：音樂場景的主介面。"
@@ -211,13 +253,19 @@
             "value" : "音乐场景"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音樂場景"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂場景"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音樂場景"
@@ -239,13 +287,19 @@
             "value" : "说明"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "說明"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "說明"
@@ -267,13 +321,19 @@
             "value" : "概述"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "概述"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "概述"
@@ -295,13 +355,19 @@
             "value" : "插件"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "外掛程式"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "外掛程式"
@@ -323,13 +389,19 @@
             "value" : "提供音乐库场景"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "提供音樂庫場景"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供音樂庫場景"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "提供音樂庫場景"
@@ -351,13 +423,19 @@
             "value" : "提供「音乐库」场景，是音乐功能的主入口。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "提供「音樂庫」場景，是音樂功能的主入口。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供「音樂庫」場景，是音樂功能的主入口。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "提供「音樂庫」場景，是音樂功能的主入口。"
@@ -379,13 +457,19 @@
             "value" : "场景切换"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "場景切換"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "場景切換"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "場景切換"
@@ -407,13 +491,19 @@
             "value" : "场景切换：与其他场景（有声书）互斥切换。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "場景切換：與其他場景（有聲書）互斥切換。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "場景切換：與其他場景（有聲書）互斥切換。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "場景切換：與其他場景（有聲書）互斥切換。"
@@ -435,13 +525,19 @@
             "value" : "场景由应用内置，固定不可扩展。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "場景由應用程式內建，固定不可擴充。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "場景由應用程式內建，固定不可擴充。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "場景由應用程式內建，固定不可擴充。"
@@ -463,13 +559,19 @@
             "value" : "与其他场景（有声书）互斥切换。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "與其他場景（有聲書）互斥切換。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "與其他場景（有聲書）互斥切換。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "與其他場景（有聲書）互斥切換。"
@@ -491,13 +593,19 @@
             "value" : "音乐场景的主界面。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音樂場景的主介面。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂場景的主介面。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音樂場景的主介面。"
@@ -519,13 +627,19 @@
             "value" : "类型"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "類型"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "類型"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "類型"
@@ -547,13 +661,19 @@
             "value" : "用户手册"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用者手冊"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用者手冊"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用者手冊"
@@ -575,13 +695,19 @@
             "value" : "版本"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "版本"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "版本"

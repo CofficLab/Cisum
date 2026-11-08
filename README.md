@@ -54,6 +54,8 @@ Plugins never depend on each other directly — shared behavior travels through
 | Xcode | 27.2 or later |
 | Swift | 6.0 or later |
 
+Cisum runs on **macOS 14+**, **iOS / iPadOS 17+** and **visionOS 2+**.
+
 ### Build and run
 
 ```bash
@@ -62,7 +64,13 @@ cd Cisum
 
 xcodebuild -list -project Cisum.xcodeproj
 xcodebuild -project Cisum.xcodeproj -scheme Cisum -destination 'platform=macOS' build
+xcodebuild -project Cisum.xcodeproj -scheme Cisum -destination 'generic/platform=iOS' build
+xcodebuild -project Cisum.xcodeproj -scheme Cisum -destination 'generic/platform=visionOS' build
 ```
+
+> Pass `-jobs 1` to `xcodebuild`: concurrent Swift compilation of `LumiUI` trips a
+> `swift-plugin-server` crash in the SDK and surfaces as bogus macro-expansion
+> errors. It is a toolchain concurrency bug, not a project one.
 
 ### Build and test a single package
 

@@ -15,13 +15,19 @@
             "value" : "有声书控制"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "有聲書控制"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書控制"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "有聲書控制"
@@ -43,13 +49,19 @@
             "value" : "有声书控制不可用"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "有聲書控制無法使用"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書控制無法使用"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "有聲書控制無法使用"
@@ -71,13 +83,19 @@
             "value" : "基本操作"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "基本操作"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "基本操作"
@@ -99,13 +117,19 @@
             "value" : "书籍播放控制"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "書籍播放控制"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "書籍播放控制"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "書籍播放控制"
@@ -127,13 +151,19 @@
             "value" : "负责书籍播放控制功能，如上一章、下一章"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "負責書籍播放控制功能，如上一章、下一章"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "負責書籍播放控制功能，如上一章、下一章"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "負責書籍播放控制功能，如上一章、下一章"
@@ -155,13 +185,19 @@
             "value" : "无法播放下一章"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法播放下一章"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法播放下一章"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法播放下一章"
@@ -183,13 +219,19 @@
             "value" : "无法播放上一章"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法播放上一章"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法播放上一章"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法播放上一章"
@@ -211,13 +253,19 @@
             "value" : "点击上一章 / 下一章切换章节。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "按一下上一章 / 下一章切換章節。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按一下上一章 / 下一章切換章節。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "按一下上一章 / 下一章切換章節。"
@@ -239,13 +287,19 @@
             "value" : "在播放区域点击播放 / 暂停按钮。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "在播放區域按一下播放 / 暫停按鈕。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在播放區域按一下播放 / 暫停按鈕。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "在播放區域按一下播放 / 暫停按鈕。"
@@ -267,13 +321,19 @@
             "value" : "控制当前有声书的播放、暂停与上下章节。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "控制目前有聲書的播放、暫停與上下章節。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "控制目前有聲書的播放、暫停與上下章節。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "控制目前有聲書的播放、暫停與上下章節。"
@@ -295,13 +355,19 @@
             "value" : "核心能力"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "核心能力"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "核心能力"
@@ -323,13 +389,19 @@
             "value" : "下一章"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "下一章"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一章"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "下一章"
@@ -351,13 +423,19 @@
             "value" : "下一章：切换到下一章节。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "下一章：切換到下一章節。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一章：切換到下一章節。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "下一章：切換到下一章節。"
@@ -379,13 +457,19 @@
             "value" : "没有可用的下一章。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "沒有可用的下一章。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有可用的下一章。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "沒有可用的下一章。"
@@ -407,13 +491,19 @@
             "value" : "没有可用的上一章。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "沒有可用的上一章。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有可用的上一章。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "沒有可用的上一章。"
@@ -435,13 +525,19 @@
             "value" : "说明"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "說明"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "說明"
@@ -463,13 +559,19 @@
             "value" : "一键切换播放状态。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "一鍵切換播放狀態。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一鍵切換播放狀態。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "一鍵切換播放狀態。"
@@ -491,13 +593,19 @@
             "value" : "概述"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "概述"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "概述"
@@ -519,13 +627,19 @@
             "value" : "播放 / 暂停"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放 / 暫停"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放 / 暫停"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放 / 暫停"
@@ -547,13 +661,19 @@
             "value" : "播放 / 暂停：一键切换播放状态。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放 / 暫停：一鍵切換播放狀態。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放 / 暫停：一鍵切換播放狀態。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放 / 暫停：一鍵切換播放狀態。"
@@ -575,13 +695,19 @@
             "value" : "插件"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "外掛程式"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "外掛程式"
@@ -603,13 +729,19 @@
             "value" : "上一章"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "上一章"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上一章"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "上一章"
@@ -631,13 +763,19 @@
             "value" : "上一章：切换到上一章节。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "上一章：切換到上一章節。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上一章：切換到上一章節。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "上一章：切換到上一章節。"
@@ -659,13 +797,19 @@
             "value" : "需先有正在播放的有声书。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "需要有正在播放的有聲書。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要有正在播放的有聲書。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "需要有正在播放的有聲書。"
@@ -687,13 +831,19 @@
             "value" : "切换到下一章节。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "切換到下一章節。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換到下一章節。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "切換到下一章節。"
@@ -715,13 +865,19 @@
             "value" : "切换到上一章节。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "切換到上一章節。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換到上一章節。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "切換到上一章節。"
@@ -743,13 +899,19 @@
             "value" : "播放服务不可用。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放服務無法使用。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放服務無法使用。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放服務無法使用。"
@@ -771,13 +933,19 @@
             "value" : "当前没有有声书章节。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "目前沒有有聲書章節。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前沒有有聲書章節。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "目前沒有有聲書章節。"
@@ -799,13 +967,19 @@
             "value" : "类型"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "類型"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "類型"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "類型"
@@ -827,13 +1001,19 @@
             "value" : "用户手册"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用者手冊"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用者手冊"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用者手冊"
@@ -855,13 +1035,19 @@
             "value" : "版本"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "版本"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "版本"

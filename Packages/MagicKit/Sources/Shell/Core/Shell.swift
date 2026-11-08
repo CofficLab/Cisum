@@ -2,32 +2,33 @@ import Foundation
 import OSLog
 import SwiftUI
 
-#if os(iOS)
-    // iOS 不支持本地 shell 执行，提供受限占位实现，避免在 iOS 目标下编译失败
-    @available(iOS 13.0, *)
+#if os(iOS) || os(visionOS)
+    // iOS / visionOS 不支持本地 shell 执行，提供受限占位实现，避免在这些
+    // 目标下编译失败
+    @available(iOS 13.0, visionOS 2.0, *)
     class Shell: SuperLog {
         static let emoji = "🐚"
 
         static func run(_ command: String, at path: String? = nil, verbose: Bool = false) async throws -> String {
-            throw ShellError.commandFailed("Shell is unavailable on iOS", command)
+            throw ShellError.commandFailed("Shell is unavailable on this platform", command)
         }
 
         @discardableResult
         static func runSync(_ command: String, at path: String? = nil, verbose: Bool = false) throws -> String {
-            throw ShellError.commandFailed("Shell is unavailable on iOS", command)
+            throw ShellError.commandFailed("Shell is unavailable on this platform", command)
         }
 
         static func runMultiple(_ commands: [String], at path: String? = nil, verbose: Bool = false) throws -> [String] {
-            throw ShellError.commandFailed("Shell is unavailable on iOS", commands.joined(separator: "; "))
+            throw ShellError.commandFailed("Shell is unavailable on this platform", commands.joined(separator: "; "))
         }
 
         static func runWithStatus(_ command: String, at path: String? = nil, verbose: Bool = false) -> (output: String, exitCode: Int32) {
-            ("Shell is unavailable on iOS", -1)
+            ("Shell is unavailable on this platform", -1)
         }
 
         static func isCommandAvailable(_ command: String) -> Bool { false }
         static func getCommandPath(_ command: String) -> String? { nil }
-        static func configureGitCredentialCache() -> String { "Shell is unavailable on iOS" }
+        static func configureGitCredentialCache() -> String { "Shell is unavailable on this platform" }
     }
 #endif
 

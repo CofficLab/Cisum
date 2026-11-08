@@ -1,5 +1,6 @@
 import LumiUI
 
+import MagicKit
 import SwiftUI
 import CisumProviderStorage
 
@@ -12,11 +13,25 @@ enum RepositoryInfoActionPolicy {
         guard url.isFileURL else { return false }
         return fileExists(url.path)
     }
+
+    /// 「在文件管理器中打开」入口是否应展示。
+    ///
+    /// 三个条件缺一不可：
+    /// 1. 平台支持（iOS 上打开沙盒目录必然失败）；
+    /// 2. 目录确实存在；
+    /// 3. 指向的是本地文件 URL。
+    static func shouldOfferOpenEntry(
+        _ url: URL?,
+        supportsFileManager: Bool = URLOpenActionPolicy.shouldOfferFileManagerEntry,
+        fileExists: (String) -> Bool = FileManager.default.fileExists(atPath:)
+    ) -> Bool {
+        guard supportsFileManager else { return false }
+        return canOpenInFinder(url, fileExists: fileExists)
+    }
 }
 
 struct RepositoryInfoView: View {
     @LumiTheme private var appTheme
-    let isDesktop: Bool
 
     let title: String
     let location: StorageLocation?
@@ -55,8 +70,7 @@ struct RepositoryInfoView: View {
             Spacer()
 
             if let root = url,
-               isDesktop,
-               RepositoryInfoActionPolicy.canOpenInFinder(root) {
+               RepositoryInfoActionPolicy.shouldOfferOpenEntry(root) {
                 AppButton(systemImage: "arrow.up.forward.square", style: .ghost, size: .small) {
                     root.openFolder()
                 }

@@ -15,13 +15,19 @@
             "value" : "音频库初始化失败"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音頻庫初始化失敗"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音頻庫初始化失敗"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音訊庫初始化失敗"
@@ -44,13 +50,19 @@
             "value" : "音频播放功能"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音頻播放功能"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音頻播放功能"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音訊播放功能"
@@ -72,13 +84,19 @@
             "value" : "基本操作"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "基本操作"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "基本操作"
@@ -100,13 +118,19 @@
             "value" : "点击任意音乐开始播放。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "按一下任何音樂即可開始播放。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按一下任何音樂即可開始播放。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "按一下任何音樂即可開始播放。"
@@ -128,13 +152,19 @@
             "value" : "核心能力"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "核心能力"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "核心能力"
@@ -156,13 +186,19 @@
             "value" : "正在初始化..."
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在初始化..."
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在初始化..."
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在初始化..."
@@ -184,13 +220,19 @@
             "value" : "管理、浏览与播放本地音乐文件。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "管理、瀏覽與播放本機音樂檔案。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理、瀏覽與播放本機音樂檔案。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "管理、瀏覽與播放本機音樂檔案。"
@@ -212,13 +254,19 @@
             "value" : "管理本地音乐文件并分类浏览。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "管理本機音樂檔案並分類瀏覽。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理本機音樂檔案並分類瀏覽。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "管理本機音樂檔案並分類瀏覽。"
@@ -240,13 +288,19 @@
             "value" : "媒体库"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "媒體庫"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒體庫"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "媒體庫"
@@ -268,13 +322,19 @@
             "value" : "媒体库：管理本地音乐文件并分类浏览。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "媒體庫：管理本機音樂檔案並分類瀏覽。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒體庫：管理本機音樂檔案並分類瀏覽。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "媒體庫：管理本機音樂檔案並分類瀏覽。"
@@ -297,13 +357,19 @@
             "value" : "音乐"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音樂"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音樂"
@@ -325,13 +391,19 @@
             "value" : "音乐库"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音樂庫"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂庫"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音樂庫"
@@ -353,13 +425,19 @@
             "value" : "说明"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "說明"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "說明"
@@ -381,13 +459,19 @@
             "value" : "打开音乐库场景，浏览全部音乐。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟音樂庫場景，瀏覽全部音樂。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟音樂庫場景，瀏覽全部音樂。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟音樂庫場景，瀏覽全部音樂。"
@@ -409,13 +493,19 @@
             "value" : "概述"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "概述"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "概述"
@@ -437,13 +527,19 @@
             "value" : "播放"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放"
@@ -465,13 +561,19 @@
             "value" : "播放：从媒体库发起播放。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放：從媒體庫開始播放。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放：從媒體庫開始播放。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放：從媒體庫開始播放。"
@@ -493,13 +595,19 @@
             "value" : "插件"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "外掛程式"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "外掛程式"
@@ -521,13 +629,19 @@
             "value" : "按名称快速定位音乐。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "依名稱快速定位音樂。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依名稱快速定位音樂。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "依名稱快速定位音樂。"
@@ -549,13 +663,19 @@
             "value" : "搜索"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋"
@@ -577,13 +697,19 @@
             "value" : "搜索：按名称快速定位音乐。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋：按名稱快速定位音樂。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋：按名稱快速定位音樂。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋：按名稱快速定位音樂。"
@@ -605,13 +731,19 @@
             "value" : "请先设置媒体仓库的存储位置"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "請先設置媒體倉庫的存儲位置"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先設置媒體倉庫的存儲位置"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "請先設定媒體倉庫的儲存位置"
@@ -633,13 +765,19 @@
             "value" : "从媒体库发起播放。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "從媒體庫開始播放。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從媒體庫開始播放。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "從媒體庫開始播放。"
@@ -661,13 +799,19 @@
             "value" : "存储位置发生了变化"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "存儲位置發生了變化"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "存儲位置發生了變化"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "儲存位置發生了變化"
@@ -689,13 +833,19 @@
             "value" : "存储位置未设置"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "存儲位置未設置"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "存儲位置未設置"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "儲存位置未設定"
@@ -717,13 +867,19 @@
             "value" : "音乐库依赖本地存储位置，需先在设置中配置存储。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音樂庫依賴本機儲存位置，需先在設定中設定儲存。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂庫依賴本機儲存位置，需先在設定中設定儲存。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "音樂庫依賴本機儲存位置，需先在設定中設定儲存。"
@@ -745,13 +901,19 @@
             "value" : "请尝试重新打开应用或检查媒体仓库设置"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "請嘗試重新打開應用或檢查媒體倉庫設置"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請嘗試重新打開應用或檢查媒體倉庫設置"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "請嘗試重新開啟應用或檢查媒體倉庫設定"
@@ -773,13 +935,19 @@
             "value" : "类型"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "類型"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "類型"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "類型"
@@ -801,13 +969,19 @@
             "value" : "使用搜索框按名称过滤音乐。"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用搜尋框依名稱篩選音樂。"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用搜尋框依名稱篩選音樂。"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用搜尋框依名稱篩選音樂。"
@@ -829,13 +1003,19 @@
             "value" : "用户手册"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用者手冊"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用者手冊"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用者手冊"
@@ -857,13 +1037,19 @@
             "value" : "版本"
           }
         },
-        "zh-Hant-HK" : {
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "版本"
           }
         },
-        "zh-Hant-TW" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        },
+        "zh-TW" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "版本"

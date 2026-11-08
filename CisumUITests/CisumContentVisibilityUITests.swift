@@ -48,7 +48,7 @@ final class CisumContentVisibilityUITests: CisumUITestBase {
         let more = moreButton(in: app)
         XCTAssertTrue(more.waitForExistence(timeout: 10), "播放控制区缺少「更多」按钮")
 
-        more.click()
+        more.cisumActivate()
         XCTAssertTrue(
             waitForContentAreaToDisappear(in: app),
             "点击「更多」后内容区没有收起"
@@ -59,7 +59,7 @@ final class CisumContentVisibilityUITests: CisumUITestBase {
         let moreAgain = moreButton(in: app)
         XCTAssertTrue(moreAgain.waitForExistence(timeout: 10), "收起后播放控制区缺少「更多」按钮")
         XCTAssertTrue(moreAgain.isHittable, "收起后「更多」按钮不可点击")
-        moreAgain.click()
+        moreAgain.cisumActivate()
         XCTAssertTrue(
             waitForContentArea(in: app),
             "再次点击「更多」后内容区没有回来（按钮点了没反应）"
@@ -199,10 +199,10 @@ final class CisumContentVisibilityPersistenceUITests: CisumUITestBase {
 
         // 把状态归一到「展开」，再收起，保证本用例结束时落盘值确定。
         if !waitForContentArea(in: plain) {
-            moreButton(in: plain).click()
+            moreButton(in: plain).cisumActivate()
             XCTAssertTrue(waitForContentArea(in: plain), "无法把内容区展开到已知状态")
         }
-        moreButton(in: plain).click()
+        moreButton(in: plain).cisumActivate()
         XCTAssertTrue(
             waitForContentAreaToDisappear(in: plain),
             "内容区没有收起，无法验证收起状态是否跨重启保持"
@@ -218,7 +218,7 @@ final class CisumContentVisibilityPersistenceUITests: CisumUITestBase {
         )
 
         // 仍可展开：收起态不能是死胡同。
-        moreButton(in: plain).click()
+        moreButton(in: plain).cisumActivate()
         XCTAssertTrue(
             waitForContentArea(in: plain),
             "重启后无法把内容区展开回来——用户被卡在收起态里"

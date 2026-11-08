@@ -16,6 +16,9 @@ final class CisumMusicLibraryUITests: CisumUITestBase {
     }
 
     func testMusicLibraryShowsHeaderOrState() throws {
+        #if os(visionOS)
+        try skipOnVisionOS("首屏表头 / 空状态标识尚未在 visionOS 上适配")
+        #endif
         try ensureMusicScene()
         XCTAssertTrue(element(identifier: "cisum.scene.music").waitForExistence(timeout: 10))
 

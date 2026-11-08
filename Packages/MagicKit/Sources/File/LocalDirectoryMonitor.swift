@@ -100,7 +100,9 @@ public final class LocalDirectoryMonitor: SuperLog {
         self.caller = caller
         self.onChange = onChange
         // 检测是否为 iOS 平台
-        #if os(iOS)
+        // visionOS 与 iOS 一样不能依赖文件系统事件通知（沙盒 + 应用容器
+        // 生命周期限制），同样走轮询机制。
+        #if os(iOS) || os(visionOS)
         self.isIOS = true
         #else
         self.isIOS = false

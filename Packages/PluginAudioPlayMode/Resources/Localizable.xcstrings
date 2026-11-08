@@ -15,13 +15,19 @@
             "value": "音频播放模式管理"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音頻播放模式管理"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "音頻播放模式管理"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "音訊播放模式管理"
@@ -43,13 +49,19 @@
             "value": "负责音频播放模式的设置和管理"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "負責音頻播放模式的設置和管理"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "負責音頻播放模式的設置和管理"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "負責音訊播放模式的設定和管理"
@@ -71,13 +83,19 @@
             "value": "无法更新播放队列：%@"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法更新播放隊列：%@"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "無法更新播放隊列：%@"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "無法更新播放佇列：%@"
@@ -99,13 +117,19 @@
             "value": "单曲循环"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "單曲循環"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "單曲循環"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "單曲迴圈"
@@ -127,13 +151,19 @@
             "value": "顺序播放"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "順序播放"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "順序播放"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "順序播放"
@@ -155,13 +185,19 @@
             "value": "随机播放"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隨機播放"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "隨機播放"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "隨機播放"
@@ -183,13 +219,19 @@
             "value": "切换单曲循环、列表循环、随机等播放模式。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換單曲循環、列表循環、隨機等播放模式。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "切換單曲循環、列表循環、隨機等播放模式。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "切換單曲循環、列表循環、隨機等播放模式。"
@@ -211,13 +253,19 @@
             "value": "播放模式"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放模式"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "播放模式"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "播放模式"
@@ -239,13 +287,19 @@
             "value": "概述"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "概述"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "概述"
@@ -267,13 +321,19 @@
             "value": "核心能力"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "核心能力"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "核心能力"
@@ -295,13 +355,19 @@
             "value": "循环：单曲 / 列表循环。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "循環：單曲 / 列表循環。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "循環：單曲 / 列表循環。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "循環：單曲 / 列表循環。"
@@ -323,13 +389,19 @@
             "value": "随机：随机播放全部曲目。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隨機：隨機播放全部曲目。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "隨機：隨機播放全部曲目。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "隨機：隨機播放全部曲目。"
@@ -351,13 +423,19 @@
             "value": "顺序：按列表顺序播放。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "順序：按列表順序播放。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "順序：按列表順序播放。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "順序：按列表順序播放。"
@@ -379,13 +457,19 @@
             "value": "基本操作"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "基本操作"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "基本操作"
@@ -407,13 +491,19 @@
             "value": "在播放控制区点击播放模式按钮。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在播放控制區按一下播放模式按鈕。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "在播放控制區按一下播放模式按鈕。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "在播放控制區按一下播放模式按鈕。"
@@ -435,13 +525,19 @@
             "value": "在单曲循环 / 列表循环 / 随机之间切换。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在單曲循環 / 列表循環 / 隨機之間切換。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "在單曲循環 / 列表循環 / 隨機之間切換。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "在單曲循環 / 列表循環 / 隨機之間切換。"
@@ -463,13 +559,19 @@
             "value": "说明"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "說明"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "說明"
@@ -491,13 +593,19 @@
             "value": "播放模式作用于当前播放列表。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放模式作用於目前播放清單。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "播放模式作用於目前播放清單。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "播放模式作用於目前播放清單。"
@@ -519,13 +627,19 @@
             "value":"用户手册"
           }
         },
-        "zh-Hant-HK":{
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用者手冊"
+          }
+        },
+        "zh-HK":{
           "stringUnit":{
             "state":"translated",
             "value":"使用者手冊"
           }
         },
-        "zh-Hant-TW":{
+        "zh-TW":{
           "stringUnit":{
             "state":"translated",
             "value":"使用者手冊"
@@ -547,13 +661,19 @@
             "value": "版本"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "版本"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "版本"
@@ -575,13 +695,19 @@
             "value": "类型"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "類型"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "類型"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "類型"
@@ -603,13 +729,19 @@
             "value": "插件"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "外掛程式"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "外掛程式"
@@ -631,13 +763,19 @@
             "value": "单曲 / 列表循环。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "單曲 / 列表循環。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "單曲 / 列表循環。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "單曲 / 列表循環。"
@@ -659,13 +797,19 @@
             "value": "循环"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "循環"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "循環"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "循環"
@@ -687,13 +831,19 @@
             "value": "随机播放全部曲目。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隨機播放全部曲目。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "隨機播放全部曲目。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "隨機播放全部曲目。"
@@ -715,13 +865,19 @@
             "value": "按列表顺序播放。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按列表順序播放。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "按列表順序播放。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "按列表順序播放。"
@@ -743,13 +899,19 @@
             "value": "顺序"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "順序"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "順序"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "順序"

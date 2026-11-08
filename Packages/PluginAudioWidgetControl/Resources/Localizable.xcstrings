@@ -15,13 +15,19 @@
             "value": "响应小组件的播放控制命令"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "響應小組件的播放控制命令"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "響應小組件的播放控制命令"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "響應小元件的播放控制命令"
@@ -43,13 +49,19 @@
             "value":"用户手册"
           }
         },
-        "zh-Hant-HK":{
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用者手冊"
+          }
+        },
+        "zh-HK":{
           "stringUnit":{
             "state":"translated",
             "value":"使用者手冊"
           }
         },
-        "zh-Hant-TW":{
+        "zh-TW":{
           "stringUnit":{
             "state":"translated",
             "value":"使用者手冊"
@@ -71,13 +83,19 @@
             "value": "Widget 控制"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget 控制"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "Widget 控制"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "Widget 控制"
@@ -99,13 +117,19 @@
             "value": "通过桌面小组件控制音乐播放。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "透過桌面小工具控制音樂播放。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "透過桌面小工具控制音樂播放。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "透過桌面小工具控制音樂播放。"
@@ -127,13 +151,19 @@
             "value": "版本"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "版本"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "版本"
@@ -155,13 +185,19 @@
             "value": "类型"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "類型"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "類型"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "類型"
@@ -183,13 +219,19 @@
             "value": "插件"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "外掛程式"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "外掛程式"
@@ -211,13 +253,19 @@
             "value": "核心能力"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "核心能力"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "核心能力"
@@ -239,13 +287,19 @@
             "value": "在桌面小组件中展示播放状态。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在桌面小工具中顯示播放狀態。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "在桌面小工具中顯示播放狀態。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "在桌面小工具中顯示播放狀態。"
@@ -267,13 +321,19 @@
             "value": "小组件"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "小工具"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "小工具"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "小工具"
@@ -295,13 +355,19 @@
             "value": "从小组件直接播放 / 暂停。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直接從小工具播放 / 暫停。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "直接從小工具播放 / 暫停。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "直接從小工具播放 / 暫停。"
@@ -323,13 +389,19 @@
             "value": "快捷控制"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快速控制"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "快速控制"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "快速控制"
@@ -351,13 +423,19 @@
             "value": "概述"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "概述"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "概述"
@@ -379,13 +457,19 @@
             "value": "小组件：在桌面小组件中展示播放状态。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "小工具：在桌面小工具中顯示播放狀態。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "小工具：在桌面小工具中顯示播放狀態。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "小工具：在桌面小工具中顯示播放狀態。"
@@ -407,13 +491,19 @@
             "value": "快捷控制：从小组件直接播放 / 暂停。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快速控制：直接從小工具播放 / 暫停。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "快速控制：直接從小工具播放 / 暫停。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "快速控制：直接從小工具播放 / 暫停。"
@@ -435,13 +525,19 @@
             "value": "基本操作"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "基本操作"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "基本操作"
@@ -463,13 +559,19 @@
             "value": "在系统小组件库中添加 Cisum 播放小组件。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在系統小工具庫中新增 Cisum 播放小工具。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "在系統小工具庫中新增 Cisum 播放小工具。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "在系統小工具庫中新增 Cisum 播放小工具。"
@@ -491,13 +593,19 @@
             "value": "通过小组件控制播放。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "透過小工具控制播放。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "透過小工具控制播放。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "透過小工具控制播放。"
@@ -519,13 +627,19 @@
             "value": "说明"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "說明"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "說明"
@@ -547,13 +661,19 @@
             "value": "需要系统支持桌面小组件。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要系統支援桌面小工具。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "需要系統支援桌面小工具。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "需要系統支援桌面小工具。"

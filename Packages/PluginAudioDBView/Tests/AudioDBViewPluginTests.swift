@@ -122,9 +122,24 @@ import UniformTypeIdentifiers
 
 @Test func audioListHeaderKeepsOpenRepositoryButtonWhileRepositoryHasContent() {
     // 非空仓库在表头最右侧常驻「打开仓库目录」按钮：用户可直接跳到访达里的仓库目录。
-    #expect(AudioListHeaderPolicy.shouldShowOpenRepositoryButton(hasContent: true))
+    #expect(AudioListHeaderPolicy.shouldShowOpenRepositoryButton(hasContent: true, supportsFileManager: true))
     // 空仓库由空状态视图自己提供目录入口，表头不再重复出现。
-    #expect(!AudioListHeaderPolicy.shouldShowOpenRepositoryButton(hasContent: false))
+    #expect(!AudioListHeaderPolicy.shouldShowOpenRepositoryButton(hasContent: false, supportsFileManager: true))
+}
+
+/// 「打开仓库目录」入口必须随平台能力收敛。
+///
+/// iOS 上打开应用沙盒目录**必然失败**（容器目录没有暴露给「文件」App），
+/// 因此表头不提供该入口——留着按钮点了没反应，比没有按钮更糟。
+///
+/// 与「添加」按钮不同：「添加」走系统文件选择器，iOS / macOS 都可用，
+/// 所以它与平台无关。
+@Test func audioListHeaderOpenRepositoryButtonFollowsPlatformCapability() {
+    // 平台不支持时，即便仓库有内容也不提供入口。
+    #expect(!AudioListHeaderPolicy.shouldShowOpenRepositoryButton(hasContent: true, supportsFileManager: false))
+    #expect(!AudioListHeaderPolicy.shouldShowOpenRepositoryButton(hasContent: false, supportsFileManager: false))
+    // 「添加」按钮与平台无关——iOS 上同样可用。
+    #expect(AudioListHeaderPolicy.shouldShowAddButton(hasContent: true))
 }
 
 @Test func audioListLoadsMoreFromCurrentLoadedCount() {

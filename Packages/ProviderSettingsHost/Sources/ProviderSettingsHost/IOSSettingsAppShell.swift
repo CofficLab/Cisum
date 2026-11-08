@@ -2,7 +2,7 @@ import ProviderSettingView
 import ProviderToolbar
 import SwiftUI
 
-#if os(iOS)
+#if os(iOS) || os(visionOS)
 /// GameFactory iOS host shell.
 ///
 /// The app owns presentation of the settings sheet; the shared settings

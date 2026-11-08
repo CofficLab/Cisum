@@ -1,5 +1,5 @@
 {
-  "originHash" : "c7a1bcf76e558f09a859515ecfd0a600d3e0002c52f7e9df4e6856288a224010",
+  "originHash" : "2ff1498c5c5416aee1d4c6f8c22638c02e84bb154c00b0ef26c17ab1e81ebdc2",
   "pins" : [
     {
       "identity" : "id3tageditor",
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CofficLab/LumiPluginToast.git",
       "state" : {
-        "revision" : "923f9a84262958b3cc1fde33bfb0bd53cc38b401",
-        "version" : "1.2.2"
+        "revision" : "b2f06c5d519f4ab5772e7b01152d4aca78f8968c",
+        "version" : "1.2.3"
       }
     },
     {
@@ -96,8 +96,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CofficLab/LumiUI",
       "state" : {
-        "revision" : "cafd284e4cb9b026c32f9a09dc9b8baa3c039c46",
-        "version" : "1.11.1"
+        "revision" : "6786ab3b708f4ffe5b8412b95ac4d932936364b7",
+        "version" : "1.12.0"
       }
     },
     {

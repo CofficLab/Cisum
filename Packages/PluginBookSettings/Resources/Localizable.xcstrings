@@ -15,13 +15,19 @@
             "value": "%lld 个文件"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個文件"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "%lld 個文件"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "%lld 個檔案"
@@ -43,13 +49,19 @@
             "value": "%lld 个文件"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個文件"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "%lld 個文件"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "%lld 個檔案"
@@ -71,13 +83,19 @@
             "value": "有声书库"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書庫"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "有聲書庫"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "有聲書庫"
@@ -99,13 +117,19 @@
             "value": "有声书插件的设置入口"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書插件的設置入口"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "有聲書插件的設置入口"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "有聲書外掛的設定入口"
@@ -127,13 +151,19 @@
             "value": "有声书设置"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有聲書設置"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "有聲書設置"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "有聲書設定"
@@ -155,13 +185,19 @@
             "value": "无法获取有声书库信息"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法獲取有聲書庫信息"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "無法獲取有聲書庫信息"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "無法獲取有聲書庫資訊"
@@ -183,13 +219,19 @@
             "value": "错误"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錯誤"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "錯誤"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "錯誤"
@@ -211,13 +253,19 @@
             "value": "文件数量"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件數量"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "文件數量"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "檔案數量"
@@ -239,13 +287,19 @@
             "value":"用户手册"
           }
         },
-        "zh-Hant-HK":{
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用者手冊"
+          }
+        },
+        "zh-HK":{
           "stringUnit":{
             "state":"translated",
             "value":"使用者手冊"
           }
         },
-        "zh-Hant-TW":{
+        "zh-TW":{
           "stringUnit":{
             "state":"translated",
             "value":"使用者手冊"
@@ -267,13 +321,19 @@
             "value": "iCloud 云盘，将同步"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 雲盤，將同步"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "iCloud 雲盤，將同步"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "iCloud 雲盤，將同步"
@@ -295,13 +355,19 @@
             "value": "库大小"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "庫大小"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "庫大小"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "庫大小"
@@ -323,13 +389,19 @@
             "value": "本地目录，不会同步"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本地目錄，不會同步"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "本地目錄，不會同步"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "本地目錄，不會同步"
@@ -352,13 +424,19 @@
             "value": "音乐库"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂庫"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "音樂庫"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "音樂庫"
@@ -380,13 +458,19 @@
             "value": "打开库"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開庫"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "打開庫"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "開啟庫"
@@ -408,13 +492,19 @@
             "value": "库中的文件总数"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "庫中的文件總數"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "庫中的文件總數"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "庫中的檔案總數"
@@ -436,13 +526,19 @@
             "value": "在 Finder 中查看"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Finder 中查看"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "在 Finder 中查看"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "在 Finder 中檢視"
@@ -464,13 +560,19 @@
             "value": "提供有声书相关的设置项。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供有聲書相關的設定項目。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "提供有聲書相關的設定項目。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "提供有聲書相關的設定項目。"
@@ -492,13 +594,19 @@
             "value": "版本"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "版本"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "版本"
@@ -520,13 +628,19 @@
             "value": "类型"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "類型"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "類型"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "類型"
@@ -548,13 +662,19 @@
             "value": "插件"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外掛程式"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "外掛程式"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "外掛程式"
@@ -576,13 +696,19 @@
             "value": "核心能力"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心能力"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "核心能力"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "核心能力"
@@ -604,13 +730,19 @@
             "value": "配置有声书播放相关的偏好。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定有聲書播放相關偏好。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "設定有聲書播放相關偏好。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "設定有聲書播放相關偏好。"
@@ -632,13 +764,19 @@
             "value": "播放设置"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放設定"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "播放設定"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "播放設定"
@@ -660,13 +798,19 @@
             "value": "集中管理有声书设置。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "集中管理有聲書設定。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "集中管理有聲書設定。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "集中管理有聲書設定。"
@@ -688,13 +832,19 @@
             "value": "偏好项"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "偏好項目"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "偏好項目"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "偏好項目"
@@ -716,13 +866,19 @@
             "value": "概述"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概述"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "概述"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "概述"
@@ -744,13 +900,19 @@
             "value": "播放设置：配置有声书播放相关的偏好。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放設定：設定有聲書播放相關偏好。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "播放設定：設定有聲書播放相關偏好。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "播放設定：設定有聲書播放相關偏好。"
@@ -772,13 +934,19 @@
             "value": "偏好项：集中管理有声书设置。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "偏好項目：集中管理有聲書設定。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "偏好項目：集中管理有聲書設定。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "偏好項目：集中管理有聲書設定。"
@@ -800,13 +968,19 @@
             "value": "基本操作"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基本操作"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "基本操作"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "基本操作"
@@ -828,13 +1002,19 @@
             "value": "在设置窗口中打开有声书设置。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在設定視窗中開啟有聲書設定。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "在設定視窗中開啟有聲書設定。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "在設定視窗中開啟有聲書設定。"
@@ -856,13 +1036,19 @@
             "value": "按需调整播放偏好。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "依需求調整播放偏好。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "依需求調整播放偏好。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "依需求調整播放偏好。"
@@ -884,13 +1070,19 @@
             "value": "说明"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "說明"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "說明"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "說明"
@@ -912,13 +1104,19 @@
             "value": "设置即时生效并持久化。"
           }
         },
-        "zh-Hant-HK": {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定即時生效並持久化。"
+          }
+        },
+        "zh-HK": {
           "stringUnit": {
             "state": "translated",
             "value": "設定即時生效並持久化。"
           }
         },
-        "zh-Hant-TW": {
+        "zh-TW": {
           "stringUnit": {
             "state": "translated",
             "value": "設定即時生效並持久化。"
