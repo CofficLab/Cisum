@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CofficLab/LumiPluginAbout.git",
       "state" : {
-        "revision" : "816d2f02b1292b84a64834b7ba5822ed058b95d4",
-        "version" : "3.0.0"
+        "revision" : "419abd51827febdc97689742aa573f4850fa2ae6",
+        "version" : "3.0.1"
       }
     },
     {
