@@ -53,6 +53,8 @@ FactoryCisum
 | Xcode | 27.2 及以上 |
 | Swift | 6.0 及以上 |
 
+Cisum 支持 **macOS 14+**、**iOS / iPadOS 17+** 与 **visionOS 2+**。
+
 ### 构建与运行
 
 ```bash
@@ -61,7 +63,13 @@ cd Cisum
 
 xcodebuild -list -project Cisum.xcodeproj
 xcodebuild -project Cisum.xcodeproj -scheme Cisum -destination 'platform=macOS' build
+xcodebuild -project Cisum.xcodeproj -scheme Cisum -destination 'generic/platform=iOS' build
+xcodebuild -project Cisum.xcodeproj -scheme Cisum -destination 'generic/platform=visionOS' build
 ```
+
+> 请给 `xcodebuild` 传 `-jobs 1`：并发编译 `LumiUI` 会触发 SDK 里
+> `swift-plugin-server` 的崩溃，并表现为看似无关的宏展开报错。这是工具链的并发
+> 问题，与本仓库代码无关。
 
 ### 构建与测试单个包
 

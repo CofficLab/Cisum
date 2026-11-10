@@ -777,3 +777,58 @@ struct CloudDownloadProgressSurvivesDatabaseRefreshTests {
         #expect(list.downloadStore.progress(for: url) { 0 } == 0)
     }
 }
+
+// MARK: - 骨架屏的阶段提示
+
+/// 骨架屏提示必须反映真实阶段，而不是一句笼统的「加载中」。
+@MainActor
+struct AudioLibraryLoadingPhaseTests {
+    private func waitUntil(
+        timeout: TimeInterval = 2,
+        _ condition: @escaping @MainActor () -> Bool
+    ) async -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if condition() { return true }
+            try? await Task.sleep(for: .milliseconds(20))
+        }
+        return condition()
+    }
+
+    /// 首次进入：先报「打开曲库」，读完列表后自动收起。
+    @Test
+    func openingLibraryPhaseAppearsOnAppearThenClears() async {
+        let list = AudioListViewModel(library: AudioLibraryProbe())
+
+        list.handleOnAppear()
+
+        #expect(list.loadingPhase == .openingLibrary)
+        let cleared = await waitUntil { list.loadingPhase == nil }
+        #expect(cleared, "列表加载完成后不应残留阶段提示")
+    }
+
+    /// 同步进行中：报告「写入索引」，而不是「读取列表」。
+    @Test
+    func syncingPhaseThenReloadPhase() {
+        let list = AudioListViewModel(library: AudioLibraryProbe())
+
+        list.handleDBSyncing()
+        #expect(list.loadingPhase == .syncingRepository)
+
+        list.handleDBSynced()
+        // 列表为空时同步完成会触发一次重读，阶段切换为「刷新列表」。
+        #expect(list.loadingPhase == .reloadingLibrary)
+    }
+
+    /// 重试入口复用重新读取列表的路径。
+    @Test
+    func retryReloadsList() async {
+        let list = AudioListViewModel(library: AudioLibraryProbe())
+
+        list.retryLoading()
+
+        #expect(list.loadingPhase == .reloadingLibrary)
+        let cleared = await waitUntil { list.loadingPhase == nil }
+        #expect(cleared)
+    }
+}

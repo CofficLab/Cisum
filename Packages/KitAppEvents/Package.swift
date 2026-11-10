@@ -6,6 +6,7 @@ let package = Package(
     platforms: [
         .macOS(.v14),
         .iOS(.v17),
+        .visionOS(.v2),
     ],
     products: [
         .library(name: "KitAppEvents", targets: ["KitAppEvents"]),

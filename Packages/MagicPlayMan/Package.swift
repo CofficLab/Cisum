@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 
 import PackageDescription
 
@@ -7,7 +7,8 @@ let package = Package(
     defaultLocalization: "en",
     platforms: [
         .macOS(.v14),
-        .iOS(.v17)
+        .iOS(.v17),
+        .visionOS(.v2),
     ],
     products: [
         .library(
@@ -18,7 +19,7 @@ let package = Package(
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
         .package(path: "../ProviderPlayback"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.11.1"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.12.0"),
     ],
     targets: [
         .target(
@@ -42,5 +43,8 @@ let package = Package(
             ],
             path: "Tests"
         )
-    ]
+    ],
+    // 保持 Swift 5 语言模式：tools-version 从 5.9 升到 6.0 只是为了用
+    // `.visionOS(.v2)` 版本枚举，语言模式不变，避免引入 Swift 6 严格并发报错。
+    swiftLanguageModes: [.v5]
 )

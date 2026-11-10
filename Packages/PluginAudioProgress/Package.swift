@@ -6,7 +6,8 @@ let package = Package(
     defaultLocalization: "en",
     platforms: [
         .macOS(.v14),
-        .iOS(.v17)
+        .iOS(.v17),
+        .visionOS(.v2),
     ],
     products: [
         .library(
@@ -16,7 +17,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.11.1"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.12.0"),
         .package(path: "../ProviderAudioLibrary"),
         .package(path: "../ProviderAudioLike"),
         .package(name: "KitPlayback", path: "../MagicPlayMan"),

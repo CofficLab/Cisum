@@ -4,6 +4,7 @@ import Testing
 import Foundation
 import Combine
 import KernelCore
+import MagicKit
 import ProviderPlugin
 import ProviderStorage
 
@@ -301,6 +302,49 @@ import ProviderStorage
     #expect(!RepositoryInfoActionPolicy.canOpenInFinder(missingRoot))
     #expect(!RepositoryInfoActionPolicy.canOpenInFinder(nil))
     #expect(!RepositoryInfoActionPolicy.canOpenInFinder(URL(string: "https://example.com")!))
+}
+
+/// 「在文件管理器中打开」入口必须随平台能力收敛。
+///
+/// iOS 上打开应用沙盒目录**必然失败**（容器目录没有暴露给「文件」App），
+/// 因此入口必须整条隐藏——留着按钮点了没反应，比没有按钮更糟。
+///
+/// 这里用注入的 `supportsFileManager` 参数覆盖两种平台，
+/// 使同一条断言在 macOS 与 iOS 上都能跑到（测试进程的平台由 CI 决定，
+/// 断言本身必须与平台无关）。
+@Test func repositoryInfoOpenEntryFollowsPlatformCapability() throws {
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    defer {
+        try? FileManager.default.removeItem(at: root)
+    }
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+
+    // 平台支持时，存在的本地目录提供入口。
+    #expect(RepositoryInfoActionPolicy.shouldOfferOpenEntry(root, supportsFileManager: true))
+    // 平台不支持时，一律不提供——即使目录确实存在。
+    #expect(!RepositoryInfoActionPolicy.shouldOfferOpenEntry(root, supportsFileManager: false))
+    // 平台支持但目录不存在 / 不是本地路径 / 为 nil 时，同样不提供。
+    #expect(!RepositoryInfoActionPolicy.shouldOfferOpenEntry(nil, supportsFileManager: true))
+    #expect(!RepositoryInfoActionPolicy.shouldOfferOpenEntry(
+        URL(string: "https://example.com")!,
+        supportsFileManager: true
+    ))
+}
+
+/// 存储设置页的「打开当前的仓库」入口同样受平台能力约束。
+///
+/// 这一行在 iOS 上**仍然保留**（它同时展示仓库路径，路径信息对用户有价值），
+/// 但必须**不带点击动作**——否则用户点了毫无反应。
+@Test func storageSettingOpenRepositoryEntryFollowsPlatformCapability() {
+    #expect(StorageSettingView.supportsFileManagerEntry == URLOpenActionPolicy.shouldOfferFileManagerEntry)
+
+    // 当前构建平台的判定必须与全局真源一致，避免出现「某处漏判」。
+    #if os(macOS)
+    #expect(StorageSettingView.supportsFileManagerEntry)
+    #else
+    #expect(!StorageSettingView.supportsFileManagerEntry)
+    #endif
 }
 
 @Test func directStorageSwitchUsesAccurateCompletionMessage() {

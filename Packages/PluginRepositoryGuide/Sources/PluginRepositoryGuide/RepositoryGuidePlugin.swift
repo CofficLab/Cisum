@@ -2,20 +2,21 @@ import KernelCore
 import LumiUI
 import MagicKit
 import ProviderAudioLibrary
+import ProviderBook
 import ProviderControlView
 import ProviderDocsView
 import ProviderPlugin
 import ProviderScene
 import SwiftUI
 
-/// 空仓库引导插件：仓库为空时，向播放控制区注入引导视图（`setGuideSlot`）。
+/// 空仓库引导插件：当前场景的仓库为空时，向播放控制区注入引导视图
+/// （`setGuideSlot`）。
 ///
 /// 引导只负责「仓库空着的时候，播放器顶上摆什么」：品牌区（app 图标 + 一句
-/// 欢迎语），摆在真实播放器的封面与标题位上。仓库视图在哪打开由「⋯」按钮
-/// 自己提示，本插件不重复教——两个入口说同一件事只会让人发愣。
+/// 欢迎语），摆在真实播放器的封面与标题位上。音乐仓库的「⋯」入口由按钮
+/// 自己提示；有声书场景没有对应气泡，提示语放在标题下方。
 ///
-/// 它不知道自己服务的是哪个仓库域，仓库是否为空由观察者按业务事件判定——
-/// 插件层只提供引导位与呈现内容。
+/// 它按当前场景选择仓库域：音乐场景读音乐仓库，有声书场景读书籍仓库。
 @MainActor
 public final class RepositoryGuidePlugin: AsyncSuperPlugin, SuperLog {
     public let id = "com.coffic.cisum.plugin.repository-guide"
@@ -41,6 +42,7 @@ public final class RepositoryGuidePlugin: AsyncSuperPlugin, SuperLog {
     /// 本插件消费的能力 Adapter。观察器以 `weak` 持有，故入口必须显式强持有，
     /// 否则能力会随装配调用返回而释放。
     nonisolated(unsafe) private var libraryCapability: GuideLibraryCapabilityAdapter?
+    nonisolated(unsafe) private var bookLibraryCapability: GuideBookLibraryCapabilityAdapter?
     nonisolated(unsafe) private var sceneCapability: GuideSceneCapabilityAdapter?
 
     /// 引导插槽（顶部引导视图），注入播放控制区。
@@ -48,6 +50,9 @@ public final class RepositoryGuidePlugin: AsyncSuperPlugin, SuperLog {
     /// 插槽实例在插件生命周期内保持同一份：控制区在装配时按值捕获插槽，
     /// 换实例会让已渲染的控制区失去引导。
     nonisolated(unsafe) private var guideSlot: ControlGuideSlot?
+
+    /// 引导内容：按当前场景决定是否追加有声书提示。
+    nonisolated(unsafe) private var guideContent: RepositoryGuideContent?
 
     /// 引导激活态观察者：仓库变空时点亮引导，变非空时熄灭。
     nonisolated(unsafe) private var guideObserver: RepositoryGuideObserver?
@@ -84,22 +89,31 @@ public final class RepositoryGuidePlugin: AsyncSuperPlugin, SuperLog {
         let library = GuideLibraryCapabilityAdapter { @MainActor [weak self] in
             self?.kernel?.resolveProvider((any AudioLibraryProviding).self)
         }
+        let bookLibrary = GuideBookLibraryCapabilityAdapter { @MainActor [weak self] in
+            self?.kernel?.resolveProvider((any BookDatabaseProviding).self)
+        }
         let scene = GuideSceneCapabilityAdapter(
             scene: kernel.resolveProvider((any SceneProviding).self)
         )
         libraryCapability = library
+        bookLibraryCapability = bookLibrary
         sceneCapability = scene
 
+        let content = RepositoryGuideContent(scene: scene.currentScene)
+        guideContent = content
+
         let slot = ControlGuideSlot(
-            guideView: AnyView(RepositoryGuideView())
+            guideView: AnyView(RepositoryGuideView(content: content))
         )
         guideSlot = slot
         kernel.resolveProvider((any ControlViewProviding).self)?.setGuideSlot(slot)
 
         guideObserver = RepositoryGuideObserver(
             slot: slot,
-            library: library,
-            scene: scene
+            musicLibrary: library,
+            bookLibrary: bookLibrary,
+            scene: scene,
+            content: content
         )
     }
 
@@ -110,7 +124,9 @@ public final class RepositoryGuidePlugin: AsyncSuperPlugin, SuperLog {
         guideObserver = nil
         guideSlot?.isActive = false
         guideSlot = nil
+        guideContent = nil
         libraryCapability = nil
+        bookLibraryCapability = nil
         sceneCapability = nil
     }
 }

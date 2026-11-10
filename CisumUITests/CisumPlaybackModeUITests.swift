@@ -38,7 +38,7 @@ final class CisumPlaybackModeUITests: CisumUITestBase {
 
         let before = currentPlayModeIcon(of: button)
 
-        button.click()
+        button.cisumActivate()
 
         // 模式切换后按钮的图标 / 状态标识应随之更新。
         // 轮询一小段时间，避免异步刷新导致误判。
@@ -65,7 +65,7 @@ final class CisumPlaybackModeUITests: CisumUITestBase {
 
         for _ in 0..<4 {
             XCTAssertTrue(button.exists, "播放模式按钮在连续点击后消失了")
-            button.click()
+            button.cisumActivate()
         }
 
         XCTAssertTrue(

@@ -30,7 +30,11 @@ struct WelcomeStorageSetupOverlay: View {
                     .background(.regularMaterial)
                     .ignoresSafeArea()
                     .contentShape(Rectangle())
-                    .accessibilityIdentifier("cisum.welcome.storage.setup")
+                    // 标识挂在引导页标题（叶子节点）上，不挂在整屏容器上：
+                    // visionOS 会把容器的 accessibility identifier **递归下发给
+                    // 所有后代**并覆盖它们自己的标识，挂在容器上会让
+                    // `cisum.welcome.storage.continue` / `.option.*` 全部失效。
+                    // 标题是叶子，既能作为「引导是否可见」的锚点，又不会污染子元素。
                     .transition(.opacity)
                     .zIndex(1)
             }

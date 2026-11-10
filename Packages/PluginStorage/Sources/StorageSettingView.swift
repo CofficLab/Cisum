@@ -65,15 +65,29 @@ public struct StorageSettingView: View, SuperLog {
 
                     Divider()
 
+                    // 「打开当前的仓库」这一行承担两个职责：
+                    // 1. 展示当前仓库的绝对路径（**所有平台都要**——用户需要知道
+                    //    媒体存在哪儿，路径信息本身有价值）；
+                    // 2. 点击后在系统文件管理器中打开该目录（**仅桌面端**）。
+                    //
+                    // iOS 上第 2 项必须去掉：应用容器目录没有暴露给「文件」App，
+                    // `UIApplication.shared.open(_:)` 对沙盒路径必然失败且毫无
+                    // 反馈——用户点了按钮，界面纹丝不动。
+                    //
+                    // 因此这里**只去掉点击动作，保留这一行**，
+                    // 而不是整行隐藏（隐藏会连带丢掉路径展示，
+                    // 也会让「仓库在哪」这个问题在 iOS 上无解）。
                     AppSettingRow(
                         title: String(localized: "Open Current Repository", bundle: .module),
                         description: viewModel.storageRoot?.path
                             ?? String(localized: "No storage location set", bundle: .module),
                         icon: AppSymbol.folder,
-                        action: viewModel.storageRoot.map { _ in openCurrentRepository }
+                        action: openCurrentRepositoryAction
                     ) {
-                        Image(systemName: "arrow.up.forward.square")
-                            .foregroundColor(.accentColor)
+                        if Self.supportsFileManagerEntry {
+                            Image(systemName: "arrow.up.forward.square")
+                                .foregroundColor(.accentColor)
+                        }
                     }
                     .opacity(viewModel.storageRoot == nil ? 0.5 : 1)
                 }
@@ -140,6 +154,22 @@ public struct StorageSettingView: View, SuperLog {
     /// 在 Finder 中打开当前媒体仓库（当前存储位置的根目录）。
     private func openCurrentRepository() {
         viewModel.storageRoot?.openFolder()
+    }
+
+    /// 「打开当前的仓库」这一行是否提供点击动作。
+    ///
+    /// 仅桌面端提供：iOS 上打开沙盒目录必然失败（见 `URLOpenActionPolicy`）。
+    /// 仓库根目录尚未确定时同样不提供——没有目录可打开。
+    private var openCurrentRepositoryAction: (() -> Void)? {
+        guard Self.supportsFileManagerEntry, viewModel.storageRoot != nil else {
+            return nil
+        }
+        return openCurrentRepository
+    }
+
+    /// 当前平台是否展示「在文件管理器中打开」入口。
+    nonisolated static var supportsFileManagerEntry: Bool {
+        URLOpenActionPolicy.shouldOfferFileManagerEntry
     }
 
     nonisolated static func targetLocationAfterStorageUpdate(

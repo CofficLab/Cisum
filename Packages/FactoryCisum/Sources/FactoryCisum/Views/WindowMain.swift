@@ -34,7 +34,7 @@ public struct WindowMain: View {
                 KernelErrorView(error: initializationError)
                     .accessibilityElement(children: .contain)
             } else if let kernel {
-                #if os(iOS)
+                #if os(iOS) || os(visionOS)
                 // iOS 没有独立的设置窗口 Scene：设置页以 sheet 形式呈现，
                 // 因此主视图要包进 `IOSSettingsAppShell`（由设置齿轮广播的
                 // openSettings 通知触发）。macOS 走 `Window` + `openWindow`，

@@ -94,7 +94,7 @@ final class CisumSettingsNavigationUITests: CisumUITestBase {
                 continue
             }
 
-            button.click()
+            button.cisumActivate()
 
             // 详情区必须出现内容（不是空白页）。
             let detail = app.scrollViews.element(boundBy: 1)

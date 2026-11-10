@@ -25,7 +25,7 @@ public final class BookLikePlugin: AsyncSuperPlugin, SuperLog {
         version: "1.0.0",
         category: .feature,
         stage: .stable,
-        policy: .disabled,
+        policy: .alwaysOn,
         permissions: []
     )
 

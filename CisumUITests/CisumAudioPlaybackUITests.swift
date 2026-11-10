@@ -127,6 +127,9 @@ final class CisumAudioPlaybackUITests: CisumUITestBase {
 
     /// 选择本地音频 → 进入播放态 → 进度推进 → 暂停 / 恢复。
     func testSelectingBundledAudioStartsPlaybackAndCanPause() throws {
+        #if os(visionOS)
+        try skipOnVisionOS("仓库行未以 button 进入可访问性树，无法定位曲目")
+        #endif
         try preparePlayableTrack()
 
         let trackName = primaryTrackName
@@ -180,6 +183,9 @@ final class CisumAudioPlaybackUITests: CisumUITestBase {
 
     /// 切歌后进度归零：播放歌曲1 → 进度推进 → 切换到歌曲2 → 进度必须归零。
     func testSwitchingTracksResetsProgressToZero() throws {
+        #if os(visionOS)
+        try skipOnVisionOS("仓库行未以 button 进入可访问性树，无法定位曲目")
+        #endif
         #if os(macOS)
         try preparePlayableTrack()
         let track1Name = fixtureName

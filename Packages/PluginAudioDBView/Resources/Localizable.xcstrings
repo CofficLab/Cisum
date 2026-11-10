@@ -3027,6 +3027,210 @@
           }
         }
       }
+    },
+    "Opening your music library and reading the list...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opening your music library and reading the list..."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在打开本地曲库，读取曲目列表..."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在開啟本機曲庫，讀取曲目清單..."
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在開啟本機曲庫，讀取曲目清單..."
+          }
+        },
+        "zh-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在開啟本機曲庫，讀取曲目清單..."
+          }
+        }
+      }
+    },
+    "Updating the library index with the files in your folder...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating the library index with the files in your folder..."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在把文件夹里的音频写入曲库索引..."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在把資料夾裡的音訊寫入曲庫索引..."
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在把資料夾內的音訊寫入曲庫索引..."
+          }
+        },
+        "zh-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在把資料夾裡的音訊寫入曲庫索引..."
+          }
+        }
+      }
+    },
+    "The library changed. Refreshing the list...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The library changed. Refreshing the list..."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "曲库有更新，正在重新读取列表..."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "曲庫有更新，正在重新讀取清單..."
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "曲庫有更新，正在重新讀取清單..."
+          }
+        },
+        "zh-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "曲庫有更新，正在重新讀取清單..."
+          }
+        }
+      }
+    },
+    "This can take longer when the folder has many files or is stored in iCloud.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This can take longer when the folder has many files or is stored in iCloud."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件较多或仓库位于 iCloud 时，建立索引可能需要更长时间。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檔案較多或倉庫位於 iCloud 時，建立索引可能需要更長時間。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檔案較多或倉庫位於 iCloud 時，建立索引可能需要更長時間。"
+          }
+        },
+        "zh-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檔案較多或倉庫位於 iCloud 時，建立索引可能需要更長時間。"
+          }
+        }
+      }
+    },
+    "If nothing changes, check that the repository folder is still accessible, then reload.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If nothing changes, check that the repository folder is still accessible, then reload."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如果长时间没有进展，请确认仓库文件夹仍可访问，然后重新加载。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如果長時間沒有進展，請確認倉庫資料夾仍可存取，然後重新載入。"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如果長時間沒有進展，請確認倉庫資料夾仍可存取，然後重新載入。"
+          }
+        },
+        "zh-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如果長時間沒有進展，請確認倉庫資料夾仍可存取，然後重新載入。"
+          }
+        }
+      }
+    },
+    "Reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新加载"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新載入"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新載入"
+          }
+        },
+        "zh-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新載入"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

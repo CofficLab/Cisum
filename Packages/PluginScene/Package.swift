@@ -8,6 +8,7 @@ let package = Package(
     platforms: [
         .macOS(.v14),
         .iOS(.v17),
+        .visionOS(.v2),
     ],
     products: [
         .library(
@@ -22,7 +23,7 @@ let package = Package(
         .package(path: "../ProviderPlugin"),
         .package(path: "../ProviderStorage"),
         .package(name: "KitAppEvents", path: "../KitAppEvents"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.11.1"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.12.0"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
         .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.18.0"),
     ],

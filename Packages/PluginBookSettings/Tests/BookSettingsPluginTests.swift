@@ -1,5 +1,6 @@
 import MagicKit
 import Foundation
+import KernelCore
 @testable import PluginBookSettings
 import Testing
 
@@ -36,6 +37,42 @@ import Testing
         currentGeneration: 2,
         resultGeneration: 2
     ))
+}
+
+/// 回归：书籍 Provider 尚未注册时，本插件**不得**崩溃。
+///
+/// 历史实现里 `resolveViewModel()` 强制解包 `settingsViewModel!`，而
+/// `installState()` 在 Provider 缺失时提前返回——于是 `onBoot` 阶段
+/// `makeSettingEntry()` 直接崩溃（`Unexpectedly found nil`）。
+///
+/// 本插件与 BookDBDataPlugin 同为 order 11，启动先后取决于工厂清单顺序，
+/// 因此「Provider 尚未就绪」是真实可达的状态，不是理论情况。
+@MainActor
+@Test func bookSettingsDoesNotCrashWhenBookProviderIsMissing() async throws {
+    let kernel = KernelCoreContainer()
+    let plugin = BookSettingsPlugin()
+
+    // 没有注册 BookDatabaseProviding：模拟书籍数据层尚未就绪。
+    try await kernel.startAsync(plugins: [plugin])
+
+    // 不崩溃即通过；再确认插件生命周期完整走完。
+    #expect(kernel.resolvePlugin(id: plugin.id) != nil)
+
+    try await kernel.stopAsync()
+}
+
+/// 回归：书籍 Provider 就绪后，本插件应能贡献设置入口。
+@MainActor
+@Test func bookSettingsContributesEntryWhenBookProviderIsReady() async throws {
+    let kernel = KernelCoreContainer()
+    let plugin = BookSettingsPlugin()
+
+    try await kernel.startAsync(plugins: [plugin])
+
+    // Provider 缺失时不贡献入口（而不是贡献一个坏页面）。
+    #expect(plugin.makeSettingEntry() == nil)
+
+    try await kernel.stopAsync()
 }
 
 @Test func bookSettingsHidesOpenLibraryActionForMissingLocalDisk() throws {

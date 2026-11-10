@@ -24,7 +24,7 @@ final class CisumAppearanceUITests: CisumUITestBase {
         openSettingsWindowViaMenu()
         XCTAssertTrue(element(identifier: "cisum.settings.ready").waitForExistence(timeout: 15), "设置窗口未就绪")
         XCTAssertTrue(appearanceEntry.waitForExistence(timeout: 10), "设置窗口缺少「外观」入口")
-        appearanceEntry.click()
+        appearanceEntry.cisumActivate()
         #else
         throw XCTSkip("外观页检查仅 macOS 设置窗口支持")
         #endif
@@ -123,7 +123,7 @@ final class CisumAppearanceUITests: CisumUITestBase {
             throw XCTSkip("主题列表中没有可选的其他主题")
         }
 
-        target.click()
+        target.cisumActivate()
 
         // 选中后详情面板应出现「使用」按钮。
         //
@@ -137,7 +137,7 @@ final class CisumAppearanceUITests: CisumUITestBase {
             "选中未使用的主题后没有出现「使用」按钮"
         )
 
-        useButton.click()
+        useButton.cisumActivate()
 
         // 应用后「当前使用」状态必须出现。
         let inUse = element(anyLabelOf: ["Currently Using", "当前使用"])
@@ -166,7 +166,7 @@ final class CisumAppearanceUITests: CisumUITestBase {
         ).firstMatch
 
         if filter.exists {
-            filter.click()
+            filter.cisumActivate()
             // 筛选后主题统计行仍在，说明页面没有崩溃。
             XCTAssertTrue(
                 element(containingAny: ["个主题", "Themes"]).waitForExistence(timeout: 10),

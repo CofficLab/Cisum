@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "ProviderSettingsHost",
-    platforms: [.iOS(.v17), .macOS(.v14)],
+    platforms: [.iOS(.v17), .macOS(.v14), .visionOS(.v2)],
     products: [
         .library(name: "ProviderSettingsHost", targets: ["ProviderSettingsHost"]),
     ],

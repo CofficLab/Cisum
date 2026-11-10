@@ -8,6 +8,7 @@ let package = Package(
     platforms: [
         .macOS(.v14),
         .iOS(.v17),
+        .visionOS(.v2),
     ],
     products: [
         .library(
@@ -20,7 +21,7 @@ let package = Package(
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
         .package(name: "KitMagic", path: "../MagicKit"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.11.1"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.12.0"),
         .package(path: "../ProviderAudioLibrary"),
         .package(path: "../ProviderAudioNavigation"),
         .package(path: "../ProviderStorage"),

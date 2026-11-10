@@ -2,7 +2,7 @@ import Combine
 import ProviderToolbar
 import SwiftUI
 
-#if os(iOS)
+#if os(iOS) || os(visionOS)
 /// iOS 导航栏贡献项的桥接器：把 `IOSNavigationBarProviding` 的可见项转成
 /// 可直接挂到导航栈上的 `[AnyView]`。
 ///

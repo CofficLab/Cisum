@@ -27,7 +27,7 @@ struct KernelRootView: View {
     @State private var assembledContent: AnyView?
     /// 组装计数：每次重新组装 +1，参与视图身份，确保子树重建。
     @State private var assemblyToken: Int = 0
-    #if os(iOS)
+    #if os(iOS) || os(visionOS)
     /// iOS 导航栏贡献项桥接器。
     ///
     /// 插件（设置齿轮等）通过 `IOSNavigationBarProviding` 贡献导航栏项，
@@ -40,7 +40,7 @@ struct KernelRootView: View {
         _assembledContent = State(initialValue: initialContent)
         _assemblyToken = State(initialValue: initialContent == nil ? 0 : 1)
         _providerObserver = StateObject(wrappedValue: KernelRootProviderObserver(kernel: kernel))
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         // Provider 可能在插件启动后才注入贡献项，桥接器订阅其变更信号。
         _navigationBarItems = StateObject(wrappedValue: IOSNavigationBarItemsBridge(
             provider: kernel.resolveProvider((any IOSNavigationBarProviding).self)
@@ -66,7 +66,7 @@ struct KernelRootView: View {
 #endif
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
-                #if os(iOS)
+                #if os(iOS) || os(visionOS)
                 // iOS 侧插件贡献的导航栏项（设置齿轮）要出现在这条系统导航栏上。
                 //
                 // 必须挂在 `NavigationStack` **内部**的内容上：`NavigationStack { … }`

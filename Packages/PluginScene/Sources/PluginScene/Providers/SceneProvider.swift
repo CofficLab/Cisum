@@ -73,9 +73,11 @@ public final class SceneProvider: ObservableObject, SceneProviding {
     }
 
     public var scenes: [AppScene] {
-        // 临时只启用音乐场景，有声书功能暂缓上线。
-        // 恢复有声书功能时改回 `AppScene.allCases`。
-        [.music]
+        // 场景是 Provider 内置的固定枚举：音乐库 + 有声书。
+        //
+        // 「有声书」曾因音乐版单独发布被临时摘掉（`scenes` 只返回 `[.music]`），
+        // 现已恢复为全部内置场景——工具栏场景切换器因此重新可见。
+        AppScene.allCases
     }
 
     public func setCurrentScene(_ scene: AppScene) {

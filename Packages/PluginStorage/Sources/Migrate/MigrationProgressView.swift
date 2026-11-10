@@ -169,7 +169,6 @@ struct MigrationProgressView: View {
     var body: some View {
         VStack(spacing: DesignTokens.Spacing.sm) {
             RepositoryInfoView(
-                isDesktop: MagicApp.isDesktop,
                 title: String(localized: "Source Library", bundle: .module),
                 location: sourceLocation,
                 url: sourceURL
@@ -187,7 +186,6 @@ struct MigrationProgressView: View {
             .frame(height: DesignTokens.Spacing.sm)
 
             RepositoryInfoView(
-                isDesktop: MagicApp.isDesktop,
                 title: String(localized: "Target Library", bundle: .module),
                 location: targetLocation,
                 url: targetURL

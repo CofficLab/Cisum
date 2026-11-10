@@ -1,5 +1,5 @@
 {
-  "originHash" : "2ff1498c5c5416aee1d4c6f8c22638c02e84bb154c00b0ef26c17ab1e81ebdc2",
+  "originHash" : "c7a1bcf76e558f09a859515ecfd0a600d3e0002c52f7e9df4e6856288a224010",
   "pins" : [
     {
       "identity" : "id3tageditor",
@@ -38,21 +38,21 @@
       }
     },
     {
+      "identity" : "lumipluginabout",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/CofficLab/LumiPluginAbout.git",
+      "state" : {
+        "revision" : "419abd51827febdc97689742aa573f4850fa2ae6",
+        "version" : "3.0.1"
+      }
+    },
+    {
       "identity" : "lumipluginpluginmanager",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CofficLab/LumiPluginPluginManager.git",
       "state" : {
         "revision" : "7c0fb64e524ef3423efd422d98ea8a5425f623eb",
         "version" : "1.7.0"
-      }
-    },
-    {
-      "identity" : "lumipluginsettingview",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CofficLab/LumiPluginSettingView.git",
-      "state" : {
-        "revision" : "56fc485b2e5c422e7105abfe76e6f18df8442b45",
-        "version" : "1.0.3"
       }
     },
     {
@@ -69,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CofficLab/LumiProviders.git",
       "state" : {
-        "revision" : "95d82d5e1f11854aef87ed88d30094ddf10c3551",
-        "version" : "1.18.0"
+        "revision" : "822c4c7fd75ee8af46f483515bc34ad54968f683",
+        "version" : "1.21.0"
       }
     },
     {
@@ -80,15 +80,6 @@
       "state" : {
         "revision" : "996db81e4e4c7a43b5cd423505541f581d42b5f0",
         "version" : "1.1.0"
-      }
-    },
-    {
-      "identity" : "lumistorekit",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CofficLab/LumiStoreKit.git",
-      "state" : {
-        "revision" : "bcd387ab364c38c56196172d69685fc84645b967",
-        "version" : "1.0.1"
       }
     },
     {
@@ -105,8 +96,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CofficLab/LumiUI",
       "state" : {
-        "revision" : "cafd284e4cb9b026c32f9a09dc9b8baa3c039c46",
-        "version" : "1.11.1"
+        "revision" : "6786ab3b708f4ffe5b8412b95ac4d932936364b7",
+        "version" : "1.12.0"
       }
     },
     {

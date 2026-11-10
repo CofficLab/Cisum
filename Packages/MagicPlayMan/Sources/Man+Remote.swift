@@ -38,7 +38,7 @@ extension MagicPlayMan {
     }
 
     func setupRemoteControl() {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
             do {
                 try AVAudioSession.sharedInstance().setCategory(.playback)
                 try AVAudioSession.sharedInstance().setActive(true)
@@ -187,7 +187,7 @@ extension MagicPlayMan {
     /// 更新Now Playing信息中心
     /// - Parameter info: 要设置的媒体信息字典
     private func updateNowPlayingCenter(with info: [String: Any], requestedAsset: URL) {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
             // 确保音频会话是活跃的，否则控制中心不会显示信息
             do {
                 try AVAudioSession.sharedInstance().setActive(true)
