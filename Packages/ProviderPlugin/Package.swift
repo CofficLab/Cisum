@@ -1,0 +1,45 @@
+// swift-tools-version: 6.0
+import PackageDescription
+
+let package = Package(
+    name: "ProviderPlugin",
+    defaultLocalization: "en",
+    platforms: [
+        .macOS(.v14),
+        .iOS(.v17),
+        .visionOS(.v2),
+    ],
+    products: [
+        .library(name: "ProviderPlugin", targets: ["ProviderPlugin"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.1"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.17.1"),
+        .package(path: "../KitEventObservation"),
+    ],
+    targets: [
+        .target(
+            name: "ProviderPlugin",
+            dependencies: [
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "LumiUI", package: "LumiUI"),
+                .product(name: "KitEventObservation", package: "KitEventObservation"),
+            ],
+            path: ".",
+            exclude: ["README.md", "Tests"],
+            sources: ["Sources/ProviderPlugin"],
+            resources: [.process("Resources")]
+        ),
+        .testTarget(
+            name: "ProviderPluginTests",
+            dependencies: [
+                "ProviderPlugin",
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "LumiUI", package: "LumiUI"),
+            ],
+            path: "Tests",
+            exclude: ["TestPlan.md"]
+        ),
+    ],
+    swiftLanguageModes: [.v5]
+)

@@ -1,0 +1,763 @@
+import Foundation
+import Combine
+import CryptoKit
+import SwiftUI
+import UniformTypeIdentifiers
+
+#if os(macOS)
+    import AppKit
+#elseif os(iOS) || os(visionOS)
+    import UIKit
+#endif
+
+enum URLDownloadAvailabilityPolicy {
+    static func isDownloaded(
+        fileExists: Bool,
+        isUbiquitousItem: Bool?,
+        downloadingStatus: URLUbiquitousItemDownloadingStatus?
+    ) -> Bool {
+        if isUbiquitousItem == true {
+            return downloadingStatus == .current
+        }
+
+        if let downloadingStatus {
+            return downloadingStatus == .current
+        }
+
+        return fileExists
+    }
+}
+
+enum URLDownloadProgressPolicy {
+    static func normalizedFraction(percentDownloaded: Double?) -> Double {
+        guard let percentDownloaded, percentDownloaded.isFinite else { return 0 }
+        return min(max(percentDownloaded / 100, 0), 1)
+    }
+
+    static func normalizedFraction(downloadedSize: Int?, totalSize: Int?) -> Double {
+        guard let downloadedSize,
+              let totalSize,
+              totalSize > 0 else {
+            return 0
+        }
+
+        return min(max(Double(downloadedSize) / Double(totalSize), 0), 1)
+    }
+}
+
+enum URLDirectoryContainmentPolicy {
+    static func contains(_ childPath: String, inDirectory parentPath: String) -> Bool {
+        childPath == parentPath || childPath.hasPrefix(childPrefix(for: parentPath))
+    }
+
+    private static func childPrefix(for parentPath: String) -> String {
+        parentPath.hasSuffix("/") ? parentPath : parentPath + "/"
+    }
+}
+
+public enum URLOpenActionPolicy {
+    /// URL 在访达中的呈现方式。
+    public enum FinderPresentation: Equatable {
+        /// 打开该目录本身：访达窗口的当前目录就是它。
+        case openDirectory
+        /// 打开父目录并在其中选中该条目（文件或符号链接）。
+        case revealInParent
+        /// 没有可呈现的对象。
+        case none
+    }
+
+    /// 当前平台是否支持「用系统文件管理器打开本地目录」。
+    ///
+    /// ## 为什么 iOS 上不成立
+    ///
+    /// macOS 的访达能打开任意本地路径；iOS / visionOS 没有等价能力：
+    /// 应用容器目录（`/var/mobile/Containers/Data/Application/<uuid>/…`）
+    /// 没有暴露给「文件」App，`UIApplication.shared.open(_:)` 对这类
+    /// 路径**必然失败且无任何反馈**——用户点了按钮，界面毫无变化。
+    ///
+    /// 因此凡是「打开仓库目录 / 在 Finder 中显示」这类入口，
+    /// **在 iOS 上必须整条隐藏**，而不是留着按钮点了没反应。
+    ///
+    /// 这是 UI 层的**唯一判断真源**：各处散落的 `#if os(macOS)` 与
+    /// 运行时的 `isDesktop` 都应改为引用它，避免再次出现「某处漏判」
+    /// 导致平台行为不一致。
+    public static var supportsSystemFileManager: Bool {
+        #if os(macOS)
+            return true
+        #else
+            return false
+        #endif
+    }
+
+    /// 当前平台是否应展示「打开仓库目录 / 在文件管理器中显示」类入口。
+    ///
+    /// 与 ``supportsSystemFileManager`` 同义，保留此别名是为了让调用点
+    /// 读起来是在问「该不该展示这个按钮」，而不是在问「平台支不支持」。
+    public static var shouldOfferFileManagerEntry: Bool {
+        supportsSystemFileManager
+    }
+
+    public static func canOpen(_ url: URL) -> Bool {
+        guard url.isFileURL else {
+            return true
+        }
+
+        return FileManager.default.fileExists(atPath: url.path)
+    }
+
+    public static func canRevealInFinder(_ url: URL) -> Bool {
+        guard url.isFileURL else { return false }
+
+        if FileManager.default.fileExists(atPath: url.path) {
+            return true
+        }
+
+        return (try? url.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink) == true
+    }
+
+    /// 决定 URL 在访达中应该如何呈现。
+    ///
+    /// 目录必须走「打开目录本身」，不能走「在父目录中选中」：后者只会把访达
+    /// 停在父目录并高亮该文件夹，用户看到的并不是要打开的仓库目录本身。
+    public static func finderPresentation(for url: URL) -> FinderPresentation {
+        guard url.isFileURL else { return .none }
+        guard canRevealInFinder(url) else { return .none }
+        guard isDirectory(url) else { return .revealInParent }
+
+        return .openDirectory
+    }
+
+    /// 判断 URL 是否指向目录；符号链接按其目标判断。
+    private static func isDirectory(_ url: URL) -> Bool {
+        let resolved = url.resolvingSymlinksInPath()
+        if resolved.path != url.path, FileManager.default.fileExists(atPath: resolved.path) {
+            var isDir: ObjCBool = false
+            guard FileManager.default.fileExists(atPath: resolved.path, isDirectory: &isDir) else {
+                return false
+            }
+            return isDir.boolValue
+        }
+
+        if let values = try? url.resourceValues(forKeys: [.isDirectoryKey]),
+           let isDirectory = values.isDirectory {
+            return isDirectory
+        }
+
+        return url.hasDirectoryPath
+    }
+
+    public static func buttonAccessibilityLabel(for url: URL) -> String {
+        let target = buttonTargetName(for: url)
+        guard !target.isEmpty else { return "Open" }
+
+        return "Open \(target)"
+    }
+
+    private static func buttonTargetName(for url: URL) -> String {
+        if url.isFileURL {
+            return url.lastPathComponent
+        }
+
+        return url.host ?? url.absoluteString
+    }
+}
+
+/// URL 扩展：文件操作基础方法
+public extension URL {
+    /// File/display title without the path extension.
+    var title: String {
+        deletingPathExtension().lastPathComponent
+    }
+
+    /// Whether the URL points to a directory.
+    var isFolder: Bool {
+        (try? resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? hasDirectoryPath
+    }
+
+    /// Alias for callers that use directory terminology.
+    var isDirectory: Bool {
+        isFolder
+    }
+
+    /// Whether the URL points to an existing directory.
+    var isDirExist: Bool {
+        var isDir: ObjCBool = false
+        return FileManager.default.fileExists(atPath: path, isDirectory: &isDir) && isDir.boolValue
+    }
+
+    /// Whether the URL does not point to an existing directory.
+    var isNotDirExist: Bool {
+        !isDirExist
+    }
+
+    /// Whether the URL does not point to an existing file.
+    var isNotFileExist: Bool {
+        !FileManager.default.fileExists(atPath: path)
+    }
+
+    /// Whether a path is occupied, including by a broken symbolic link.
+    var pathExistsIncludingSymbolicLink: Bool {
+        FileManager.default.fileExists(atPath: path) || isSymbolicLinkPath
+    }
+
+    /// Whether the URL does not point to a directory.
+    var isNotFolder: Bool {
+        !isFolder
+    }
+
+    /// Whether two file URLs resolve to the same filesystem location.
+    func isSameFileLocation(as other: URL) -> Bool {
+        guard isFileURL, other.isFileURL else {
+            return standardized.absoluteString == other.standardized.absoluteString
+        }
+
+        return canonicalFileLocationIdentity == other.canonicalFileLocationIdentity
+    }
+
+    private var canonicalFileLocationIdentity: String {
+        if isDanglingSymbolicLinkPath {
+            return standardizedFileURL.path
+        }
+
+        return resolvingSymlinksInPath().standardizedFileURL.path
+    }
+
+    private var isDanglingSymbolicLinkPath: Bool {
+        isSymbolicLinkPath && !FileManager.default.fileExists(atPath: path)
+    }
+
+    /// Whether a local/iCloud file is available on disk.
+    var isDownloaded: Bool {
+        let fileExists = isFileURL && FileManager.default.fileExists(atPath: path)
+
+        let values = try? resourceValues(forKeys: [
+            .isUbiquitousItemKey,
+            .ubiquitousItemDownloadingStatusKey,
+        ])
+
+        return URLDownloadAvailabilityPolicy.isDownloaded(
+            fileExists: fileExists,
+            isUbiquitousItem: values?.isUbiquitousItem,
+            downloadingStatus: values?.ubiquitousItemDownloadingStatus
+        )
+    }
+
+    /// Whether an iCloud file is explicitly not downloaded.
+    var isNotDownloaded: Bool {
+        #if os(macOS)
+            let values = try? resourceValues(forKeys: [.ubiquitousItemDownloadingStatusKey])
+            return values?.ubiquitousItemDownloadingStatus == .notDownloaded
+        #else
+            return false
+        #endif
+    }
+
+    /// 文件内容是否已经落到本地磁盘，可以直接读取。
+    ///
+    /// 与 `isDownloaded` 的区别：`isDownloaded` 依赖 iCloud 的
+    /// `ubiquitousItemDownloadingStatus`，而「优化 Mac 存储」下被驱逐的文件
+    /// （`ls -lO` 显示 `dataless`、`st_blocks` 为 0）在该键上可能既不报
+    /// `.notDownloaded` 也不报 `.current`，于是 `isDownloaded` 与 `isNotDownloaded`
+    /// 同时为 false，下载流程既不发起请求、也无法判定完成。
+    ///
+    /// 这里改用文件实际占用的磁盘空间判断（dataless 占位文件的已分配空间恒为 0），
+    /// 不依赖 iCloud 状态键，任何进程与权限下都能可靠读取。
+    var hasLocalContent: Bool {
+        magicKitHasLocalContent()
+    }
+
+    /// 创建文件如果不存在，返回自身
+    func createIfNotExist() -> URL {
+        if !FileManager.default.fileExists(atPath: self.path) {
+            try? FileManager.default.createDirectory(
+                at: self.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            FileManager.default.createFile(atPath: self.path, contents: nil)
+        }
+        return self
+    }
+
+    /// 读取文件内容
+    func getContent() throws -> String {
+        try String(contentsOf: self)
+    }
+
+    /// 删除当前 URL 指向的文件或目录。
+    func delete() throws {
+        guard FileManager.default.fileExists(atPath: path) || isSymbolicLinkPath else {
+            return
+        }
+        try FileManager.default.removeItem(at: self)
+    }
+
+    private var isSymbolicLinkPath: Bool {
+        (try? FileManager.default.destinationOfSymbolicLink(atPath: path)) != nil
+    }
+
+    /// 复制当前文件到目标位置。
+    func copyTo(
+        _ destination: URL,
+        verbose: Bool = false,
+        caller: String,
+        downloadProgress: ((Double) -> Void)? = nil
+    ) async throws {
+        guard !isSameFileLocation(as: destination) else {
+            throw MagicError.fileError("Cannot copy a file onto itself: \(lastPathComponent)")
+        }
+
+        guard !isDirectoryCopyIntoDescendant(destination) else {
+            throw MagicError.fileError("Cannot copy a folder into itself: \(lastPathComponent)")
+        }
+
+        let sourceToCopy = copySourceURL()
+        try await sourceToCopy.ensureLocalAvailability()
+
+        if destination.pathExistsIncludingSymbolicLink {
+            try destination.delete()
+        }
+
+        try FileManager.default.copyItem(at: sourceToCopy, to: destination)
+    }
+
+    private func copySourceURL() -> URL {
+        let resolvedURL = resolvingSymlinksInPath().standardizedFileURL
+        guard FileManager.default.fileExists(atPath: resolvedURL.path) else {
+            return self
+        }
+
+        return resolvedURL
+    }
+
+    private func isDirectoryCopyIntoDescendant(_ destination: URL) -> Bool {
+        guard isFileURL, destination.isFileURL, isFolder else {
+            return false
+        }
+
+        let sourcePath = resolvingSymlinksInPath().standardizedFileURL.path
+        let destinationPath = destination.resolvingSymlinksInPath().standardizedFileURL.path
+        return sourcePath != destinationPath
+            && URLDirectoryContainmentPolicy.contains(destinationPath, inDirectory: sourcePath)
+    }
+
+    /// Ensure an iCloud-backed file has finished downloading before a caller reads or copies it.
+    ///
+    /// 走 `ICloudDownloadControl` 注入的网关，使单元测试与 UI 测试可以脚本化
+    /// 「下载中 / 超时 / 离线」，无需真实 iCloud 账号。
+    func ensureLocalAvailability(
+        timeout: TimeInterval = 120,
+        pollInterval: TimeInterval = 0.25
+    ) async throws {
+        let downloader = ICloudDownloadControl.shared.downloader
+        guard downloader.isICloudBacked(self) else { return }
+
+        let timeout = ICloudDownloadControl.shared.effectiveTimeout ?? timeout
+        if downloader.hasLocalContent(self) { return }
+
+        try Self.requestDownload(for: self, from: downloader)
+
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            try Task.checkCancellation()
+
+            if downloader.hasLocalContent(self) { return }
+
+            let nanoseconds = UInt64(max(pollInterval, 0.05) * 1_000_000_000)
+            try await Task.sleep(nanoseconds: nanoseconds)
+        }
+
+        throw ICloudDownloadError.timedOut(fileName: lastPathComponent)
+    }
+
+    /// Synchronous variant for non-async file workflows such as migration.
+    func ensureLocalAvailabilitySync(
+        timeout: TimeInterval = 120,
+        pollInterval: TimeInterval = 0.25
+    ) throws {
+        let downloader = ICloudDownloadControl.shared.downloader
+        guard downloader.isICloudBacked(self) else { return }
+
+        let timeout = ICloudDownloadControl.shared.effectiveTimeout ?? timeout
+        if downloader.hasLocalContent(self) { return }
+
+        try Self.requestDownload(for: self, from: downloader)
+
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if downloader.hasLocalContent(self) { return }
+
+            Thread.sleep(forTimeInterval: max(pollInterval, 0.05))
+        }
+
+        throw ICloudDownloadError.timedOut(fileName: lastPathComponent)
+    }
+
+    /// 发起 iCloud 下载请求，并把底层错误统一归类为 `ICloudDownloadError`。
+    ///
+    /// 无条件请求：对已下载 / 下载中的项目该 API 是幂等的，
+    /// 而 `isNotDownloaded == false` 并不代表内容确实在本地。
+    private static func requestDownload(for url: URL, from downloader: any UbiquitousItemDownloading) throws {
+        do {
+            try downloader.startDownload(url)
+        } catch let error as ICloudDownloadError {
+            throw error
+        } catch {
+            throw ICloudDownloadError.requestFailed(error.localizedDescription)
+        }
+    }
+
+    /// 计算文件的 MD5 哈希值。
+    func getHash(verbose: Bool = false) -> String {
+        guard !isFolder else {
+            return ""
+        }
+
+        do {
+            let handle = try FileHandle(forReadingFrom: self)
+            defer { try? handle.close() }
+
+            var hash = Insecure.MD5()
+            while true {
+                let data = handle.readData(ofLength: 1024)
+                if data.isEmpty { break }
+                hash.update(data: data)
+            }
+
+            return hash.finalize().map { String(format: "%02hhx", $0) }.joined()
+        } catch {
+            return ""
+        }
+    }
+
+    /// 获取父目录 URL。
+    func getParent() -> URL {
+        deletingLastPathComponent()
+    }
+
+    /// 获取路径最后三个组件的简短显示。
+    func shortPath() -> String {
+        lastThreeComponents()
+    }
+
+    /// 获取路径的最后三个组件。
+    func lastThreeComponents() -> String {
+        pathComponents
+            .filter { $0 != "/" }
+            .suffix(3)
+            .joined(separator: "/")
+    }
+
+    /// 在访达中打开文件夹本身。
+    ///
+    /// 目录用 `NSWorkspace.open` 打开，使访达窗口的当前目录就是该目录；
+    /// `activateFileViewerSelecting` 只会打开父目录并在其中选中它，
+    /// 「打开仓库目录」这类入口用它会停在父目录。
+    ///
+    /// ## 平台说明
+    ///
+    /// 只有桌面端会真的打开。iOS / visionOS 上应用容器目录没有暴露给
+    /// 「文件」App，`UIApplication.shared.open(_:)` 对沙盒路径**必然失败且
+    /// 无任何反馈**——因此这里直接不做任何事，而不是发起一个注定失败的
+    /// 打开请求（那只会让调用方误以为「已处理」）。
+    ///
+    /// UI 层面应当用 ``URLOpenActionPolicy/shouldOfferFileManagerEntry``
+    /// 判断是否**展示**这个入口；本方法是它背后的执行层。
+    func openFolder() {
+        switch URLOpenActionPolicy.finderPresentation(for: self) {
+        case .openDirectory:
+            #if os(macOS)
+                NSWorkspace.shared.open(self)
+            #endif
+        case .revealInParent:
+            openInFinder()
+        case .none:
+            break
+        }
+    }
+
+    /// 在 Finder 中显示当前文件或目录。
+    ///
+    /// 平台说明同 ``openFolder()``：仅桌面端生效。
+    func openInFinder() {
+        guard URLOpenActionPolicy.canRevealInFinder(self) else { return }
+
+        #if os(macOS)
+            NSWorkspace.shared.activateFileViewerSelecting([self])
+        #endif
+    }
+
+    /// 在系统默认应用中打开当前 URL。
+    func open() {
+        #if os(macOS)
+            NSWorkspace.shared.open(self)
+        #elseif os(iOS) || os(visionOS)
+            UIApplication.shared.open(self)
+        #endif
+    }
+
+    /// 获取文件大小的可读格式。
+    func getSizeReadable() -> String {
+        let size = getSize()
+        guard size > 0 else {
+            return "0 bytes"
+        }
+
+        if size < 1024 {
+            return "\(size) bytes"
+        } else if size < 1024 * 1024 {
+            return String(format: "%.1f KB", Double(size) / 1024.0)
+        } else if size < 1024 * 1024 * 1024 {
+            return String(format: "%.1f MB", Double(size) / (1024.0 * 1024.0))
+        } else {
+            return String(format: "%.1f GB", Double(size) / (1024.0 * 1024.0 * 1024.0))
+        }
+    }
+
+    /// 计算文件或目录大小，单位为字节。
+    func getSize() -> Int64 {
+        if isFolder {
+            return fileDescendants().reduce(Int64(0)) { total, url in
+                let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+                return total + Int64(size)
+            }
+        }
+
+        let size = (try? resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+        return Int64(size)
+    }
+
+    /// 创建一个打开当前 URL 的按钮。
+    func makeOpenButton() -> some View {
+        Group {
+            if URLOpenActionPolicy.canOpen(self) {
+                let accessibilityLabel = URLOpenActionPolicy.buttonAccessibilityLabel(for: self)
+
+                Button(action: {
+                    self.open()
+                }) {
+                    Label {
+                        Text(accessibilityLabel)
+                    } icon: {
+                        Image(systemName: "folder")
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(accessibilityLabel)
+                .help(accessibilityLabel)
+            }
+        }
+    }
+
+    /// 获取同级目录中的下一个文件。
+    func getNextFile() -> URL? {
+        let contents = deletingLastPathComponent().getChildren()
+            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+        guard let index = siblingIndex(of: self, in: contents) else { return nil }
+        let nextIndex = index + 1
+        return nextIndex < contents.count ? contents[nextIndex] : nil
+    }
+
+    /// 获取同级目录中的上一个文件。
+    func getPrevFile() -> URL? {
+        let contents = deletingLastPathComponent().getChildren()
+            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+        guard let index = siblingIndex(of: self, in: contents) else { return nil }
+        return index > 0 ? contents[index - 1] : nil
+    }
+
+    /// 检查 URL 是否位于 iCloud Documents 容器中。
+    func checkIsICloud(verbose: Bool = false) -> Bool {
+        guard let iCloudURL = FileManager.default.url(forUbiquityContainerIdentifier: nil)?
+            .appendingPathComponent("Documents") else {
+            return false
+        }
+
+        return URLDirectoryContainmentPolicy.contains(path, inDirectory: iCloudURL.path)
+    }
+
+    /// Whether the URL is not under iCloud Documents.
+    var isLocal: Bool {
+        !checkIsICloud(verbose: false)
+    }
+
+    /// 检查 iCloud 文件是否正在下载。
+    func checkIsDownloading(verbose: Bool = false) -> Bool {
+        var mutableSelf = self
+        mutableSelf.removeAllCachedResourceValues()
+
+        guard let resources = try? mutableSelf.resourceValues(forKeys: [
+            .isUbiquitousItemKey,
+            .ubiquitousItemDownloadingStatusKey,
+            .ubiquitousItemIsDownloadingKey,
+        ]) else {
+            return false
+        }
+
+        guard resources.isUbiquitousItem == true else {
+            return false
+        }
+
+        if resources.ubiquitousItemIsDownloading == true {
+            return true
+        }
+
+        return resources.ubiquitousItemDownloadingStatus?.rawValue == "NSMetadataUbiquitousItemDownloadingStatusDownloading"
+    }
+
+    /// 获取 iCloud 文件当前下载进度，范围为 0...1。
+    func getDownloadProgressSnapshot(verbose: Bool = false) -> Double {
+        // UI 测试注入的固定进度优先于真实资源键：真实键在本机没有 iCloud
+        // 占位文件时恒为 0，测试无法断言非零百分比。
+        if let overridden = ICloudDownloadControl.shared.effectiveProgressOverride {
+            return overridden
+        }
+
+        var mutableSelf = self
+        mutableSelf.removeAllCachedResourceValues()
+
+        if isLocal {
+            return 1.0
+        }
+
+        let percentKey = URLResourceKey(rawValue: "NSURLUbiquitousItemPercentDownloadedKey")
+        guard let resources = try? mutableSelf.resourceValues(forKeys: [
+            .fileSizeKey,
+            .fileAllocatedSizeKey,
+            .ubiquitousItemDownloadingStatusKey,
+            .ubiquitousItemIsDownloadingKey,
+            percentKey,
+        ]) else {
+            return 0.0
+        }
+
+        if resources.ubiquitousItemDownloadingStatus == .current {
+            return 1.0
+        }
+
+        let percentProgress = URLDownloadProgressPolicy.normalizedFraction(
+            percentDownloaded: resources.allValues[percentKey] as? Double
+        )
+        if percentProgress > 0 {
+            return percentProgress
+        }
+
+        return URLDownloadProgressPolicy.normalizedFraction(
+            downloadedSize: resources.fileAllocatedSize,
+            totalSize: resources.fileSize
+        )
+    }
+
+    /// 将文件夹展开为所有非文件夹子项；普通文件返回自身。
+    func flatten() -> [URL] {
+        Array(fileDescendants())
+    }
+
+    private func fileDescendants() -> AnySequence<URL> {
+        guard isFolder else { return AnySequence([self]) }
+
+        guard let enumerator = FileManager.default.enumerator(
+            at: self,
+            includingPropertiesForKeys: [.isDirectoryKey, .isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return AnySequence([])
+        }
+
+        return AnySequence {
+            AnyIterator {
+                while let url = enumerator.nextObject() as? URL {
+                    if !url.isFolder {
+                        return url
+                    }
+                }
+
+                return nil
+            }
+        }
+    }
+
+    /// 获取文件夹内的直接子项。
+    func getChildren() -> [URL] {
+        guard isFolder else { return [] }
+
+        return (try? FileManager.default.contentsOfDirectory(
+            at: self,
+            includingPropertiesForKeys: [.isDirectoryKey, .fileSizeKey],
+            options: [.skipsHiddenFiles]
+        )) ?? []
+    }
+
+    /// 递归统计当前 URL 下的文件数量。
+    func filesCountRecursively() -> Int {
+        guard FileManager.default.fileExists(atPath: path) else {
+            return 0
+        }
+
+        guard isFolder else {
+            return 1
+        }
+
+        return fileDescendants().reduce(0) { count, _ in count + 1 }
+    }
+
+    /// 获取本地图片缩略图。
+    func thumbnailImage(
+        size: CGSize = CGSize(width: 120, height: 120),
+        useDefaultIcon: Bool = true,
+        verbose: Bool,
+        reason: String
+    ) async throws -> Image? {
+        #if os(macOS)
+            if let image = NSImage(contentsOf: self) {
+                return Image(nsImage: image)
+            }
+        #elseif os(iOS) || os(visionOS)
+            if let image = UIImage(contentsOfFile: path) {
+                return Image(uiImage: image)
+            }
+        #endif
+
+        return useDefaultIcon ? Image(systemName: isFolder ? "folder" : "doc") : nil
+    }
+
+    /// 自动判断并监听文件夹变化。
+    func onDirChange(
+        verbose: Bool = false,
+        caller: String,
+        onChange: @escaping @Sendable (_ files: [URL], _ isInitialFetch: Bool, _ error: Error?) async -> Void,
+        onDeleted: @escaping @Sendable (_ urls: [URL]) -> Void = { _ in },
+        onProgress: @escaping @Sendable (_ url: URL, _ progress: Double) -> Void = { _, _ in }
+    ) -> AnyCancellable {
+        if checkIsICloud(verbose: false) {
+            let monitor = ICloudDirectoryMonitor(
+                directoryURL: self,
+                verbose: verbose,
+                caller: caller,
+                onProgress: onProgress,
+                onDeleted: onDeleted
+            ) { files, isInitial, error in
+                Task {
+                    await onChange(files, isInitial, error)
+                }
+            }
+
+            return monitor.start()
+        }
+
+        let monitor = LocalDirectoryMonitor(
+            directoryURL: self,
+            verbose: verbose,
+            caller: caller,
+            onChange: onChange
+        )
+
+        return monitor.start()
+    }
+}
+
+private func siblingIndex(of url: URL, in siblings: [URL]) -> Int? {
+    let identity = url.resolvingSymlinksInPath().standardizedFileURL.path
+    return siblings.firstIndex {
+        $0.resolvingSymlinksInPath().standardizedFileURL.path == identity
+    }
+}

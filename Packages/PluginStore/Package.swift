@@ -1,0 +1,68 @@
+// swift-tools-version: 6.0
+import PackageDescription
+
+let package = Package(
+    name: "PluginStore",
+    defaultLocalization: "en",
+    platforms: [
+        .macOS(.v14),
+        .iOS(.v17),
+        .visionOS(.v2),
+    ],
+    products: [
+        .library(
+            name: "PluginStore",
+            targets: ["PluginStore"]
+        )
+    ],
+    dependencies: [
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.1.1"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.17.1"),
+        .package(path: "../ProviderStoreKit"),
+        .package(path: "../ProviderAudioLibrary"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.1"),
+        .package(path: "../KitAppEvents"),
+        .package(path: "../ProviderPlugin"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.23.0"),
+    ],
+    targets: [
+        .target(
+            name: "PluginStore",
+            dependencies: [
+                .product(name: "ProviderStoreKit", package: "ProviderStoreKit"),
+                .product(name: "ProviderStore", package: "LumiProviders"),
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "LumiUI", package: "LumiUI"),
+                .product(name: "ProviderSettingView", package: "LumiSettings"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
+                .product(name: "ProviderRootView", package: "LumiProviders"),
+                .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
+                .product(name: "ProviderToast", package: "LumiProviders"),
+            ],
+            path: ".",
+            sources: [
+                "Sources/StorePlugin.swift",
+                "Sources/Observers",
+                "Sources/Providers",
+                "Sources/ViewModels",
+                "Sources/Views"
+            ],
+            resources: [
+                .process("Resources/Localizable.xcstrings"),
+                .process("Resources/Products.storekit")
+            ]
+        ),
+        .testTarget(
+            name: "StorePluginTests",
+            dependencies: [
+                "PluginStore",
+                .product(name: "ProviderStoreKit", package: "ProviderStoreKit")
+            ],
+            path: "Tests"
+        )
+    ]
+)

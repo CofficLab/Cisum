@@ -1,0 +1,385 @@
+import LumiThemePack
+import ProviderTheme
+import ProviderAppState
+import ProviderControlView
+import ProviderContentView
+import ProviderRootView
+import ProviderScene
+import ProviderDocsView
+import ProviderToast
+import ProviderToolbar
+import ProviderDevice
+import ProviderCloud
+import ProviderCloudDownload
+import KernelCore
+import ProviderPlugin
+import ProviderPluginManaging
+import LumiUI
+import Foundation
+import MagicKit
+import OSLog
+import ProviderSettingView
+import PluginSettingView
+import PluginRootView
+import SwiftUI
+
+/// Cisum 应用组装工厂（Composition Root）。
+///
+/// 唯一知道"如何组装应用"的地方：
+/// - 内核生命周期管理（创建、启动、销毁）
+/// - 基础设施 Provider 注册（AppState / Playback / Theme / Cloud / Device）
+/// - 窗口 / 命令工厂方法
+///
+/// 插件清单由宿主（app target）通过 `FactoryCisumConfiguration` 传入，Factory
+/// 本身不依赖任何具体插件。
+///
+/// ## 核心流程
+///
+/// ```swift
+/// let kernel = try await FactoryCisum.createMainKernel(configuration: config)
+///
+/// // 内部:
+/// KernelCoreContainer()
+///   -> initializePlugins(config.plugins)
+///   -> 注册基础设施 Provider
+///   -> kernel.startup()
+///       -> pluginManager.onBoot(kernel:)   // 插件注册 Storage 等服务
+///       -> 必需服务校验
+///       -> pluginManager.onReady(kernel:)  // 插件桥接 Host / 异步初始化
+///       -> registerPluginUIContributions   // 失效缓存 + 主题同步
+/// ```
+@MainActor
+public enum CisumBuilder: SuperLog {
+    nonisolated static let logger = Logger(subsystem: "com.coffic.cisum", category: "factory")
+    nonisolated public static let emoji = "🏭"
+    nonisolated static let verbose = false
+
+    // MARK: - Kernel Registry
+
+    /// 已创建的内核列表（支持多内核）。
+    public private(set) static var kernels: [KernelCoreContainer] = []
+
+    /// 主内核，取内核列表中的首个。
+    public static var mainKernel: KernelCoreContainer? { kernels.first }
+
+    // MARK: - Kernel Factory
+
+    /// 创建并启动一个新内核。
+    ///
+    /// 流程：
+    /// 1. 通过 `PluginFactory` 装配插件清单并初始化（默认 `DefaultPluginFactory`
+    ///    直接装配 Cisum 全部内置插件；宿主可传 `SelectedPluginFactory` 等
+    ///    自定义实现覆盖）
+    /// 2. 注册基础设施 Provider（非插件拥有的跨切面服务）
+    /// 3. 启动内核（两阶段生命周期 + 服务校验 + 贡献聚合）
+    /// 4. 恢复持久化的当前场景
+    /// 5. 订阅插件启用/禁用变更
+    public static func createKernel(
+        configuration: FactoryCisumConfiguration = FactoryCisumConfiguration(),
+        pluginFactory: (any PluginFactory)? = nil
+    ) async throws -> KernelCoreContainer {
+        let kernel = KernelCoreContainer()
+
+        // 0. 插件 ID 兼容映射：新 id → 旧 id。
+        //
+        // 插件 id 从类型名（如 `AudioPlugin`）改为反向 DNS
+        // （`com.coffic.cisum.plugin.audio`）后，用户此前保存的「插件启用状态」
+        // 仍以旧 id 为键。这张表让内核在读取时回退到旧 id，写入时同时写两者，
+        // 于是升级不丢状态、回滚旧版本也仍然生效。
+        //
+        // 必须在任何插件 boot 之前配置：启用状态在插件 boot 阶段就要被读取。
+        kernel.legacyPluginIDAliases = PluginIDCompatibility.legacyAliases
+
+        // 0a. UI 测试隔离：**幂等重建**隔离数据根。
+        //
+        // 必须早于任何插件读取数据根——隔离要覆盖全部数据：磁盘目录、
+        // SwiftData 数据库文件、插件数据目录都在同一棵树下。晚于这一步
+        // 的读取都会看到上一次运行留下的残留，「仓库为空」就只是
+        // 最终一致而非确定。
+        //
+        // 目录名由启动参数给出且保持稳定（不随机），失败现场可寻址、可复现。
+        UITestIsolation.resetIsolatedRootIfNeeded()
+
+        // 0b. UI 测试注入：必须在任何插件 boot 之前完成，否则播放插件可能在
+        //    安装替身之前就已经发起过 iCloud 下载。无参数时不做任何改动。
+        ICloudDownloadControl.shared.bootstrapFromLaunchArguments()
+
+        // 1. 通过插件工厂装配插件清单（对齐 Lumi `pluginFactory.makePlugins()`）
+        let factory = pluginFactory ?? DefaultPluginFactory()
+        // RootView provider is installed through the same plugin lifecycle as
+        // Lumi. Keep it ahead of feature plugins so overlays can resolve it
+        // during their own boot phase.
+        let plugins: [any SuperPlugin] = [RootViewPlugin()] + factory.makePlugins()
+
+        // 2. 注册基础设施 Provider
+        //
+        // UI 测试下显隐偏好必须与「隔离存储根」同源隔离：`UserDefaults.standard`
+        // 是进程级全局状态，跨用例共享。一个用例收起内容区后，另一个不带
+        // `-UI.ContentViewVisible` 覆盖参数的用例就会读到那个值，于是测试结论
+        // 依赖执行顺序——同一份测试在不同机器上可能得到不同结论。
+        //
+        // 详见 `UITestIsolation.isolatedDefaults`。
+        let appState = BasicAppStateService(
+            defaults: UITestIsolation.isolatedDefaults() ?? .standard
+        )
+        try kernel.registerProvider((any AppStateProviding).self, appState)
+
+        let pluginService = PluginContributionService(kernel: kernel)
+        // 同一实例按两个协议类型分别注册：宿主经 PluginProviding 查询聚合结果，
+        // 插件经 PluginContributionProviding 在 onBoot 登记贡献。只注册其一会导致
+        // 所有插件贡献（工具栏按钮/标签页/状态/主题等）解析失败、静默丢失。
+        try kernel.registerProvider((any PluginProviding).self, pluginService)
+        try kernel.registerProvider((any PluginContributionProviding).self, pluginService)
+
+        // 播放引擎由 PluginPlayBack 插件在 onBoot 阶段创建并注册为 PlaybackProviding。
+
+        let themeProvider = DefaultThemeProviding()
+        try kernel.registerProvider((any ThemeProviding).self, themeProvider)
+
+        try kernel.registerProvider((any CloudProviding).self, CloudService())
+        // iCloud 文件下载进度：与账户可用性分开注册，因为它广播的是高频、
+        // 文件粒度的变化，且由独立的 NSMetadataQuery 支撑。
+        try kernel.registerProvider((any CloudDownloadProviding).self, CloudDownloadService())
+        try kernel.registerProvider((any DeviceProviding).self, DeviceService())
+        try kernel.registerProvider((any DocsViewProviding).self, DefaultDocsViewProvider())
+        // 提示 Provider 必须在插件 onBoot 前存在；ToastSuperPlugin 随后替换为真实实现。
+        let defaultToast = DefaultToastProviding()
+        try kernel.registerProvider((any ToastProviding).self, defaultToast)
+
+        // Other view providers are infrastructure. RootViewProviding itself is
+        // owned by RootViewPlugin and registered through plugin lifecycle.
+        try registerViewProviders(into: kernel)
+
+        // 设置契约：由远程 LumiSettings 提供；PluginSettingView 外壳插件随后
+        // 在 onBoot 替换为 AppSettingsSidebarShell 渲染（保留此前注册的入口）。
+        try kernel.registerProvider((any SettingViewProviding).self, DefaultSettingViewProviding())
+
+        // iOS 导航栏贡献：macOS 用 ToolbarProviding（窗口工具栏），iOS 用
+        // IOSNavigationBarProviding（系统导航栏）。两端契约不同，必须分别注册，
+        // 否则 iOS 侧设置齿轮无处可挂（对齐 BookletMaker 的 IOSSettingsProviderFactory）。
+        #if os(iOS) || os(visionOS)
+        try kernel.registerProvider(
+            (any IOSNavigationBarProviding).self,
+            DefaultIOSNavigationBarProviding()
+        )
+        #endif
+
+        // 3. 主题目录来自远程 LumiThemePack；宿主只负责注册共享主题、迁移旧选择，
+        //    并把 ProviderTheme 状态桥接到 Cisum 现有 LumiUI 根视图。
+        //    Cisum 定位在播放器 / 有声书，只加载少量代表性配色而非全量目录，
+        //    因此按白名单注册子集（见 `CisumThemeSelection`）。
+        //
+        //    **必须在内核启动之前完成**：主题注册会把配色写进全局主题注册中心，
+        //    而加载页的背景与品牌标记都取自那里。若等到内核启动完再注册，
+        //    加载页只能用回退配色（暗色）渲染，随后主界面切到真实配色（可能是
+        //    亮色）——启动瞬间出现一次明显的明暗闪烁。提前注册让加载页与主界面
+        //    从第一帧起就是同一套配色。
+        let unknownThemeIDs = LumiThemeRegistration.unknownIDs(in: CisumThemeSelection.catalogueIDs)
+        if !unknownThemeIDs.isEmpty {
+            logger.warning("\(Self.t)主题白名单包含未知 id，将被忽略：\(unknownThemeIDs.joined(separator: ", "))")
+        }
+        LumiThemeRegistration.register(in: themeProvider, themeIDs: CisumThemeSelection.catalogueIDs)
+        CisumThemeBridge.migrateLegacySelection(in: themeProvider)
+        CisumThemeBridge.install(themeProvider, in: kernel)
+
+        // 4. 启动内核（插件 onBoot 注册 Storage 等服务 → 校验 → onReady → 贡献聚合）
+        try await kernel.startAsync(plugins: plugins)
+
+        // 5. 视图 Provider 已在启动前注册，确保根覆盖层可以参与 makeRootView。
+        //     内容区显隐由 ContentViewVisibilityCoordinator 统一协调：
+        //     AppState 是唯一真源（只有用户显式操作才写它），根视图是它的投影。
+        //     历史上的双向割裂会造成「冷启动只剩空播放器」与「更多按钮点了没反应」。
+        if let root = kernel.resolveProvider((any RootViewProviding).self) {
+            let visibility = ContentViewVisibilityCoordinator(appState: appState, root: root)
+            visibility.start()
+            try kernel.registerProvider((any ContentViewVisibilityProviding).self, visibility)
+            contentVisibilityCoordinators[ObjectIdentifier(kernel)] = visibility
+        }
+
+        // 6. 订阅插件变更
+        subscribeToPluginChanges(kernel: kernel)
+
+        // 7. 订阅场景变更：切换场景后重建内容 Tab
+        subscribeToSceneChanges(kernel: kernel)
+
+        kernels.append(kernel)
+        if Self.verbose {
+            logger.info("\(Self.t)Kernel created and started successfully")
+        }
+        return kernel
+    }
+
+    /// 创建主内核（幂等：首次调用以传入的 configuration 创建，后续调用返回已有实例）。
+    public static func createMainKernel(configuration: FactoryCisumConfiguration) async throws -> KernelCoreContainer {
+        if let existing = mainKernel {
+            if Self.verbose {
+                logger.info("\(Self.t)Main kernel already exists, returning existing instance")
+            }
+            return existing
+        }
+        return try await createKernel(configuration: configuration)
+    }
+
+    /// 销毁指定内核。
+    public static func destroyKernel(_ kernel: KernelCoreContainer) {
+        cancelObservers(for: kernel)
+        if let theme = kernel.resolveProvider(DefaultThemeProviding.self) {
+            CisumThemeBridge.remove(theme)
+        }
+        kernels.removeAll { $0 === kernel }
+    }
+
+    /// 销毁所有内核。
+    public static func destroyAllKernels() {
+        for kernel in kernels {
+            cancelObservers(for: kernel)
+            if let theme = kernel.resolveProvider(DefaultThemeProviding.self) {
+                CisumThemeBridge.remove(theme)
+            }
+        }
+        kernels.removeAll()
+    }
+
+    // MARK: - Window Factory
+
+    /// 创建主窗口视图。
+    public static func makeMainWindow(configuration: FactoryCisumConfiguration) -> some View {
+        WindowMain(configuration: configuration)
+    }
+
+    // MARK: - Settings Window Factory
+
+    /// 创建设置窗口视图。
+    ///
+    /// 设置窗口复用 `createMainKernel` 返回的主内核（幂等，与主窗口共享同一实例）。
+    /// 设置外壳由远程 LumiPluginSettingView 的 PluginSettingView 插件渲染
+    /// （AppSettingsSidebarShell 双栏），此处仅做接线：创建内核 → 渲染外壳。
+    public static func makeSettingsWindow(configuration: FactoryCisumConfiguration) -> some View {
+        SettingsWindowHost(configuration: configuration)
+    }
+
+    // MARK: - Commands Factory
+
+    /// 创建应用命令菜单。
+    ///
+    /// 命令装配集中在 Factory 包内（对齐 Lumi `FactoryLumi/AppCommands.swift`），
+    /// 宿主只需 `.commands { FactoryCisum.makeCommands() }`。
+    public static func makeCommands() -> some Commands {
+        CisumAppCommands()
+    }
+
+    // MARK: - View Assembly
+
+    /// 注册视图 Provider 默认实现（对齐 Lumi `DefaultProviderFactory` 的
+    /// `makeXxxProvider()` 方法族）。
+    ///
+    /// 各视图区域（根布局 / 播放控制区 / 内容区 / 工具栏）是独立的
+    /// Provider 契约，默认实现注册进内核；Factory 组装时只做解析 + 注入 +
+    /// makeRootView。
+    private static func registerViewProviders(into kernel: KernelCoreContainer) throws {
+        try kernel.registerProvider(
+            (any ControlViewProviding).self,
+            DefaultControlViewProvider(
+                stateViews: { kernel.resolveProvider((any PluginProviding).self)?.getStateViews() ?? [] },
+                stateMessage: { kernel.resolveProvider((any AppStateProviding).self)?.stateMessage ?? "" }
+            )
+        )
+        try kernel.registerProvider((any ContentViewProviding).self, DefaultContentViewProvider())
+    }
+
+    /// 组装主视图（对齐 Lumi `DefaultViewFactory.makeMainView(kernel:)`）。
+    ///
+    /// 视图组装逻辑集中在此：解析 `RootViewProviding` → 注入各区域视图
+    /// （播放控制区来自 `ControlViewProviding`、内容区来自 `ContentViewProviding`）→
+    /// 返回 `makeRootView()`。工具栏按钮由插件通过 `addToolBarButtons()` 贡献，
+    /// 不再经由 `ToolbarProviding` 注入。
+    /// 宿主只需要一个视图，无需关心各 Provider 如何组合。
+    @MainActor
+    public static func assembleMainView(kernel: KernelCoreContainer) -> AnyView {
+        guard let root = kernel.resolveProvider((any RootViewProviding).self) else {
+            return AnyView(Text("RootViewProviding not registered", bundle: .module))
+        }
+
+        if let control = kernel.resolveProvider((any ControlViewProviding).self) {
+            control.setDemoMode(kernel.resolveProvider((any AppStateProviding).self)?.isDemoMode ?? false)
+            control.setHeroView(kernel.resolveProvider((any PluginProviding).self)?.getHeroView())
+            control.setRightAlbumView(kernel.resolveProvider((any PluginProviding).self)?.getRightAlbumView())
+            control.setControlButtonsView(kernel.resolveProvider((any PluginProviding).self)?.getControlButtonsView())
+            control.setProgressView(kernel.resolveProvider((any PluginProviding).self)?.getProgressView())
+            root.setControlView(control.makeControlView())
+        }
+        if let content = kernel.resolveProvider((any ContentViewProviding).self) {
+            content.setDemoMode(kernel.resolveProvider((any AppStateProviding).self)?.isDemoMode ?? false)
+            refreshContentTabs(content, kernel: kernel)
+            root.setContentView(content.makeContentView())
+        }
+        return root.makeRootView()
+    }
+
+    /// 把插件贡献的内容 Tab 注入 `ContentViewProviding`。
+    ///
+    /// 对齐 Lumi 插件通过 Provider 注入内容的范式；Cisum 侧由
+    /// `PluginContributionService` 聚合插件贡献，此处转成 `ContentTabItem` 注入。
+    @MainActor
+    private static func refreshContentTabs(_ content: any ContentViewProviding, kernel: KernelCoreContainer) {
+        let contribution = kernel.resolveProvider((any PluginProviding).self)?.getTabViews(
+            reason: "AppTabView",
+            demoMode: kernel.resolveProvider((any AppStateProviding).self)?.isDemoMode ?? false
+        ) ?? []
+        content.setTabs(
+            contribution.enumerated().map { index, tab in
+                ContentTabItem(
+                    id: tab.label,
+                    title: tab.label,
+                    order: index,
+                    content: tab.view
+                )
+            }
+        )
+    }
+
+    // MARK: - Private
+
+    /// 订阅插件启用/禁用语义事件，触发贡献缓存失效。
+    private static func subscribeToPluginChanges(kernel: KernelCoreContainer) {
+        guard let provider = kernel.resolveProvider((any PluginManaging).self) else { return }
+        let handle = provider.addPluginObserver { [weak kernel] event in
+            guard case .enabledStateChanged = event, let kernel else { return }
+            kernel.resolveProvider((any PluginProviding).self)?.invalidateCaches()
+        }
+        pluginManagerObserverHandles[ObjectIdentifier(kernel)] = handle
+    }
+
+    /// 场景切换后重建内容 Tab。
+    ///
+    /// 内容 Tab 由各插件按当前场景守卫贡献（`addTabView` 检查
+    /// `sceneBox.scene?.currentScene`），启动装配时只组装一次；场景切换不会
+    /// 触发重建，导致内容区停留在启动场景的 Tab。此处订阅
+    /// `SceneProviding.selectionChanged`，切换后重新聚合注入，使内容区跟随场景。
+    private static func subscribeToSceneChanges(kernel: KernelCoreContainer) {
+        let handle = kernel.resolveProvider((any SceneProviding).self)?.addObserver { [weak kernel] event in
+            guard case .selectionChanged = event else { return }
+            guard let kernel else { return }
+            if let content = kernel.resolveProvider((any ContentViewProviding).self) {
+                refreshContentTabs(content, kernel: kernel)
+            }
+        }
+        if let handle {
+            sceneObserverHandles[ObjectIdentifier(kernel)] = handle
+        }
+    }
+
+    private static var pluginManagerObserverHandles: [ObjectIdentifier: any PluginManagingObserverHandle] = [:]
+    private static var sceneObserverHandles: [ObjectIdentifier: any SceneProvidingObserverHandle] = [:]
+    private static var contentVisibilityCoordinators: [ObjectIdentifier: ContentViewVisibilityCoordinator] = [:]
+
+    private static func cancelObservers(for kernel: KernelCoreContainer) {
+        let id = ObjectIdentifier(kernel)
+        pluginManagerObserverHandles.removeValue(forKey: id)?.cancel()
+        sceneObserverHandles.removeValue(forKey: id)?.cancel()
+        contentVisibilityCoordinators.removeValue(forKey: id)?.stop()
+    }
+}
+
+/// 兼容别名。
+public typealias FactoryCisum = CisumBuilder

@@ -1,0 +1,51 @@
+// swift-tools-version: 6.0
+// The swift-tools-version declares the minimum version of Swift required to build this package.
+
+import PackageDescription
+
+let package = Package(
+    name: "KitMagic",  // package identity
+    defaultLocalization: "en",
+    platforms: [
+        .macOS(.v14),  // 最低支持 macOS 14
+        .iOS(.v17), // 最低支持 iOS 17
+        .visionOS(.v2) // 最低支持 visionOS 2
+    ],
+    // 定义对外提供的库（可被其他项目导入）
+    products: [
+        .library(name: "MagicKit", targets: ["MagicKit"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/chicio/ID3TagEditor", from: "5.5.0"),  // ID3 标签编辑器
+        .package(url: "https://github.com/weichsel/ZIPFoundation.git", from: "0.9.20"),  // ZIP 文件处理库
+    ],
+    // 编译目标（模块）
+    targets: [
+       .target(
+           name: "MagicKit",
+           dependencies: [
+               "ID3TagEditor",
+               "ZIPFoundation",
+           ],
+           path: ".",
+           exclude: [
+               "README.md",
+               "Tests"
+           ],
+            sources: ["Sources"],
+           resources: [.process("Resources")],
+           swiftSettings: [
+               .enableExperimentalFeature("StrictConcurrency=minimal"),
+           ]
+       ),
+       .testTarget(
+           name: "Tests",
+           dependencies: ["MagicKit"],
+           path: "Tests",
+           swiftSettings: [
+               .enableExperimentalFeature("StrictConcurrency=minimal"),
+           ]
+       )
+    ],
+    swiftLanguageModes: [.v5]
+)

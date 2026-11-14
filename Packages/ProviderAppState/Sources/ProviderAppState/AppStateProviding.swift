@@ -1,0 +1,116 @@
+import Foundation
+import KitEventObservation
+
+@MainActor
+public enum AppStateProvidingEvent {
+    case demoModeChanged(Bool)
+    case dbViewVisibilityChanged(Bool)
+    case importingChanged(Bool)
+    case droppingChanged(Bool)
+    case stateMessageChanged(String)
+}
+
+@MainActor
+public protocol AppStateProvidingObserverHandle: AnyObject {
+    func cancel()
+}
+
+/// 应用状态服务能力协议。
+///
+/// 提供应用级的 UI 状态管理，吸收了旧版 `AppVM`（Demo 模式、数据库视图、
+/// 导入/拖放）与 `StateVM`（状态消息频道）的字段。
+///
+/// ## 使用示例
+///
+/// ```swift
+/// kernel.resolveProvider((any AppStateProviding).self)?.enterDemoMode()
+/// let isDemo = kernel.resolveProvider((any AppStateProviding).self)?.isDemoMode ?? false
+/// kernel.resolveProvider((any AppStateProviding).self)?.appendStateMessage("Imported 3 files")
+/// ```
+@MainActor
+public protocol AppStateProviding: AnyObject, ObservableObject {
+    /// 是否处于 Demo 模式。
+    var isDemoMode: Bool { get }
+
+    /// 数据库视图是否可见。
+    var isDBViewVisible: Bool { get }
+
+    /// 是否正在进行导入操作。
+    var isImporting: Bool { get }
+
+    /// 是否有正在进行中的拖放操作。
+    var isDropping: Bool { get }
+
+    /// 是否有正在进行中的拖放/拖拽操作（兼容别名）。
+    var hasDragOperation: Bool { get }
+
+    /// 当前状态栏消息。
+    var stateMessage: String { get }
+
+    /// 进入 Demo 模式。
+    func enterDemoMode()
+
+    /// 退出 Demo 模式。
+    func exitDemoMode()
+
+    /// 显示数据库视图。
+    func showDBView()
+
+    /// 隐藏数据库视图。
+    func hideDBView()
+
+    /// 关闭数据库视图（同 hide）。
+    func closeDBView()
+
+    /// 切换数据库视图显隐。
+    func toggleDBView()
+
+    /// 显式设置数据库视图显隐，并持久化。
+    ///
+    /// 与 `showDBView()` / `hideDBView()` 等价，区别在于可以显式指定目标态。
+    /// 「取反」类操作必须显式指定目标，而不能依赖调用方自己去读一个可能过期的值：
+    /// 落盘态与用户当前实际看到的显隐可能短暂不一致（例如桌面端窗口高度自适应
+    /// 只改了内存态），此时按落盘值取反会让操作「点了没反应」。
+    func setDBView(_ visible: Bool)
+
+    /// 更新导入状态。
+    func setImporting(_ importing: Bool)
+
+    /// 更新拖放状态。
+    func setDragOperation(_ active: Bool)
+
+    /// 追加一条状态消息。
+    func appendStateMessage(_ message: String)
+
+    /// 清空状态消息。
+    func clearStateMessages()
+
+    /// 注册应用状态观察者。
+    @discardableResult
+    func addObserver(_ callback: @escaping (AppStateProvidingEvent) -> Void) -> any AppStateProvidingObserverHandle
+}
+
+public extension AppStateProviding {
+    @discardableResult
+    func addObserver(_ callback: @escaping (AppStateProvidingEvent) -> Void) -> any AppStateProvidingObserverHandle {
+        NoopAppStateProvidingObserverHandle()
+    }
+
+    /// 默认实现：把显式目标态映射到既有的 show / hide 语义，
+    /// 使既有实现（测试替身等）无需改动即可满足新契约。
+    func setDBView(_ visible: Bool) {
+        if visible {
+            showDBView()
+        } else {
+            hideDBView()
+        }
+    }
+}
+
+@MainActor
+public final class NoopAppStateProvidingObserverHandle: AppStateProvidingObserverHandle {
+    public init() {}
+    public func cancel() {}
+}
+
+extension EventObserverHandle: AppStateProvidingObserverHandle {}

@@ -1,0 +1,80 @@
+/* ============================================================
+   Marketing Screenshot — Shared Styles (High-Fidelity)
+   Cisum — Pure Audio Player & Manager
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --c-window:        #14151a;
+  --c-sidebar:       #1b1c22;
+  --c-rail:          #21222a;
+  --c-panel:         #181a1f;
+  --c-panel-raised:  #262830;
+  --c-line:          rgba(255,255,255,0.10);
+  --c-text:          #ebedf2;
+  --c-secondary:     #a7acbb;
+  --c-muted:         #737888;
+  --c-accent:        #7c6fff;
+  --c-green:         #30d158;
+  --c-orange:        #ff9f0a;
+  --c-red:           #ff453a;
+  --c-blue:          #0a84ff;
+  --c-mono:          ui-monospace, 'SF Mono', 'Menlo', 'Consolas', 'Monaco', monospace;
+  --c-sans:          -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #000; }
+
+/* ====== Stage (1440 × 900) ====== */
+.stage {
+  width: 1440px; height: 900px;
+  padding: 44px;
+  background: linear-gradient(135deg, #0d0e13 0%, #1b1825 50%, #0e1417 100%);
+  display: flex; flex-direction: column; gap: 22px;
+  font-family: var(--c-sans); color: var(--c-text);
+  overflow: hidden;
+}
+.stage-header { padding: 0 6px; display: flex; flex-direction: column; gap: 8px; }
+.stage-eyebrow { font-size: 13px; font-weight: 600; color: var(--c-accent); text-transform: uppercase; letter-spacing: .06em; }
+.stage-title   { font-size: 34px; font-weight: 700; color: #fff; }
+.stage-subtitle{ font-size: 17px; font-weight: 400; color: var(--c-secondary); line-height: 1.5; }
+
+/* ====== Mac Window ====== */
+.mac-window {
+  flex: 1; display: flex; flex-direction: column;
+  border-radius: 14px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: 0 22px 68px rgba(0,0,0,0.50);
+  background: var(--c-window);
+}
+.window-titlebar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 14px; height: 38px;
+  background: rgba(0,0,0,0.22); flex-shrink: 0;
+  user-select: none;
+}
+.traffic-light { width: 12px; height: 12px; border-radius: 50%; }
+.tl-red    { background: var(--c-red); }
+.tl-orange { background: var(--c-orange); }
+.tl-green  { background: var(--c-green); }
+.window-title {
+  flex: 1; text-align: center;
+  font-size: 13px; font-weight: 500; color: var(--c-secondary);
+}
+.window-trailing { font-size: 13px; color: var(--c-muted); }
+.window-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+/* ====== Card ====== */
+.card {
+  padding: 16px; background: rgba(38,40,48,0.72);
+  border-radius: 8px; border: 1px solid var(--c-line);
+}
+
+/* ====== Utility ====== */
+.flex-row { display: flex; }
+.flex-col { display: flex; flex-direction: column; }
+.flex-1   { flex: 1; }
+.min-w-0  { min-width: 0; }
+.overflow-hidden { overflow: hidden; }

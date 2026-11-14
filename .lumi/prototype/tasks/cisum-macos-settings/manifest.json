@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "id": "cisum-macos-settings",
+  "title": "Cisum macOS · 设置窗口",
+  "style": "hiFi",
+  "device": {
+    "kind": "custom",
+    "width": 900,
+    "height": 640,
+    "scale": 2
+  },
+  "screens": [
+    {
+      "id": "01-general",
+      "title": "通用",
+      "order": 0,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "02-appearance",
+      "title": "外观",
+      "order": 1,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "03-storage",
+      "title": "存储设置",
+      "order": 2,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "04-audio-database",
+      "title": "音乐数据库",
+      "order": 3,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "05-store",
+      "title": "商店",
+      "order": 4,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "06-purchase",
+      "title": "购买专业版",
+      "order": 5,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    }
+  ],
+  "startScreenID": "01-general",
+  "createdAt": "2026-10-21T01:00:00Z",
+  "updatedAt": "2026-10-21T01:00:00Z"
+}

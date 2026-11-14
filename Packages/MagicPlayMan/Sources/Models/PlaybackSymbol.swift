@@ -1,0 +1,15 @@
+enum PlaybackSymbol {
+    static let backwardEndFill = "backward.end.fill"
+    static let forwardEndFill = "forward.end.fill"
+    static let goBackwardTen = "gobackward.10"
+    static let goForwardTen = "goforward.10"
+    static let musicNoteList = "music.note.list"
+    static let pauseFill = "pause.fill"
+    static let personGroup = "person.3"
+    static let personGroupSlash = "person.3.sequence"
+    static let play = "play"
+    static let playFill = "play.fill"
+    static let repeatOne = "repeat.1"
+    static let shuffle = "shuffle"
+    static let repeatAll = "repeat"
+}

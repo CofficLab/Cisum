@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "id": "cisum-macos",
+  "title": "Cisum macOS",
+  "style": "hiFi",
+  "device": {
+    "kind": "custom",
+    "width": 400,
+    "height": 800,
+    "scale": 2
+  },
+  "screens": [
+    {
+      "id": "01-now-playing",
+      "title": "正在播放",
+      "order": 0,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "02-music-library",
+      "title": "音乐库",
+      "order": 1,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "03-audiobooks",
+      "title": "有声书库",
+      "order": 2,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "04-empty-repository",
+      "title": "空仓库引导",
+      "order": 3,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "05-empty-library",
+      "title": "音乐库空态",
+      "order": 4,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "06-scene-switcher",
+      "title": "场景切换",
+      "order": 5,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "07-welcome-storage",
+      "title": "选择存储位置",
+      "order": 6,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    },
+    {
+      "id": "08-copy-tasks",
+      "title": "复制任务",
+      "order": 7,
+      "htmlFileName": "index.html",
+      "hotspots": [],
+      "createdAt": "2026-10-21T01:00:00Z",
+      "updatedAt": "2026-10-21T01:00:00Z"
+    }
+  ],
+  "startScreenID": "01-now-playing",
+  "createdAt": "2026-10-21T01:00:00Z",
+  "updatedAt": "2026-10-21T01:00:00Z"
+}

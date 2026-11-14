@@ -1,0 +1,37 @@
+// swift-tools-version: 6.0
+import PackageDescription
+
+let package = Package(
+    name: "ProviderControlView",
+    defaultLocalization: "en",
+    platforms: [
+        .macOS(.v14),
+        .iOS(.v17),
+        .visionOS(.v2),
+    ],
+    products: [
+        .library(name: "ProviderControlView", targets: ["ProviderControlView"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.17.1"),
+    ],
+    targets: [
+        .target(
+            name: "ProviderControlView",
+            dependencies: [
+                .product(name: "LumiUI", package: "LumiUI"),
+            ],
+            path: ".",
+            exclude: ["README.md", "Tests"],
+            sources: ["Sources/ProviderControlView"],
+            resources: [.process("Resources")]
+        ),
+        .testTarget(
+            name: "ProviderControlViewTests",
+            dependencies: ["ProviderControlView"],
+            path: "Tests",
+            exclude: ["TestPlan.md"]
+        ),
+    ],
+    swiftLanguageModes: [.v5]
+)

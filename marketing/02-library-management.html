@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>Cisum — Library Management</title>
+<link rel="stylesheet" href="components.css">
+<style>
+  body { margin: 0; display: flex; justify-content: center; background: #000; }
+  .phone-frame {
+    width: 390px; height: 844px;
+    border-radius: 44px; overflow: hidden;
+    border: 6px solid #2a2b33;
+    background: #0e0f14;
+    flex-shrink: 0;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+  .phone-notch {
+    width: 126px; height: 34px;
+    background: #0e0f14;
+    border-radius: 0 0 18px 18px;
+    position: absolute; top: 0; left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+  .phone-status {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 0; height: 48px;
+    font-size: 14px; font-weight: 600; color: #fff;
+    flex-shrink: 0;
+  }
+  .phone-status .time { font-size: 15px; font-weight: 600; }
+  .phone-status .icons { display: flex; gap: 6px; align-items: center; }
+  .phone-status .icons svg { width: 16px; height: 16px; fill: #fff; }
+  .phones-row { flex: 1; display: flex; align-items: center; justify-content: center; gap: 60px; }
+  .home-indicator { display: flex; justify-content: center; padding: 12px 0 8px; flex-shrink: 0; }
+  .home-indicator span { width: 134px; height: 5px; background: rgba(255,255,255,0.20); border-radius: 3px; }
+
+  /* Folder View */
+  .folder-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 20px; height: 44px; margin-top: 8px;
+  }
+  .folder-header .title { font-size: 28px; font-weight: 700; color: #fff; }
+  .folder-header svg { width: 22px; height: 22px; fill: none; stroke: #a7acbb; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .folder-path {
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 20px; margin-bottom: 12px;
+    font-size: 13px; color: #737888;
+  }
+  .folder-path .sep { color: #555; }
+  .folder-path .current { color: #a7acbb; }
+
+  .storage-bar {
+    margin: 0 20px 16px;
+    padding: 14px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+  }
+  .storage-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; }
+  .storage-label .name { color: #a7acbb; font-weight: 500; }
+  .storage-label .size { color: #737888; }
+  .storage-track { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+  .storage-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #7c6fff, #c084fc); width: 62%; }
+
+  .folder-list { flex: 1; padding: 0 20px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
+  .folder-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 14px; border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+  }
+  .folder-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .folder-icon.audio { background: rgba(124,111,255,0.15); }
+  .folder-icon.book { background: rgba(48,209,88,0.15); }
+  .folder-icon.video { background: rgba(255,159,10,0.15); }
+  .folder-icon.download { background: rgba(10,132,255,0.15); }
+  .folder-icon import-icon { background: rgba(192,132,252,0.15); }
+  .folder-icon svg { width: 22px; height: 22px; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .folder-icon.audio svg { stroke: #7c6fff; }
+  .folder-icon.book svg { stroke: #30d158; }
+  .folder-icon.video svg { stroke: #ff9f0a; }
+  .folder-icon.download svg { stroke: #0a84ff; }
+  .folder-icon.import-icon svg { stroke: #c084fc; }
+  .folder-meta { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  .folder-name { font-size: 15px; font-weight: 600; color: #ebedf2; }
+  .folder-count { font-size: 12px; color: #737888; }
+  .folder-chevron svg { width: 16px; height: 16px; fill: none; stroke: #555; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .add-folder-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin: 12px 20px 0;
+    padding: 12px;
+    border: 2px dashed rgba(124,111,255,0.30);
+    border-radius: 12px;
+    font-size: 14px; font-weight: 600; color: #7c6fff;
+  }
+  .add-folder-btn svg { width: 18px; height: 18px; fill: none; stroke: #7c6fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .tab-bar {
+    display: flex; justify-content: space-around; align-items: center;
+    height: 64px; background: rgba(14,15,20,0.95);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0; padding-bottom: 4px;
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .tab-item svg { width: 22px; height: 22px; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tab-item.active svg { stroke: #7c6fff; }
+  .tab-item:not(.active) svg { stroke: #737888; }
+  .tab-item .label { font-size: 10px; font-weight: 500; }
+  .tab-item.active .label { color: #7c6fff; }
+  .tab-item:not(.active) .label { color: #737888; }
+
+  /* DB View Phone */
+  .db-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 20px; height: 44px; margin-top: 8px;
+  }
+  .db-header .title { font-size: 28px; font-weight: 700; color: #fff; }
+
+  .db-segments {
+    display: flex; gap: 4px; margin: 12px 20px 16px;
+    background: rgba(255,255,255,0.06); border-radius: 10px; padding: 3px;
+  }
+  .db-seg {
+    flex: 1; height: 34px; display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; font-size: 13px; font-weight: 600;
+  }
+  .db-seg.active { background: rgba(124,111,255,0.25); color: #fff; }
+  .db-seg:not(.active) { color: #737888; }
+
+  .db-stat-row {
+    display: flex; gap: 10px; margin: 0 20px 16px;
+  }
+  .db-stat {
+    flex: 1; padding: 12px; background: rgba(255,255,255,0.04);
+    border-radius: 10px; text-align: center;
+  }
+  .db-stat .value { font-size: 22px; font-weight: 700; color: #fff; }
+  .db-stat .label { font-size: 11px; color: #737888; margin-top: 4px; }
+
+  .db-list { flex: 1; padding: 0 20px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
+  .db-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+  }
+  .db-item-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .db-item-icon.dup { background: rgba(255,69,58,0.15); }
+  .db-item-icon.sync { background: rgba(48,209,88,0.15); }
+  .db-item-icon.orphan { background: rgba(255,159,10,0.15); }
+  .db-item-icon svg { width: 18px; height: 18px; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .db-item-icon.dup svg { stroke: #ff453a; }
+  .db-item-icon.sync svg { stroke: #30d158; }
+  .db-item-icon.orphan svg { stroke: #ff9f0a; }
+  .db-item-meta { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .db-item-name { font-size: 14px; font-weight: 600; color: #ebedf2; }
+  .db-item-detail { font-size: 11px; color: #737888; }
+  .db-item-badge {
+    padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600;
+  }
+  .db-item-badge.fix { background: rgba(255,69,58,0.15); color: #ff453a; }
+  .db-item-badge.ok { background: rgba(48,209,88,0.15); color: #30d158; }
+  .db-item-badge.warn { background: rgba(255,159,10,0.15); color: #ff9f0a; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="stage-header">
+    <div class="stage-eyebrow">Library Management</div>
+    <div class="stage-title">Organize, scan and maintain your collection</div>
+    <div class="stage-subtitle">Browse folders, detect duplicates, sync your library and keep everything clean — all inside Cisum.</div>
+  </div>
+
+  <div class="phones-row">
+    <!-- Phone 1: Folder / Storage -->
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="phone-status">
+        <span class="time">9:41</span>
+        <div class="icons">
+          <svg viewBox="0 0 24 24"><path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          <svg viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2" stroke="#fff" stroke-width="2" fill="none"/><line x1="23" y1="10" x2="23" y2="14" stroke="#fff" stroke-width="2"/></svg>
+        </div>
+      </div>
+
+      <div class="folder-header">
+        <span class="title">Storage</span>
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+
+      <div class="folder-path">
+        <span>Home</span><span class="sep">›</span><span class="current">All Locations</span>
+      </div>
+
+      <div class="storage-bar">
+        <div class="storage-label">
+          <span class="name">On My iPhone</span>
+          <span class="size">3.2 GB of 32 GB used</span>
+        </div>
+        <div class="storage-track"><div class="storage-fill"></div></div>
+      </div>
+
+      <div class="folder-list">
+        <div class="folder-item">
+          <div class="folder-icon audio"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+          <div class="folder-meta">
+            <span class="folder-name">Music</span>
+            <span class="folder-count">128 tracks · 2.1 GB</span>
+          </div>
+          <div class="folder-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="folder-item">
+          <div class="folder-icon book"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+          <div class="folder-meta">
+            <span class="folder-name">Audiobooks</span>
+            <span class="folder-count">24 books · 860 MB</span>
+          </div>
+          <div class="folder-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="folder-item">
+          <div class="folder-icon video"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
+          <div class="folder-meta">
+            <span class="folder-name">Podcasts</span>
+            <span class="folder-count">56 episodes · 420 MB</span>
+          </div>
+          <div class="folder-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="folder-item">
+          <div class="folder-icon download"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+          <div class="folder-meta">
+            <span class="folder-name">Downloads</span>
+            <span class="folder-count">8 files · 160 MB</span>
+          </div>
+          <div class="folder-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="folder-item">
+          <div class="folder-icon import-icon"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></div>
+          <div class="folder-meta">
+            <span class="folder-name">Imported</span>
+            <span class="folder-count">15 files · 94 MB</span>
+          </div>
+          <div class="folder-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+      </div>
+
+      <div class="add-folder-btn">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Location
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-item active">
+          <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span class="label">Library</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          <span class="label">Playing</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33"/></svg>
+          <span class="label">Settings</span>
+        </div>
+      </div>
+      <div class="home-indicator"><span></span></div>
+    </div>
+
+    <!-- Phone 2: DB View / Maintenance -->
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="phone-status">
+        <span class="time">9:41</span>
+        <div class="icons">
+          <svg viewBox="0 0 24 24"><path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          <svg viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2" stroke="#fff" stroke-width="2" fill="none"/><line x1="23" y1="10" x2="23" y2="14" stroke="#fff" stroke-width="2"/></svg>
+        </div>
+      </div>
+
+      <div class="db-header">
+        <span class="title">DB View</span>
+      </div>
+
+      <div class="db-segments">
+        <div class="db-seg active">Duplicates</div>
+        <div class="db-seg">Syncing</div>
+        <div class="db-seg">Orphans</div>
+      </div>
+
+      <div class="db-stat-row">
+        <div class="db-stat">
+          <div class="value" style="color:#ff453a">7</div>
+          <div class="label">Duplicates</div>
+        </div>
+        <div class="db-stat">
+          <div class="value" style="color:#30d158">231</div>
+          <div class="label">Synced</div>
+        </div>
+        <div class="db-stat">
+          <div class="value" style="color:#ff9f0a">3</div>
+          <div class="label">Orphaned</div>
+        </div>
+      </div>
+
+      <div class="db-list">
+        <div class="db-item">
+          <div class="db-item-icon dup"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/></svg></div>
+          <div class="db-item-meta">
+            <span class="db-item-name">Midnight Reverie</span>
+            <span class="db-item-detail">Found in Music and Downloads</span>
+          </div>
+          <span class="db-item-badge fix">Fix</span>
+        </div>
+        <div class="db-item">
+          <div class="db-item-icon dup"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/></svg></div>
+          <div class="db-item-meta">
+            <span class="db-item-name">Ocean Breeze.mp3</span>
+            <span class="db-item-detail">Identical file in 2 locations</span>
+          </div>
+          <span class="db-item-badge fix">Fix</span>
+        </div>
+        <div class="db-item">
+          <div class="db-item-icon sync"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></div>
+          <div class="db-item-meta">
+            <span class="db-item-name">Library Sync</span>
+            <span class="db-item-detail">Last synced 2 min ago</span>
+          </div>
+          <span class="db-item-badge ok">OK</span>
+        </div>
+        <div class="db-item">
+          <div class="db-item-icon orphan"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+          <div class="db-item-meta">
+            <span class="db-item-name">Track #1847</span>
+            <span class="db-item-detail">No matching file found</span>
+          </div>
+          <span class="db-item-badge warn">Clean</span>
+        </div>
+        <div class="db-item">
+          <div class="db-item-icon dup"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/></svg></div>
+          <div class="db-item-meta">
+            <span class="db-item-name">Sunset Drive (Remix)</span>
+            <span class="db-item-detail">Duplicate in Imported folder</span>
+          </div>
+          <span class="db-item-badge fix">Fix</span>
+        </div>
+        <div class="db-item">
+          <div class="db-item-icon orphan"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+          <div class="db-item-meta">
+            <span class="db-item-name">Unknown Audio #42</span>
+            <span class="db-item-detail">DB entry without file</span>
+          </div>
+          <span class="db-item-badge warn">Clean</span>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-item active">
+          <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span class="label">Library</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          <span class="label">Playing</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33"/></svg>
+          <span class="label">Settings</span>
+        </div>
+      </div>
+      <div class="home-indicator"><span></span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -64,7 +64,6 @@ Plugins inject UI at multiple levels:
 ```swift
 SuperPlugin View Methods:
 ├── addRootView()       → Wraps entire app
-├── addSceneItem()      → Provides main scenes
 ├── addSheetView()      → Modal sheets
 ├── addPosterView()     → Poster/promotional views
 ├── addTabView()        → Tab content
@@ -185,7 +184,7 @@ User-Visible App =
 
 **Key Views**:
 - `Plugins/Book/Views/` (if present)
-- Integrated via `BookDBPlugin`
+- Integrated via `BookDBViewPlugin`
 
 ### Storage Plugin UI
 
@@ -294,8 +293,8 @@ User-Visible App =
 - Current scene tracking
 
 **PluginProvider State**:
-- `sceneNames`: Available scenes
-- `currentSceneName`: Active scene
+- `scenes`: Built-in fixed scenes (AppScene.allCases)
+- `currentScene`: Active scene
 - Plugin registration state
 
 ### Combine Publishers

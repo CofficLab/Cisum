@@ -1,0 +1,20 @@
+{
+  "description" : "检查并修复 Cisum 插件\/Provider 分层边界违规（插件互依赖、环境注入、Provider 纯净性、Capabilities 边界）。",
+  "name" : "plugin-boundaries",
+  "title" : "Plugin Boundaries",
+  "triggers" : [
+    "边界检查",
+    "边界违规",
+    "plugin boundary",
+    "boundaries",
+    "check-plugin-boundaries",
+    "架构边界",
+    "分层",
+    "依赖检查",
+    "插件规范",
+    "capabilities",
+    "provider 边界",
+    "environment 注入"
+  ],
+  "version" : "1.0.0"
+}

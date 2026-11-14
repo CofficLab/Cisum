@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>Cisum — Settings & Widget</title>
+<link rel="stylesheet" href="components.css">
+<style>
+  body { margin: 0; display: flex; justify-content: center; background: #000; }
+  .phone-frame {
+    width: 390px; height: 844px;
+    border-radius: 44px; overflow: hidden;
+    border: 6px solid #2a2b33;
+    background: #0e0f14;
+    flex-shrink: 0;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+  .phone-notch {
+    width: 126px; height: 34px;
+    background: #0e0f14;
+    border-radius: 0 0 18px 18px;
+    position: absolute; top: 0; left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+  .phone-status {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 0; height: 48px;
+    font-size: 14px; font-weight: 600; color: #fff;
+    flex-shrink: 0;
+  }
+  .phone-status .time { font-size: 15px; font-weight: 600; }
+  .phones-row { flex: 1; display: flex; align-items: center; justify-content: center; gap: 60px; }
+  .home-indicator { display: flex; justify-content: center; padding: 12px 0 8px; flex-shrink: 0; }
+  .home-indicator span { width: 134px; height: 5px; background: rgba(255,255,255,0.20); border-radius: 3px; }
+
+  /* Settings */
+  .settings-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 20px; height: 44px; margin-top: 8px;
+  }
+  .settings-header svg { width: 22px; height: 22px; fill: none; stroke: #a7acbb; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .settings-header .title { font-size: 28px; font-weight: 700; color: #fff; }
+
+  .settings-scroll { flex: 1; padding: 12px 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+
+  .settings-group { }
+  .settings-group-title {
+    font-size: 12px; font-weight: 600; color: #7c6fff;
+    text-transform: uppercase; letter-spacing: .05em;
+    padding: 0 4px; margin-bottom: 8px;
+  }
+  .settings-card {
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px; overflow: hidden;
+  }
+  .setting-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .setting-icon svg { width: 17px; height: 17px; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .setting-icon.purple { background: rgba(124,111,255,0.15); }
+  .setting-icon.purple svg { stroke: #7c6fff; }
+  .setting-icon.green { background: rgba(48,209,88,0.15); }
+  .setting-icon.green svg { stroke: #30d158; }
+  .setting-icon.orange { background: rgba(255,159,10,0.15); }
+  .setting-icon.orange svg { stroke: #ff9f0a; }
+  .setting-icon.blue { background: rgba(10,132,255,0.15); }
+  .setting-icon.blue svg { stroke: #0a84ff; }
+  .setting-icon.red { background: rgba(255,69,58,0.15); }
+  .setting-icon.red svg { stroke: #ff453a; }
+  .setting-icon.gray { background: rgba(167,172,187,0.12); }
+  .setting-icon.gray svg { stroke: #a7acbb; }
+
+  .setting-meta { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .setting-name { font-size: 15px; font-weight: 500; color: #ebedf2; }
+  .setting-detail { font-size: 12px; color: #737888; }
+  .setting-value { font-size: 14px; color: #737888; }
+  .setting-chevron svg { width: 16px; height: 16px; fill: none; stroke: #555; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .toggle {
+    width: 46px; height: 28px; border-radius: 14px;
+    position: relative; flex-shrink: 0;
+  }
+  .toggle.on { background: #7c6fff; }
+  .toggle.off { background: rgba(255,255,255,0.15); }
+  .toggle .knob {
+    width: 24px; height: 24px; border-radius: 12px; background: #fff;
+    position: absolute; top: 2px;
+  }
+  .toggle.on .knob { left: 20px; }
+  .toggle.off .knob { left: 2px; }
+
+  .tab-bar {
+    display: flex; justify-content: space-around; align-items: center;
+    height: 64px; background: rgba(14,15,20,0.95);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0; padding-bottom: 4px;
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .tab-item svg { width: 22px; height: 22px; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tab-item.active svg { stroke: #7c6fff; }
+  .tab-item:not(.active) svg { stroke: #737888; }
+  .tab-item .label { font-size: 10px; font-weight: 500; }
+  .tab-item.active .label { color: #7c6fff; }
+  .tab-item:not(.active) .label { color: #737888; }
+
+  /* Widget Phone */
+  .widget-grid {
+    flex: 1; padding: 16px; display: flex; flex-wrap: wrap; gap: 12px;
+    align-content: flex-start;
+  }
+  .widget-date {
+    width: 100%; text-align: center;
+    font-size: 32px; font-weight: 300; color: #fff;
+    padding: 20px 0 16px;
+  }
+  .widget-date span { font-size: 15px; font-weight: 500; color: #a7acbb; display: block; margin-top: 4px; }
+
+  .widget-box {
+    border-radius: 16px; padding: 14px;
+  }
+  .widget-small { width: calc(50% - 6px); }
+  .widget-large { width: 100%; }
+
+  .widget-box.weather {
+    background: linear-gradient(135deg, #1a3a5c, #0a84ff);
+  }
+  .widget-box.weather .w-temp { font-size: 38px; font-weight: 300; color: #fff; }
+  .widget-box.weather .w-desc { font-size: 13px; color: rgba(255,255,255,0.7); }
+  .widget-box.weather .w-city { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+
+  .widget-box.cisum {
+    background: linear-gradient(135deg, #1a1040, #2d1b69);
+  }
+  .widget-box.cisum .cw-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .widget-box.cisum .cw-icon {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: rgba(124,111,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .widget-box.cisum .cw-icon svg { width: 16px; height: 16px; fill: none; stroke: #7c6fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .widget-box.cisum .cw-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7); }
+  .widget-box.cisum .cw-track { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 3px; }
+  .widget-box.cisum .cw-artist { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 10px; }
+  .widget-box.cisum .cw-progress { height: 3px; background: rgba(255,255,255,0.15); border-radius: 2px; }
+  .widget-box.cisum .cw-progress-fill { height: 100%; background: #7c6fff; border-radius: 2px; width: 42%; }
+  .widget-box.cisum .cw-controls { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 12px; }
+  .widget-box.cisum .cw-controls svg { width: 20px; height: 20px; fill: none; stroke: rgba(255,255,255,0.7); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .widget-box.cisum .cw-play { width: 36px; height: 36px; border-radius: 50%; background: rgba(124,111,255,0.4); display: flex; align-items: center; justify-content: center; }
+  .widget-box.cisum .cw-play svg { width: 18px; height: 18px; fill: #fff; stroke: none; }
+
+  .widget-box.activity {
+    background: rgba(255,255,255,0.08);
+  }
+  .widget-box.activity .aw-title { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+  .widget-box.activity .aw-rings { display: flex; justify-content: center; gap: 12px; }
+  .widget-box.activity .aw-ring { width: 40px; height: 40px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.1); }
+  .widget-box.activity .aw-ring.red { border-color: #ff453a; border-right-color: rgba(255,255,255,0.1); }
+  .widget-box.activity .aw-ring.green { border-color: #30d158; border-bottom-color: rgba(255,255,255,0.1); }
+
+  .widget-box.photos {
+    background: rgba(255,255,255,0.08);
+    display: flex; gap: 4px;
+  }
+  .widget-box.photos .photo {
+    flex: 1; height: 60px; border-radius: 4px;
+  }
+  .widget-box.photos .photo:nth-child(1) { background: linear-gradient(135deg, #3a2d1b, #ff9f0a); }
+  .widget-box.photos .photo:nth-child(2) { background: linear-gradient(135deg, #1b3a2d, #30d158); }
+  .widget-box.photos .photo:nth-child(3) { background: linear-gradient(135deg, #2d1b3a, #c084fc); }
+
+  .search-bar-widget {
+    margin: 0 16px; height: 42px; background: rgba(255,255,255,0.08);
+    border-radius: 12px; display: flex; align-items: center; gap: 8px; padding: 0 14px;
+    font-size: 15px; color: #737888;
+  }
+  .search-bar-widget svg { width: 18px; height: 18px; fill: none; stroke: #737888; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="stage-header">
+    <div class="stage-eyebrow">Settings & Widget</div>
+    <div class="stage-title">Fine-tune everything, control from anywhere</div>
+    <div class="stage-subtitle">Configure playback, appearance and storage. The home screen widget keeps your music one tap away.</div>
+  </div>
+
+  <div class="phones-row">
+    <!-- Phone 1: Settings -->
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="phone-status">
+        <span class="time">9:41</span>
+      </div>
+
+      <div class="settings-header">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        <span class="title">Settings</span>
+      </div>
+
+      <div class="settings-scroll">
+        <div class="settings-group">
+          <div class="settings-group-title">Playback</div>
+          <div class="settings-card">
+            <div class="setting-row">
+              <div class="setting-icon purple"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+              <div class="setting-meta"><span class="setting-name">Speed</span></div>
+              <span class="setting-value">1.0×</span>
+              <div class="setting-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-icon purple"><svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></div>
+              <div class="setting-meta"><span class="setting-name">Repeat Mode</span></div>
+              <span class="setting-value">All</span>
+              <div class="setting-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-icon purple"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+              <div class="setting-meta"><span class="setting-name">Auto-advance</span></div>
+              <div class="toggle on"><div class="knob"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">Appearance</div>
+          <div class="settings-card">
+            <div class="setting-row">
+              <div class="setting-icon green"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></div>
+              <div class="setting-meta"><span class="setting-name">Theme</span></div>
+              <span class="setting-value">Midnight</span>
+              <div class="setting-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-icon green"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div>
+              <div class="setting-meta"><span class="setting-name">App Icon</span></div>
+              <span class="setting-value">Default</span>
+              <div class="setting-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">Library</div>
+          <div class="settings-card">
+            <div class="setting-row">
+              <div class="setting-icon blue"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
+              <div class="setting-meta"><span class="setting-name">Storage Location</span></div>
+              <span class="setting-value">On My iPhone</span>
+              <div class="setting-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-icon blue"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></div>
+              <div class="setting-meta"><span class="setting-name">Auto-sync Library</span></div>
+              <div class="toggle on"><div class="knob"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">About</div>
+          <div class="settings-card">
+            <div class="setting-row">
+              <div class="setting-icon gray"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+              <div class="setting-meta"><span class="setting-name">Version</span></div>
+              <span class="setting-value">2.4.0</span>
+            </div>
+            <div class="setting-row">
+              <div class="setting-icon red"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+              <div class="setting-meta"><span class="setting-name">Feedback</span></div>
+              <div class="setting-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          <span class="label">Audio</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span class="label">Books</span>
+        </div>
+        <div class="tab-item active">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33"/></svg>
+          <span class="label">Settings</span>
+        </div>
+      </div>
+      <div class="home-indicator"><span></span></div>
+    </div>
+
+    <!-- Phone 2: Home Screen Widget -->
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="phone-status"><span class="time">9:41</span></div>
+
+      <div class="widget-grid">
+        <div class="widget-date">
+          Wednesday, Jan 15
+          <span>9:41 AM</span>
+        </div>
+
+        <div class="search-bar-widget">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Search
+        </div>
+
+        <!-- Weather Widget (small) -->
+        <div class="widget-box weather widget-small">
+          <div class="w-city">Shanghai</div>
+          <div class="w-temp">8°</div>
+          <div class="w-desc">Mostly Cloudy</div>
+        </div>
+
+        <!-- Activity Widget (small) -->
+        <div class="widget-box activity widget-small">
+          <div class="aw-title">Activity</div>
+          <div class="aw-rings">
+            <div class="aw-ring red"></div>
+            <div class="aw-ring green"></div>
+          </div>
+        </div>
+
+        <!-- Cisum Now Playing Widget (large) -->
+        <div class="widget-box cisum widget-large">
+          <div class="cw-header">
+            <div class="cw-icon"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+            <span class="cw-label">CISUM — NOW PLAYING</span>
+          </div>
+          <div class="cw-track">Midnight Reverie</div>
+          <div class="cw-artist">Aurora Waves</div>
+          <div class="cw-progress"><div class="cw-progress-fill"></div></div>
+          <div class="cw-controls">
+            <svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+            <div class="cw-play"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+            <svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+          </div>
+        </div>
+
+        <!-- Photos Widget -->
+        <div class="widget-box photos widget-large">
+          <div class="photo"></div>
+          <div class="photo"></div>
+          <div class="photo"></div>
+        </div>
+      </div>
+      <div class="home-indicator"><span></span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Cisum · 外观</title>
+<style>
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",sans-serif;
+  font-size:13px;line-height:1.45;color:var(--text-1);
+  background:var(--bg-deep);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+:root{
+  --primary:#34D399; --primary-2:#F59E0B; --tertiary:#38BDF8;
+  --bg-deep:#1C1C1A; --bg-medium:#262624; --bg-light:#30302E;
+  --text-1:#FAFAF9; --text-2:#D6D3D1; --text-3:#A8A29E;
+  --success:#30D158; --error:#FF453A; --info:#38BDF8;
+  --hairline:rgba(255,255,255,.09);
+  --hairline-2:rgba(255,255,255,.055);
+  --glass:rgba(255,255,255,.07);
+  --glass-strong:rgba(255,255,255,.12);
+  --r-sm:8px; --r-md:10px; --r-lg:16px;
+}
+svg{display:block;flex:0 0 auto}
+button{appearance:none;-webkit-appearance:none;border:none;background:none;padding:0;margin:0;
+  font:inherit;color:inherit;line-height:inherit;cursor:default;outline:none}
+
+/* 全局背景：两团模糊光晕（makeGlobalBackground） */
+.backdrop{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--bg-deep);pointer-events:none}
+.backdrop::before,.backdrop::after{content:"";position:absolute;border-radius:50%;filter:blur(44px)}
+.backdrop::before{width:600px;height:600px;left:-210px;top:-210px;
+  background:radial-gradient(circle,rgba(56,189,248,.42) 0%,rgba(245,158,11,.26) 38%,rgba(52,211,153,.16) 62%,rgba(0,0,0,0) 100%)}
+.backdrop::after{width:500px;height:500px;right:-140px;bottom:-140px;
+  background:radial-gradient(circle,rgba(56,189,248,.40) 0%,rgba(245,158,11,.24) 40%,rgba(0,0,0,0) 100%)}
+.scrim{position:fixed;inset:0;z-index:0;background:rgba(10,10,9,.55)}
+
+/* ---------- 设置窗口（macOS 900x640，双栏） ---------- */
+.stage{position:relative;z-index:1;width:900px;height:640px;display:flex;overflow:hidden}
+.sidebar{flex:0 0 232px;width:232px;display:flex;flex-direction:column;
+  background:rgba(30,30,28,.72);border-right:1px solid var(--hairline)}
+.sidebar .head{padding:14px 16px 10px;font-size:12px;font-weight:600;color:var(--text-3);letter-spacing:.4px}
+.sidebar .list{flex:1 1 auto;padding:0 8px;display:flex;flex-direction:column;gap:1px}
+.si{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;font-size:13.5px;
+  color:var(--text-1);background:transparent}
+.si .ic{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  color:var(--text-2);background:rgba(255,255,255,.06);flex:0 0 auto}
+.si.on{background:rgba(52,211,153,.16)}
+.si.on .ic{color:var(--primary);background:rgba(52,211,153,.14)}
+.detail{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;background:var(--bg-deep)}
+.detail .top{flex:0 0 52px;height:52px;display:flex;align-items:center;padding:0 20px;
+  border-bottom:1px solid var(--hairline);font-size:15px;font-weight:600}
+.detail .top .sp{flex:1}
+.detail .body{flex:1 1 auto;min-height:0;overflow:hidden;padding:22px 24px;display:flex;flex-direction:column;gap:16px}
+.group{border-radius:12px;background:rgba(255,255,255,.045);border:1px solid var(--hairline);overflow:hidden;
+  min-width:0}
+.group .gt{padding:11px 14px 7px;font-size:12.5px;font-weight:600;color:var(--text-2)}
+.grow{display:flex;align-items:center;gap:11px;padding:10px 14px;border-top:1px solid var(--hairline-2);
+  min-width:0}
+.grow:first-of-type{border-top:none}
+.grow .ic{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  color:var(--text-2);background:rgba(255,255,255,.06);flex:0 0 auto}
+.grow .tx{flex:1 1 auto;min-width:0}
+.grow .tx b{display:block;font-size:13.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap}
+.grow .tx span{display:block;font-size:11.5px;color:var(--text-3);line-height:1.35;
+  overflow:hidden;text-overflow:ellipsis}
+.grow .val{font-size:12.5px;color:var(--text-3);white-space:nowrap;flex:0 1 auto;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;max-width:52%}
+.grow .val.hi{color:var(--primary)}
+.grow .val.ok{color:var(--success)}
+.grow .val.err{color:var(--error)}
+.grow .chev{color:var(--text-3)}
+.plain-title{font-size:15px;font-weight:600;color:var(--text-1);margin-bottom:2px}
+
+/* 外观（主题网格） */
+.themes{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.theme{border-radius:12px;overflow:hidden;border:1px solid var(--hairline);background:rgba(255,255,255,.04)}
+.theme.on{border-color:var(--primary);box-shadow:0 0 0 2px rgba(52,211,153,.3)}
+.theme .sw{height:76px;display:flex;align-items:flex-end;justify-content:space-between;padding:10px}
+.theme .sw .d{width:26px;height:26px;border-radius:8px}
+.theme .nm{padding:8px 10px;font-size:12px;font-weight:500;color:var(--text-1);
+  display:flex;align-items:center;gap:6px}
+.theme .nm .ck{color:var(--primary)}
+
+/* 商店 */
+.vs{display:flex;gap:12px;padding:16px;border-radius:16px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(52,211,153,.25)}
+.vcard{flex:1;border-radius:12px;padding:14px;background:rgba(255,255,255,.04)}
+.vcard.pro{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.28)}
+.vcard h5{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;margin-bottom:9px}
+.vcard li{list-style:none;font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:6px;
+  padding:3px 0}
+.vcard li svg{color:var(--primary)}
+.prod{display:flex;align-items:center;gap:16px;padding:16px;border-radius:12px;
+  background:rgba(255,255,255,.05);border:1px solid var(--hairline)}
+.prod .tx{flex:1 1 auto}
+.prod .tx b{display:block;font-size:14px;font-weight:600}
+.prod .tx .pr{font-size:19px;font-weight:700;margin-top:4px}
+.prod .tx .pr small{font-size:11px;font-weight:400;color:var(--text-3)}
+.prod .buy{padding:9px 16px;border-radius:12px;background:rgba(52,211,153,.14);color:var(--primary);
+  font-weight:600;font-size:13px;white-space:nowrap}
+.prod.owned .buy{background:rgba(48,209,88,.14);color:var(--success)}
+.sheet-stage{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;
+  background:rgba(8,8,7,.5);backdrop-filter:blur(2px)}
+.sheet{width:520px;border-radius:14px;background:var(--bg-medium);border:1px solid var(--hairline);
+  box-shadow:0 30px 80px rgba(0,0,0,.6);padding:20px}
+.sheet .hd{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sheet .hd .mark{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;background:rgba(52,211,153,.14);color:var(--primary)}
+.sheet .links{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:16px;
+  font-size:11.5px;color:var(--text-3)}
+.sheet .links .dv{width:1px;height:12px;background:var(--hairline)}
+
+</style>
+</head>
+<body data-device="custom" data-logical-width="900" data-logical-height="640">
+<div class="backdrop"></div><div class="stage"><div class="sidebar" data-block="sidebar" data-block-label="设置侧栏"><div class="head">设置</div><div class="list"><div class="si" data-block="nav-general" data-block-label="设置导航：通用" data-prototype-link="01-general" data-prototype-label="通用"><span class="ic"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.2v2.6M12 19.2v2.6M2.2 12h2.6M19.2 12h2.6M5.1 5.1l1.9 1.9M17 17l1.9 1.9M18.9 5.1L17 7M7 17l-1.9 1.9"/><circle cx="12" cy="12" r="7.3"/></svg></span><span>通用</span></div><div class="si on" data-block="nav-appearance" data-block-label="设置导航：外观" data-prototype-link="02-appearance" data-prototype-label="外观"><span class="ic"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c-4.7 0-8.5 3.6-8.5 8s3.8 8 8.5 8c1 0 1.8-.8 1.8-1.8 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8h1.6c2.5 0 4.3-1.9 4.3-4.3 0-3.3-3.7-5.7-8.5-5.7z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10.5" cy="7.5" r="1.2"/><circle cx="15" cy="8" r="1.2"/><circle cx="17.5" cy="11.5" r="1.2"/></svg></span><span>外观</span></div><div class="si" data-block="nav-audiodb" data-block-label="设置导航：音乐数据库" data-prototype-link="04-audio-database" data-prototype-label="音乐数据库"><span class="ic"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.4"/><path d="M2.5 13.5h19"/><path d="M6.5 16.2h4.4" stroke-width="1.8"/></svg></span><span>音乐数据库</span></div><div class="si" data-block="nav-storage" data-block-label="设置导航：存储设置" data-prototype-link="03-storage" data-prototype-label="存储设置"><span class="ic"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.4"/><path d="M2.5 13.5h19"/><circle cx="16.8" cy="16.4" r="1.1"/></svg></span><span>存储设置</span></div><div class="si" data-block="nav-bookdb" data-block-label="设置导航：有声书数据库"><span class="ic"></span><span>有声书数据库</span></div><div class="si" data-block="nav-audio-settings" data-block-label="设置导航：音频设置"><span class="ic"></span><span>音频设置</span></div><div class="si" data-block="nav-liked-audio" data-block-label="设置导航：喜欢的音频"><span class="ic"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span><span>喜欢的音频</span></div><div class="si" data-block="nav-store" data-block-label="设置导航：商店" data-prototype-link="05-store" data-prototype-label="商店"><span class="ic"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 4.5h17v4H3.5z"/><path d="M4.8 8.5v11h14.4v-11"/><path d="M9.5 19.5v-6h5v6"/></svg></span><span>商店</span></div><div class="si" data-block="nav-scene" data-block-label="设置导航：场景"><span class="ic"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="8" height="16" rx="1.8"/><rect x="13" y="4" width="8" height="16" rx="1.8"/></svg></span><span>场景</span></div><div class="si" data-block="nav-playback" data-block-label="设置导航：当前文件"><span class="ic"></span><span>当前文件</span></div><div class="si" data-block="nav-system" data-block-label="设置导航：系统"><span class="ic"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.2v2.6M12 19.2v2.6M2.2 12h2.6M19.2 12h2.6M5.1 5.1l1.9 1.9M17 17l1.9 1.9M18.9 5.1L17 7M7 17l-1.9 1.9"/><circle cx="12" cy="12" r="7.3"/><path d="M15.5 15.5l4 4"/></svg></span><span>系统</span></div><div class="si" data-block="nav-plugin-manager" data-block-label="设置导航：插件管理"><span class="ic"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5a2 2 0 0 1 4 0c0 .6-.3 1.1-.7 1.5H17a1 1 0 0 1 1 1v3.3c.4-.4.9-.6 1.5-.6a2 2 0 0 1 0 4c-.6 0-1.1-.3-1.5-.7V16a1 1 0 0 1-1 1h-3.3c.4.4.7.9.7 1.5a2 2 0 0 1-4 0c0-.6.3-1.1.7-1.5H7a1 1 0 0 1-1-1v-3.3c-.4.4-.9.7-1.5.7a2 2 0 0 1 0-4c.6 0 1.1.3 1.5.7V7a1 1 0 0 1 1-1h3.3c-.4-.4-.7-.9-.7-1.5z"/></svg></span><span>插件管理</span></div></div></div><div class="detail" data-block="detail" data-block-label="设置详情区"><div class="top">外观</div><div class="body"><div class="plain-title">主题</div><div class="themes" data-block="theme-grid" data-block-label="主题网格"><div class="theme on" data-block="theme-0" data-block-label="主题：森林墨"><div class="sw" style="background:linear-gradient(150deg,#059669 0%,#1C1C1A 100%)"><span class="d" style="background:#059669"></span></div><div class="nm">森林墨<span class="ck"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M7.8 12.3l3 3 5.4-5.6" stroke="#1C1C1A" stroke-width="2"/></svg></span></div></div><div class="theme" data-block="theme-1" data-block-label="主题：午夜幽蓝"><div class="sw" style="background:linear-gradient(150deg,#5B4FCF 0%,#050510 100%)"><span class="d" style="background:#5B4FCF"></span></div><div class="nm">午夜幽蓝</div></div><div class="theme" data-block="theme-2" data-block-label="主题：天空"><div class="sw" style="background:linear-gradient(150deg,#0284C7 0%,#07111F 100%)"><span class="d" style="background:#0284C7"></span></div><div class="nm">天空</div></div><div class="theme" data-block="theme-3" data-block-label="主题：极光紫"><div class="sw" style="background:linear-gradient(150deg,#8B5CF6 0%,#0A0515 100%)"><span class="d" style="background:#8B5CF6"></span></div><div class="nm">极光紫</div></div><div class="theme" data-block="theme-4" data-block-label="主题：星云粉"><div class="sw" style="background:linear-gradient(150deg,#DB2777 0%,#10050A 100%)"><span class="d" style="background:#DB2777"></span></div><div class="nm">星云粉</div></div><div class="theme" data-block="theme-5" data-block-label="主题：虚空深黑"><div class="sw" style="background:linear-gradient(150deg,#4F46E5 0%,#020205 100%)"><span class="d" style="background:#4F46E5"></span></div><div class="nm">虚空深黑</div></div><div class="theme" data-block="theme-6" data-block-label="主题：春芽绿"><div class="sw" style="background:linear-gradient(150deg,#15803D 0%,#07110A 100%)"><span class="d" style="background:#15803D"></span></div><div class="nm">春芽绿</div></div><div class="theme" data-block="theme-7" data-block-label="主题：盛夏蓝"><div class="sw" style="background:linear-gradient(150deg,#0284C7 0%,#041018 100%)"><span class="d" style="background:#0284C7"></span></div><div class="nm">盛夏蓝</div></div><div class="theme" data-block="theme-8" data-block-label="主题：秋枫橙"><div class="sw" style="background:linear-gradient(150deg,#EA580C 0%,#160B05 100%)"><span class="d" style="background:#EA580C"></span></div><div class="nm">秋枫橙</div></div><div class="theme" data-block="theme-9" data-block-label="主题：霜冬白"><div class="sw" style="background:linear-gradient(150deg,#2563EB 0%,#060B16 100%)"><span class="d" style="background:#2563EB"></span></div><div class="nm">霜冬白</div></div><div class="theme" data-block="theme-10" data-block-label="主题：GitHub"><div class="sw" style="background:linear-gradient(150deg,#1F6FEB 0%,#0D1117 100%)"><span class="d" style="background:#1F6FEB"></span></div><div class="nm">GitHub</div></div><div class="theme" data-block="theme-11" data-block-label="主题：山岚灰"><div class="sw" style="background:linear-gradient(150deg,#475569 0%,#0A0C10 100%)"><span class="d" style="background:#475569"></span></div><div class="nm">山岚灰</div></div></div></div></div></div>
+</body>
+</html>

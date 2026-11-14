@@ -1,0 +1,454 @@
+import ProviderAudioNavigation
+import ProviderAudioLibrary
+import ProviderStore
+import CisumProviderStorage
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
+import MagicKit
+import OSLog
+
+/// 音频数据库数据层插件。
+///
+/// 该插件是音频 SwiftData 容器、AudioRepo 和音频库 Provider 的唯一组装入口；
+/// UI 插件通过 `AudioLibraryProviding` 使用它，不再自行构造数据库。
+@MainActor
+public final class AudioDBDataPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = "com.coffic.cisum.plugin.audio-db-data"
+
+    public nonisolated static let emoji = "💾"
+    public nonisolated static let verbose = false
+
+    public static let shared = AudioDBDataPlugin()
+    public let order = 1
+    public let iconName = "externaldrive.badge.timemachine"
+    public let metadata = PluginMetadata(
+        id: "com.coffic.cisum.plugin.audio-db-data",
+        name: "Audio Database Data",
+        description: "Provides the audio database and keeps the audio library synchronized.",
+        version: "1.0.0",
+        category: .feature,
+        stage: .stable,
+        policy: .alwaysOn,
+        permissions: []
+    )
+
+    nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
+    nonisolated(unsafe) private var libraryProvider: AudioLibraryProvider?
+    nonisolated(unsafe) private var navigationProvider: AudioTrackNavigationProvider?
+    nonisolated(unsafe) private var capacityProvider: AudioCapacityProvider?
+    nonisolated(unsafe) private var storageObserver: AudioStorageObserver?
+
+    /// 本插件消费的能力 Adapter（见 Capabilities 规范第 5 条：入口强持有）。
+    nonisolated(unsafe) private var audioDataStorageCapability: AudioDataStorageCapabilityAdapter?
+    /// 订阅权益能力：数据层据此判断容量限制与同步兜底。
+    nonisolated(unsafe) private var audioDataEntitlementCapability: AudioDataEntitlementCapabilityAdapter?
+    nonisolated(unsafe) private var fileSystemMonitor: AudioFileSystemMonitor?
+
+    @MainActor
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        self.kernel = kernel
+        try installProviders(kernel: kernel)
+    }
+
+    @MainActor
+    public func onReadyAsync(kernel: KernelCoreContainer) async throws {
+        self.kernel = kernel
+        try installProviders(kernel: kernel)
+        resetUITestAudioStateIfRequested()
+        seedUITestAudioIfRequested()
+        setupStorageLocationObserver(kernel: kernel)
+        startFileSystemMonitor()
+    }
+
+    @MainActor
+    public func onEnable(kernel: KernelCoreContainer) async throws {
+        self.kernel = kernel
+        try installProviders(kernel: kernel)
+        setupStorageLocationObserver(kernel: kernel)
+        startFileSystemMonitor()
+    }
+
+    @MainActor
+    public func onDisable(kernel: KernelCoreContainer) async throws {
+        teardownSynchronization()
+        removeProviders(from: kernel)
+    }
+
+    @MainActor
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        teardownSynchronization()
+        await removeUITestAudioIfRequested()
+        removeProviders(from: kernel)
+        self.kernel = nil
+    }
+
+    // MARK: - UI test support
+
+    /// Resets the audio repository to a known-empty state before each UI test
+    /// launch. UI tests expect a deterministic repository, but a previous test
+    /// run's seed audio can persist in the shared audio database (the shutdown
+    /// cleanup is not reliable when XCUITest terminates the app). Clearing the
+    /// disk directory on startup makes the empty-repository precondition hold
+    /// regardless of what the previous run left behind.
+    ///
+    /// ## 与隔离数据根的关系
+    ///
+    /// 启用 `--cisum-ui-testing-isolated-storage` 时，隔离根已在 App 启动
+    /// 阶段被**整体重建**（含 SwiftData 数据库文件），本方法清理的内容
+    /// 本就不存在——它保留下来是为了覆盖「未启用隔离」的旧路径
+    /// （例如某些用例刻意要复用同一个仓库目录）。
+    ///
+    /// 注意：本方法只清**磁盘目录**，不删数据库里的行。数据库行的清理
+    /// 依赖隔离根的整体重建——这正是「删磁盘目录不够」的历史原因。
+    @MainActor
+    private func resetUITestAudioStateIfRequested() {
+        #if DEBUG
+        let arguments = ProcessInfo.processInfo.arguments
+        guard arguments.contains("--cisum-ui-testing"),
+              let provider = libraryProvider,
+              let disk = provider.audioDisk else { return }
+
+        let urls = (try? FileManager.default.contentsOfDirectory(
+            at: disk,
+            includingPropertiesForKeys: nil
+        )) ?? []
+        for url in urls {
+            try? FileManager.default.removeItem(at: url)
+        }
+        if !urls.isEmpty {
+            os_log("🧹 UI test audio repository reset: removed \(urls.count) leftover item(s)")
+        }
+        #endif
+    }
+
+    /// Creates a deterministic audio entry inside the app sandbox so UI tests
+    /// can exercise the repository list without driving the system file picker.
+    ///
+    /// The generated file is a real 16-bit PCM WAV (see `UITestAudioSeedTone.makeWAV`),
+    /// not a placeholder byte: playback regressions such as "progress advances while
+    /// playing" and "switching tracks resets progress to zero" need the engine to
+    /// actually decode a stream. Tests that only care about list layout are
+    /// unaffected, since the filename and directory are unchanged.
+    ///
+    /// Pass several names to seed a multi-track repository:
+    /// `--cisum-ui-testing-seed-audio first.wav,second.wav`.
+    /// A trailing `--cisum-ui-testing-seed-duration <seconds>` sets the tone length.
+    @MainActor
+    private func seedUITestAudioIfRequested() {
+        #if DEBUG
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let index = arguments.firstIndex(of: "--cisum-ui-testing-seed-audio"),
+              arguments.indices.contains(index + 1),
+              let provider = libraryProvider,
+              let disk = provider.audioDisk else { return }
+
+        // Comma-separated names allow multi-track seeding (switch-track regressions);
+        // a bare single name keeps the original behaviour.
+        let names = arguments[index + 1]
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && $0.lowercased().hasSuffix(".wav") }
+        guard !names.isEmpty else { return }
+
+        // Optional duration override: `--cisum-ui-testing-seed-duration <seconds>`.
+        // Long tones let progress-based assertions observe a moving value.
+        var duration: TimeInterval = UITestAudioSeedTone.defaultDuration
+        if let durationIndex = arguments.firstIndex(of: "--cisum-ui-testing-seed-duration"),
+           arguments.indices.contains(durationIndex + 1),
+           let parsed = TimeInterval(arguments[durationIndex + 1]), parsed > 0 {
+            duration = parsed
+        }
+
+        for name in names {
+            let url = disk.appendingPathComponent(name, isDirectory: false)
+            do {
+                let data = UITestAudioSeedTone.makeWAV(duration: duration)
+                try data.write(to: url, options: .atomic)
+            } catch {
+                os_log(.error, "❌ UI test audio seed failed for \(name): \(error.localizedDescription)")
+            }
+        }
+        #endif
+    }
+
+    @MainActor
+    private func removeUITestAudioIfRequested() async {
+        #if DEBUG
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let index = arguments.firstIndex(of: "--cisum-ui-testing-seed-audio"),
+              arguments.indices.contains(index + 1),
+              let provider = libraryProvider,
+              let disk = provider.audioDisk else { return }
+
+        // Mirror the comma-separated seeding so every seeded name is cleaned up.
+        let names = arguments[index + 1]
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && $0.lowercased().hasSuffix(".wav") }
+
+        for name in names {
+            try? FileManager.default.removeItem(at: disk.appendingPathComponent(name, isDirectory: false))
+        }
+        if !names.isEmpty {
+            await provider.sync(urls: [], verbose: false, isFirst: true)
+        }
+        #endif
+    }
+
+    // MARK: - Audio library synchronization
+
+    /// 数据插件自行维护文件系统到数据库的同步生命周期。
+    ///
+    /// 目录监控不是一个独立业务插件：它是音频目录数据正确性的基础设施，
+    /// 因此必须和 Provider 的具体实现一起启动、停止和重建。
+    @MainActor
+    private func startFileSystemMonitor() {
+        guard storageObserver != nil, fileSystemMonitor == nil, let provider = libraryProvider else { return }
+
+        let monitor = AudioFileSystemMonitor(
+            diskProvider: {
+                await MainActor.run { provider.audioDisk }
+            },
+            syncItems: { items, isFirst in
+                let disk = await MainActor.run { provider.audioDisk }
+                let shouldFullSync = AudioFileSystemMonitor.shouldPerformFullSync(
+                    isFirst: isFirst,
+                    disk: disk
+                )
+                if shouldFullSync, items.isEmpty,
+                   !AudioFileSystemMonitor.shouldApplyEmptyFullSync(disk: disk) {
+                    return
+                }
+                await provider.sync(
+                    urls: items,
+                    verbose: AudioFileSystemMonitor.verbose,
+                    isFirst: shouldFullSync
+                )
+            },
+            deleteItems: { urls in
+                try await provider.delete(
+                    urls: urls,
+                    verbose: AudioFileSystemMonitor.verbose
+                )
+            }
+        )
+
+        fileSystemMonitor = monitor
+        Task { [monitor] in
+            do {
+                try await monitor.execute()
+            } catch is CancellationError {
+                // Cancellation is the normal path during storage changes or shutdown.
+            } catch {
+                os_log(.error, "❌ Audio library filesystem monitor failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    @MainActor
+    private func setupStorageLocationObserver(kernel: KernelCoreContainer) {
+        guard storageObserver == nil, let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
+        let storageCapability = AudioDataStorageCapabilityAdapter(storage: storage)
+        audioDataStorageCapability = storageCapability
+        storageObserver = AudioStorageObserver(storage: storageCapability) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                await self?.restartFileSystemMonitor()
+            }
+        }
+    }
+
+    @MainActor
+    private func restartFileSystemMonitor() async {
+        stopFileSystemMonitor()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+        guard storageObserver != nil else { return }
+        startFileSystemMonitor()
+    }
+
+    @MainActor
+    private func stopFileSystemMonitor() {
+        fileSystemMonitor?.cancel()
+        fileSystemMonitor = nil
+    }
+
+    @MainActor
+    private func teardownSynchronization() {
+        storageObserver?.cancel()
+        storageObserver = nil
+        stopFileSystemMonitor()
+    }
+
+    // MARK: - Provider installation
+
+    @MainActor
+    private func installProviders(kernel: KernelCoreContainer) throws {
+        try installLibraryProvider(kernel: kernel)
+        try installNavigationProvider(kernel: kernel)
+        installCapacityProvider(kernel: kernel)
+    }
+
+    @MainActor
+    private func removeProviders(from kernel: KernelCoreContainer) {
+        removeNavigationProvider(from: kernel)
+        removeCapacityProvider(from: kernel)
+        removeLibraryProvider(from: kernel)
+    }
+
+    // MARK: - AudioCapacityProviding
+
+    /// 注册仓库容量准入 Provider。
+    ///
+    /// 数据层同时掌握两样东西：仓库里有几个文件（真值）与当前用户是不是
+    /// 免费用户（经权益能力）。因此它能把两者合成「这批文件能进几个」的
+    /// 单一判定，所有写入入口都走这一个判定，容量规则只存在一处。
+    ///
+    /// 权益能力内部**惰性解析**商店 Provider：商店插件的 boot 顺序不固定，
+    /// 快照引用会让权益永久停在「未就绪」。
+    @MainActor
+    private func installCapacityProvider(kernel: KernelCoreContainer) {
+        guard capacityProvider == nil, let library = libraryProvider else { return }
+
+        let entitlement = AudioDataEntitlementCapabilityAdapter { @MainActor [weak self] in
+            self?.kernel?.resolveProvider((any StoreEntitlementProviding).self)
+        }
+        let provider = AudioCapacityProvider(
+            library: library,
+            entitlement: entitlement
+        )
+        capacityProvider = provider
+        do {
+            try kernel.registerProvider((any AudioCapacityProviding).self, provider)
+        } catch {
+            os_log(.error, "\(Self.t)❌ Failed to register AudioCapacityProviding: \(error.localizedDescription)")
+            capacityProvider = nil
+        }
+    }
+
+    @MainActor
+    private func removeCapacityProvider(from kernel: KernelCoreContainer) {
+        guard capacityProvider != nil else { return }
+        capacityProvider?.shutdown()
+        kernel.unregisterProvider(AudioCapacityProviding.self)
+        capacityProvider = nil
+    }
+
+    // MARK: - AudioLibraryProviding
+
+    @MainActor
+    private func installLibraryProvider(kernel: KernelCoreContainer) throws {
+        guard libraryProvider == nil, let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
+
+        // 权益能力在入口组装一次，同一份实例同时供容量闸门与同步兜底使用。
+        let entitlement = makeEntitlementCapability()
+        let provider = AudioLibraryProvider(storage: storage, entitlement: entitlement)
+        self.libraryProvider = provider
+        try kernel.registerProvider((any AudioLibraryProviding).self, provider)
+    }
+
+    /// 组装订阅权益能力（幂等）：内部惰性解析商店 Provider。
+    ///
+    /// 商店插件的 boot 顺序不固定，快照引用会让权益永久停在「未就绪」。
+    @MainActor
+    private func makeEntitlementCapability() -> AudioDataEntitlementCapabilityAdapter {
+        if let audioDataEntitlementCapability { return audioDataEntitlementCapability }
+        let created = AudioDataEntitlementCapabilityAdapter { @MainActor [weak self] in
+            self?.kernel?.resolveProvider((any StoreEntitlementProviding).self)
+        }
+        audioDataEntitlementCapability = created
+        return created
+    }
+
+    @MainActor
+    private func removeLibraryProvider(from kernel: KernelCoreContainer) {
+        guard libraryProvider != nil else { return }
+        libraryProvider?.shutdown()
+        kernel.unregisterProvider(AudioLibraryProviding.self)
+        libraryProvider = nil
+    }
+
+    // MARK: - AudioTrackNavigationProviding
+
+    /// 注册音频曲目导航服务。
+    ///
+    /// Provider 由本插件组装；消费插件只依赖协议，不依赖
+    /// `AudioRepo` 或本插件的具体实现。
+    @MainActor
+    private func installNavigationProvider(kernel: KernelCoreContainer) throws {
+        // Navigation closures capture the library provider. During `onBootAsync`
+        // storage may not be registered yet; do not permanently install a
+        // navigation provider that captured `nil` before `onReadyAsync` retries.
+        guard navigationProvider == nil, let provider = libraryProvider else { return }
+        let repoProvider: @MainActor @Sendable () async -> AudioLibraryProvider? = {
+            provider
+        }
+        let navigation = AudioTrackNavigationProvider(
+            nextURL: { current, verbose in
+                guard let provider = await repoProvider() else {
+                    os_log(.error, "\(Self.t)❌ Cannot find next audio: repository is unavailable")
+                    throw AudioPluginError.hostNotConfigured
+                }
+                do {
+                    let result = try await provider.nextURL(after: current, verbose: verbose)
+                    if result == nil {
+                        os_log("\(Self.t)ℹ️ No next audio for current item: \(current?.lastPathComponent ?? "<none>")")
+                    }
+                    return result
+                } catch {
+                    os_log(.error, "\(Self.t)❌ Failed to resolve next audio: \(error.localizedDescription)")
+                    throw error
+                }
+            },
+            previousURL: { current, verbose in
+                guard let provider = await repoProvider() else {
+                    os_log(.error, "\(Self.t)❌ Cannot find previous audio: repository is unavailable")
+                    throw AudioPluginError.hostNotConfigured
+                }
+                do {
+                    let result = try await provider.previousURL(before: current, verbose: verbose)
+                    if result == nil {
+                        os_log("\(Self.t)ℹ️ No previous audio for current item: \(current?.lastPathComponent ?? "<none>")")
+                    }
+                    return result
+                } catch {
+                    os_log(.error, "\(Self.t)❌ Failed to resolve previous audio: \(error.localizedDescription)")
+                    throw error
+                }
+            },
+            firstURL: {
+                guard let provider = await repoProvider() else {
+                    os_log(.error, "\(Self.t)❌ Cannot find first audio: repository is unavailable")
+                    throw AudioPluginError.hostNotConfigured
+                }
+                do {
+                    return try await provider.firstURL()
+                } catch {
+                    os_log(.error, "\(Self.t)❌ Failed to resolve first audio: \(error.localizedDescription)")
+                    throw error
+                }
+            },
+            lastURL: {
+                guard let provider = await repoProvider() else {
+                    os_log(.error, "\(Self.t)❌ Cannot find last audio: repository is unavailable")
+                    throw AudioPluginError.hostNotConfigured
+                }
+                do {
+                    return try await provider.lastURL()
+                } catch {
+                    os_log(.error, "\(Self.t)❌ Failed to resolve last audio: \(error.localizedDescription)")
+                    throw error
+                }
+            }
+        )
+        navigationProvider = navigation
+        try kernel.registerProvider((any AudioTrackNavigationProviding).self, navigation)
+    }
+
+    @MainActor
+    private func removeNavigationProvider(from kernel: KernelCoreContainer) {
+        guard navigationProvider != nil else { return }
+        kernel.unregisterProvider((any AudioTrackNavigationProviding).self)
+        navigationProvider = nil
+    }
+
+}

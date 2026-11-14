@@ -1,0 +1,74 @@
+// swift-tools-version: 6.0
+import PackageDescription
+
+let package = Package(
+    name: "PluginAudioLike",
+    defaultLocalization: "en",
+    platforms: [
+        .macOS(.v14),
+        .iOS(.v17),
+        .visionOS(.v2),
+    ],
+    products: [
+        .library(
+            name: "PluginAudioLike",
+            targets: ["PluginAudioLike"]
+        )
+    ],
+    dependencies: [
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.1.1"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.17.1"),
+        .package(path: "../ProviderAudioLike"),
+        .package(path: "../ProviderStorage"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.1"),
+        .package(path: "../KitAppEvents"),
+        .package(path: "../ProviderPlugin"),
+        .package(path: "../ProviderScene"),
+        .package(path: "../ProviderPlayback"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.23.0")
+    ],
+    targets: [
+        .target(
+            name: "PluginAudioLike",
+            dependencies: [
+                .product(name: "ProviderAudioLike", package: "ProviderAudioLike"),
+                .product(name: "ProviderStorage", package: "ProviderStorage"),
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "LumiUI", package: "LumiUI"),
+                .product(name: "ProviderSettingView", package: "LumiSettings"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitAppEvents", package: "KitAppEvents"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
+                .product(name: "ProviderScene", package: "ProviderScene"),
+                .product(name: "ProviderPlayback", package: "ProviderPlayback"),
+                .product(name: "ProviderToast", package: "LumiProviders")
+            ],
+            path: ".",
+            sources: [
+                "Sources/AudioLikePlugin.swift",
+                "Sources/Capabilities",
+                "Sources/Events",
+                "Sources/Models/AudioLikePluginInfo.swift",
+                "Sources/Models/AudioLikeModel.swift",
+                "Sources/Observers",
+                "Sources/Services",
+                "Sources/ViewModels",
+                "Sources/Views"
+            ],
+            resources: [
+                .process("Resources/Localizable.xcstrings")
+            ]
+        ),
+        .testTarget(
+            name: "AudioLikePluginTests",
+            dependencies: [
+                "PluginAudioLike",
+                .product(name: "ProviderAudioLike", package: "ProviderAudioLike"),
+                .product(name: "ProviderPlayback", package: "ProviderPlayback")
+            ],
+            path: "Tests"
+        )
+    ]
+)

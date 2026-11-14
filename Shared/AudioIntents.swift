@@ -1,9 +1,9 @@
 import AppIntents
-import MagicKit
 import Foundation
 import WidgetKit
 import OSLog
 import CoreFoundation
+import Darwin
 
 /// 发送 Darwin 通知，通知主 App 检查命令
 private func notifyMainApp() {
@@ -12,7 +12,38 @@ private func notifyMainApp() {
     CFNotificationCenterPostNotification(center, name, nil, nil, true)
 }
 
-public struct PlayPauseIntent: AppIntent, SuperLog {
+private func withWidgetCommandLock<T>(_ operation: () throws -> T) rethrows -> T {
+    let suiteName = "group.com.yueyi.cisum"
+    guard let lockURL = FileManager.default
+        .containerURL(forSecurityApplicationGroupIdentifier: suiteName)?
+        .appendingPathComponent("widget-command.lock") else {
+        return try operation()
+    }
+
+    FileManager.default.createFile(atPath: lockURL.path, contents: nil)
+    guard let handle = try? FileHandle(forWritingTo: lockURL) else {
+        return try operation()
+    }
+
+    flock(handle.fileDescriptor, LOCK_EX)
+    defer {
+        flock(handle.fileDescriptor, LOCK_UN)
+        try? handle.close()
+    }
+
+    return try operation()
+}
+
+private func incrementWidgetCommand(_ key: String) {
+    withWidgetCommandLock {
+        let sharedDefaults = UserDefaults(suiteName: "group.com.yueyi.cisum")
+        let currentCount = sharedDefaults?.integer(forKey: key) ?? 0
+        sharedDefaults?.set(currentCount + 1, forKey: key)
+        sharedDefaults?.synchronize()
+    }
+}
+
+public struct PlayPauseIntent: AppIntent {
     nonisolated public static let emoji = "🎵"
     nonisolated static let verbose = false
 
@@ -23,13 +54,10 @@ public struct PlayPauseIntent: AppIntent, SuperLog {
     public init() {}
 
     public func perform() async throws -> some IntentResult {
-        os_log("\(Self.t)播放/暂停意图已执行")
+        os_log("[CisumWidget] Play/Pause intent performed")
 
-        // 通过 App Groups UserDefaults 触发主 App 操作
-        // 系统会自动发送 Darwin 通知给所有使用该 App Group 的进程
-        let sharedDefaults = UserDefaults(suiteName: "group.com.yueyi.cisum")
-        sharedDefaults?.set(Date().timeIntervalSince1970, forKey: "widgetPlayPauseTrigger")
-        sharedDefaults?.synchronize()
+        // 通过 App Groups UserDefaults 触发主 App 操作。
+        incrementWidgetCommand("widgetPlayPauseTrigger")
         
         // 显式发送 Darwin 通知
         notifyMainApp()
@@ -38,7 +66,7 @@ public struct PlayPauseIntent: AppIntent, SuperLog {
     }
 }
 
-public struct NextTrackIntent: AppIntent, SuperLog {
+public struct NextTrackIntent: AppIntent {
     nonisolated public static let emoji = "🎵"
     nonisolated static let verbose = false
 
@@ -49,12 +77,10 @@ public struct NextTrackIntent: AppIntent, SuperLog {
     public init() {}
 
     public func perform() async throws -> some IntentResult {
-        os_log("\(Self.t)下一首意图已执行")
+        os_log("[CisumWidget] Next Track intent performed")
 
-        // 通过 App Groups UserDefaults 触发主 App 操作
-        let sharedDefaults = UserDefaults(suiteName: "group.com.yueyi.cisum")
-        sharedDefaults?.set(Date().timeIntervalSince1970, forKey: "widgetNextTrigger")
-        sharedDefaults?.synchronize()
+        // 通过 App Groups UserDefaults 触发主 App 操作。
+        incrementWidgetCommand("widgetNextTrigger")
         
         // 显式发送 Darwin 通知
         notifyMainApp()
@@ -63,7 +89,7 @@ public struct NextTrackIntent: AppIntent, SuperLog {
     }
 }
 
-public struct PreviousTrackIntent: AppIntent, SuperLog {
+public struct PreviousTrackIntent: AppIntent {
     nonisolated public static let emoji = "🎵"
     nonisolated static let verbose = false
 
@@ -74,12 +100,10 @@ public struct PreviousTrackIntent: AppIntent, SuperLog {
     public init() {}
 
     public func perform() async throws -> some IntentResult {
-        os_log("\(Self.t)上一首意图已执行")
+        os_log("[CisumWidget] Previous Track intent performed")
 
-        // 通过 App Groups UserDefaults 触发主 App 操作
-        let sharedDefaults = UserDefaults(suiteName: "group.com.yueyi.cisum")
-        sharedDefaults?.set(Date().timeIntervalSince1970, forKey: "widgetPreviousTrigger")
-        sharedDefaults?.synchronize()
+        // 通过 App Groups UserDefaults 触发主 App 操作。
+        incrementWidgetCommand("widgetPreviousTrigger")
         
         // 显式发送 Darwin 通知
         notifyMainApp()

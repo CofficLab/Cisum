@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>Cisum — Pure Audio Player</title>
+<link rel="stylesheet" href="components.css">
+<style>
+  body { margin: 0; display: flex; justify-content: center; background: #000; }
+  .phone-frame {
+    width: 390px; height: 844px;
+    border-radius: 44px; overflow: hidden;
+    border: 6px solid #2a2b33;
+    background: #0e0f14;
+    flex-shrink: 0;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+  .phone-notch {
+    width: 126px; height: 34px;
+    background: #0e0f14;
+    border-radius: 0 0 18px 18px;
+    position: absolute; top: 0; left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+  .phone-status {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 0; height: 48px;
+    font-size: 14px; font-weight: 600; color: #fff;
+    flex-shrink: 0;
+  }
+  .phone-status .time { font-size: 15px; font-weight: 600; }
+  .phone-status .icons { display: flex; gap: 6px; align-items: center; }
+  .phone-status .icons svg { width: 16px; height: 16px; fill: #fff; }
+
+  /* Now Playing View */
+  .now-playing {
+    flex: 1; display: flex; flex-direction: column;
+    padding: 0 24px;
+  }
+  .np-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    height: 44px; margin-top: 8px;
+  }
+  .np-nav svg { width: 22px; height: 22px; fill: none; stroke: #a7acbb; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .np-nav .title { font-size: 13px; font-weight: 500; color: #a7acbb; }
+
+  /* Album Art */
+  .album-art {
+    width: 320px; height: 320px;
+    border-radius: 16px;
+    margin: 20px auto 0;
+    background: linear-gradient(135deg, #2d1b69 0%, #7c6fff 40%, #c084fc 70%, #e879f9 100%);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 20px 60px rgba(124,111,255,0.30);
+  }
+  .album-art svg { width: 80px; height: 80px; fill: none; stroke: rgba(255,255,255,0.7); stroke-width: 1.5; }
+
+  /* Track Info */
+  .track-info {
+    margin-top: 28px; text-align: center;
+  }
+  .track-title { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .track-artist { font-size: 15px; font-weight: 400; color: #a7acbb; }
+
+  /* Progress Bar */
+  .progress-section { margin-top: 28px; }
+  .progress-bar-wrap {
+    height: 4px; background: rgba(255,255,255,0.12); border-radius: 2px;
+    position: relative;
+  }
+  .progress-bar-fill {
+    height: 100%; background: #7c6fff; border-radius: 2px;
+    width: 42%;
+  }
+  .progress-thumb {
+    width: 14px; height: 14px; background: #fff; border-radius: 50%;
+    position: absolute; top: 50%; left: 42%; transform: translate(-50%, -50%);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.30);
+  }
+  .progress-times {
+    display: flex; justify-content: space-between; margin-top: 8px;
+    font-size: 12px; font-weight: 500; color: #737888;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex; align-items: center; justify-content: center; gap: 32px;
+    margin-top: 24px;
+  }
+  .ctrl-btn { display: flex; align-items: center; justify-content: center; }
+  .ctrl-btn svg { fill: none; stroke: #ebedf2; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .ctrl-btn.secondary svg { width: 24px; height: 24px; stroke: #a7acbb; }
+  .ctrl-btn.primary svg { width: 32px; height: 32px; }
+  .play-btn {
+    width: 68px; height: 68px; border-radius: 50%;
+    background: #7c6fff; display: flex; align-items: center; justify-content: center;
+  }
+  .play-btn svg { width: 28px; height: 28px; fill: #fff; stroke: none; }
+
+  /* Bottom Actions */
+  .bottom-actions {
+    display: flex; justify-content: space-around; align-items: center;
+    margin-top: 24px; padding: 0 16px;
+  }
+  .bottom-actions svg { width: 22px; height: 22px; fill: none; stroke: #737888; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Home Indicator */
+  .home-indicator {
+    display: flex; justify-content: center; padding: 12px 0 8px;
+    flex-shrink: 0;
+  }
+  .home-indicator span {
+    width: 134px; height: 5px; background: rgba(255,255,255,0.20); border-radius: 3px;
+  }
+
+  /* Phone layout: center two phones */
+  .phones-row {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 60px;
+  }
+
+  /* Playlist phone styles */
+  .playlist-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 20px; height: 44px; margin-top: 8px;
+  }
+  .playlist-header .title { font-size: 28px; font-weight: 700; color: #fff; }
+  .playlist-header svg { width: 22px; height: 22px; fill: none; stroke: #a7acbb; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .search-bar {
+    margin: 12px 20px 16px; height: 38px; background: rgba(255,255,255,0.08);
+    border-radius: 10px; display: flex; align-items: center; gap: 8px; padding: 0 12px;
+    font-size: 14px; color: #737888;
+  }
+  .search-bar svg { width: 16px; height: 16px; fill: none; stroke: #737888; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .track-list { flex: 1; padding: 0 20px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+  .track-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; border-radius: 12px;
+  }
+  .track-row.playing { background: rgba(124,111,255,0.15); }
+  .track-row:not(.playing) { background: transparent; }
+  .track-thumb {
+    width: 48px; height: 48px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .track-row:nth-child(1) .track-thumb { background: linear-gradient(135deg, #2d1b69, #7c6fff); }
+  .track-row:nth-child(2) .track-thumb { background: linear-gradient(135deg, #1b3a2d, #30d158); }
+  .track-row:nth-child(3) .track-thumb { background: linear-gradient(135deg, #3a1b1b, #ff453a); }
+  .track-row:nth-child(4) .track-thumb { background: linear-gradient(135deg, #1b2a3a, #0a84ff); }
+  .track-row:nth-child(5) .track-thumb { background: linear-gradient(135deg, #3a2d1b, #ff9f0a); }
+  .track-thumb svg { width: 20px; height: 20px; fill: rgba(255,255,255,0.8); stroke: none; }
+  .track-meta { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .track-name { font-size: 15px; font-weight: 600; color: #ebedf2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .track-row.playing .track-name { color: #7c6fff; }
+  .track-album { font-size: 12px; color: #737888; }
+  .track-duration { font-size: 13px; color: #737888; font-weight: 500; }
+  .track-playing-indicator { display: flex; align-items: flex-end; gap: 2px; height: 16px; }
+  .track-playing-indicator span { width: 3px; background: #7c6fff; border-radius: 1px; }
+  .track-playing-indicator span:nth-child(1) { height: 8px; }
+  .track-playing-indicator span:nth-child(2) { height: 14px; }
+  .track-playing-indicator span:nth-child(3) { height: 6px; }
+
+  .tab-bar {
+    display: flex; justify-content: space-around; align-items: center;
+    height: 64px; background: rgba(14,15,20,0.95);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0; padding-bottom: 4px;
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .tab-item svg { width: 22px; height: 22px; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tab-item.active svg { stroke: #7c6fff; }
+  .tab-item:not(.active) svg { stroke: #737888; }
+  .tab-item .label { font-size: 10px; font-weight: 500; }
+  .tab-item.active .label { color: #7c6fff; }
+  .tab-item:not(.active) .label { color: #737888; }
+
+  .now-playing-bar {
+    display: flex; align-items: center; gap: 10px;
+    margin: 0 16px 8px; padding: 8px 10px;
+    background: rgba(124,111,255,0.15); border-radius: 12px;
+  }
+  .npb-thumb {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: linear-gradient(135deg, #2d1b69, #7c6fff);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .npb-thumb svg { width: 14px; height: 14px; fill: rgba(255,255,255,0.8); stroke: none; }
+  .npb-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .npb-title { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .npb-artist { font-size: 11px; color: #a7acbb; }
+  .npb-controls { display: flex; align-items: center; gap: 12px; }
+  .npb-controls svg { width: 18px; height: 18px; fill: none; stroke: #ebedf2; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .npb-pause { width: 30px; height: 30px; background: #7c6fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .npb-pause svg { fill: #fff; stroke: none; width: 14px; height: 14px; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="stage-header">
+    <div class="stage-eyebrow">Pure Audio Player</div>
+    <div class="stage-title">Drop your audio files in, and let Cisum play</div>
+    <div class="stage-subtitle">No ads, no pop-ups, no bloat. Just a clean, focused audio player that respects your time.</div>
+  </div>
+
+  <div class="phones-row">
+    <!-- Phone 1: Now Playing -->
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="phone-status">
+        <span class="time">9:41</span>
+        <div class="icons">
+          <svg viewBox="0 0 24 24"><path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          <svg viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2" stroke="#fff" stroke-width="2" fill="none"/><line x1="23" y1="10" x2="23" y2="14" stroke="#fff" stroke-width="2"/></svg>
+        </div>
+      </div>
+
+      <div class="now-playing">
+        <div class="np-nav">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          <span class="title">Now Playing</span>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        </div>
+
+        <div class="album-art">
+          <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </div>
+
+        <div class="track-info">
+          <div class="track-title">Midnight Reverie</div>
+          <div class="track-artist">Aurora Waves</div>
+        </div>
+
+        <div class="progress-section">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill"></div>
+            <div class="progress-thumb"></div>
+          </div>
+          <div class="progress-times">
+            <span>1:47</span>
+            <span>4:12</span>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="ctrl-btn secondary">
+            <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          </div>
+          <div class="ctrl-btn secondary">
+            <svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+          </div>
+          <div class="play-btn">
+            <svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </div>
+          <div class="ctrl-btn secondary">
+            <svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+          </div>
+          <div class="ctrl-btn secondary">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+        </div>
+
+        <div class="bottom-actions">
+          <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        </div>
+      </div>
+
+      <div class="home-indicator"><span></span></div>
+    </div>
+
+    <!-- Phone 2: Playlist -->
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="phone-status">
+        <span class="time">9:41</span>
+        <div class="icons">
+          <svg viewBox="0 0 24 24"><path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          <svg viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2" stroke="#fff" stroke-width="2" fill="none"/><line x1="23" y1="10" x2="23" y2="14" stroke="#fff" stroke-width="2"/></svg>
+        </div>
+      </div>
+
+      <div class="playlist-header">
+        <span class="title">Library</span>
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search audio files…
+      </div>
+
+      <div class="track-list">
+        <div class="track-row playing">
+          <div class="track-thumb"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+          <div class="track-meta">
+            <span class="track-name">Midnight Reverie</span>
+            <span class="track-album">Aurora Waves</span>
+          </div>
+          <div class="track-playing-indicator"><span></span><span></span><span></span></div>
+        </div>
+        <div class="track-row">
+          <div class="track-thumb"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+          <div class="track-meta">
+            <span class="track-name">Ocean Breeze</span>
+            <span class="track-album">Nature Sounds Vol. 2</span>
+          </div>
+          <span class="track-duration">5:34</span>
+        </div>
+        <div class="track-row">
+          <div class="track-thumb"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+          <div class="track-meta">
+            <span class="track-name">City Lights</span>
+            <span class="track-album">Urban Dreams</span>
+          </div>
+          <span class="track-duration">3:48</span>
+        </div>
+        <div class="track-row">
+          <div class="track-thumb"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+          <div class="track-meta">
+            <span class="track-name">Rainy Afternoon</span>
+            <span class="track-album">Chill Piano</span>
+          </div>
+          <span class="track-duration">4:21</span>
+        </div>
+        <div class="track-row">
+          <div class="track-thumb"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+          <div class="track-meta">
+            <span class="track-name">Sunset Drive</span>
+            <span class="track-album">Lo-Fi Journeys</span>
+          </div>
+          <span class="track-duration">6:02</span>
+        </div>
+        <div class="track-row">
+          <div class="track-thumb" style="background:linear-gradient(135deg,#2d1b3a,#c084fc)"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+          <div class="track-meta">
+            <span class="track-name">Northern Stars</span>
+            <span class="track-album">Cosmic Ambient</span>
+          </div>
+          <span class="track-duration">7:15</span>
+        </div>
+      </div>
+
+      <div class="now-playing-bar">
+        <div class="npb-thumb"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+        <div class="npb-info">
+          <span class="npb-title">Midnight Reverie</span>
+          <span class="npb-artist">Aurora Waves</span>
+        </div>
+        <div class="npb-controls">
+          <svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+          <div class="npb-pause"><svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></div>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-item active">
+          <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          <span class="label">Audio</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span class="label">Books</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4"/></svg>
+          <span class="label">Settings</span>
+        </div>
+      </div>
+      <div class="home-indicator"><span></span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

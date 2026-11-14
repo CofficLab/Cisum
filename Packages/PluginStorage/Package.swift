@@ -1,0 +1,62 @@
+// swift-tools-version: 6.0
+
+import PackageDescription
+
+let package = Package(
+    name: "PluginStorage",
+    defaultLocalization: "en",
+    platforms: [
+        .macOS(.v14),
+        .iOS(.v17),
+        .visionOS(.v2),
+    ],
+    products: [
+        .library(
+            name: "PluginStorage",
+            targets: ["PluginStorage"]
+        ),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.1.1"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.17.1"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.1"),
+        .package(path: "../ProviderPlugin"),
+        .package(path: "../KitEventObservation"),
+        .package(name: "KitMagic", path: "../MagicKit"),
+        .package(path: "../ProviderStorage"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.23.0"),
+    ],
+    targets: [
+        .target(
+            name: "PluginStorage",
+            dependencies: [
+                .product(name: "LumiUI", package: "LumiUI"),
+                .product(name: "ProviderSettingView", package: "LumiSettings"),
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "KitEventObservation", package: "KitEventObservation"),
+                .product(name: "ProviderDocsView", package: "LumiProviders"),
+                .product(name: "ProviderStorage", package: "LumiProviders"),
+                .product(name: "MagicKit", package: "KitMagic"),
+                .product(name: "ProviderStorage", package: "ProviderStorage"),
+            ],
+            path: ".",
+            exclude: ["README.md", "Tests"],
+            sources: ["Sources"],
+            resources: [
+                .process("Resources/Localizable.xcstrings"),
+            ]
+        ),
+        .testTarget(
+            name: "StoragePluginTests",
+            dependencies: [
+                "PluginStorage",
+                .product(name: "KernelCore", package: "LumiKernel"),
+                .product(name: "ProviderPlugin", package: "ProviderPlugin"),
+                .product(name: "ProviderStorage", package: "LumiProviders"),
+                .product(name: "ProviderStorage", package: "ProviderStorage"),
+            ],
+            path: "Tests"
+        ),
+    ]
+)

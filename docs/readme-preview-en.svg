@@ -1,0 +1,93 @@
+<svg width="1200" height="760" viewBox="0 0 1200 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="600" y1="0" x2="600" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#EEF2F7"/>
+    </linearGradient>
+    <linearGradient id="album" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#2D1B69"/>
+      <stop offset=".48" stop-color="#7C6FFF"/>
+      <stop offset="1" stop-color="#C084FC"/>
+    </linearGradient>
+    <filter id="softShadow" x="0" y="0" width="1200" height="760" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="26" stdDeviation="34" flood-color="#1D1D1F" flood-opacity=".16"/>
+    </filter>
+    <filter id="purpleShadow" x="0" y="0" width="1200" height="760" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#7C6FFF" flood-opacity=".28"/>
+    </filter>
+    <clipPath id="macWindowClip">
+      <rect x="92" y="240" width="760" height="390" rx="28"/>
+    </clipPath>
+    <style>
+      .font { font-family: sans-serif; }
+      .title { font-size: 44px; font-weight: 700; fill: #1d1d1f; }
+      .subtitle { font-size: 21px; fill: #6e6e73; }
+      .eyebrow { font-size: 20px; font-weight: 700; fill: #6e6e73; letter-spacing: .5px; }
+      .label { font-size: 20px; fill: #6e6e73; }
+      .small { font-size: 16px; fill: #8a8a8e; }
+      .strong { font-size: 30px; font-weight: 700; fill: #1d1d1f; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="760" rx="36" fill="url(#bg)"/>
+  <text x="600" y="72" text-anchor="middle" class="font eyebrow">Cisum for iPhone and Mac</text>
+  <text x="600" y="136" text-anchor="middle" class="font title">Your local music, in sync.</text>
+  <text x="600" y="184" text-anchor="middle" class="font subtitle">A clean player for iOS and macOS, designed around the same quiet, focused listening experience.</text>
+
+  <g filter="url(#softShadow)">
+    <rect x="878" y="258" width="235" height="430" rx="42" fill="#1D1D1F"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <rect x="92" y="240" width="760" height="390" rx="28" fill="#FFFFFF"/>
+    <g clip-path="url(#macWindowClip)">
+      <rect x="92" y="240" width="760" height="390" fill="#FFFFFF"/>
+      <rect x="92" y="240" width="760" height="42" fill="#F4F5F7"/>
+      <line x1="92" y1="282" x2="852" y2="282" stroke="#E8EAEE"/>
+    </g>
+    <rect x="92" y="240" width="760" height="390" rx="28" stroke="#DFE3EA"/>
+    <circle cx="122" cy="261" r="7" fill="#FF5F57"/>
+    <circle cx="144" cy="261" r="7" fill="#FFBD2E"/>
+    <circle cx="166" cy="261" r="7" fill="#28C840"/>
+    <text x="196" y="267" class="font small">Cisum</text>
+
+    <line x1="282" y1="316" x2="282" y2="584" stroke="#ECEEF2"/>
+    <text x="126" y="342" class="font" font-size="26" font-weight="700" fill="#1D1D1F">Library</text>
+    <text x="126" y="386" class="font label" font-weight="700" fill="#7C6FFF">Audio</text>
+    <text x="126" y="428" class="font label">Books</text>
+    <text x="126" y="470" class="font label">History</text>
+    <text x="126" y="512" class="font label">Settings</text>
+
+    <rect x="330" y="340" width="176" height="176" rx="26" fill="url(#album)" filter="url(#purpleShadow)"/>
+    <text x="418" y="452" text-anchor="middle" class="font" font-size="76" fill="white" opacity=".84">♪</text>
+    <text x="542" y="372" class="font label" font-weight="700">Now Playing</text>
+    <text x="542" y="421" class="font strong">Bohemian Rhapsody</text>
+    <text x="542" y="458" class="font label">Queen</text>
+    <rect x="542" y="506" width="250" height="8" rx="4" fill="#E7E8EE"/>
+    <rect x="542" y="506" width="105" height="8" rx="4" fill="#7C6FFF"/>
+    <text x="542" y="540" class="font small">1:47</text>
+    <text x="792" y="540" text-anchor="end" class="font small">4:12</text>
+    <text x="588" y="592" class="font" font-size="28" fill="#7C6FFF">⏮</text>
+    <circle cx="668" cy="582" r="31" fill="#1D1D1F"/>
+    <text x="668" y="593" text-anchor="middle" class="font" font-size="26" fill="white">Ⅱ</text>
+    <text x="732" y="592" class="font" font-size="28" fill="#7C6FFF">⏭</text>
+  </g>
+
+  <g>
+    <rect x="878" y="258" width="235" height="430" rx="42" fill="#1D1D1F"/>
+    <rect x="890" y="270" width="211" height="406" rx="32" fill="#0E0F14"/>
+    <text x="918" y="306" class="font small" fill="#A7ACBB">9:41</text>
+    <text x="1073" y="306" text-anchor="end" class="font small" fill="#A7ACBB">100%</text>
+    <text x="995" y="354" text-anchor="middle" class="font" font-size="17" font-weight="700" fill="#A7ACBB">Now Playing</text>
+    <rect x="920" y="384" width="150" height="150" rx="24" fill="url(#album)"/>
+    <text x="995" y="478" text-anchor="middle" class="font" font-size="58" fill="white" opacity=".84">♪</text>
+    <text x="995" y="568" text-anchor="middle" class="font" font-size="17" font-weight="700" fill="white">Bohemian Rhapsody</text>
+    <text x="995" y="594" text-anchor="middle" class="font" font-size="17" fill="#A7ACBB">Queen</text>
+    <rect x="920" y="606" width="150" height="5" rx="3" fill="#252733"/>
+    <rect x="920" y="606" width="63" height="5" rx="3" fill="#7C6FFF"/>
+    <text x="938" y="653" class="font" font-size="18" fill="#A7ACBB">⏮</text>
+    <circle cx="995" cy="646" r="18" fill="#7C6FFF"/>
+    <text x="995" y="653" text-anchor="middle" class="font" font-size="16" fill="white">Ⅱ</text>
+    <text x="1040" y="653" class="font" font-size="18" fill="#A7ACBB">⏭</text>
+  </g>
+</svg>

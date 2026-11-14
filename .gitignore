@@ -1,17 +1,44 @@
+# ========================
+# macOS
+# ========================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ========================
+# Xcode
+# ========================
 ## User settings
 xcuserdata/
 
 ## Xcode 8 and earlier
 *.xcscmblueprint
 *.xccheckout
-*.xcuserstate 
-.DS_Store
+*.xcuserstate
 
-*.log
-.build/
+## Build artifacts
+DerivedData/
+build/
+*.ipa
+*.dSYM.zip
+*.dSYM
 
-## Generated reports
-.reports/
-
-## Swift Package Manager
+# ========================
+# Swift Package Manager
+# ========================
 .swiftpm/
+.build/
+Package.resolved
+
+# ========================
+# Generated / Temporary
+# ========================
+.reports/
+.zcode/
+temp/
+*.log
+
+# Python 缓存
+__pycache__/
+*.pyc

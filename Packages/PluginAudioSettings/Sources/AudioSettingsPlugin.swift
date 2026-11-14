@@ -1,0 +1,123 @@
+import CisumProviderStorage
+import ProviderAudioLibrary
+import ProviderDocsView
+import LumiUI
+import KernelCore
+import ProviderPlugin
+import KitAppEvents
+import ProviderSettingView
+import SwiftUI
+import MagicKit
+
+@MainActor
+public final class AudioSettingsPlugin: AsyncSuperPlugin, SuperLog {
+    public let id = "com.coffic.cisum.plugin.audio-settings"
+
+    nonisolated static let verbose = false
+
+    public static let shared = AudioSettingsPlugin()
+    public let order = AudioSettingsPluginInfo.order
+    public let iconName = AudioSettingsPluginInfo.iconName
+    public let metadata = PluginMetadata(
+        id: "com.coffic.cisum.plugin.audio-settings",
+        name: AudioSettingsPluginInfo.title,
+        version: "1.0.0",
+        category: .system,
+        stage: .stable,
+        policy: .disabled,
+        permissions: []
+    )
+
+    nonisolated(unsafe) private var settingsViewModel: AudioSettingsViewModel?
+    nonisolated(unsafe) private var settingsObserver: AudioSettingsObserver?
+
+    /// 本插件消费的能力 Adapter（见 Capabilities 规范第 5 条：入口强持有）。
+    nonisolated(unsafe) private var audioSettingsStorageCapability: AudioSettingsStorageCapabilityAdapter?
+    nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
+
+    @MainActor
+    public func onRegister(kernel: KernelCoreContainer) throws {
+        self.kernel = kernel
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { AudioSettingsPluginAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { AudioSettingsPluginManualView() })
+        }
+    }
+
+    @MainActor
+    public func onBootAsync(kernel: KernelCoreContainer) async throws {
+        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
+            if let entry = makeSettingEntry() { kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([entry]) }
+        }
+        self.kernel = kernel
+        installState(kernel: kernel)
+    }
+
+    @MainActor
+    public func onEnable(kernel: KernelCoreContainer) async throws {
+        self.kernel = kernel
+        installState(kernel: kernel)
+    }
+
+    @MainActor
+    public func onDisable(kernel: KernelCoreContainer) async throws {
+        teardownState()
+    }
+
+    @MainActor
+    public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any SettingViewProviding).self)?.removeEntries(ids: ["audio-settings"])
+        teardownState()
+        self.kernel = nil
+    }
+
+    @MainActor
+    public func makeSettingEntry() -> SettingEntryItem? {
+        let viewModel = resolveViewModel()
+        return SettingEntryItem(
+            id: "audio-settings",
+            title: AudioSettingsPluginInfo.title,
+            systemImage: "slider.horizontal.3",
+            order: AudioSettingsPluginInfo.order,
+            detail: {
+            AudioSettingsPluginView(viewModel: viewModel)
+        }
+        )
+    }
+
+    // MARK: - State assembly
+
+    @MainActor
+    private func installState(kernel: KernelCoreContainer) {
+        guard settingsViewModel == nil else { return }
+        let viewModel = AudioSettingsViewModel(audioDisk: { [weak self] in self?.kernelAudioDisk() })
+        guard let storage = kernel.resolveProvider((any StorageProviding).self) else { return }
+        // 能力由入口组装并持有（观察者只在 init 期间使用能力安装订阅）。
+        let storageCapability = AudioSettingsStorageCapabilityAdapter(storage: storage)
+        audioSettingsStorageCapability = storageCapability
+        let observer = AudioSettingsObserver(storage: storageCapability, viewModel: viewModel)
+        settingsViewModel = viewModel
+        settingsObserver = observer
+    }
+
+    @MainActor
+    private func teardownState() {
+        settingsObserver?.cancel()
+        settingsObserver = nil
+        settingsViewModel = nil
+    }
+
+    @MainActor
+    private func resolveViewModel() -> AudioSettingsViewModel {
+        if let settingsViewModel {
+            return settingsViewModel
+        }
+        return settingsViewModel ?? AudioSettingsViewModel(audioDisk: { [weak self] in self?.kernelAudioDisk() })
+    }
+
+    @MainActor
+    private func kernelAudioDisk() -> URL? {
+        kernel?.resolveProvider((any AudioLibraryProviding).self)?.audioDisk
+    }
+}

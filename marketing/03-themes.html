@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>Cisum — Beautiful Themes</title>
+<link rel="stylesheet" href="components.css">
+<style>
+  body { margin: 0; display: flex; justify-content: center; background: #000; }
+  .phone-frame {
+    width: 390px; height: 844px;
+    border-radius: 44px; overflow: hidden;
+    border: 6px solid #2a2b33;
+    background: var(--bg);
+    flex-shrink: 0;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+  .phone-notch {
+    width: 126px; height: 34px;
+    background: var(--bg);
+    border-radius: 0 0 18px 18px;
+    position: absolute; top: 0; left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+  .phone-status {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 0; height: 48px;
+    font-size: 14px; font-weight: 600; color: var(--text);
+    flex-shrink: 0;
+  }
+  .phone-status .time { font-size: 15px; font-weight: 600; }
+  .phones-row { flex: 1; display: flex; align-items: center; justify-content: center; gap: 40px; }
+  .home-indicator { display: flex; justify-content: center; padding: 12px 0 8px; flex-shrink: 0; }
+  .home-indicator span { width: 134px; height: 5px; background: var(--muted-line); border-radius: 3px; }
+
+  /* Theme: Midnight */
+  .phone-frame.theme-midnight { --bg: #0a0a12; --text: #ebedf2; --muted: #737888; --muted-line: rgba(255,255,255,0.20); --card: rgba(255,255,255,0.06); --accent: #7c6fff; }
+  /* Theme: Ocean */
+  .phone-frame.theme-ocean { --bg: #091520; --text: #e2eef8; --muted: #6b8faa; --muted-line: rgba(255,255,255,0.20); --card: rgba(255,255,255,0.06); --accent: #0a84ff; }
+  /* Theme: Sunset */
+  .phone-frame.theme-sunset { --bg: #1a100e; --text: #f5e6de; --muted: #9a7d6f; --muted-line: rgba(255,255,255,0.20); --card: rgba(255,255,255,0.06); --accent: #ff6723; }
+  /* Theme: Forest */
+  .phone-frame.theme-forest { --bg: #0a150e; --text: #d8f0de; --muted: #6a9a78; --muted-line: rgba(255,255,255,0.20); --card: rgba(255,255,255,0.06); --accent: #30d158; }
+
+  .theme-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 20px; height: 44px; margin-top: 8px;
+  }
+  .theme-header .title { font-size: 22px; font-weight: 700; color: var(--text); }
+
+  .theme-album {
+    width: 260px; height: 260px; border-radius: 20px;
+    margin: 16px auto 0;
+    flex-shrink: 0;
+  }
+  .theme-midnight .theme-album { background: linear-gradient(135deg, #1a1040 0%, #7c6fff 50%, #c084fc 100%); }
+  .theme-ocean .theme-album { background: linear-gradient(135deg, #0a2540 0%, #0a84ff 50%, #64d2ff 100%); }
+  .theme-sunset .theme-album { background: linear-gradient(135deg, #3a1508 0%, #ff6723 50%, #ffb340 100%); }
+  .theme-forest .theme-album { background: linear-gradient(135deg, #0a2a12 0%, #30d158 50%, #70e090 100%); }
+
+  .theme-album svg { width: 60px; height: 60px; fill: none; stroke: rgba(255,255,255,0.6); stroke-width: 1.5; margin: 100px auto; display: block; }
+
+  .theme-track-info { margin-top: 20px; text-align: center; }
+  .theme-track-title { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .theme-track-artist { font-size: 14px; color: var(--muted); }
+
+  .theme-progress { margin: 20px 24px 0; }
+  .theme-progress-bar { height: 4px; background: rgba(255,255,255,0.12); border-radius: 2px; }
+  .theme-progress-fill { height: 100%; border-radius: 2px; }
+  .theme-midnight .theme-progress-fill { background: #7c6fff; width: 55%; }
+  .theme-ocean .theme-progress-fill { background: #0a84ff; width: 30%; }
+  .theme-sunset .theme-progress-fill { background: #ff6723; width: 72%; }
+  .theme-forest .theme-progress-fill { background: #30d158; width: 45%; }
+
+  .theme-controls {
+    display: flex; align-items: center; justify-content: center; gap: 28px; margin-top: 20px;
+  }
+  .theme-controls svg { fill: none; stroke: var(--text); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .theme-controls .secondary { opacity: 0.6; }
+  .theme-play-btn {
+    width: 60px; height: 60px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .theme-midnight .theme-play-btn { background: #7c6fff; }
+  .theme-ocean .theme-play-btn { background: #0a84ff; }
+  .theme-sunset .theme-play-btn { background: #ff6723; }
+  .theme-forest .theme-play-btn { background: #30d158; }
+  .theme-play-btn svg { fill: #fff; stroke: none; }
+
+  .theme-label {
+    text-align: center; margin-top: auto; padding-bottom: 8px;
+    font-size: 14px; font-weight: 600; color: var(--accent);
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="stage-header">
+    <div class="stage-eyebrow">Beautiful Themes</div>
+    <div class="stage-title">Choose a theme that matches your mood</div>
+    <div class="stage-subtitle">From Midnight to Forest, each theme transforms the entire player — colors, backgrounds and accents all shift together.</div>
+  </div>
+
+  <div class="phones-row">
+    <!-- Midnight -->
+    <div class="phone-frame theme-midnight">
+      <div class="phone-notch"></div>
+      <div class="phone-status"><span class="time">9:41</span></div>
+      <div class="theme-header"><span class="title">Now Playing</span></div>
+      <div class="theme-album">
+        <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      </div>
+      <div class="theme-track-info">
+        <div class="theme-track-title">Midnight Reverie</div>
+        <div class="theme-track-artist">Aurora Waves</div>
+      </div>
+      <div class="theme-progress">
+        <div class="theme-progress-bar"><div class="theme-progress-fill"></div></div>
+      </div>
+      <div class="theme-controls">
+        <svg class="secondary" width="22" height="22" viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+        <div class="theme-play-btn"><svg width="24" height="24" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+        <svg class="secondary" width="22" height="22" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+      </div>
+      <div class="theme-label">Midnight</div>
+      <div class="home-indicator"><span></span></div>
+    </div>
+
+    <!-- Ocean -->
+    <div class="phone-frame theme-ocean">
+      <div class="phone-notch"></div>
+      <div class="phone-status"><span class="time">9:41</span></div>
+      <div class="theme-header"><span class="title">Now Playing</span></div>
+      <div class="theme-album">
+        <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      </div>
+      <div class="theme-track-info">
+        <div class="theme-track-title">Ocean Breeze</div>
+        <div class="theme-track-artist">Nature Sounds</div>
+      </div>
+      <div class="theme-progress">
+        <div class="theme-progress-bar"><div class="theme-progress-fill"></div></div>
+      </div>
+      <div class="theme-controls">
+        <svg class="secondary" width="22" height="22" viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+        <div class="theme-play-btn"><svg width="24" height="24" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></div>
+        <svg class="secondary" width="22" height="22" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+      </div>
+      <div class="theme-label">Ocean</div>
+      <div class="home-indicator"><span></span></div>
+    </div>
+
+    <!-- Sunset -->
+    <div class="phone-frame theme-sunset">
+      <div class="phone-notch"></div>
+      <div class="phone-status"><span class="time">9:41</span></div>
+      <div class="theme-header"><span class="title">Now Playing</span></div>
+      <div class="theme-album">
+        <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      </div>
+      <div class="theme-track-info">
+        <div class="theme-track-title">Sunset Drive</div>
+        <div class="theme-track-artist">Lo-Fi Journeys</div>
+      </div>
+      <div class="theme-progress">
+        <div class="theme-progress-bar"><div class="theme-progress-fill"></div></div>
+      </div>
+      <div class="theme-controls">
+        <svg class="secondary" width="22" height="22" viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+        <div class="theme-play-btn"><svg width="24" height="24" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+        <svg class="secondary" width="22" height="22" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+      </div>
+      <div class="theme-label">Sunset</div>
+      <div class="home-indicator"><span></span></div>
+    </div>
+
+    <!-- Forest -->
+    <div class="phone-frame theme-forest">
+      <div class="phone-notch"></div>
+      <div class="phone-status"><span class="time">9:41</span></div>
+      <div class="theme-header"><span class="title">Now Playing</span></div>
+      <div class="theme-album">
+        <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      </div>
+      <div class="theme-track-info">
+        <div class="theme-track-title">Rainy Afternoon</div>
+        <div class="theme-track-artist">Chill Piano</div>
+      </div>
+      <div class="theme-progress">
+        <div class="theme-progress-bar"><div class="theme-progress-fill"></div></div>
+      </div>
+      <div class="theme-controls">
+        <svg class="secondary" width="22" height="22" viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+        <div class="theme-play-btn"><svg width="24" height="24" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+        <svg class="secondary" width="22" height="22" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+      </div>
+      <div class="theme-label">Forest</div>
+      <div class="home-indicator"><span></span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

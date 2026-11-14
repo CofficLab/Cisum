@@ -1,10 +1,9 @@
 #!/bin/bash
 #
-# generate-changelog.sh - Generate categorized changelog from commits
+# generate-changelog.sh - Generate release notes from commits
 #
 # This script analyzes git commits since the last tag and generates
-# a categorized changelog following Conventional Commits format.
-# Categories with no changes are omitted.
+# release notes following Conventional Commits format.
 #
 # Usage: ./scripts/generate-changelog.sh <output_file>
 # Output: Markdown formatted changelog
@@ -19,8 +18,35 @@ if [ -z "$OUTPUT_FILE" ]; then
   exit 1
 fi
 
-# Get the most recent tag (prefer p* tags)
-LAST_TAG=$(git describe --tags --abbrev=0 --match 'p*' 2>/dev/null || git describe --tags --abbrev=0 2>/dev/null || echo "")
+# Resolve the release tag and the previous tag from complete reachable history.
+# The workflow passes RELEASE_TAG because a branch-triggered release (v*) does
+# not have the release tag checked out yet.
+if [ -n "${GITHUB_REF_NAME:-}" ]; then
+  CURRENT_REF="$GITHUB_REF_NAME"
+else
+  CURRENT_REF=$(git symbolic-ref --short -q HEAD 2>/dev/null || git describe --tags --exact-match HEAD 2>/dev/null || echo "HEAD")
+fi
+RELEASE_TAG="${RELEASE_TAG:-$CURRENT_REF}"
+
+case "$RELEASE_TAG" in
+  p[0-9]*) TAG_PATTERN='p[0-9]*'; FALLBACK_TAG_PATTERN='v[0-9]*' ;;
+  v[0-9]*) TAG_PATTERN='v[0-9]*'; FALLBACK_TAG_PATTERN='p[0-9]*' ;;
+  *) TAG_PATTERN='[pv][0-9]*'; FALLBACK_TAG_PATTERN='' ;;
+esac
+
+# When a workflow runs on a release tag, exclude that tag itself. Otherwise a
+# describe/tag lookup would produce TAG..HEAD with no commits.
+CURRENT_TAG=$(git describe --tags --exact-match HEAD 2>/dev/null || true)
+if [ -n "$CURRENT_TAG" ]; then
+  TAG_BASE=$(git rev-parse "$CURRENT_TAG^" 2>/dev/null || true)
+else
+  TAG_BASE=HEAD
+fi
+
+LAST_TAG=$(git tag --merged "$TAG_BASE" --list "$TAG_PATTERN" --sort=-version:refname | head -n 1)
+if [ -z "$LAST_TAG" ] && [ -n "$FALLBACK_TAG_PATTERN" ]; then
+  LAST_TAG=$(git tag --merged "$TAG_BASE" --list "$FALLBACK_TAG_PATTERN" --sort=-version:refname | head -n 1)
+fi
 
 if [ -z "$LAST_TAG" ]; then
   # No tags found, get all commits
@@ -34,50 +60,24 @@ fi
 
 echo "📝 Generating changelog for: $RANGE_DESC" >&2
 
-# Helper function to add a category section
-# Usage: add_category <title> <commits_var_name>
-add_category() {
-  local title="$1"
-  local commits="$2"
+# Keep the release page readable like Lumi: omit CI/build noise, preserve
+# scoped Conventional Commits, deduplicate repeated subjects, and cap the list.
+CHANGE_COMMITS=$(git log "$RANGE" --no-merges --pretty=format:'- %s' 2>/dev/null \
+  | grep -Ev '^- (ci|chore|build|style|test)(\([^)]*\))?!?:' \
+  | grep -Ev '^- 👷 CI:' \
+  | sort -u \
+  | sed -n '1,20p' || true)
 
-  if [ -n "$commits" ]; then
-    echo "" >> "$OUTPUT_FILE"
-    echo "$title" >> "$OUTPUT_FILE"
-    echo "" >> "$OUTPUT_FILE"
-    echo "$commits" | awk '!seen[$0]++ {print "- " $0}' >> "$OUTPUT_FILE"
+REPO_NAME="${GITHUB_REPOSITORY:-CofficLab/Cisum}"
+if [ -z "$LAST_TAG" ]; then
+  NOTES="## Release ${RELEASE_TAG}\n\nInitial release"
+else
+  if [ -z "$CHANGE_COMMITS" ]; then
+    CHANGE_COMMITS="- Maintenance and stability improvements"
   fi
-}
-
-# Initialize output file
-> "$OUTPUT_FILE"
-
-# Get all commits
-FEAT_COMMITS=$(git log $RANGE --pretty=format:'%s' --grep="^feat:" 2>/dev/null | grep -v "feat!" || echo "")
-FIX_COMMITS=$(git log $RANGE --pretty=format:'%s' --grep="^fix:" 2>/dev/null | grep -v "fix!" || echo "")
-CHORE_COMMITS=$(git log $RANGE --pretty=format:'%s' --grep="^chore:" 2>/dev/null || echo "")
-REFACTOR_COMMITS=$(git log $RANGE --pretty=format:'%s' --grep="^refactor:" 2>/dev/null | grep -v "refactor!" || echo "")
-DOCS_COMMITS=$(git log $RANGE --pretty=format:'%s' --grep="^docs:" 2>/dev/null || echo "")
-BREAKING_COMMITS=$(git log $RANGE --pretty=format:'%s' --grep="^feat!:\|^fix!:\|^refactor!:\|BREAKING CHANGE:" 2>/dev/null || echo "")
-
-# Add each category only if it has commits
-add_category "## ✨ Features" "$FEAT_COMMITS"
-add_category "## 🐛 Bug Fixes" "$FIX_COMMITS"
-add_category "## 🔧 Maintenance" "$CHORE_COMMITS"
-add_category "## ♻️ Refactoring" "$REFACTOR_COMMITS"
-add_category "## 📚 Documentation" "$DOCS_COMMITS"
-add_category "## 💥 Breaking Changes" "$BREAKING_COMMITS"
-
-# Add comparison link if there's a previous tag
-if [ -n "$LAST_TAG" ]; then
-    REPO_NAME="${GITHUB_REPOSITORY:-CofficLab/Cisum_SwiftUI}"
-    CURRENT_REF="${GITHUB_REF_NAME:-pre}"
-
-    cat >> "$OUTPUT_FILE" << EOF
-
----
-
-**Full Changelog**: https://github.com/${REPO_NAME}/compare/${LAST_TAG}...${CURRENT_REF}
-EOF
+  NOTES="## Release ${RELEASE_TAG}\n\n### Changes since ${LAST_TAG}\n\n${CHANGE_COMMITS}\n\n---\n\n**Full Changelog**: https://github.com/${REPO_NAME}/compare/${LAST_TAG}...${RELEASE_TAG}"
 fi
+
+printf '%b\n' "$NOTES" > "$OUTPUT_FILE"
 
 echo "✅ Changelog generated: $OUTPUT_FILE" >&2

@@ -83,7 +83,7 @@ Cisum 是一个用 SwiftUI 开发的音频播放器，支持本地音频播放�
 1. 在 Plugins/ 目录创建插件目录
 2. 实现 SuperPlugin 协议（actor）
 3. 设置 static var order 控制执行顺序
-4. 实现相关视图方法（addRootView, addSceneItem 等）
+4. 实现相关视图方法（addRootView, addPosterView, addTabView 等；场景为 Provider 内置固定枚举，不再由插件注册）
 5. 插件将在运行时自动发现
 
 ## 开发工作流
