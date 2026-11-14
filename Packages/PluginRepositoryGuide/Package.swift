@@ -17,14 +17,14 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.12.0"),
-        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.17.1"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.1"),
         .package(path: "../ProviderPlugin"),
         .package(name: "ProviderControlView", path: "../ProviderControlView"),
         .package(name: "ProviderAudioLibrary", path: "../ProviderAudioLibrary"),
         .package(name: "ProviderBook", path: "../ProviderBook"),
         .package(name: "ProviderScene", path: "../ProviderScene"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.18.0"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.23.0"),
     ],
     targets: [
         .target(

@@ -13,9 +13,9 @@ let package = Package(
         .library(name: "ProviderScene", targets: ["ProviderScene"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.0"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.1"),
         .package(path: "../ProviderPlugin"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.12.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.17.1"),
     ],
     targets: [
         .target(

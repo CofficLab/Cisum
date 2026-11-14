@@ -13,7 +13,7 @@ let package = Package(
         .library(name: "ProviderControlView", targets: ["ProviderControlView"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.12.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.17.1"),
     ],
     targets: [
         .target(

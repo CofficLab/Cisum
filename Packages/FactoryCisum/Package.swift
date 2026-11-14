@@ -16,18 +16,18 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.0"),
-        .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.1.0"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.1"),
+        .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.1.1"),
         // 本地 vendor：上游 LumiPluginSettingView 尚未适配 visionOS（设置视图
         // 的 iOS 分支用 #elseif os(iOS) 分流，visionOS 会落到空分支）。
         .package(name: "LumiPluginSettingView", path: "../LumiPluginSettingView"),
         .package(name: "PluginRootView", path: "../PluginRootView"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.18.0"),
-        .package(url: "https://github.com/CofficLab/LumiPluginToast.git", from: "1.2.3"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.23.0"),
+        .package(url: "https://github.com/CofficLab/LumiPluginToast.git", from: "1.2.4"),
         // 1.0.8 起支持按 id 白名单只注册部分目录主题（Cisum 只加载少量配色）。
         // 1.0.10 起移除了主题搜索入口，外观页改为「外观筛选 + 双栏浏览」。
-        .package(url: "https://github.com/CofficLab/LumiThemePack.git", from: "1.0.12"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.12.0"),
+        .package(url: "https://github.com/CofficLab/LumiThemePack.git", from: "1.0.13"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.17.1"),
         .package(path: "../KitEventObservation"),
         .package(name: "KitMagic", path: "../MagicKit"),
         .package(path: "../ProviderPlugin"),
