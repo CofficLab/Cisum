@@ -22,7 +22,7 @@
     {
       "identity" : "lumilocalization",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CofficLab/LumiLocalization.git",
+      "location" : "https://github.com/lumi-softworks/LumiLocalization.git",
       "state" : {
         "revision" : "da8ca9d0cc77e9c1f979680f9cb79e87f79a3f87",
         "version" : "1.0.2"
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CofficLab/LumiPluginAbout.git",
       "state" : {
-        "revision" : "419abd51827febdc97689742aa573f4850fa2ae6",
-        "version" : "3.0.1"
+        "revision" : "6b67ef27dcdbedab57a475aff2fe9c86fe26cc83",
+        "version" : "3.0.4"
       }
     },
     {
