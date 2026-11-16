@@ -23,6 +23,7 @@ let package = Package(
         .package(name: "LumiPluginSettingView", path: "../LumiPluginSettingView"),
         .package(name: "PluginRootView", path: "../PluginRootView"),
         .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.23.0"),
+        .package(url: "https://github.com/lumi-softworks/LumiPluginCacheManager.git", from: "1.0.0"),
         .package(url: "https://github.com/CofficLab/LumiPluginToast.git", from: "1.2.4"),
         // 1.0.8 起支持按 id 白名单只注册部分目录主题（Cisum 只加载少量配色）。
         // 1.0.10 起移除了主题搜索入口，外观页改为「外观筛选 + 双栏浏览」。
@@ -108,6 +109,8 @@ let package = Package(
                 .product(name: "ProviderSettingsHost", package: "ProviderSettingsHost"),
                 .product(name: "ProviderToolbar", package: "LumiProviders"),
                 .product(name: "ProviderToast", package: "LumiProviders"),
+                .product(name: "ProviderDiskCache", package: "LumiProviders"),
+                .product(name: "PluginCacheManager", package: "LumiPluginCacheManager"),
                 .product(name: "PluginToast", package: "LumiPluginToast"),
                 .product(name: "PluginAudio", package: "PluginAudio"),
                 .product(name: "PluginAudioCopy", package: "PluginAudioCopy"),

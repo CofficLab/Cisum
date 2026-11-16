@@ -20,6 +20,42 @@
       }
     },
     {
+      "identity" : "lumikitagenttool",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lumi-softworks/LumiKitAgentTool.git",
+      "state" : {
+        "revision" : "344dc0884b423ac46e049825f12f2723d435ed86",
+        "version" : "1.0.3"
+      }
+    },
+    {
+      "identity" : "lumikitkeychain",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lumi-softworks/LumiKitKeychain.git",
+      "state" : {
+        "revision" : "1c3d503343749a9504e8be02ab98f3fd37aa3171",
+        "version" : "1.0.1"
+      }
+    },
+    {
+      "identity" : "lumikitllm",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lumi-softworks/LumiKitLLM.git",
+      "state" : {
+        "revision" : "32b68d88408b627f075e36d04aca9d5629af3494",
+        "version" : "1.0.1"
+      }
+    },
+    {
+      "identity" : "lumikittestsupport",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lumi-softworks/LumiKitTestSupport.git",
+      "state" : {
+        "revision" : "3d43b467db654c19c7535fca8067f979d800dff4",
+        "version" : "1.0.1"
+      }
+    },
+    {
       "identity" : "lumilocalization",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/lumi-softworks/LumiLocalization.git",
@@ -47,6 +83,15 @@
       }
     },
     {
+      "identity" : "lumiplugincachemanager",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lumi-softworks/LumiPluginCacheManager.git",
+      "state" : {
+        "revision" : "804813e2e329447d2c2f5a2cd54fa66a69ae9c5b",
+        "version" : "1.0.0"
+      }
+    },
+    {
       "identity" : "lumipluginpluginmanager",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CofficLab/LumiPluginPluginManager.git",
@@ -69,8 +114,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/CofficLab/LumiProviders.git",
       "state" : {
-        "revision" : "58db682f0b7153206f2c8e377f279eba99534fba",
-        "version" : "1.23.0"
+        "revision" : "06272ae385bcad8993e199cbd4b957f4f65c2a6c",
+        "version" : "1.25.0"
       }
     },
     {
