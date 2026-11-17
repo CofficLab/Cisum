@@ -23,6 +23,7 @@ let package = Package(
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
+        .package(name: "ProviderScene", path: "../ProviderScene"),
         .package(url: "https://github.com/lumi-softworks/LumiProviders.git", from: "1.23.0"),
     ],
     targets: [
@@ -36,6 +37,7 @@ let package = Package(
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
+                .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
             ],
             path: ".",
