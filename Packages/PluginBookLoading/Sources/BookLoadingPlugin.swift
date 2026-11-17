@@ -3,6 +3,7 @@ import KernelCore
 import MagicKit
 import OSLog
 import ProviderControlView
+import ProviderDocsView
 import ProviderPlayback
 import ProviderPlugin
 import ProviderScene
@@ -45,6 +46,10 @@ public final class BookLoadingPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
         if Self.verbose { os_log("\(Self.t)🔌 onRegister") }
+        if let docs = kernel.resolveProvider((any DocsViewProviding).self) {
+            docs.addAbout(DocsEntry(id: self.id, name: metadata.name) { BookLoadingAboutView() })
+            docs.addManual(DocsEntry(id: self.id, name: metadata.name) { BookLoadingManualView() })
+        }
     }
 
     @MainActor

@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import KernelCore
 import ProviderControlView
+import ProviderDocsView
 import ProviderPlayback
 import ProviderPlugin
 import ProviderScene
@@ -273,5 +274,24 @@ struct BookLoadingTests {
         try await plugin.onReadyAsync(kernel: kernel)
         try await plugin.onShutdownAsync(kernel: kernel)
         #expect(playback.observerCount == 0)
+    }
+
+    @Test
+    func onRegisterPublishesAboutAndManualDocsEntries() async throws {
+        let kernel = KernelCoreContainer()
+        let docs = DefaultDocsViewProviding()
+        try kernel.registerProvider((any DocsViewProviding).self, docs)
+
+        let plugin = BookLoadingPlugin()
+        try await plugin.onRegister(kernel: kernel)
+
+        #expect(docs.aboutEntries.count == 1)
+        #expect(docs.aboutEntries.first?.id == plugin.id)
+        #expect(docs.manualEntries.count == 1)
+        #expect(docs.manualEntries.first?.id == plugin.id)
+        #expect(
+            String(describing: docs.aboutEntries[0].makeView())
+                != String(describing: docs.manualEntries[0].makeView())
+        )
     }
 }

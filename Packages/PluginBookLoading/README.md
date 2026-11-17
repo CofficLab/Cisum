@@ -32,7 +32,9 @@ area — only while the audiobooks scene is active.
     `cisum.player.loading` (container), `.title`, `.subject`, `.progress`,
     `.cancel`, `.error`, `.help`, `.retry`. The raw engine detail is exposed only
     through the accessibility hint/tooltip.
-- **Plugin registration:** in `onReadyAsync` / `onEnable` it resolves
+- **Plugin registration:** in `onRegister` it publishes the About and Manual
+  docs entries through `DocsViewProviding` when that provider exists. In
+  `onReadyAsync` / `onEnable` it resolves
   `SceneProviding`, `PlaybackProviding`, and `ControlViewProviding`, installs a
   `ControlLoadingSlot` via `setLoadingSlot`, and mirrors
   `viewModel.$mode != .hidden` onto `slot.isActive`. `onDisable` /
@@ -52,5 +54,6 @@ swift test
 ```
 
 `Tests/BookLoadingTests.swift` covers mode derivation, scene gating, subject
-naming, cancel/retry forwarding, banner body construction, and plugin lifecycle
-including slot activation and teardown. See `Tests/TestPlan.md`.
+naming, cancel/retry forwarding, banner body construction, docs registration,
+and plugin lifecycle including slot activation and teardown. See
+`Tests/TestPlan.md`.

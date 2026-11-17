@@ -26,14 +26,15 @@
 | 7 | 视图 | 隐藏/有进度/不确定/失败四种模式均可构建 body | P1 | ✅ 已覆盖 | `BookLoadingTests.swift` | `bannerBodyBuildsForEveryMode` |
 | 8 | 插件 | 插槽激活态跟随模式，禁用/启用/关闭正确装卸监听 | P0 | ✅ 已覆盖 | `BookLoadingTests.swift` | `pluginActivatesSlotOnlyForAudiobookLoading` |
 | 9 | 插件 | 无控制区 Provider 时静默休眠且可安全关闭 | P1 | ✅ 已覆盖 | `BookLoadingTests.swift` | `pluginStaysDormantWithoutControlProvider` |
+| 10 | 插件 | 注册阶段注入「关于」与「说明书」文档条目，且两者视图不同 | P1 | ✅ 已覆盖 | `BookLoadingTests.swift` | `onRegisterPublishesAboutAndManualDocsEntries` |
 
 ## 覆盖率统计
 
 - P0: 5 / 5 ✅
-- P1: 4 / 4 ✅
+- P1: 5 / 5 ✅
 - P2: 0 / 0
 
-**总计: 9 / 9**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
+**总计: 10 / 10**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
 
 ## 优先级说明
 
