@@ -108,6 +108,25 @@ private final class SceneHandleBox: SceneProvidingObserverHandle {
 }
 
 @MainActor
+private final class LibraryStub: BookLoadingLibraryCapability {
+    var libraryDisk: URL?
+    var playableExtensions: Set<String>
+    var booksToReturn: [BookLoadingBookRef]
+
+    init(
+        libraryDisk: URL? = nil,
+        playableExtensions: Set<String> = [],
+        books: [BookLoadingBookRef] = []
+    ) {
+        self.libraryDisk = libraryDisk
+        self.playableExtensions = playableExtensions
+        booksToReturn = books
+    }
+
+    func books() async -> [BookLoadingBookRef] { booksToReturn }
+}
+
+@MainActor
 struct BookLoadingTests {
     private let chapterURL = URL(fileURLWithPath: "/tmp/Chapter One.m4b")
 
@@ -139,9 +158,117 @@ struct BookLoadingTests {
     }
 
     @Test
-    func subjectUsesFileStem() {
-        #expect(BookLoadingViewModel.subject(for: chapterURL) == "Chapter One")
-        #expect(BookLoadingViewModel.subject(for: nil) == "")
+    func subjectFallsBackToFileStemWithoutLibraryData() {
+        let playback = PlaybackStub()
+        playback.currentURL = chapterURL
+        let viewModel = BookLoadingViewModel(
+            playback: BookLoadingPlaybackCapabilityAdapter(playback: playback),
+            scene: .audiobooks
+        )
+        #expect(viewModel.subject == BookLoadingSubject(chapterTitle: "Chapter One"))
+        viewModel.stop()
+    }
+
+    // MARK: - Subject resolution
+
+    private func makeBookFixture() throws -> (root: URL, book: URL, first: URL, second: URL, nested: URL) {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("BookLoadingTests-\(UUID().uuidString)", isDirectory: true)
+        let book = root.appendingPathComponent("100部经典世界名著", isDirectory: true)
+        let disc = book.appendingPathComponent("Disc 2", isDirectory: true)
+        try FileManager.default.createDirectory(at: disc, withIntermediateDirectories: true)
+
+        let first = book.appendingPathComponent("01.mp3")
+        let second = book.appendingPathComponent("02.mp3")
+        let nested = disc.appendingPathComponent("01.mp3")
+        for file in [first, second, nested] {
+            try Data().write(to: file)
+        }
+
+        return (root, book, first, second, nested)
+    }
+
+    @Test
+    func resolverNamesBookAndChapterPosition() throws {
+        let fixture = try makeBookFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.root) }
+
+        let books = [
+            BookLoadingBookRef(
+                url: fixture.book,
+                title: "100部经典世界名著",
+                childCount: 3,
+                isCollection: true
+            ),
+        ]
+
+        let subject = BookLoadingSubjectResolver.resolve(
+            chapterURL: fixture.nested,
+            books: books,
+            libraryDisk: fixture.root,
+            playableExtensions: ["mp3"]
+        )
+
+        #expect(subject.bookTitle == "100部经典世界名著")
+        #expect(subject.chapterIndex == 3)
+        #expect(subject.chapterCount == 3)
+        #expect(subject.chapterTitle == "01")
+    }
+
+    @Test
+    func resolverFallsBackToParentWhenLibraryHasNoRecord() throws {
+        let fixture = try makeBookFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.root) }
+
+        let subject = BookLoadingSubjectResolver.resolve(
+            chapterURL: fixture.second,
+            books: [],
+            libraryDisk: fixture.root,
+            playableExtensions: ["mp3"]
+        )
+
+        #expect(subject.bookTitle == "100部经典世界名著")
+        #expect(subject.chapterIndex == 2)
+        #expect(subject.chapterCount == 3)
+    }
+
+    @Test
+    func resolverTreatsTopLevelFileAsWholeBook() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("BookLoadingTests-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let single = root.appendingPathComponent("Single Book.m4b")
+        try Data().write(to: single)
+
+        let subject = BookLoadingSubjectResolver.resolve(
+            chapterURL: single,
+            books: [],
+            libraryDisk: root,
+            playableExtensions: ["m4b"]
+        )
+
+        #expect(subject.bookTitle == "Single Book")
+        #expect(subject.chapterIndex == nil)
+        #expect(subject.chapterCount == nil)
+    }
+
+    @Test
+    func resolverKeepsChapterTitleWithoutLibraryContext() throws {
+        let fixture = try makeBookFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.root) }
+
+        let subject = BookLoadingSubjectResolver.resolve(
+            chapterURL: fixture.nested,
+            books: [],
+            libraryDisk: nil,
+            playableExtensions: []
+        )
+
+        #expect(subject.bookTitle.isEmpty)
+        #expect(subject.chapterTitle == "01")
+        #expect(subject.chapterIndex == nil)
     }
 
     // MARK: - ViewModel
@@ -169,7 +296,8 @@ struct BookLoadingTests {
         #expect(viewModel.mode == .failed(detail: "denied"))
 
         viewModel.handleAssetChanged(chapterURL)
-        #expect(viewModel.subject == "Chapter One")
+        #expect(viewModel.subject == BookLoadingSubject(chapterTitle: "Chapter One"))
+        viewModel.stop()
     }
 
     @Test
@@ -184,6 +312,42 @@ struct BookLoadingTests {
         viewModel.retry()
         try? await Task.sleep(for: .milliseconds(50))
         #expect(playback.retryCount == 1)
+    }
+
+    @Test
+    func viewModelResolvesBookContextFromLibrary() async throws {
+        let fixture = try makeBookFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.root) }
+
+        let playback = PlaybackStub()
+        playback.currentURL = fixture.nested
+        let library = LibraryStub(
+            libraryDisk: fixture.root,
+            playableExtensions: ["mp3"],
+            books: [
+                BookLoadingBookRef(
+                    url: fixture.book,
+                    title: "100部经典世界名著",
+                    childCount: 3,
+                    isCollection: true
+                ),
+            ]
+        )
+        let viewModel = BookLoadingViewModel(
+            playback: BookLoadingPlaybackCapabilityAdapter(playback: playback),
+            scene: .audiobooks,
+            library: library
+        )
+
+        let deadline = Date().addingTimeInterval(2)
+        while Date() < deadline, viewModel.subject.bookTitle.isEmpty {
+            try? await Task.sleep(for: .milliseconds(20))
+        }
+
+        #expect(viewModel.subject.bookTitle == "100部经典世界名著")
+        #expect(viewModel.subject.chapterIndex == 3)
+        #expect(viewModel.subject.chapterCount == 3)
+        viewModel.stop()
     }
 
     @Test

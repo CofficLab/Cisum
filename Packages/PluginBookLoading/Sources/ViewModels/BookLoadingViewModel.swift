@@ -18,19 +18,25 @@ final class BookLoadingViewModel: ObservableObject {
     }
 
     @Published private(set) var mode: BannerMode = .hidden
-    @Published private(set) var subject: String = ""
+    /// 章节名先按文件名立即呈现，书籍库返回后再补成「书名 + 章节位置」。
+    @Published private(set) var subject: BookLoadingSubject = .empty
 
     private weak var playback: (any BookLoadingPlaybackCapability)?
+    private let library: (any BookLoadingLibraryCapability)?
     private var currentScene: AppScene?
+    private var subjectTask: Task<Void, Never>?
+    private var subjectGeneration = 0
 
     init(
         playback: (any BookLoadingPlaybackCapability)?,
-        scene: AppScene?
+        scene: AppScene?,
+        library: (any BookLoadingLibraryCapability)? = nil
     ) {
         self.playback = playback
+        self.library = library
         self.currentScene = scene
-        subject = Self.subject(for: playback?.currentURL)
         mode = Self.resolvedMode(state: playback?.state ?? .idle, scene: scene)
+        updateSubject(for: playback?.currentURL)
     }
 
     func handleSceneChanged(_ scene: AppScene?) {
@@ -43,7 +49,7 @@ final class BookLoadingViewModel: ObservableObject {
     }
 
     func handleAssetChanged(_ url: URL?) {
-        subject = Self.subject(for: url)
+        updateSubject(for: url)
     }
 
     func cancel() {
@@ -55,6 +61,48 @@ final class BookLoadingViewModel: ObservableObject {
             await self?.playback?.retryLastFailedLoad()
         }
     }
+
+    func stop() {
+        subjectTask?.cancel()
+        subjectTask = nil
+    }
+
+    // MARK: - Subject
+
+    private func updateSubject(for url: URL?) {
+        subjectGeneration += 1
+        let generation = subjectGeneration
+        subjectTask?.cancel()
+
+        guard let url else {
+            subject = .empty
+            return
+        }
+
+        // 立即给出章节名，避免横幅先空一拍。
+        subject = BookLoadingSubject(chapterTitle: url.title)
+
+        subjectTask = Task { [weak self] in
+            guard let self else { return }
+            let books = await self.library?.books() ?? []
+            let libraryDisk = self.library?.libraryDisk
+            let extensions = self.library?.playableExtensions ?? []
+
+            let resolved = await Task.detached(priority: .utility) {
+                BookLoadingSubjectResolver.resolve(
+                    chapterURL: url,
+                    books: books,
+                    libraryDisk: libraryDisk,
+                    playableExtensions: extensions
+                )
+            }.value
+
+            guard !Task.isCancelled, generation == self.subjectGeneration else { return }
+            self.subject = resolved
+        }
+    }
+
+    // MARK: - Mode derivation
 
     /// 状态 + 场景 → 横幅模式。
     static func resolvedMode(state: PlaybackStatus, scene: AppScene?) -> BannerMode {
@@ -73,10 +121,5 @@ final class BookLoadingViewModel: ObservableObject {
         default:
             return .hidden
         }
-    }
-
-    /// 章节名取文件名的 stem；没有资源时为空串。
-    static func subject(for url: URL?) -> String {
-        url?.deletingPathExtension().lastPathComponent ?? ""
     }
 }

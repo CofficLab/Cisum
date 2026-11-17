@@ -23,6 +23,7 @@ let package = Package(
         .package(path: "../ProviderScene"),
         .package(path: "../ProviderPlayback"),
         .package(path: "../ProviderControlView"),
+        .package(path: "../ProviderBook"),
         .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.23.0"),
     ],
     targets: [
@@ -36,6 +37,7 @@ let package = Package(
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
                 .product(name: "ProviderControlView", package: "ProviderControlView"),
+                .product(name: "ProviderBook", package: "ProviderBook"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
             ],
             path: ".",

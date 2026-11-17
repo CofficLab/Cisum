@@ -2,6 +2,7 @@ import Combine
 import KernelCore
 import MagicKit
 import OSLog
+import ProviderBook
 import ProviderControlView
 import ProviderDocsView
 import ProviderPlayback
@@ -39,6 +40,8 @@ public final class BookLoadingPlugin: AsyncSuperPlugin, SuperLog {
     /// ViewModel 以 `weak` 持有能力，入口必须显式强持有。
     nonisolated(unsafe) private var playbackCapability: BookLoadingPlaybackCapabilityAdapter?
     nonisolated(unsafe) private var sceneCapability: BookLoadingSceneCapabilityAdapter?
+    /// ViewModel 同样 `weak` 持有书籍库能力，入口必须显式强持有。
+    nonisolated(unsafe) private var libraryCapability: BookLoadingLibraryCapabilityAdapter?
     nonisolated(unsafe) private weak var controlProvider: (any ControlViewProviding)?
     nonisolated(unsafe) private var loadingSlot: ControlLoadingSlot?
     nonisolated(unsafe) private var activation: AnyCancellable?
@@ -91,12 +94,17 @@ public final class BookLoadingPlugin: AsyncSuperPlugin, SuperLog {
 
         let playbackCapability = BookLoadingPlaybackCapabilityAdapter(playback: playback)
         let sceneCapability = BookLoadingSceneCapabilityAdapter(scene: scene)
+        let libraryCapability = BookLoadingLibraryCapabilityAdapter { @MainActor [weak self] in
+            self?.kernel?.resolveProvider((any BookDatabaseProviding).self)
+        }
         self.playbackCapability = playbackCapability
         self.sceneCapability = sceneCapability
+        self.libraryCapability = libraryCapability
 
         let viewModel = BookLoadingViewModel(
             playback: playbackCapability,
-            scene: scene.currentScene
+            scene: scene.currentScene,
+            library: libraryCapability
         )
         self.viewModel = viewModel
         observer = BookLoadingObserver(
@@ -142,6 +150,7 @@ public final class BookLoadingPlugin: AsyncSuperPlugin, SuperLog {
         observer?.cancel()
         observer = nil
 
+        viewModel?.stop()
         loadingSlot?.isActive = false
         controlProvider?.setLoadingSlot(nil)
         loadingSlot = nil
@@ -150,5 +159,6 @@ public final class BookLoadingPlugin: AsyncSuperPlugin, SuperLog {
         viewModel = nil
         playbackCapability = nil
         sceneCapability = nil
+        libraryCapability = nil
     }
 }
