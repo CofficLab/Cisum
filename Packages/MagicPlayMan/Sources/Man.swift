@@ -53,6 +53,23 @@ public class MagicPlayMan: ObservableObject, SuperLog {
 
     private var playRequestGeneration: UInt64 = 0
 
+    /// 最近一次播放请求的参数。
+    ///
+    /// iCloud 载入失败后需要原地重试：重试必须复用用户原本的 `startTime`
+    /// 与 `autoPlay` 语义，不能由 UI 猜测起始位置。
+    internal var lastPlayRequest: MagicPlayManPlayRequest?
+
+    /// 正在等待 iCloud 内容落地的任务。
+    ///
+    /// `ensureLocalAvailability()` 自带轮询循环，只有持有这个任务句柄
+    /// 才能在用户取消时立即结束等待，而不是让播放状态机继续空转 120 秒。
+    internal var pendingAvailabilityTask: Task<Void, Error>?
+
+    /// 上述等待任务所属的播放请求代际。
+    ///
+    /// 只用于清理：新请求覆盖旧任务后，旧请求的 `defer` 不得把新任务的句柄清掉。
+    internal var pendingAvailabilityGeneration: UInt64?
+
     /// 本地化配置
     public var localization = Localization(locale: .current)
 
@@ -82,6 +99,14 @@ public class MagicPlayMan: ObservableObject, SuperLog {
 
     /// 已喜欢的资源 URL 集合
     @Published public private(set) var likedAssets: Set<URL> = []
+}
+
+/// 一次播放请求的完整参数，供 iCloud 失败后的原地重试使用。
+internal struct MagicPlayManPlayRequest {
+    let url: URL
+    let autoPlay: Bool
+    let startTime: TimeInterval?
+    let reason: String
 }
 
 enum MagicPlayManPlaybackTimePolicy {
