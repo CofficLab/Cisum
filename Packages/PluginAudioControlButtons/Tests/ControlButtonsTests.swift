@@ -276,7 +276,7 @@ struct ControlButtonsViewModelTests {
     }
 
     @Test
-    func failureOutsideTargetScenePresentsNoError() {
+    func iCloudFailureOutsideTargetScenePresentsNoError() {
         let toast = ToastProbe()
         let viewModel = ControlButtonsViewModel(
             playback: nil,
@@ -291,8 +291,7 @@ struct ControlButtonsViewModelTests {
         viewModel.applyStateChanged(.failed(.iCloudDownloadFailed("timed out")))
         #expect(toast.errors.isEmpty)
 
-        // 回到音乐场景后同一条失败仍不追溯弹窗，但新失败要提示。
-        viewModel.handleSceneChange(.music)
+        // 其它失败在有声书场景仍要提示，避免静默失败。
         viewModel.applyStateChanged(.failed(.invalidAsset))
         #expect(toast.errors.count == 1)
     }

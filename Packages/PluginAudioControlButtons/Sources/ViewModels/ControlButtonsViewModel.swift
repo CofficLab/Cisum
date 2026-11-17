@@ -101,10 +101,10 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
             return
         }
 
-        // 只有音乐场景里的失败归本按钮组提示。其它场景（如有声书的
-        // iCloud 载入失败）由那个场景自己的横幅给出恢复入口；这里再弹
-        // 模态提示只会遮住对方的「取消 / 重试」，且提示内容属于看不见的音乐。
-        guard isTargetSceneActive else {
+        // 有声书的 iCloud 载入失败由载入横幅负责取消/重试；这里再弹模态
+        // 提示只会遮住横幅自己的恢复入口。其它场景外的失败仍然提示，
+        // 避免有声书里的非 iCloud 失败变成静默失败。
+        if !isTargetSceneActive, case .iCloudDownloadFailed = failure {
             lastPresentedFailure = nil
             return
         }

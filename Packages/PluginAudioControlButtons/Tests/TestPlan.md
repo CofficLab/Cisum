@@ -12,7 +12,7 @@
 - **Test files**: `Tests/ControlButtonsTests.swift`.
 - **Key scenarios tested**:
   - `ControlButtonsPlaybackRequestPolicy`: navigation results only apply to the requested current asset; deletion matches the current asset but not another; deactivation invalidates pending requests via generation bump.
-  - `ControlButtonsViewModel` integration (using Provider-conforming probes for playback, navigation, and toast): init reflects playback state; scene mismatch deactivates the control; playing state tracks asset changes; failure toasts are de-duplicated for identical failures but re-fire for new ones; failures outside the music scene (e.g. an audiobook iCloud download failure) present no toast; scene change invalidates pending navigation; Next navigates and plays; Next at end / Previous at start without repeat-all present an error; Next with repeat-all wraps to first; missing Providers report unavailable; deletion of the current asset resets playback while deletion of an unrelated asset is ignored.
+  - `ControlButtonsViewModel` integration (using Provider-conforming probes for playback, navigation, and toast): init reflects playback state; scene mismatch deactivates the control; playing state tracks asset changes; failure toasts are de-duplicated for identical failures but re-fire for new ones; an audiobook iCloud failure seen outside the music scene presents no toast while other failures still do; scene change invalidates pending navigation; Next navigates and plays; Next at end / Previous at start without repeat-all present an error; Next with repeat-all wraps to first; missing Providers report unavailable; deletion of the current asset resets playback while deletion of an unrelated asset is ignored.
 - **Running tests**:
   ```bash
   cd /Users/angel/Code/Coffic/Cisum/Packages/PluginAudioControlButtons
@@ -43,7 +43,7 @@
 | 16 | 能力 | Toggle without capability reports unavailable | P1 | ✅ 已覆盖 | `ControlButtonsTests.swift` | `toggleWithoutCapabilityReportsUnavailable` |
 | 17 | 行为 | Deletion of current asset resets playback | P1 | ✅ 已覆盖 | `ControlButtonsTests.swift` | `deletionOfCurrentAssetResetsPlayback` |
 | 18 | 行为 | Deletion of unrelated asset is ignored | P0 | ✅ 已覆盖 | `ControlButtonsTests.swift` | `deletionOfUnrelatedAssetIsIgnored` |
-| 19 | 状态 | 非本场景的失败不弹提示（有声书 iCloud 失败归自己的横幅） | P1 | ✅ 已覆盖 | `ControlButtonsTests.swift` | `failureOutsideTargetScenePresentsNoError` |
+| 19 | 状态 | 有声书 iCloud 失败不弹提示（归自己的横幅），其它失败仍提示 | P1 | ✅ 已覆盖 | `ControlButtonsTests.swift` | `iCloudFailureOutsideTargetScenePresentsNoError` |
 
 ## 覆盖率统计
 
