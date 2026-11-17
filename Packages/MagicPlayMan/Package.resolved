@@ -13,7 +13,7 @@
     {
       "identity" : "lumiui",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CofficLab/LumiUI",
+      "location" : "https://github.com/lumi-softworks/LumiUI",
       "state" : {
         "revision" : "c5f9d55551151154290a67b65b1d69f95ea3c1cc",
         "version" : "1.18.1"

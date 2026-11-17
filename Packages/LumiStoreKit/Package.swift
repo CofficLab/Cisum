@@ -12,7 +12,7 @@ import PackageDescription
 //
 // ## 本地 vendor 的原因
 //
-// 上游 https://github.com/CofficLab/LumiStoreKit 尚未适配 visionOS：
+// 上游 https://github.com/lumi-softworks/LumiStoreKit 尚未适配 visionOS：
 // `Product.purchase(options:)` 在 visionOS SDK 上标记为 unavailable，直接
 // 编译不过。vendor 到本地后，可以在 `purchase(productID:)` 上按平台分叉
 // （visionOS 走 `purchase(confirmIn:)`），同时保持与上游同一份源码结构，
@@ -29,7 +29,7 @@ let package = Package(
         .library(name: "KitStoreKit", targets: ["KitStoreKit"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/CofficLab/LumiLogging.git", from: "1.0.2"),
+        .package(url: "https://github.com/lumi-softworks/LumiLogging.git", from: "1.0.2"),
     ],
     targets: [
         .target(

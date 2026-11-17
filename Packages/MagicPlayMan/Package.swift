@@ -19,7 +19,7 @@ let package = Package(
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
         .package(path: "../ProviderPlayback"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.17.1"),
+        .package(url: "https://github.com/lumi-softworks/LumiUI", from: "1.17.1"),
     ],
     targets: [
         .target(
