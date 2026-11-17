@@ -39,8 +39,10 @@
     missing-root empty result.
   - Grid view model (via `PlaybackProbe`/`BookProbe`/`CapabilityProbe`): books load
     on appear, asset changes select/clear the matching book, taps play with and
-    without saved resume state, sync flags toggle, disappear invalidates pending
-    updates, and generation/selection guards block stale playback results.
+    without saved resume state, sync flags toggle, disappear keeps the pending
+    load alive, and generation/selection guards block stale playback results.
+  - Loading badge: `.loading(.downloading)` badges only the chapter's parent book,
+    0% renders as indeterminate, and failure/asset changes clear the badge.
   - Policies and tile color/reload identity determinism; settings navigation item
     metadata (`id == "bookdb"`).
 - **Running tests:**
@@ -59,7 +61,7 @@
 | 2 | 行为 | Forwards asset changed events | P0 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `forwardsAssetChangedEvents` |
 | 3 | 观察者 | Cancelling observer stops forwarding | P1 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `cancellingObserverStopsForwarding` |
 | 4 | 视图模型 | Forwards library events to grid view model | P2 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `forwardsLibraryEventsToGridViewModel` |
-| 5 | 观察者 | Cancelling observer stops forwarding | P1 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `cancellingObserverStopsForwarding` |
+| 5 | 视图模型 | Handle on appear with empty directory returns empty children | P1 | ✅ 已覆盖 | `BookTreeViewModelTests.swift` | `handleOnAppearWithEmptyDirectoryReturnsEmptyChildren` |
 | 6 | 状态 | Handle on appear without provider keeps safe state | P1 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `handleOnAppearWithoutProviderKeepsSafeState` |
 | 7 | 行为 | Handle on appear loads books from provider | P0 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `handleOnAppearLoadsBooksFromProvider` |
 | 8 | 行为 | Handle asset changed selects matching loaded book | P0 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `handleAssetChangedSelectsMatchingLoadedBook` |
@@ -68,7 +70,7 @@
 | 11 | 状态 | Handle book tap restores saved playback state | P0 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `handleBookTapRestoresSavedPlaybackState` |
 | 12 | 行为 | Sync events update is syncing | P0 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `syncEventsUpdateIsSyncing` |
 | 13 | 状态 | State updated event records u r l | P0 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `stateUpdatedEventRecordsURL` |
-| 14 | 行为 | Handle on disappear invalidates pending updates | P1 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `handleOnDisappearInvalidatesPendingUpdates` |
+| 14 | 行为 | Handle on disappear keeps pending load alive | P1 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `handleOnDisappearKeepsPendingLoadAlive` |
 | 15 | 缓存 | Load scans directory and caches | P0 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `loadScansDirectoryAndCaches` |
 | 16 | 缓存 | Invalidate cache clears all entries | P1 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `invalidateCacheClearsAllEntries` |
 | 17 | 策略 | Update policy applies only matching generation | P0 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `updatePolicyAppliesOnlyMatchingGeneration` |
@@ -116,19 +118,34 @@
 | 59 | 行为 | Book tree builder builds nested directory structure | P0 | ✅ 已覆盖 | `BookDBViewPluginTests.swift` | `bookTreeBuilderBuildsNestedDirectoryStructure` |
 | 60 | 行为 | Book tree builder skips hidden and unsupported files | P0 | ✅ 已覆盖 | `BookDBViewPluginTests.swift` | `bookTreeBuilderSkipsHiddenAndUnsupportedFiles` |
 | 61 | 行为 | Book tree builder returns empty for missing root | P1 | ✅ 已覆盖 | `BookDBViewPluginTests.swift` | `bookTreeBuilderReturnsEmptyForMissingRoot` |
+| 62 | 策略 | Maps chapter to parent collection | P0 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `mapsChapterToParentCollection` |
+| 63 | 策略 | Maps single file book exactly | P0 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `mapsSingleFileBookExactly` |
+| 64 | 策略 | Unknown chapter has no book | P1 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `unknownChapterHasNoBook` |
+| 65 | 策略 | Badge progress hides zero and clamps | P1 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `badgeProgressHidesZeroAndClamps` |
+| 66 | 状态 | Downloading state badges parent book only | P0 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `downloadingStateBadgesParentBookOnly` |
+| 67 | 状态 | Zero progress is indeterminate | P1 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `zeroProgressIsIndeterminate` |
+| 68 | 状态 | Failure clears badge | P0 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `failureClearsBadge` |
+| 69 | 状态 | Asset change clears badge | P1 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `assetChangeClearsBadge` |
+| 70 | 观察者 | Forwards state changed events | P0 | ✅ 已覆盖 | `BookDBViewCoverageTests.swift` | `forwardsStateChangedEvents` |
 
 ## 覆盖率统计
 
-- P0: 39 / 39 ✅
-- P1: 20 / 20 ✅
+- P0: 44 / 44 ✅
+- P1: 24 / 24 ✅
 - P2: 2 / 2 ✅
 
-**总计: 61 / 61**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
+**总计: 70 条已登记**（全包共 106 条 `@Test`；其余 36 条分布在
+`BookGridLoadingOrderTests`、`BookGridLoadingStateTests`、
+`BookListViewModelTests`、`BookTreeViewModelTests` 等套件中）
 
 ## 测试文件
 
-- `BookDBViewCoverageTests.swift` — 19 条用例
-- `BookDBViewPluginTests.swift` — 42 条用例
+- `BookDBViewCoverageTests.swift` — 28 条用例
+- `BookDBViewPluginTests.swift` — 41 条用例
+- `BookGridLoadingOrderTests.swift` — 2 条用例
+- `BookGridLoadingStateTests.swift` — 5 条用例
+- `BookListViewModelTests.swift` — 9 条用例
+- `BookTreeViewModelTests.swift` — 21 条用例
 
 ## 优先级说明
 

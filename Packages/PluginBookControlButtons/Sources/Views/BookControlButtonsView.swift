@@ -39,6 +39,7 @@ struct BookControlButtonsView: View {
                     isActive: viewModel.isPlaying,
                     action: viewModel.toggle
                 )
+                .disabled(viewModel.isLoading)
                 AppCircularIconButton(
                     systemImage: "forward.end.fill",
                     accessibilityLabel: "Next chapter",

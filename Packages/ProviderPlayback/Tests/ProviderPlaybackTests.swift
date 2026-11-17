@@ -238,6 +238,18 @@ struct ProviderPlaybackTests {
         #expect(cases.count == events.count)
     }
 
+    /// 新增的载入控制要求不得破坏既有实现：默认实现必须是无害空操作。
+    @Test
+    func defaultLoadControlsAreHarmlessNoOps() async {
+        let provider = StubPlaybackProvider()
+
+        provider.cancelPendingLoad()
+        await provider.retryLastFailedLoad()
+
+        #expect(provider.state == .paused)
+        #expect(provider.playedURLs.isEmpty)
+    }
+
     @Test
     func providerDefaultsBuildSnapshotAndForwardTimedPlay() async {
         let provider = StubPlaybackProvider()

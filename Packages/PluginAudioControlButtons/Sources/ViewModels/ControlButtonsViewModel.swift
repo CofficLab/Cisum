@@ -101,6 +101,14 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
             return
         }
 
+        // 有声书的 iCloud 载入失败由载入横幅负责取消/重试；这里再弹模态
+        // 提示只会遮住横幅自己的恢复入口。其它场景外的失败仍然提示，
+        // 避免有声书里的非 iCloud 失败变成静默失败。
+        if !isTargetSceneActive, case .iCloudDownloadFailed = failure {
+            lastPresentedFailure = nil
+            return
+        }
+
         // 失败必须让用户看得见：之前 .failed 只折算成 isPlaying = false，
         // 表现为「点了播放没反应，也没有任何提示」。
         guard failure != lastPresentedFailure else { return }

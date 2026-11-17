@@ -178,6 +178,19 @@ public protocol PlaybackProviding: AnyObject {
     func reset() async
     func togglePlayMode()
 
+    /// 取消当前正在进行的载入等待（如 iCloud 下载）。
+    ///
+    /// 仅对 `.loading(.downloading)` 有意义，实现应自行判断状态，调用方
+    /// 无需前置检查。语义是「不再等待」，不代表底层传输已停止。取消必须
+    /// 静默结束：不产生失败状态，也不清掉用户选中的资源。
+    func cancelPendingLoad()
+
+    /// 重放最近一次载入失败的请求。
+    ///
+    /// URL、起始位置与自动播放语义都沿用原请求；仅对 `.failed` 且存在可
+    /// 重放请求时有意义，否则静默返回。
+    func retryLastFailedLoad() async
+
     @discardableResult
     func addObserver(_ callback: @escaping (PlaybackProvidingEvent) -> Void) -> any PlaybackProvidingObserverHandle
 }
@@ -200,6 +213,10 @@ public extension PlaybackProviding {
     }
 
     func reset() async {}
+
+    func cancelPendingLoad() {}
+
+    func retryLastFailedLoad() async {}
 
     @discardableResult
     func addObserver(_ callback: @escaping (PlaybackProvidingEvent) -> Void) -> any PlaybackProvidingObserverHandle {

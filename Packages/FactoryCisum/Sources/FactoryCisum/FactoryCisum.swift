@@ -7,6 +7,7 @@ import ProviderRootView
 import ProviderScene
 import ProviderDocsView
 import ProviderToast
+import ProviderDiskCache
 import ProviderToolbar
 import ProviderDevice
 import ProviderCloud
@@ -145,6 +146,10 @@ public enum CisumBuilder: SuperLog {
         // 提示 Provider 必须在插件 onBoot 前存在；ToastSuperPlugin 随后替换为真实实现。
         let defaultToast = DefaultToastProviding()
         try kernel.registerProvider((any ToastProviding).self, defaultToast)
+
+        // 可删除磁盘缓存：图片 / 文件等加速用缓存的统一落盘与清理入口。
+        // 缓存根目录独立于 Storage 数据根（系统可回收，不参与迁移）。
+        try kernel.registerProvider((any DiskCacheProviding).self, DefaultDiskCacheProvider())
 
         // Other view providers are infrastructure. RootViewProviding itself is
         // owned by RootViewPlugin and registered through plugin lifecycle.

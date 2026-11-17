@@ -7,6 +7,45 @@ import ProviderPlayback
 import ProviderToast
 import SwiftUI
 
+/// 网格载入标注策略：把「正在下载的章节」映射回它所属的书。
+enum BookGridLoadingPolicy {
+    /// 下载进度 -> 标注进度。0 视作未知（使用不确定指示器），并夹到 0…1。
+    static func badgeProgress(_ progress: Double) -> Double? {
+        let clamped = min(max(progress, 0), 1)
+        return clamped > 0 ? clamped : nil
+    }
+
+    /// 章节 -> 所属书籍：单文件书籍是精确匹配，其余取父目录。
+    static func bookURL(forChapter chapterURL: URL, in books: [BookDTO]) -> URL? {
+        if let exact = books.first(where: {
+            BookPlaybackOrdering.representsSameFile($0.url, chapterURL)
+        }) {
+            return exact.url
+        }
+        let parent = chapterURL.deletingLastPathComponent()
+        return books.first(where: {
+            BookPlaybackOrdering.representsSameFile($0.url, parent)
+        })?.url
+    }
+
+    static func progressLabel(_ progress: Double) -> String {
+        "\(Int((progress * 100).rounded()))%"
+    }
+
+    static func accessibilityValue(bookTitle: String, progress: Double?) -> String {
+        guard let progress else {
+            return String(
+                localized: String.LocalizationValue("Loading \(bookTitle)"),
+                bundle: .module
+            )
+        }
+        return String(
+            localized: String.LocalizationValue("Loading \(bookTitle), \(progressLabel(progress))"),
+            bundle: .module
+        )
+    }
+}
+
 /// 书籍网格视图的集中状态容器（迁移 Phase 3）。
 ///
 /// 持有书籍列表、加载/同步状态、选中高亮、播放代际与防抖任务，
@@ -24,8 +63,13 @@ final class BookGridViewModel: ObservableObject, SuperLog {
     @Published var syncingCurrent = 0
     /// 最近一次播放状态更新的书籍 URL，供 `BookTile` 观察并重载封面。
     @Published var lastStateUpdatedURL: URL?
+    /// 正在从 iCloud 载入的书籍 URL；`nil` 表示没有载入标注。
+    @Published private(set) var loadingBookURL: URL?
+    /// 载入进度；`nil` 表示进度未知（0% 或非下载阶段）。
+    @Published private(set) var downloadProgress: Double?
 
     private var currentAsset: URL?
+    private var lastPlaybackState: PlaybackStatus = .idle
     /// 播放与提示能力（Capabilities 目录收窄），`weak` 持有。
     private weak var playback: (any BookLibraryPlaybackCapability)?
     private weak var toast: (any BookLibraryToastCapability)?
@@ -99,6 +143,20 @@ final class BookGridViewModel: ObservableObject, SuperLog {
             selectedBookURL = nil
             playBookGeneration = BookGridPlaybackRequestPolicy.generationAfterInvalidatingPendingPlayback(playBookGeneration)
         }
+        refreshLoadingBadge()
+    }
+
+    /// 播放状态变化：只有「下载中」才在对应书块上标注进度，
+    /// 失败与取消都由控制区横幅承载，网格只负责清除标注。
+    func handlePlaybackStateChanged(_ state: PlaybackStatus) {
+        lastPlaybackState = state
+        refreshLoadingBadge()
+    }
+
+    /// 是否为正在载入的书。
+    func isLoadingBook(_ bookURL: URL) -> Bool {
+        guard let loadingBookURL else { return false }
+        return BookPlaybackOrdering.representsSameFile(loadingBookURL, bookURL)
     }
 
     // MARK: - Database events
@@ -181,6 +239,22 @@ final class BookGridViewModel: ObservableObject, SuperLog {
                   !BookGridSelectionPolicy.containsSelectedBook(currentSelection, in: newValue) {
             selectedBookURL = nil
         }
+
+        refreshLoadingBadge()
+    }
+
+    private func refreshLoadingBadge() {
+        guard case .loading(.downloading(let progress)) = lastPlaybackState,
+              let currentAsset,
+              let bookURL = BookGridLoadingPolicy.bookURL(forChapter: currentAsset, in: books) else {
+            if loadingBookURL != nil { loadingBookURL = nil }
+            if downloadProgress != nil { downloadProgress = nil }
+            return
+        }
+
+        if loadingBookURL != bookURL { loadingBookURL = bookURL }
+        let badgeProgress = BookGridLoadingPolicy.badgeProgress(progress)
+        if downloadProgress != badgeProgress { downloadProgress = badgeProgress }
     }
 
     private func updateSelectedBook(for url: URL) {

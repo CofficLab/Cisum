@@ -179,6 +179,13 @@ public extension MagicPlayMan {
             return
         }
 
+        lastPlayRequest = MagicPlayManPlayRequest(
+            url: url,
+            autoPlay: autoPlay,
+            startTime: startTime,
+            reason: reason
+        )
+
         // iCloud 未下载（dataless 占位）文件：本地只有占位元数据，AVFoundation 读取会失败
         // （AVError -11800），从而被下面的可播性校验误判为 invalidAsset。
         // 必须在可播性校验之前先确保内容落到本地。
@@ -228,9 +235,41 @@ public extension MagicPlayMan {
             }
             defer { progressTask.cancel() }
 
+            // 把等待包装成可持有的任务：`cancelPendingLoad` 取消的是这个句柄；
+            // 调用方 Task 被取消时，`withTaskCancellationHandler` 也会把它取消。
+            let availabilityTask = Task { try await url.ensureLocalAvailability() }
+            pendingAvailabilityTask = availabilityTask
+            pendingAvailabilityGeneration = requestGeneration
+            defer {
+                if pendingAvailabilityGeneration == requestGeneration {
+                    pendingAvailabilityTask = nil
+                    pendingAvailabilityGeneration = nil
+                }
+            }
+
             do {
-                try await url.ensureLocalAvailability()
+                try await withTaskCancellationHandler(operation: {
+                    try await availabilityTask.value
+                }, onCancel: {
+                    availabilityTask.cancel()
+                })
             } catch {
+                // 取消不是失败：用户取消时状态已由 `cancelPendingLoad` 置为 `.stopped`；
+                // 调用方 Task 被取消时，这里补一个安静的 `.stopped`。
+                // 代际已变化说明有更新的请求接管，旧请求不得再发布任何状态。
+                let wasCancelled = error is CancellationError
+                    || (error as? ICloudDownloadError) == .cancelled
+                    || Task.isCancelled
+                    || !isCurrentPlayRequest(requestGeneration)
+
+                guard !wasCancelled else {
+                    if isCurrentPlayRequest(requestGeneration) {
+                        await resetPlayerItemAfterFailedPlayback(reason: reason + ".iCloudDownload.cancelled")
+                        setState(.stopped, reason: reason + ".iCloudDownload.cancelled")
+                    }
+                    return
+                }
+
                 os_log(.error, "\(self.t)❌ (\(reason)) iCloud download failed: \(error.localizedDescription)")
                 await resetPlayerItemAfterFailedPlayback(reason: reason + ".iCloudDownload")
                 setState(.failed(.iCloudDownloadFailed(error.localizedDescription)), reason: reason + ".play")
@@ -295,6 +334,40 @@ public extension MagicPlayMan {
             let item = AVPlayerItem(url: url)
             self.load(item, autoPlay: autoPlay, startTime: startTime, requestGeneration: requestGeneration, reason: reason)
         }
+    }
+
+    /// 放弃尚未完成的 iCloud 可用性等待。
+    ///
+    /// 保留 `currentURL`（用户的选择仍有效），只把状态落到 `.stopped`。
+    /// 不尝试中断 iCloud 传输本身：公开 API 没有停止入口，传输可能在后台继续。
+    @MainActor
+    func cancelPendingLoad(reason: String) {
+        guard state.isDownloading else { return }
+
+        beginPlayRequest()
+        pendingAvailabilityTask?.cancel()
+        pendingAvailabilityTask = nil
+        pendingAvailabilityGeneration = nil
+        setCurrentDownloadObservers(nil)
+        setState(.stopped, reason: reason)
+    }
+
+    /// 重试最近一次因 iCloud 内容不可用而失败的播放请求。
+    ///
+    /// 复用原始请求的 URL / `autoPlay` / `startTime`，避免重试把章节退回开头。
+    @MainActor
+    func retryLastFailedLoad(reason: String) async {
+        guard case .failed(.iCloudDownloadFailed(_)) = state,
+              let request = lastPlayRequest else {
+            return
+        }
+
+        await play(
+            request.url,
+            autoPlay: request.autoPlay,
+            startTime: request.startTime,
+            reason: reason
+        )
     }
 
     /// 发布合并后的下载进度。仅当「当前播放请求仍有效且正处于下载态」时生效：

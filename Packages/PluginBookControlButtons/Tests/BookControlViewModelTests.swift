@@ -12,6 +12,7 @@ import Testing
 @MainActor
 private final class MockPlaybackCapability: BookControlPlaybackCapability {
     var isPlaying: Bool = false
+    var isLoading: Bool = false
     var playMode: PlaybackMode = .sequence
     var currentURL: URL?
 
@@ -168,12 +169,35 @@ struct BookControlViewModelSceneTests {
 
         viewModel.applyStateChanged(.playing)
         #expect(viewModel.isPlaying)
+        #expect(!viewModel.isLoading)
 
         viewModel.applyStateChanged(.paused)
         #expect(!viewModel.isPlaying)
 
+        viewModel.applyStateChanged(.loading(.downloading(0.4)))
+        #expect(!viewModel.isPlaying)
+        #expect(viewModel.isLoading)
+
         viewModel.applyStateChanged(.idle)
         #expect(!viewModel.isPlaying)
+        #expect(!viewModel.isLoading)
+    }
+
+    @Test
+    func toggleIsIgnoredWhileLoading() {
+        let playback = MockPlaybackCapability()
+        playback.isLoading = true
+        let viewModel = BookControlViewModel(
+            targetScene: targetScene,
+            playback: playback
+        )
+
+        viewModel.toggle()
+        #expect(playback.toggleCount == 0)
+
+        viewModel.applyStateChanged(.playing)
+        viewModel.toggle()
+        #expect(playback.toggleCount == 1)
     }
 
     @Test

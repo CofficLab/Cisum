@@ -27,7 +27,7 @@ final class CisumAudiobooksPlaybackUITests: CisumUITestBase {
 
         // 等待播放状态出现（进度条或播放状态指示）
         // 播放开始后，播放控制区域应该变为活跃状态
-        try await Task.sleep(for: .milliseconds(1500))
+        Thread.sleep(forTimeInterval: 1.5)
 
         // 验证场景仍在有声书
         XCTAssertTrue(audiobooksScene.exists, "点击书卡后有声书场景消失")

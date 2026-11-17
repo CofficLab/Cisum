@@ -31,6 +31,12 @@ protocol BookControlPlaybackCapability: AnyObject {
     /// 是否正在播放。
     var isPlaying: Bool { get }
 
+    /// 是否处于载入等待（连接 / 准备 / 缓冲 / 下载）。
+    ///
+    /// 载入期间播放按钮不可用：此时 `toggle()` 无法给出确定的
+    /// 播放/暂停语义，且 iCloud 下载需要先完成才能开始播放。
+    var isLoading: Bool { get }
+
     /// 当前播放模式。
     var playMode: PlaybackMode { get }
 
@@ -68,6 +74,7 @@ final class BookControlPlaybackCapabilityAdapter: BookControlPlaybackCapability 
     }
 
     var isPlaying: Bool { playback?.isPlaying ?? false }
+    var isLoading: Bool { playback?.state.isLoading ?? false }
     var playMode: PlaybackMode { playback?.playMode ?? .sequence }
     var currentURL: URL? { playback?.currentURL }
 

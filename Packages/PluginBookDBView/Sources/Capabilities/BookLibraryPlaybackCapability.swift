@@ -1,11 +1,13 @@
 import Foundation
 import ProviderPlayback
 
-/// 有声书库播放事件：只保留网格与观察者关心的「当前章节」语义。
+/// 有声书库播放事件：只保留网格与观察者关心的语义。
 @MainActor
 enum BookLibraryPlaybackEvent {
     /// 当前播放文件变化；`nil` 表示无播放。
     case assetChanged(url: URL?)
+    /// 播放状态变化（网格据此标注正在载入的书）。
+    case stateChanged(PlaybackStatus)
 }
 
 /// 有声书库播放监听句柄。
@@ -18,17 +20,20 @@ protocol BookLibraryPlaybackObserverHandle: AnyObject {
 /// 有声书库网格所需的最小播放能力。
 ///
 /// 内核 `PlaybackProviding` 包含 `pause` / `seek` / `next` / `setPlayMode` 等
-/// 大量本插件不使用的控制能力；网格只做两件事——播放指定章节、观察当前
-/// 播放文件变化，故在此收窄到最小写入 + 一个事件。
+/// 大量本插件不使用的控制能力；网格只做三件事——播放指定章节、观察当前
+/// 播放文件变化、读取载入状态，故在此收窄到最小写入 + 两个事件。
 @MainActor
 protocol BookLibraryPlaybackCapability: AnyObject {
     /// 当前播放文件；无播放时为 `nil`。
     var currentURL: URL? { get }
 
+    /// 当前播放状态；网格只用于点缀正在载入的书。
+    var state: PlaybackStatus { get }
+
     /// 播放指定文件；`startTime` 为 `nil` 时从头播放。
     func play(_ url: URL, startTime: TimeInterval?) async
 
-    /// 订阅当前播放文件变更；返回句柄需自行 `cancel()`。
+    /// 订阅当前播放文件与状态变更；返回句柄需自行 `cancel()`。
     @discardableResult
     func addObserver(
         _ callback: @escaping (BookLibraryPlaybackEvent) -> Void
@@ -48,6 +53,8 @@ final class BookLibraryPlaybackCapabilityAdapter: BookLibraryPlaybackCapability 
 
     var currentURL: URL? { playback?.currentURL }
 
+    var state: PlaybackStatus { playback?.state ?? .idle }
+
     func play(_ url: URL, startTime: TimeInterval?) async {
         await playback?.play(url, startTime: startTime)
     }
@@ -58,8 +65,14 @@ final class BookLibraryPlaybackCapabilityAdapter: BookLibraryPlaybackCapability 
     ) -> any BookLibraryPlaybackObserverHandle {
         guard let playback else { return BookLibraryPlaybackObserverHandleBox(cancelAction: nil) }
         let handle = playback.addObserver { event in
-            guard case .assetChanged(let url) = event else { return }
-            callback(.assetChanged(url: url))
+            switch event {
+            case .assetChanged(let url):
+                callback(.assetChanged(url: url))
+            case .stateChanged(let state):
+                callback(.stateChanged(state))
+            default:
+                break
+            }
         }
         return BookLibraryPlaybackObserverHandleBox(cancelAction: handle.cancel)
     }
