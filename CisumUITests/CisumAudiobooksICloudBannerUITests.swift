@@ -19,6 +19,16 @@ private func waitForVisibleText(_ element: XCUIElement, equals expected: String,
     return element.exists && visibleText(of: element) == expected
 }
 
+/// 等待元素的可见文本包含某段文本（主题行会先从章节名补成「书名 + 章节位置」）。
+private func waitForVisibleText(_ element: XCUIElement, containing text: String, timeout: TimeInterval) -> Bool {
+    let deadline = Date().addingTimeInterval(timeout)
+    while Date() < deadline {
+        if element.exists, visibleText(of: element).contains(text) { return true }
+        Thread.sleep(forTimeInterval: 0.25)
+    }
+    return element.exists && visibleText(of: element).contains(text)
+}
+
 /// 有声书 iCloud 载入横幅的 UI 行为。
 ///
 /// 与音乐侧的 `CisumICloudDownloadUITests` 共用同一套注入网关：
@@ -82,8 +92,8 @@ final class CisumAudiobooksICloudBannerUITests: CisumUITestBase {
         )
         let subject = element(identifier: "cisum.player.loading.subject")
         XCTAssertTrue(
-            waitForVisibleText(subject, equals: seededChapterName, timeout: 10),
-            "横幅主题不是正在载入的章节名：实际 \(visibleText(of: subject))"
+            waitForVisibleText(subject, containing: seededBookName, timeout: 10),
+            "横幅主题未指向正在载入的书：实际 \(visibleText(of: subject))"
         )
 
         let progress = element(identifier: "cisum.player.loading.progress")
