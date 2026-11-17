@@ -19,7 +19,6 @@ import PluginBookDBView
 import PluginBookDBData
 import PluginBookLike
 import PluginBookLoading
-import PluginBookPlayMode
 import PluginBookProgress
 import PluginBookScene
 import PluginBookSettings
@@ -84,7 +83,6 @@ public struct DefaultPluginFactory: PluginFactory {
             BookDBViewPlugin.shared,
             BookLikePlugin.shared,
             BookLoadingPlugin.shared,
-            BookPlayModePlugin.shared,
             BookPlugin.shared,
             BookProgressPlugin.shared,
             BookScenePlugin.shared,

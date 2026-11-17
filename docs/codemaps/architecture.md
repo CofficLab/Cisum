@@ -155,7 +155,7 @@ protocol SuperPlugin: Actor {
 | AudioDBDataPlugin | 1 | Database implementation and filesystem synchronization |
 | AudioSettingsPlugin | - | Settings integration |
 
-#### 2. Book Plugins (9 plugins)
+#### 2. Book Plugins (8 plugins)
 
 | Plugin | Order | Responsibility |
 |--------|-------|----------------|
@@ -165,7 +165,6 @@ protocol SuperPlugin: Actor {
 | BookProgressPlugin | - | Reading progress |
 | BookPosterPlugin | - | Poster view |
 | BookLikePlugin | - | Like/favorite management |
-| BookPlayModePlugin | - | Play mode controls |
 | BookControlButtonsPlugin | - | Book playback controls |
 | BookSettingsPlugin | - | Settings integration |
 
