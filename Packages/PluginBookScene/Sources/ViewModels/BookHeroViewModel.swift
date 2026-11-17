@@ -39,7 +39,8 @@ final class BookHeroViewModel: ObservableObject {
 
     /// 是否展示「选一本有声书开始收听」占位：有声书场景里没有正在播放的书籍章节。
     ///
-    /// 不要求书库非空：空仓库的导入引导在内容区，控制区仍可提示用户挑一本书。
+    /// 书库为空时这一屏由空仓库引导接管（`ControlView` 中引导优先于封面区），
+    /// 这里仍保持 `true`，让控制区照常留出展开高度；书库非空时才真正呈现。
     var showsIdlePlaceholder: Bool { subject == nil }
 
     func applyAssetChanged(_ url: URL?) {

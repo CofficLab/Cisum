@@ -109,8 +109,8 @@ final class RootLayoutViewModel: ObservableObject {
         let hasRealHero = hasCurrentAsset && !(isMusicSceneActive && isRepositoryEmpty)
         // idle 占位只出现在音乐场景，且必须「仓库确认非空」。
         let hasIdlePlaceholder = isMusicSceneActive && !hasCurrentAsset && isRepositoryKnownNonEmpty
-        // 有声书场景没有正在播放的章节时，封面区由书籍插件呈现「挑一本」占位，
-        // 同样需要展开的控制区高度。
+        // 有声书场景没有正在播放的章节时，控制区要么呈现「挑一本」占位，
+        // 要么呈现空仓库引导；两者都需要展开的控制区高度。
         let hasBookIdlePlaceholder = isAudiobooksSceneActive && !hasCurrentAsset
         isPlaybackHeroPresenting = hasRealHero || hasIdlePlaceholder || hasBookIdlePlaceholder
     }
