@@ -179,8 +179,8 @@ struct RootLayoutHeroPresentingTests {
         #expect(!viewModel.isPlaybackHeroPresenting)
     }
 
-    @Test("非音乐场景下不展开")
-    func collapsesOutsideMusicScene() {
+    @Test("有声书场景无当前章节时保持展开（书籍 idle 占位需要空间）")
+    func expandsAudiobookSceneForIdlePlaceholder() {
         let viewModel = makeViewModel()
         let environment = EnvironmentStub(
             currentURL: nil,
@@ -189,7 +189,7 @@ struct RootLayoutHeroPresentingTests {
         )
         viewModel.attach(environment: environment)
 
-        #expect(!viewModel.isPlaybackHeroPresenting)
+        #expect(viewModel.isPlaybackHeroPresenting)
     }
 
     @Test("仓库转为非空后，idle 占位接管并保持展开")
