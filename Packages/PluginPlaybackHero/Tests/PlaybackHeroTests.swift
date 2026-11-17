@@ -405,6 +405,7 @@ struct PlaybackHeroTests {
         try kernel.registerProvider((any PluginProviding).self, contributions)
         try kernel.registerProvider((any PlaybackProviding).self, PlaybackStub())
         try kernel.registerProvider((any PlaybackMediaProviding).self, MediaStub())
+        try kernel.registerProvider((any SceneProviding).self, SceneStub(currentScene: .music))
 
         let plugin = PlaybackHeroPlugin()
         try await kernel.startAsync(plugins: [plugin])
