@@ -46,6 +46,8 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
     private nonisolated(unsafe) var sceneObserver: BookControlSceneObserver?
     private nonisolated(unsafe) var playbackObserver: BookControlPlaybackObserver?
     private nonisolated(unsafe) var libraryObserver: BookControlLibraryObserver?
+    /// 场景激活句柄：书籍按钮组只在本插件自己的有声书场景登记。
+    private nonisolated(unsafe) var sceneHandle: (any SceneProvidingObserverHandle)?
 
     /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
     /// 强持有，否则能力会随装配调用返回而释放。
@@ -65,13 +67,10 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     public func onBootAsync(kernel: KernelCoreContainer) async throws {
-        if let contrib = kernel.resolveProvider((any PluginContributionProviding).self) {
-            if let view = self.addControlButtonsView() { contrib.addControlButtonsView(ownerPluginID: id, view) }
-        }
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)🚀 onBoot") }
-        // 跨插件 Provider（Scene / Playback）在 onReady 中解析，
-        // 不假设其他插件已完成 Provider 注册。
+        // 按钮贡献在有声书场景激活时登记（场景在 onReady 阶段才恢复），
+        // 这里不按启动瞬间的场景做判断。
     }
 
     /// 所有 Provider 插件完成 onBoot 后再组装依赖它们的 ViewModel 与 Observer。
@@ -79,6 +78,7 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
     public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         if Self.verbose { os_log("\(Self.t)🟢 onReady") }
         installState(kernel: kernel)
+        installSceneActivation(kernel: kernel)
     }
 
     @MainActor
@@ -86,25 +86,29 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)✅ onEnable") }
         installState(kernel: kernel)
+        installSceneActivation(kernel: kernel)
     }
 
     @MainActor
     public func onDisable(kernel: KernelCoreContainer) async throws {
         if Self.verbose { os_log("\(Self.t)⏹️ onDisable") }
+        sceneHandle?.cancel()
+        sceneHandle = nil
         teardownState()
     }
 
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        sceneHandle?.cancel()
+        sceneHandle = nil
         if Self.verbose { os_log("\(Self.t)🛑 onShutdown") }
         teardownState()
     }
 
-    /// 仅在有声书场景向播放控制区注入书籍专用按钮。
+    /// 向播放控制区注入书籍专用按钮（由场景激活决定是否登记）。
     @MainActor
     public func addControlButtonsView() -> AnyView? {
-        guard kernel?.resolveProvider((any SceneProviding).self)?.currentScene == .audiobooks else { return nil }
         let viewModel = resolveViewModel()
         return AnyView(
             BookControlButtonsView(viewModel: viewModel) { [weak self] in
@@ -117,6 +121,31 @@ public final class BookControlButtonsPlugin: AsyncSuperPlugin, SuperLog {
             }
             // .appDebugBadge("Book Controls", alignment: .bottomLeading)
         )
+    }
+
+    /// 有声书场景才登记按钮贡献；其他场景撤下，交给该场景自己的控制插件。
+    @MainActor
+    private func installSceneActivation(kernel: KernelCoreContainer) {
+        guard let scene = kernel.resolveProvider((any SceneProviding).self) else { return }
+        applyScene(scene.currentScene, kernel: kernel)
+
+        guard sceneHandle == nil else { return }
+        sceneHandle = scene.addObserver { [weak self] event in
+            guard case let .selectionChanged(newScene) = event else { return }
+            guard let self, let kernel = self.kernel else { return }
+            self.applyScene(newScene, kernel: kernel)
+        }
+    }
+
+    @MainActor
+    private func applyScene(_ scene: AppScene?, kernel: KernelCoreContainer) {
+        guard let contribution = kernel.resolveProvider((any PluginContributionProviding).self) else { return }
+        guard scene == .audiobooks else {
+            contribution.remove(owner: id)
+            return
+        }
+        guard let view = addControlButtonsView() else { return }
+        contribution.addControlButtonsView(ownerPluginID: id, view)
     }
 
     // MARK: - State assembly
