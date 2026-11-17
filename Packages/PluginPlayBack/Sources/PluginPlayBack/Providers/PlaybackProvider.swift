@@ -129,6 +129,20 @@ public final class PlaybackProvider: PlaybackProviding, PlaybackMediaProviding, 
         playback.togglePlayMode()
     }
 
+    public func cancelPendingLoad() {
+        if Self.verbose {
+            Self.logger.info("\(Self.t)✖️ cancelPendingLoad")
+        }
+        playback.cancelPendingLoad(reason: "PlaybackProvider.cancelPendingLoad")
+    }
+
+    public func retryLastFailedLoad() async {
+        if Self.verbose {
+            Self.logger.info("\(Self.t)🔁 retryLastFailedLoad")
+        }
+        await playback.retryLastFailedLoad(reason: "PlaybackProvider.retryLastFailedLoad")
+    }
+
     @discardableResult
     public func addObserver(
         _ callback: @escaping (PlaybackProvidingEvent) -> Void
