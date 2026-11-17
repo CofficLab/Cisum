@@ -101,6 +101,14 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
             return
         }
 
+        // 只有音乐场景里的失败归本按钮组提示。其它场景（如有声书的
+        // iCloud 载入失败）由那个场景自己的横幅给出恢复入口；这里再弹
+        // 模态提示只会遮住对方的「取消 / 重试」，且提示内容属于看不见的音乐。
+        guard isTargetSceneActive else {
+            lastPresentedFailure = nil
+            return
+        }
+
         // 失败必须让用户看得见：之前 .failed 只折算成 isPlaying = false，
         // 表现为「点了播放没反应，也没有任何提示」。
         guard failure != lastPresentedFailure else { return }
