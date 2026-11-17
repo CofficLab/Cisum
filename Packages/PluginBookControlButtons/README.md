@@ -1,8 +1,8 @@
 # PluginBookControlButtons
 
 Audiobook playback-control plugin for Cisum. It injects a book-specific button row
-(previous chapter, play/pause, next chapter, play-mode toggle, and a "more" button)
-into the player control area, but only while the app is in the audiobooks scene.
+(a "more" button, previous chapter, play/pause, next chapter) into the player
+control area, but only while the app is in the audiobooks scene.
 
 ## Functional Logic
 
@@ -15,18 +15,19 @@ into the player control area, but only while the app is in the audiobooks scene.
   - `BookControlButtonsPlugin` — `AsyncSuperPlugin`, `SuperLog`; singleton
     `shared`, `id = "BookControlButtonsPlugin"`, `order = 8`,
     `iconName = "playpause"`, `policy = .alwaysOn`, `category = .feature`.
-  - `BookControlButtonsView` — the five `AppCircularIconButton` row (ellipsis /
-    previous / play-pause / next / play-mode); sizes itself to the available
-    geometry.
+  - `BookControlButtonsView` — the four `AppCircularIconButton` row (ellipsis /
+    previous / play-pause / next); sizes itself to the available geometry.
   - `BookControlViewModel` — `ObservableObject`; `@Published` `isPlaying`,
-    `playMode`; `shouldActivateControl`; `toggle()`, `previous()`, `next()`,
-    `togglePlayMode()`; chapter navigation with `controlGeneration` invalidation;
-    handles book-DB deletes, library refreshes and storage resets.
+    `isLoading`; `shouldActivateControl`; `toggle()`, `previous()`, `next()`;
+    chapter navigation with `controlGeneration` invalidation; handles book-DB
+    deletes, library refreshes and storage resets. Audiobooks expose no play-mode
+    toggle, so activation forces `PlaybackMode.sequence` to keep chapter order
+    deterministic regardless of the mode music left behind.
   - `BookControlViewModel` consumes `PlaybackProviding` directly for playback state,
-    mode, play/pause, chapter playback, and reset.
+    play/pause, chapter playback, and reset.
   - `BookControlPlaybackObserver` / `BookControlSceneObserver` — forward
-    playback `.stateChanged` / `.playModeChanged` / `.previousRequested` /
-    `.nextRequested` and scene `.selectionChanged` events to the view model.
+    playback `.stateChanged` / `.previousRequested` / `.nextRequested` and scene
+    `.selectionChanged` events to the view model.
   - `BookControlChapterSupport` — pure helpers: `BookControlBookRootResolver`
     (finds the top-level book folder for a chapter), `BookControlPathContainment`,
     `BookControlFileLocationIdentity`, `BookControlPlaybackRequestPolicy`

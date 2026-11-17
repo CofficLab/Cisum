@@ -4,7 +4,7 @@ import MagicPlayMan
 import MagicKit
 
 /// 播放观察者：订阅 `PlaybackProviding` 的播放事件，转发到
-/// `BookControlViewModel`（状态 / 播放模式 / 上下章节请求）。
+/// `BookControlViewModel`（状态 / 上下章节请求）。
 @MainActor
 final class BookControlPlaybackObserver: SuperLog {
     nonisolated static let emoji = "🎧"
@@ -21,8 +21,6 @@ final class BookControlPlaybackObserver: SuperLog {
             switch event {
             case .stateChanged(let state):
                 self.viewModel?.applyStateChanged(state)
-            case .playModeChanged(let mode):
-                self.viewModel?.applyPlayModeChanged(mode)
             case .previousRequested(let asset):
                 self.viewModel?.handlePreviousRequested(asset)
             case .nextRequested(let asset):

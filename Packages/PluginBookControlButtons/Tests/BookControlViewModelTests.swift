@@ -17,12 +17,16 @@ private final class MockPlaybackCapability: BookControlPlaybackCapability {
     var currentURL: URL?
 
     var toggleCount = 0
-    var togglePlayModeCount = 0
     var playedURLs: [(url: URL, startTime: TimeInterval?)] = []
     var resetCount = 0
+    var setPlayModeCalls: [PlaybackMode] = []
 
     func toggle() { toggleCount += 1 }
-    func togglePlayMode() { togglePlayModeCount += 1 }
+
+    func setPlayMode(_ mode: PlaybackMode) {
+        playMode = mode
+        setPlayModeCalls.append(mode)
+    }
 
     func play(_ url: URL, startTime: TimeInterval?) async {
         playedURLs.append((url, startTime))
@@ -97,14 +101,12 @@ struct BookControlViewModelSceneTests {
         )
 
         #expect(!viewModel.isPlaying)
-        #expect(viewModel.playMode == .sequence)
     }
 
     @Test
     func initWithPlaybackAdoptsPlaybackState() {
         let playback = MockPlaybackCapability()
         playback.isPlaying = true
-        playback.playMode = .loop
 
         let viewModel = BookControlViewModel(
             targetScene: targetScene,
@@ -112,7 +114,6 @@ struct BookControlViewModelSceneTests {
         )
 
         #expect(viewModel.isPlaying)
-        #expect(viewModel.playMode == .loop)
     }
 
     // MARK: - Scene activation
@@ -143,6 +144,27 @@ struct BookControlViewModelSceneTests {
 
         viewModel.handleSceneChange(.music)
         #expect(!viewModel.shouldActivateControl)
+    }
+
+    @Test
+    func activatingBooksForcesSequencePlayMode() {
+        let playback = MockPlaybackCapability()
+        playback.playMode = .shuffle
+        let viewModel = BookControlViewModel(
+            targetScene: targetScene,
+            playback: playback
+        )
+
+        viewModel.handleSceneChange(.music)
+        #expect(playback.setPlayModeCalls.isEmpty)
+
+        viewModel.handleSceneChange(.audiobooks)
+        #expect(playback.playMode == .sequence)
+        #expect(playback.setPlayModeCalls.count == 1)
+
+        viewModel.handleSceneChange(.music)
+        viewModel.handleSceneChange(.audiobooks)
+        #expect(playback.setPlayModeCalls.count == 1)
     }
 
     @Test
@@ -200,23 +222,6 @@ struct BookControlViewModelSceneTests {
         #expect(playback.toggleCount == 1)
     }
 
-    @Test
-    func applyPlayModeChangedUpdatesPlayMode() {
-        let viewModel = BookControlViewModel(
-            targetScene: targetScene,
-            playback: MockPlaybackCapability()
-        )
-
-        viewModel.applyPlayModeChanged(.loop)
-        #expect(viewModel.playMode == .loop)
-
-        viewModel.applyPlayModeChanged(.shuffle)
-        #expect(viewModel.playMode == .shuffle)
-
-        viewModel.applyPlayModeChanged(.repeatAll)
-        #expect(viewModel.playMode == .repeatAll)
-    }
-
     // MARK: - Toggle
 
     @Test
@@ -242,35 +247,6 @@ struct BookControlViewModelSceneTests {
         )
 
         viewModel.toggle()
-
-        #expect(toast.errorPresentations.count == 1)
-    }
-
-    // MARK: - Toggle play mode
-
-    @Test
-    func togglePlayModeCallsPlaybackTogglePlayMode() {
-        let playback = MockPlaybackCapability()
-        let viewModel = BookControlViewModel(
-            targetScene: targetScene,
-            playback: playback
-        )
-
-        viewModel.togglePlayMode()
-
-        #expect(playback.togglePlayModeCount == 1)
-    }
-
-    @Test
-    func togglePlayModeWithNilPlaybackReportsError() {
-        let toast = MockToastCapability()
-        let viewModel = BookControlViewModel(
-            targetScene: targetScene,
-            playback: nil,
-            toast: toast
-        )
-
-        viewModel.togglePlayMode()
 
         #expect(toast.errorPresentations.count == 1)
     }

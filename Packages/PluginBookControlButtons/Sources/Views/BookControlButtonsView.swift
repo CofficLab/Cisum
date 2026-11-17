@@ -46,13 +46,6 @@ struct BookControlButtonsView: View {
                     size: buttonSize,
                     action: viewModel.next
                 )
-                AppCircularIconButton(
-                    systemImage: viewModel.playMode.iconName,
-                    accessibilityLabel: "Playback mode",
-                    size: buttonSize,
-                    isActive: viewModel.playMode != .sequence,
-                    action: viewModel.togglePlayMode
-                )
             }
             .padding(.bottom, bottomPadding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -64,7 +57,7 @@ struct BookControlButtonsView: View {
         }
     }
 
-    private let buttonCount: CGFloat = 5
+    private let buttonCount: CGFloat = 4
     private let buttonMaximumSize: CGFloat = 72
     private let buttonSpacing: CGFloat = 12
     private let bottomPadding: CGFloat = 20
