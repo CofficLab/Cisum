@@ -18,8 +18,12 @@ struct ControlView: View {
     var rightAlbumView: AnyView? = nil
     /// 空仓库引导插槽（顶部引导视图）。
     var guideSlot: ControlGuideSlot? = nil
+    /// 载入中插槽（激活时替代状态行 + 进度行）。
+    var loadingSlot: ControlLoadingSlot? = nil
     /// 引导插槽的观察者：激活态变化时控制区需要重新排布（引导占顶部、控件沉底）。
     @ObservedObject private var observedGuideSlot: ControlGuideSlot
+    /// 载入插槽的观察者：激活态变化时控制区需要在两行与单块之间切换。
+    @ObservedObject private var observedLoadingSlot: ControlLoadingSlot
     /// 播放器区呈现状态：由 PluginPlaybackHero 的 Observer 驱动（事件直达），
     /// 不再经 preference 自底向上传递（该链路会停留在默认值，收起断言恒失败）。
     @ObservedObject private var heroVisibility = ControlHeroVisibility.shared
@@ -36,7 +40,8 @@ struct ControlView: View {
         progressView: AnyView? = nil,
         controlButtonsView: AnyView? = nil,
         rightAlbumView: AnyView? = nil,
-        guideSlot: ControlGuideSlot? = nil
+        guideSlot: ControlGuideSlot? = nil,
+        loadingSlot: ControlLoadingSlot? = nil
     ) {
         self.stateViews = stateViews
         self.stateMessage = stateMessage
@@ -47,7 +52,9 @@ struct ControlView: View {
         self.controlButtonsView = controlButtonsView
         self.rightAlbumView = rightAlbumView
         self.guideSlot = guideSlot
+        self.loadingSlot = loadingSlot
         _observedGuideSlot = ObservedObject(wrappedValue: guideSlot ?? .inactive)
+        _observedLoadingSlot = ObservedObject(wrappedValue: loadingSlot ?? .inactive)
     }
 
     var body: some View {
@@ -67,15 +74,22 @@ struct ControlView: View {
                             .animation(.easeInOut(duration: 0.2), value: isHeroVisible)
                     }
 
-                    stateArea
-                        .frame(height: stateHeight(for: geometry))
-                        .frame(maxWidth: .infinity)
+                    if showsLoadingSection {
+                        loadingArea
+                            .frame(height: loadingHeight(for: geometry))
+                            .frame(maxWidth: .infinity)
+                            .padding(.bottom, 10)
+                    } else {
+                        stateArea
+                            .frame(height: stateHeight(for: geometry))
+                            .frame(maxWidth: .infinity)
 
-                    if showsProgressSection {
-                        progressArea
-                            .frame(height: progressContentHeight)
-                            .padding(.horizontal)
-                            .padding(.vertical, progressVerticalPadding)
+                        if showsProgressSection {
+                            progressArea
+                                .frame(height: progressContentHeight)
+                                .padding(.horizontal)
+                                .padding(.vertical, progressVerticalPadding)
+                        }
                     }
 
                     if controlButtonsView != nil {
@@ -121,8 +135,18 @@ struct ControlView: View {
     ///
     /// 用引导插槽的激活态当信号，是因为它已经带上了「音乐场景 + 仓库为空」
     /// 两个前提：切到有声书场景时插槽不激活，那边的播放进度照常显示。
+    ///
+    /// 载入插槽激活时进度行同样收掉——横幅已经占用了「状态 + 进度」的
+    /// 整块空间，不能再叠一条时间轴。
     private var showsProgressSection: Bool {
-        progressView != nil && !observedGuideSlot.isActive
+        progressView != nil && !observedGuideSlot.isActive && !showsLoadingSection
+    }
+
+    /// 载入插槽是否替代状态行与进度行。
+    ///
+    /// 引导优先：空仓库不可能同时有内容在载入，两者同时成立时以引导为准。
+    private var showsLoadingSection: Bool {
+        observedLoadingSlot.isActive && !observedGuideSlot.isActive
     }
 
     @ViewBuilder
@@ -154,6 +178,13 @@ struct ControlView: View {
     }
 
     @ViewBuilder
+    private var loadingArea: some View {
+        if let loadingSlot {
+            loadingSlot.view
+        }
+    }
+
+    @ViewBuilder
     private var buttonsArea: some View {
         if let controlButtonsView {
             controlButtonsView
@@ -171,9 +202,16 @@ struct ControlView: View {
         AppResponsivePlayerLayoutMetrics.shared.stateHeight(for: geometry.size.height)
     }
 
+    /// 载入横幅高度：等于状态行与进度行（内容 + 上下留白）之和，
+    /// 保证激活时只是换内容而不改变控制区总高度。
+    private func loadingHeight(for geometry: GeometryProxy) -> CGFloat {
+        stateHeight(for: geometry) + progressContentHeight + progressVerticalPadding * 2
+    }
+
     private func heroHeight(for geometry: GeometryProxy) -> CGFloat {
         let reservedHeight = stateHeight(for: geometry)
-            + (showsProgressSection ? progressContentHeight + progressVerticalPadding * 2 : 0)
+            + ((showsLoadingSection || showsProgressSection)
+                ? progressContentHeight + progressVerticalPadding * 2 : 0)
             + (controlButtonsView == nil ? 0 : buttonHeight(for: geometry))
 
         return max(0, geometry.size.height - reservedHeight)

@@ -13,9 +13,9 @@ let package = Package(
         .library(name: "PluginRootView", targets: ["PluginRootView"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.0"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.18.0"),
-        .package(url: "https://github.com/CofficLab/LumiUI.git", from: "1.12.0"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.1"),
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.23.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI.git", from: "1.17.1"),
         .package(path: "../ProviderPlugin"),
         .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
         .package(name: "ProviderScene", path: "../ProviderScene"),

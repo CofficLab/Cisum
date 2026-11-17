@@ -18,12 +18,14 @@ import PluginBookControlButtons
 import PluginBookDBView
 import PluginBookDBData
 import PluginBookLike
+import PluginBookLoading
 import PluginBookPlayMode
 import PluginBookProgress
 import PluginBookScene
 import PluginBookSettings
 import PluginAudioControlButtons
 import PluginAbout
+import PluginCacheManager
 import PluginFileLog
 import PluginLikeButton
 import PluginOpenButton
@@ -81,6 +83,7 @@ public struct DefaultPluginFactory: PluginFactory {
             BookDBDataPlugin.shared,
             BookDBViewPlugin.shared,
             BookLikePlugin.shared,
+            BookLoadingPlugin.shared,
             BookPlayModePlugin.shared,
             BookPlugin.shared,
             BookProgressPlugin.shared,
@@ -126,6 +129,10 @@ public struct DefaultPluginFactory: PluginFactory {
                 id: "com.coffic.cisum.plugin.plugin-manager",
                 policy: .disabled
             ),
+            // 共享远程包 LumiPluginCacheManager：磁盘缓存管理设置入口。
+            // 当前暂无消费方（图片/文件缓存尚未接入），仅随基础设施
+            // DiskCacheProviding 一并就位；有桶后此页会列出各插件缓存占用。
+            CacheManagerPlugin(id: "com.coffic.cisum.plugin.cache-manager"),
             StoragePlugin.shared,
             StorePlugin.shared,
             SystemPlugin.shared,

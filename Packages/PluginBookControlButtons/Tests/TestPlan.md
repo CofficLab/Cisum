@@ -78,18 +78,39 @@
 | 32 | 行为 | Storage location reset ignored when scene inactive | P1 | ✅ 已覆盖 | `BookControlPluginTests.swift` | `storageLocationResetIgnoredWhenSceneInactive` |
 | 33 | 行为 | Deletion of current chapter resets playback | P1 | ✅ 已覆盖 | `BookControlPluginTests.swift` | `deletionOfCurrentChapterResetsPlayback` |
 | 34 | 行为 | Scene change invalidates pending deletion reset | P1 | ✅ 已覆盖 | `BookControlPluginTests.swift` | `sceneChangeInvalidatesPendingDeletionReset` |
+| 35 | 状态 | 无播放能力时初始化使用默认状态 | P0 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `initWithNilPlaybackHasDefaultState` |
+| 36 | 状态 | 初始化采用播放能力的播放态与播放模式 | P0 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `initWithPlaybackAdoptsPlaybackState` |
+| 37 | 场景 | 切到目标场景激活控制 | P0 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `sceneChangeToTargetActivatesControl` |
+| 38 | 场景 | 切到其他场景停用控制 | P0 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `sceneChangeToOtherSceneDeactivatesControl` |
+| 39 | 场景 | 场景变为 nil 时停用控制 | P1 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `sceneChangeToNilDeactivatesControl` |
+| 40 | 状态 | 状态变化同步播放态与载入态 | P0 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `applyStateChangedUpdatesIsPlaying` |
+| 41 | 行为 | 载入期间忽略播放/暂停切换 | P0 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `toggleIsIgnoredWhileLoading` |
+| 42 | 状态 | 播放模式变化同步播放模式 | P0 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `applyPlayModeChangedUpdatesPlayMode` |
+| 43 | 行为 | 播放/暂停切换转发到播放能力 | P0 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `toggleCallsPlaybackToggle` |
+| 44 | 行为 | 无播放能力时切换播放提示不可用 | P1 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `toggleWithNilPlaybackReportsError` |
+| 45 | 行为 | 播放模式切换转发到播放能力 | P0 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `togglePlayModeCallsPlaybackTogglePlayMode` |
+| 46 | 行为 | 无播放能力时切换播放模式提示不可用 | P1 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `togglePlayModeWithNilPlaybackReportsError` |
+| 47 | 行为 | 无当前章节时上一章提示不可用 | P1 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `previousWithNoCurrentURLReportsError` |
+| 48 | 行为 | 无当前章节时下一章提示不可用 | P1 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `nextWithNoCurrentURLReportsError` |
+| 49 | 提示 | 错误面板使用来源窗口标识 | P1 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `setSourceWindowIDIsUsedInErrorPresentation` |
+| 50 | 缓存 | 书库刷新清空章节缓存 | P1 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `handleBookDBRefreshedClearsChapterCache` |
+| 51 | 行为 | 无播放能力时存储重置不崩溃 | P1 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `handleStorageLocationDidResetWithNilPlaybackDoesNotCrash` |
+| 52 | 行为 | 无播放能力时删除事件不崩溃 | P1 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `handleBookDBDeletedWithNilPlaybackDoesNotCrash` |
+| 53 | 行为 | 场景未激活时忽略上一章请求 | P1 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `handlePreviousRequestedWithInactiveSceneDoesNotNavigate` |
+| 54 | 行为 | 场景未激活时忽略下一章请求 | P1 | ✅ 已覆盖 | `BookControlViewModelTests.swift` | `handleNextRequestedWithInactiveSceneDoesNotNavigate` |
 
 ## 覆盖率统计
 
-- P0: 18 / 18 ✅
-- P1: 16 / 16 ✅
+- P0: 27 / 27 ✅
+- P1: 27 / 27 ✅
 - P2: 0 / 0
 
-**总计: 34 / 34**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
+**总计: 54 / 54**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
 
 ## 测试文件
 
 - `BookControlPluginTests.swift` — 34 条用例
+- `BookControlViewModelTests.swift` — 20 条用例
 
 ## 优先级说明
 

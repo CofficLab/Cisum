@@ -43,11 +43,12 @@
 | 10 | 视图模型 | 仓库为空时不得呈现占位（引导接管该区域） | P0 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `idlePlaceholderHiddenWhenLibraryIsEmpty` |
 | 11 | 视图模型 | 有当前曲目时占位必须让位给真实封面 | P0 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `idlePlaceholderYieldsToRealHeroWhenTrackIsSelected` |
 | 12 | 视图模型 | 非音乐场景不得呈现占位 | P1 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `idlePlaceholderHiddenOutsideMusicScene` |
+| 13 | 文案 | 下载态标签只含「正在下载」，不带百分比 | P1 | ✅ 已覆盖 | `PlaybackHeroTests.swift` | `downloadLabelCarriesNoPercentage` |
 
 ## 覆盖率统计
 
 - P0: 6 / 6 ✅
-- P1: 3 / 3 ✅
+- P1: 4 / 4 ✅
 - P2: 4 / 4 ✅
 
 **总计: 13 / 13**（本包 `Tests/` 中已声明的 `@Test` 全部登记）

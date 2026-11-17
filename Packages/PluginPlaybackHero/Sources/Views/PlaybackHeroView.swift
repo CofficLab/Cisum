@@ -8,7 +8,6 @@ import SwiftUI
 struct PlaybackHeroView: View {
     @ObservedObject private var viewModel: PlaybackHeroViewModel
     @LumiTheme private var appTheme
-    @LumiMotionPreferenceReader private var motionPreference
 
     private let titleViewHeight: CGFloat = 60
     private let isDemoMode: Bool
@@ -26,12 +25,7 @@ struct PlaybackHeroView: View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 if viewModel.isHeroVisible, shouldShowAlbum(in: geometry) {
-                    if viewModel.state.isDownloading {
-                        downloadingAlbumView
-                            .frame(maxWidth: .infinity)
-                            .frame(height: albumHeight(in: geometry))
-                            .clipped()
-                    } else if isDemoMode {
+                    if isDemoMode {
                         demoAlbumView
                             .frame(maxWidth: .infinity)
                             .frame(height: albumHeight(in: geometry))
@@ -60,11 +54,9 @@ struct PlaybackHeroView: View {
                         .foregroundStyle(appTheme.textPrimary)
                         .shadow(color: appTheme.background.opacity(0.18), radius: 8, y: 2)
 
-                    // 标题下方**不再**渲染下载状态行：引擎的 `localizedStateText()`
-                    // 在下载态下已自带百分比（如「正在下载 0%」），这里再拼一次
-                    // 前缀就会显示成「0% 正在下载 0%」——同一行两个百分比。
-                    // 下载进度改由封面区的大圆环（cisum.player.download.overlay）独占
-                    // 呈现；该圆环仅在控制区高度 > 450pt 时渲染。
+                    // 标题下方**不再**渲染下载状态行：载入态由控制区插槽
+                    // 内的载入横幅统一呈现（名称、百分比、取消/重试）。
+                    // 封面区保持正常封面，不再用大圆环重复同一进度。
                 } else if viewModel.showsIdlePlaceholder {
                     // 占位态的提示文案：占据真实播放器里「曲目标题」的位置，
                     // 让这一屏看起来仍像一个播放器，而不是一块说明卡片。
@@ -116,51 +108,5 @@ struct PlaybackHeroView: View {
     private var idlePlaceholderAlbumView: some View {
         Image.coffeeReelIcon(useDefaultBackground: true, handleRotation: 0)
             .shadowXxxl()
-    }
-
-    private var downloadingAlbumView: some View {
-        ZStack {
-            Circle()
-                .stroke(appTheme.textTertiary.opacity(0.18), lineWidth: 8)
-                .frame(width: 200, height: 200)
-
-            Circle()
-                .trim(from: 0, to: downloadProgress)
-                .stroke(
-                    appTheme.primary,
-                    style: StrokeStyle(lineWidth: 8, lineCap: .round)
-                )
-                .frame(width: 200, height: 200)
-                .rotationEffect(.degrees(-90))
-                .animation(
-                    LumiMotion.enabled(.easeInOut(duration: 0.2), preference: motionPreference),
-                    value: downloadProgress
-                )
-
-            VStack(spacing: 8) {
-                Text("\(Int(downloadProgress * 100))%")
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .foregroundStyle(appTheme.textPrimary)
-                    .accessibilityIdentifier("cisum.player.download.progress")
-                // 底部小字只写「正在下载」：圆环中心已单独显示百分比，
-                // 这里再带百分比就会同一屏出现两个百分比
-                // （历史上曾拼成「0% 正在下载 0%」）。
-                Text(viewModel.localizedDownloadingLabel())
-                    .font(.system(size: 14))
-                    .foregroundStyle(appTheme.textSecondary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
-                    .accessibilityIdentifier("cisum.player.download.state")
-            }
-            .padding(.horizontal, 24)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(appTheme.elevatedSurface.opacity(0.55))
-        .accessibilityIdentifier("cisum.player.download.overlay")
-    }
-
-    private var downloadProgress: CGFloat {
-        guard case let .loading(.downloading(progress)) = viewModel.state else { return 0 }
-        return CGFloat(min(max(progress.isFinite ? progress : 0, 0), 1))
     }
 }

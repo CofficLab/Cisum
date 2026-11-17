@@ -276,6 +276,27 @@ struct ControlButtonsViewModelTests {
     }
 
     @Test
+    func iCloudFailureOutsideTargetScenePresentsNoError() {
+        let toast = ToastProbe()
+        let viewModel = ControlButtonsViewModel(
+            playback: nil,
+            toast: toast,
+            targetScene: .music,
+            currentScene: .music
+        )
+        viewModel.handleSceneChange(.audiobooks)
+
+        // 有声书的 iCloud 载入失败会经同一个播放 Provider 广播过来，
+        // 但提示归有声书自己的横幅，音乐按钮组不得弹模态。
+        viewModel.applyStateChanged(.failed(.iCloudDownloadFailed("timed out")))
+        #expect(toast.errors.isEmpty)
+
+        // 其它失败在有声书场景仍要提示，避免静默失败。
+        viewModel.applyStateChanged(.failed(.invalidAsset))
+        #expect(toast.errors.count == 1)
+    }
+
+    @Test
     func sceneChangeInvalidatesPendingNavigation() async throws {
         let playback = PlaybackProbe()
         let current = URL(fileURLWithPath: "/tmp/current.mp3")

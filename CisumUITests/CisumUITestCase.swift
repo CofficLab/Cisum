@@ -286,6 +286,19 @@ class CisumUITestBase: XCTestCase {
         return !element.exists
     }
 
+    /// 等待某个元素消失。
+    ///
+    /// 点击后 UI 重算不是同步完成的：元素会在下一帧才退出可访问性树，
+    /// 因此不能点完立刻断言「不存在」，要留出一个渲染窗口。
+    func waitForDisappearance(_ element: XCUIElement, timeout: TimeInterval = 10) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if !element.exists { return true }
+            Thread.sleep(forTimeInterval: 0.25)
+        }
+        return !element.exists
+    }
+
     func switchScene(to labels: [String]) {
         #if os(macOS)
         let sceneID = labels.contains(where: { ["Music Library", "音乐仓库"].contains($0) })

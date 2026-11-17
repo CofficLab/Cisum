@@ -10,12 +10,20 @@ import Testing
 @MainActor
 private final class PlaybackProbe: BookLibraryPlaybackCapability {
     var currentURL: URL?
+    var state: PlaybackStatus = .idle
 
     var played: [(url: URL, startTime: TimeInterval?)] = []
     private var observers: [UUID: (BookLibraryPlaybackEvent) -> Void] = [:]
 
     func emitAssetChanged(_ url: URL?) {
+        currentURL = url
         let event = BookLibraryPlaybackEvent.assetChanged(url: url)
+        for observer in observers.values { observer(event) }
+    }
+
+    func emitStateChanged(_ state: PlaybackStatus) {
+        self.state = state
+        let event = BookLibraryPlaybackEvent.stateChanged(state)
         for observer in observers.values { observer(event) }
     }
 
@@ -131,6 +139,29 @@ struct PlaybackObserverTests {
     }
 
     @Test
+    func forwardsStateChangedEvents() async throws {
+        let folderURL = URL(fileURLWithPath: "/tmp/Lib/BookA")
+        let chapterURL = folderURL.appendingPathComponent("chapter01.mp3")
+        let provider = BookProbe()
+        provider.booksValue = [BookDTO(url: folderURL, bookTitle: "BookA", childCount: 1, isCollection: true, order: 0)]
+
+        let viewModel = BookGridViewModel()
+        viewModel.bind(library: provider)
+        viewModel.handleOnAppear()
+        try await Task.sleep(for: .milliseconds(400))
+
+        let probe = PlaybackProbe()
+        let observer = PlaybackObserver(playback: probe, viewModel: viewModel)
+        defer { observer.cancel() }
+
+        probe.emitAssetChanged(chapterURL)
+        probe.emitStateChanged(.loading(.downloading(0.42)))
+
+        #expect(viewModel.isLoadingBook(folderURL))
+        #expect(viewModel.downloadProgress == 0.42)
+    }
+
+    @Test
     func cancellingObserverStopsForwarding() {
         let probe = PlaybackProbe()
         let viewModel = BookGridViewModel()
@@ -180,6 +211,48 @@ struct DBObserverTests {
 
         provider.emit(.librarySyncing)
         #expect(!viewModel.isSyncing)
+    }
+}
+
+// MARK: - BookGridLoadingPolicy
+
+@MainActor
+struct BookGridLoadingPolicyTests {
+    private func makeBook(url: URL) -> BookDTO {
+        BookDTO(url: url, bookTitle: url.lastPathComponent, childCount: 1, isCollection: true, order: 0)
+    }
+
+    @Test
+    func mapsChapterToParentCollection() {
+        let folderURL = URL(fileURLWithPath: "/tmp/Lib/BookA")
+        let chapterURL = folderURL.appendingPathComponent("chapter01.mp3")
+        let otherURL = URL(fileURLWithPath: "/tmp/Lib/BookB")
+        let books = [makeBook(url: folderURL), makeBook(url: otherURL)]
+
+        #expect(BookGridLoadingPolicy.bookURL(forChapter: chapterURL, in: books) == folderURL)
+    }
+
+    @Test
+    func mapsSingleFileBookExactly() {
+        let bookURL = URL(fileURLWithPath: "/tmp/Lib/standalone.mp3")
+        let books = [makeBook(url: bookURL)]
+
+        #expect(BookGridLoadingPolicy.bookURL(forChapter: bookURL, in: books) == bookURL)
+    }
+
+    @Test
+    func unknownChapterHasNoBook() {
+        let books = [makeBook(url: URL(fileURLWithPath: "/tmp/Lib/BookA"))]
+
+        #expect(BookGridLoadingPolicy.bookURL(forChapter: URL(fileURLWithPath: "/tmp/Other/x.mp3"), in: books) == nil)
+    }
+
+    @Test
+    func badgeProgressHidesZeroAndClamps() {
+        #expect(BookGridLoadingPolicy.badgeProgress(0) == nil)
+        #expect(BookGridLoadingPolicy.badgeProgress(0.42) == 0.42)
+        #expect(BookGridLoadingPolicy.badgeProgress(1.5) == 1)
+        #expect(BookGridLoadingPolicy.progressLabel(0.425) == "43%")
     }
 }
 
@@ -252,6 +325,90 @@ struct BookGridViewModelTests {
         viewModel.handleAssetChanged(bookURL)
         viewModel.handleAssetChanged(nil)
         #expect(viewModel.selectedBookURL == nil)
+    }
+
+    @Test
+    func downloadingStateBadgesParentBookOnly() async throws {
+        let folderURL = URL(fileURLWithPath: "/tmp/Lib/BookA")
+        let otherURL = URL(fileURLWithPath: "/tmp/Lib/BookB")
+        let chapterURL = folderURL.appendingPathComponent("chapter01.mp3")
+        let provider = BookProbe()
+        provider.booksValue = [
+            makeBook(url: folderURL, childCount: 1, isCollection: true),
+            makeBook(url: otherURL, childCount: 1, isCollection: true),
+        ]
+
+        let viewModel = BookGridViewModel()
+        viewModel.bind(library: provider)
+        viewModel.handleOnAppear()
+        try await Task.sleep(for: .milliseconds(400))
+
+        viewModel.handleAssetChanged(chapterURL)
+        viewModel.handlePlaybackStateChanged(.loading(.downloading(0.42)))
+
+        #expect(viewModel.isLoadingBook(folderURL))
+        #expect(!viewModel.isLoadingBook(otherURL))
+        #expect(viewModel.downloadProgress == 0.42)
+    }
+
+    @Test
+    func zeroProgressIsIndeterminate() async throws {
+        let chapterURL = URL(fileURLWithPath: "/tmp/Lib/BookA/chapter01.mp3")
+        let provider = BookProbe()
+        let bookURL = URL(fileURLWithPath: "/tmp/Lib/BookA")
+        provider.booksValue = [makeBook(url: bookURL, childCount: 1, isCollection: true)]
+
+        let viewModel = BookGridViewModel()
+        viewModel.bind(library: provider)
+        viewModel.handleOnAppear()
+        try await Task.sleep(for: .milliseconds(400))
+
+        viewModel.handleAssetChanged(chapterURL)
+        viewModel.handlePlaybackStateChanged(.loading(.downloading(0)))
+
+        #expect(viewModel.isLoadingBook(bookURL))
+        #expect(viewModel.downloadProgress == nil)
+    }
+
+    @Test
+    func failureClearsBadge() async throws {
+        let chapterURL = URL(fileURLWithPath: "/tmp/Lib/BookA/chapter01.mp3")
+        let provider = BookProbe()
+        let bookURL = URL(fileURLWithPath: "/tmp/Lib/BookA")
+        provider.booksValue = [makeBook(url: bookURL, childCount: 1, isCollection: true)]
+
+        let viewModel = BookGridViewModel()
+        viewModel.bind(library: provider)
+        viewModel.handleOnAppear()
+        try await Task.sleep(for: .milliseconds(400))
+
+        viewModel.handleAssetChanged(chapterURL)
+        viewModel.handlePlaybackStateChanged(.loading(.downloading(0.42)))
+        #expect(viewModel.isLoadingBook(bookURL))
+
+        // 失败由控制区横幅承载，网格只清除标注。
+        viewModel.handlePlaybackStateChanged(.failed(.iCloudDownloadFailed("timeout")))
+        #expect(!viewModel.isLoadingBook(bookURL))
+        #expect(viewModel.downloadProgress == nil)
+    }
+
+    @Test
+    func assetChangeClearsBadge() async throws {
+        let bookURL = URL(fileURLWithPath: "/tmp/Lib/BookA")
+        let provider = BookProbe()
+        provider.booksValue = [makeBook(url: bookURL, childCount: 1, isCollection: true)]
+
+        let viewModel = BookGridViewModel()
+        viewModel.bind(library: provider)
+        viewModel.handleOnAppear()
+        try await Task.sleep(for: .milliseconds(400))
+
+        viewModel.handleAssetChanged(bookURL.appendingPathComponent("chapter01.mp3"))
+        viewModel.handlePlaybackStateChanged(.loading(.downloading(0.42)))
+        viewModel.handleAssetChanged(nil)
+
+        #expect(!viewModel.isLoadingBook(bookURL))
+        #expect(viewModel.downloadProgress == nil)
     }
 
     @Test

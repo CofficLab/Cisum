@@ -27,6 +27,8 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     private weak var playback: (any BookControlPlaybackCapability)?
     private weak var library: (any BookControlLibraryCapability)?
     @Published private(set) var isPlaying = false
+    /// 载入等待中：播放按钮暂时不可用，避免在下载/连接阶段切换播放态。
+    @Published private(set) var isLoading = false
     @Published private(set) var playMode: PlaybackMode = .sequence
     private weak var toast: (any BookControlToastCapability)?
     private var controlGeneration = 0
@@ -52,6 +54,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
         self.toast = toast
         if let playback {
             isPlaying = playback.isPlaying
+            isLoading = playback.isLoading
             playMode = playback.playMode
         }
     }
@@ -73,6 +76,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
 
     func applyStateChanged(_ state: PlaybackStatus) {
         isPlaying = state == .playing
+        isLoading = state.isLoading
     }
 
     func applyPlayModeChanged(_ mode: PlaybackMode) {
@@ -80,6 +84,7 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     }
 
     func toggle() {
+        guard !isLoading else { return }
         guard let playback else {
             reportUnavailable(operation: "toggle playback")
             return

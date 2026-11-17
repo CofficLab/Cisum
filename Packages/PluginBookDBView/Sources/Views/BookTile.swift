@@ -74,7 +74,9 @@ struct BookTile: View, SuperThread, SuperLog, Equatable {
     private let verbose = false
     
     private var noCover: Bool { cover == nil }
-    
+
+    private var isDownloading: Bool { viewModel.isLoadingBook(url) }
+
     var url: URL
     var title: String
     var childCount: Int
@@ -149,6 +151,24 @@ struct BookTile: View, SuperThread, SuperLog, Equatable {
         }
         .frame(width: tileSize.width)
         .frame(height: tileSize.height)
+        .overlay(alignment: .topTrailing) {
+            if isDownloading {
+                BookTileLoadingBadge(progress: viewModel.downloadProgress)
+                    .padding(8)
+                    .allowsHitTesting(false)
+            }
+        }
+        .overlay(alignment: .bottomLeading) {
+            if isDownloading, let progress = viewModel.downloadProgress {
+                GeometryReader { proxy in
+                    Rectangle()
+                        .fill(Color.white)
+                        .frame(width: proxy.size.width * progress, height: 3)
+                }
+                .frame(height: 3)
+                .allowsHitTesting(false)
+            }
+        }
         .task(id: BookTileLoadIdentity(bookURL: url, dbRoot: dependencies.dbRoot, stateRevision: stateRevision)) {
             await loadTileData()
         }
@@ -201,6 +221,36 @@ extension BookTile {
 #else
         return nil
 #endif
+    }
+}
+
+// MARK: - Loading badge
+
+/// 书块右上角的载入胶囊：来源（iCloud）+ 真实百分比；
+/// 0% 时改用不确定指示器，避免冻结的 0% 被读作卡死。
+private struct BookTileLoadingBadge: View {
+    let progress: Double?
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "icloud.and.arrow.down")
+                .font(.caption2)
+
+            if let progress {
+                Text(verbatim: BookGridLoadingPolicy.progressLabel(progress))
+                    .font(.caption2)
+                    .monospacedDigit()
+            } else {
+                ProgressView()
+                    .controlSize(.mini)
+                    .tint(.white)
+            }
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Capsule().fill(Color.black.opacity(0.55)))
+        .accessibilityHidden(true)
     }
 }
 

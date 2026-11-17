@@ -17,15 +17,15 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "KitMagic", path: "../MagicKit"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.12.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.17.1"),
         .package(path: "../ProviderBook"),
         .package(name: "KitPlayback", path: "../MagicPlayMan"),
-        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.0"),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.1"),
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
         .package(path: "../ProviderScene"),
         .package(path: "../ProviderPlayback"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.18.0")
+        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.23.0")
     ],
     targets: [
         .target(
