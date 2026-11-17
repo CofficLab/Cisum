@@ -562,6 +562,7 @@ private final class BookControlPlaybackProbe: BookControlPlaybackCapability {
     var currentURL: URL?
     var state: PlaybackStatus = .paused
     var isPlaying: Bool { state.isPlaying }
+    var isLoading: Bool { state.isLoading }
     var playMode: PlaybackMode = .sequence
     var toggleCount = 0
     var togglePlayModeCount = 0
