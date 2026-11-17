@@ -25,6 +25,7 @@ final class RootLayoutViewModel: ObservableObject {
     private var hasCurrentAsset = false
     private var isRepositoryEmpty = false
     private var isMusicSceneActive = true
+    private var isAudiobooksSceneActive = false
     /// 仓库是否**确认非空**（与「确认为空」互斥）。
     private var isRepositoryKnownNonEmpty = false
 
@@ -42,6 +43,7 @@ final class RootLayoutViewModel: ObservableObject {
         hasCurrentAsset = environment.currentURL != nil
         if let scene = environment.currentScene {
             isMusicSceneActive = scene == .music
+            isAudiobooksSceneActive = scene == .audiobooks
         }
         applyRepositoryScanState(environment.repositoryScanState)
         recomputeHeroVisibility()
@@ -54,6 +56,7 @@ final class RootLayoutViewModel: ObservableObject {
                 self.recomputeHeroVisibility()
             case .sceneChanged(let scene):
                 self.isMusicSceneActive = (scene == .music)
+                self.isAudiobooksSceneActive = (scene == .audiobooks)
                 self.recomputeHeroVisibility()
             case .repositoryEmpty:
                 self.isRepositoryEmpty = true
@@ -106,7 +109,10 @@ final class RootLayoutViewModel: ObservableObject {
         let hasRealHero = hasCurrentAsset && !(isMusicSceneActive && isRepositoryEmpty)
         // idle 占位只出现在音乐场景，且必须「仓库确认非空」。
         let hasIdlePlaceholder = isMusicSceneActive && !hasCurrentAsset && isRepositoryKnownNonEmpty
-        isPlaybackHeroPresenting = hasRealHero || hasIdlePlaceholder
+        // 有声书场景没有正在播放的章节时，控制区要么呈现「挑一本」占位，
+        // 要么呈现空仓库引导；两者都需要展开的控制区高度。
+        let hasBookIdlePlaceholder = isAudiobooksSceneActive && !hasCurrentAsset
+        isPlaybackHeroPresenting = hasRealHero || hasIdlePlaceholder || hasBookIdlePlaceholder
     }
 
     func start() {

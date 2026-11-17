@@ -7,7 +7,7 @@ import Testing
 
 /// 空仓库引导插槽的行为约束：
 /// - 激活态由插件驱动，插槽自身只负责广播；
-/// - 控制区在「激活 + 封面未呈现 + 高度足够」时才渲染引导；
+/// - 控制区在「激活 + 高度足够」时渲染引导，且优先于封面区；
 /// - 引导占据顶部主要区域，播放控件与进度顺势沉到下方。
 @MainActor
 struct ControlGuideSlotTests {
@@ -60,10 +60,18 @@ struct ControlGuideSlotTests {
         return edge.red > edge.blue
     }
 
-    /// 控制区渲染需要封面区处于「未呈现」态，否则引导与封面互斥规则会让引导不出现。
+    /// 控制区渲染需要封面区处于「未呈现」态，否则封面区会占用顶部区域。
     private func withHeroHidden(_ body: () throws -> Void) rethrows {
         let previous = ControlHeroVisibility.shared.isVisible
         ControlHeroVisibility.shared.isVisible = false
+        defer { ControlHeroVisibility.shared.isVisible = previous }
+        try body()
+    }
+
+    /// 模拟有声书 idle 占位：无章节时封面插件仍会声明呈现态。
+    private func withHeroVisible(_ body: () throws -> Void) rethrows {
+        let previous = ControlHeroVisibility.shared.isVisible
+        ControlHeroVisibility.shared.isVisible = true
         defer { ControlHeroVisibility.shared.isVisible = previous }
         try body()
     }
@@ -160,6 +168,30 @@ struct ControlGuideSlotTests {
             let guidePixel = try pixel(control, x: 100, y: guideY)
             let guide = try #require(guidePixel)
             #expect(guide.red > 200 && guide.green < 60)
+        }
+    }
+
+    @Test
+    func activeSlotOverridesVisibleHero() throws {
+        try withHeroVisible {
+            let slot = ControlGuideSlot(
+                guideView: AnyView(Color.red)
+            )
+            slot.isActive = true
+
+            let control = ControlView(
+                stateViews: { [] },
+                stateMessage: { "" },
+                isDemoMode: false,
+                heroView: AnyView(Color.blue),
+                guideSlot: slot
+            )
+
+            // 有声书 idle 占位会声明封面呈现态，但空仓库画面由引导接管：
+            // 引导出现，封面区不再渲染。
+            let rendered = try pixels(control)
+            #expect(containsColor(rendered, red: 180...255, green: 0...80, blue: 0...80))
+            #expect(!containsColor(rendered, red: 0...80, green: 0...80, blue: 180...255))
         }
     }
 

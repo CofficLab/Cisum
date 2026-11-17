@@ -43,6 +43,7 @@ ProviderControlView 定义根布局顶部「播放控制区」的提供能力：
 | 6 | 五个槽位逐一替换/清除不影响其他槽位，实际内容正确 | P0 | ✅ 已覆盖 | `injectedSlotsReplaceAndClearIndependently` |
 | 7 | demo 模式最终渲染不包含消息或状态贡献 | P1 | ✅ 已覆盖 | `demoStateViewRendersNeitherMessageNorContributions` |
 | 8 | 普通模式渲染贡献，空状态保持空白 | P1 | ✅ 已覆盖 | `normalStateViewRendersContributionsAndEmptyStateStaysEmpty` |
+| 9 | 空仓库引导优先于封面区：有声书 idle 占位声明封面呈现态时，引导仍接管画面且封面不渲染 | P1 | ✅ 已覆盖 | `activeSlotOverridesVisibleHero` |
 
 > 7 个测试方法已在 macOS 运行，iOS 未实跑。通过 ImageRenderer 比较纯色色块像素，不反射 AnyView；不改动 shared 状态，不代表完整播放器布局的 UI 测试。统计仅表示清单场景，不是源码覆盖率。
 

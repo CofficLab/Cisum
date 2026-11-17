@@ -5,7 +5,7 @@ import PackageDescription
 //
 // ## 本地 vendor 的原因
 //
-// 上游 https://github.com/CofficLab/LumiPluginSettingView 尚未适配 visionOS：
+// 上游 https://github.com/lumi-softworks/LumiPluginSettingView 尚未适配 visionOS：
 // `SettingViewProvider.swift` 里的 `CurrentAppIconView` / `MobilePluginSettingsShell`
 // 用 `#elseif os(iOS)` 分流，visionOS 落到空分支，导致
 // "cannot find 'CurrentAppIconView' in scope"。vendor 到本地后把这些分支
@@ -24,10 +24,10 @@ let package = Package(
         .library(name: "PluginSettingView", targets: ["PluginSettingView"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.1"),
-        .package(url: "https://github.com/CofficLab/LumiLocalization.git", from: "1.0.2"),
-        .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.1.1"),
-        .package(url: "https://github.com/CofficLab/LumiUI.git", from: "1.17.1"),
+        .package(url: "https://github.com/lumi-softworks/LumiKernel.git", from: "1.1.1"),
+        .package(url: "https://github.com/lumi-softworks/LumiLocalization.git", from: "1.0.2"),
+        .package(url: "https://github.com/lumi-softworks/LumiSettings.git", from: "1.1.1"),
+        .package(url: "https://github.com/lumi-softworks/LumiUI.git", from: "1.17.1"),
     ],
     targets: [
         .target(

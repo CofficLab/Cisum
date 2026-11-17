@@ -42,7 +42,7 @@ struct RootLayoutView: View {
             ZStack {
                 themeRegistry.chromeTheme.makeGlobalBackground(proxy: geometry)
 
-                // 场景色调叠加层：根据当前场景叠加微妙色调，区分不同场景氛围
+                // 场景色调叠加层：按主题强调色为各场景铺出不同的整体渐变
                 sceneTintOverlay
                     .ignoresSafeArea()
                     .allowsHitTesting(false)
@@ -175,17 +175,45 @@ struct RootLayoutView: View {
         #endif
     }
 
-    /// 场景色调叠加层：根据当前场景叠加微妙色调，区分不同场景氛围。
+    /// 场景色调叠加层：根据当前场景叠加整体渐变，区分不同场景氛围。
     ///
-    /// 音乐场景使用冷蓝色调，有声书场景使用暖棕色调。
-    /// 色调透明度较低，仅作为氛围点缀，不影响内容可读性。
+    /// 颜色取自当前外壳主题的强调色（`accentColors()`），场景只决定使用
+    /// 哪一档强调色与渐变方向：音乐偏主强调色、左上向右下铺开；有声书偏
+    /// 三级强调色、左下向右上铺开。主题切换时 `themeRegistry` 触发重绘，
+    /// 色调随之变化。透明度较低，仅作为氛围点缀，不影响内容可读性。
     @ViewBuilder
     private var sceneTintOverlay: some View {
+        let accents = themeRegistry.chromeTheme.accentColors()
+
         switch currentScene {
         case .music:
-            Color(red: 0.10, green: 0.18, blue: 0.32).opacity(0.15)
+            ZStack {
+                LinearGradient(
+                    colors: [accents.primary.opacity(0.20), accents.secondary.opacity(0.08), Color.clear],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                RadialGradient(
+                    colors: [accents.primary.opacity(0.14), Color.clear],
+                    center: .bottomTrailing,
+                    startRadius: 0,
+                    endRadius: 520
+                )
+            }
         case .audiobooks:
-            Color(red: 0.32, green: 0.20, blue: 0.10).opacity(0.15)
+            ZStack {
+                LinearGradient(
+                    colors: [accents.tertiary.opacity(0.20), accents.secondary.opacity(0.08), Color.clear],
+                    startPoint: .bottomLeading,
+                    endPoint: .topTrailing
+                )
+                RadialGradient(
+                    colors: [accents.tertiary.opacity(0.14), Color.clear],
+                    center: .topLeading,
+                    startRadius: 0,
+                    endRadius: 520
+                )
+            }
         case nil:
             Color.clear
         }

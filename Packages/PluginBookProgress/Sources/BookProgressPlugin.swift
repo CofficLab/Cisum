@@ -41,6 +41,12 @@ public final class BookProgressPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private var toastCapability: BookProgressToastCapabilityAdapter?
     nonisolated(unsafe) private var progressViewModel: BookProgressViewModel?
     nonisolated(unsafe) private var progressObserver: BookProgressObserver?
+    /// 控制区进度条（与持久化 ViewModel 分离，只负责显示与拖动）。
+    nonisolated(unsafe) private var barCapability: BookProgressBarCapabilityAdapter?
+    nonisolated(unsafe) private var barViewModel: BookProgressBarViewModel?
+    nonisolated(unsafe) private var barObserver: BookProgressBarObserver?
+    /// 场景激活句柄：进度条只在本插件自己的有声书场景登记。
+    nonisolated(unsafe) private var sceneHandle: (any SceneProvidingObserverHandle)?
 
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
@@ -64,6 +70,7 @@ public final class BookProgressPlugin: AsyncSuperPlugin, SuperLog {
     public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         if Self.verbose { os_log("\(Self.t)🟢 onReady") }
         installState(kernel: kernel)
+        installSceneActivation(kernel: kernel)
     }
 
     @MainActor
@@ -71,17 +78,23 @@ public final class BookProgressPlugin: AsyncSuperPlugin, SuperLog {
         self.kernel = kernel
         if Self.verbose { os_log("\(Self.t)✅ onEnable") }
         installState(kernel: kernel)
+        installSceneActivation(kernel: kernel)
     }
 
     @MainActor
     public func onDisable(kernel: KernelCoreContainer) async throws {
         if Self.verbose { os_log("\(Self.t)⏹️ onDisable") }
+        sceneHandle?.cancel()
+        sceneHandle = nil
         teardownState()
     }
 
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         if Self.verbose { os_log("\(Self.t)🛑 onShutdown") }
+        kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        sceneHandle?.cancel()
+        sceneHandle = nil
         sceneBox.scene = nil
         teardownState()
     }
@@ -92,11 +105,48 @@ public final class BookProgressPlugin: AsyncSuperPlugin, SuperLog {
         return AnyView(BookProgressPluginRootView(viewModel: viewModel, content: content))
     }
 
+    /// 向播放控制区注入有声书章节进度条（由场景激活决定是否登记）。
+    @MainActor
+    public func addProgressView() -> AnyView? {
+        if let kernel {
+            installState(kernel: kernel)
+        }
+        guard let barViewModel else { return nil }
+        return AnyView(BookProgressBarView(viewModel: barViewModel))
+    }
+
+    /// 有声书场景才登记进度条；其他场景撤下，交给该场景自己的进度插件。
+    @MainActor
+    private func installSceneActivation(kernel: KernelCoreContainer) {
+        guard let scene = kernel.resolveProvider((any SceneProviding).self) else { return }
+        applyScene(scene.currentScene, kernel: kernel)
+
+        guard sceneHandle == nil else { return }
+        sceneHandle = scene.addObserver { [weak self] event in
+            guard case let .selectionChanged(newScene) = event else { return }
+            guard let self, let kernel = self.kernel else { return }
+            self.applyScene(newScene, kernel: kernel)
+        }
+    }
+
+    @MainActor
+    private func applyScene(_ scene: AppScene?, kernel: KernelCoreContainer) {
+        guard let contribution = kernel.resolveProvider((any PluginContributionProviding).self) else { return }
+        guard scene == .audiobooks else {
+            contribution.remove(owner: id)
+            return
+        }
+        guard let view = addProgressView() else { return }
+        contribution.addProgressView(ownerPluginID: id, view)
+    }
+
     // MARK: - State assembly
 
     /// 创建并持有播放进度 ViewModel 与观察者（幂等）。
     @MainActor
     private func installState(kernel: KernelCoreContainer) {
+        installBarState(kernel: kernel)
+
         guard progressViewModel == nil else { return }
 
         guard let scene = kernel.resolveProvider((any SceneProviding).self),
@@ -133,11 +183,31 @@ public final class BookProgressPlugin: AsyncSuperPlugin, SuperLog {
         progressObserver = observer
     }
 
+    /// 组装控制区进度条状态（与持久化 ViewModel 相互独立）。
+    @MainActor
+    private func installBarState(kernel: KernelCoreContainer) {
+        guard barViewModel == nil else { return }
+        guard let playbackProvider = kernel.resolveProvider((any PlaybackProviding).self) else { return }
+
+        let capability = BookProgressBarCapabilityAdapter(
+            playback: playbackProvider,
+            books: kernel.resolveProvider(BookDatabaseProviding.self)
+        )
+        let viewModel = BookProgressBarViewModel(playback: capability)
+        barCapability = capability
+        barViewModel = viewModel
+        barObserver = BookProgressBarObserver(playback: capability, viewModel: viewModel)
+    }
+
     @MainActor
     private func teardownState() {
         progressObserver?.cancel()
         progressObserver = nil
         progressViewModel = nil
+        barObserver?.cancel()
+        barObserver = nil
+        barViewModel = nil
+        barCapability = nil
         playbackCapability = nil
         libraryCapability = nil
         sceneCapability = nil

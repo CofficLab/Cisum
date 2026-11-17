@@ -8,8 +8,8 @@ let package = Package(
         .library(name: "ProviderSettingsHost", targets: ["ProviderSettingsHost"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/CofficLab/LumiSettings.git", from: "1.1.1"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.23.0"),
+        .package(url: "https://github.com/lumi-softworks/LumiSettings.git", from: "1.1.1"),
+        .package(url: "https://github.com/lumi-softworks/LumiProviders.git", from: "1.23.0"),
     ],
     targets: [
         .target(

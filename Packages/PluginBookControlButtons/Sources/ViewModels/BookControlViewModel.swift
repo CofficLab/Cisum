@@ -29,7 +29,6 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     @Published private(set) var isPlaying = false
     /// 载入等待中：播放按钮暂时不可用，避免在下载/连接阶段切换播放态。
     @Published private(set) var isLoading = false
-    @Published private(set) var playMode: PlaybackMode = .sequence
     private weak var toast: (any BookControlToastCapability)?
     private var controlGeneration = 0
     private var currentScene: AppScene?
@@ -55,7 +54,6 @@ final class BookControlViewModel: ObservableObject, SuperLog {
         if let playback {
             isPlaying = playback.isPlaying
             isLoading = playback.isLoading
-            playMode = playback.playMode
         }
     }
 
@@ -77,10 +75,6 @@ final class BookControlViewModel: ObservableObject, SuperLog {
     func applyStateChanged(_ state: PlaybackStatus) {
         isPlaying = state == .playing
         isLoading = state.isLoading
-    }
-
-    func applyPlayModeChanged(_ mode: PlaybackMode) {
-        playMode = mode
     }
 
     func toggle() {
@@ -114,14 +108,6 @@ final class BookControlViewModel: ObservableObject, SuperLog {
         handleNextRequested(asset)
     }
 
-    func togglePlayMode() {
-        guard let playback else {
-            reportUnavailable(operation: "change playback mode")
-            return
-        }
-        playback.togglePlayMode()
-    }
-
     private func activateControl() {
         guard shouldActivateControl else {
             if Self.verbose {
@@ -130,7 +116,13 @@ final class BookControlViewModel: ObservableObject, SuperLog {
             return
         }
 
-        guard playback != nil else { return }
+        guard let playback else { return }
+
+        // 有声书不提供播放模式切换；置为顺序播放，避免从音乐继承的
+        // 循环/随机模式影响章节导航。
+        if playback.playMode != .sequence {
+            playback.setPlayMode(.sequence)
+        }
     }
 
     private func deactivateControl() {

@@ -51,7 +51,6 @@ public enum PluginIDCompatibility {
         "com.coffic.cisum.plugin.book-db-data": "BookDBDataPlugin",
         "com.coffic.cisum.plugin.book-db-view": "BookDBViewPlugin",
         "com.coffic.cisum.plugin.book-like": "BookLikePlugin",
-        "com.coffic.cisum.plugin.book-play-mode": "BookPlayModePlugin",
         "com.coffic.cisum.plugin.book-progress": "BookProgressPlugin",
         "com.coffic.cisum.plugin.book-scene": "BookScenePlugin",
         "com.coffic.cisum.plugin.book-settings": "BookSettingsPlugin",

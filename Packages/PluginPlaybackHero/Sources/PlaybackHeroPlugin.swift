@@ -40,6 +40,8 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private var libraryCapability: HeroLibraryCapabilityAdapter?
     nonisolated(unsafe) private var sceneCapability: HeroSceneCapabilityAdapter?
     nonisolated(unsafe) private var observer: PlaybackHeroObserver?
+    /// 场景激活句柄：封面贡献只在本插件自己的音乐场景登记。
+    nonisolated(unsafe) private var sceneHandle: (any SceneProvidingObserverHandle)?
 
     @MainActor
     public func onRegister(kernel: KernelCoreContainer) throws {
@@ -57,19 +59,27 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         installState(kernel: kernel)
+        installSceneActivation(kernel: kernel)
+    }
 
-        guard let contribution = kernel.resolveProvider((any PluginContributionProviding).self) else { return }
-        if let view = addHeroView() {
-            contribution.addHeroView(ownerPluginID: id, view)
-        }
-        if let view = addRightAlbumView() {
-            contribution.addRightAlbumView(ownerPluginID: id, view)
-        }
+    @MainActor
+    public func onEnable(kernel: KernelCoreContainer) async throws {
+        self.kernel = kernel
+        installState(kernel: kernel)
+        installSceneActivation(kernel: kernel)
+    }
+
+    @MainActor
+    public func onDisable(kernel: KernelCoreContainer) async throws {
+        sceneHandle?.cancel()
+        sceneHandle = nil
     }
 
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        sceneHandle?.cancel()
+        sceneHandle = nil
         observer?.cancel()
         observer = nil
         viewModel = nil
@@ -78,6 +88,35 @@ public final class PlaybackHeroPlugin: AsyncSuperPlugin, SuperLog {
         libraryCapability = nil
         sceneCapability = nil
         self.kernel = nil
+    }
+
+    /// 音乐场景才登记封面贡献；切到其他场景时撤下，交给该场景自己的插件。
+    @MainActor
+    private func installSceneActivation(kernel: KernelCoreContainer) {
+        guard let scene = kernel.resolveProvider((any SceneProviding).self) else { return }
+        applyScene(scene.currentScene, kernel: kernel)
+
+        guard sceneHandle == nil else { return }
+        sceneHandle = scene.addObserver { [weak self] event in
+            guard case let .selectionChanged(newScene) = event else { return }
+            guard let self, let kernel = self.kernel else { return }
+            self.applyScene(newScene, kernel: kernel)
+        }
+    }
+
+    @MainActor
+    private func applyScene(_ scene: AppScene?, kernel: KernelCoreContainer) {
+        guard let contribution = kernel.resolveProvider((any PluginContributionProviding).self) else { return }
+        guard scene == .music else {
+            contribution.remove(owner: id)
+            return
+        }
+        if let view = addHeroView() {
+            contribution.addHeroView(ownerPluginID: id, view)
+        }
+        if let view = addRightAlbumView() {
+            contribution.addRightAlbumView(ownerPluginID: id, view)
+        }
     }
 
     /// 向 `ControlViewProviding` 注入封面/标题区视图。

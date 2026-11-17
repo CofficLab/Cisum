@@ -35,6 +35,40 @@
         }
       }
     },
+    "Pick an audiobook to start listening": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick an audiobook to start listening"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选一本有声书开始收听"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選一本有聲書開始收聽"
+          }
+        },
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選一本有聲書開始收聽"
+          }
+        },
+        "zh-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選一本有聲書開始收聽"
+          }
+        }
+      }
+    },
     "Enter Audiobook Library": {
       "localizations": {
         "en": {

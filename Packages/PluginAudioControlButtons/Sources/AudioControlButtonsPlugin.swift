@@ -39,6 +39,8 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
     nonisolated(unsafe) private var observer: ControlButtonsObserver?
     nonisolated(unsafe) private var repositoryObserver: RepositoryStateObserver?
     nonisolated(unsafe) private var visibilityObserver: ContentVisibilityObserver?
+    /// 场景激活句柄：音乐按钮组只在本插件自己的音乐场景登记。
+    nonisolated(unsafe) private var sceneHandle: (any SceneProvidingObserverHandle)?
 
     /// 本插件消费的能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式
     /// 强持有，否则能力会随装配调用返回而释放。
@@ -68,15 +70,16 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
         self.kernel = kernel
         teardownState()
         try installState(kernel: kernel)
-        registerContribution(kernel: kernel)
+        installSceneActivation(kernel: kernel)
     }
 
     @MainActor
     public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
-        guard viewModel == nil else { return }
-        try installState(kernel: kernel)
-        registerContribution(kernel: kernel)
+        if viewModel == nil {
+            try installState(kernel: kernel)
+        }
+        installSceneActivation(kernel: kernel)
     }
 
     /// 组装 ViewModel、Observer 与四项能力 Adapter（幂等由调用方保证）。
@@ -143,12 +146,16 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
 
     @MainActor
     public func onDisable(kernel: KernelCoreContainer) async throws {
+        sceneHandle?.cancel()
+        sceneHandle = nil
         teardownState()
     }
 
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        sceneHandle?.cancel()
+        sceneHandle = nil
         teardownState()
         self.kernel = nil
     }
@@ -176,6 +183,30 @@ public final class AudioControlButtonsPlugin: AsyncSuperPlugin {
         guard let view = addControlButtonsView(),
               let contribution = kernel.resolveProvider((any PluginContributionProviding).self) else { return }
         contribution.addControlButtonsView(ownerPluginID: id, view)
+    }
+
+    /// 音乐场景才登记按钮组；其他场景交给该场景自己的控制插件。
+    @MainActor
+    private func installSceneActivation(kernel: KernelCoreContainer) {
+        guard let scene = kernel.resolveProvider((any SceneProviding).self) else { return }
+        applyScene(scene.currentScene, kernel: kernel)
+
+        guard sceneHandle == nil else { return }
+        sceneHandle = scene.addObserver { [weak self] event in
+            guard case let .selectionChanged(newScene) = event else { return }
+            guard let self, let kernel = self.kernel else { return }
+            self.applyScene(newScene, kernel: kernel)
+        }
+    }
+
+    @MainActor
+    private func applyScene(_ scene: AppScene?, kernel: KernelCoreContainer) {
+        guard let contribution = kernel.resolveProvider((any PluginContributionProviding).self) else { return }
+        guard scene == .music else {
+            contribution.remove(owner: id)
+            return
+        }
+        registerContribution(kernel: kernel)
     }
 
     @MainActor
