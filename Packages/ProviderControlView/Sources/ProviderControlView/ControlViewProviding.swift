@@ -45,6 +45,12 @@ public protocol ControlViewProviding: AnyObject, ObservableObject {
     /// 顶部渲染引导视图，播放控件与进度顺势下沉。
     func setGuideSlot(_ slot: ControlGuideSlot?)
 
+    /// 注入「载入中」插槽（替代状态行 + 进度行）。
+    ///
+    /// 插槽激活时，控制区在原本两行所占的高度内渲染插槽视图；引导插槽
+    /// 优先——空仓库不可能同时有内容在载入。
+    func setLoadingSlot(_ slot: ControlLoadingSlot?)
+
     /// 设置播放控制区的演示模式。
     func setDemoMode(_ enabled: Bool)
 
@@ -60,6 +66,7 @@ public extension ControlViewProviding {
     func setControlButtonsView(_ view: AnyView?) {}
     func setRightAlbumView(_ view: AnyView?) {}
     func setGuideSlot(_ slot: ControlGuideSlot?) {}
+    func setLoadingSlot(_ slot: ControlLoadingSlot?) {}
     @discardableResult
     func addObserver(_ callback: @escaping (ControlViewProvidingEvent) -> Void) -> any ControlViewProvidingObserverHandle {
         NoopControlViewProvidingObserverHandle()

@@ -200,6 +200,7 @@ struct ControlViewProviderTests {
         provider.setRightAlbumView(customView)
         provider.setDemoMode(true)
         provider.setGuideSlot(nil)
+        provider.setLoadingSlot(ControlLoadingSlot.inactive)
 
         #expect(handle is NoopControlViewProvidingObserverHandle)
         handle.cancel()
