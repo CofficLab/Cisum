@@ -21,6 +21,9 @@ let package = Package(
         .package(url: "https://github.com/lumi-softworks/LumiKernel.git", from: "1.1.1"),
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
+        .package(name: "ProviderBook", path: "../ProviderBook"),
+        .package(name: "ProviderPlayback", path: "../ProviderPlayback"),
+        .package(name: "ProviderControlView", path: "../ProviderControlView"),
         .package(path: "../ProviderScene"),
         .package(url: "https://github.com/lumi-softworks/LumiProviders.git", from: "1.23.0"),
     ],
@@ -33,6 +36,9 @@ let package = Package(
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
+                .product(name: "ProviderBook", package: "ProviderBook"),
+                .product(name: "ProviderPlayback", package: "ProviderPlayback"),
+                .product(name: "ProviderControlView", package: "ProviderControlView"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
             ],
@@ -44,7 +50,10 @@ let package = Package(
         ),
         .testTarget(
             name: "BookScenePluginTests",
-            dependencies: ["PluginBookScene"],
+            dependencies: [
+                "PluginBookScene",
+                .product(name: "ProviderBook", package: "ProviderBook"),
+            ],
             path: "Tests"
         )
     ]
