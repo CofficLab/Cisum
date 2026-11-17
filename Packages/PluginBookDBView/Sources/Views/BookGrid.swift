@@ -191,6 +191,8 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
                                     }
                                     .accessibilityElement(children: .combine)
                                     .accessibilityLabel(BookGridSelectionPolicy.selectionLabel(bookTitle: item.bookTitle))
+                                    .accessibilityValue(accessibilityValue(for: item))
+                                    .accessibilityIdentifier(accessibilityIdentifier(for: item))
                                     .accessibilityAddTraits(.isButton)
                                     .accessibilityAction {
                                         viewModel.handleBookTap(book: item)
@@ -214,6 +216,20 @@ struct BookGrid: View, SuperLog, SuperThread, SuperEvent {
         .onDisappear {
             viewModel.handleOnDisappear()
         }
+    }
+
+    /// 载入中的书块把进度并入替代文本，避免胶囊在合并元素里丢失。
+    private func accessibilityValue(for item: BookDTO) -> Text {
+        guard viewModel.isLoadingBook(item.url) else { return Text(verbatim: "") }
+        return Text(verbatim: BookGridLoadingPolicy.accessibilityValue(
+            bookTitle: item.bookTitle,
+            progress: viewModel.downloadProgress
+        ))
+    }
+
+    /// 载入中的书块向 UI 测试暴露专属标识。
+    private func accessibilityIdentifier(for item: BookDTO) -> String {
+        viewModel.isLoadingBook(item.url) ? "cisum.book.download.badge" : ""
     }
 }
 

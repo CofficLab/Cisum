@@ -26,8 +26,9 @@ container itself.
     `droppedFileURL(from:)`).
   - `BookGridViewModel` — `ObservableObject`; `@Published` `books`, `bookURLIndex`,
     `isLoading`, `isSyncing`, `selectedBookURL`, `syncingTotal/Current`,
-    `lastStateUpdatedURL`; debounced book loading; `handleBookTap` resumes saved
-    playback state before playing.
+    `lastStateUpdatedURL`, `loadingBookURL`, `downloadProgress`; debounced book
+    loading; `handleBookTap` resumes saved playback state before playing; the
+    loading fields badge the tapped book while its chapter downloads from iCloud.
   - `BookListViewModel` / `BookTreeViewModel` — independent settings-only loaders so
     the settings pane does not share state with the main window.
   - `BookGrid`, `BookList`, `BookTile` (cover + deterministic colored placeholder),
@@ -37,11 +38,14 @@ container itself.
   - `BookPlaybackOrdering` — recursive playable-file scan, relative-path ordering,
     same-file/containment checks.
   - `BookTreeNode` / `BookTreeBuilder` — outline-group-friendly directory tree.
-  - `BookGridViewModel` consumes `PlaybackProviding` directly for chapter playback.
+  - `BookGridViewModel` consumes the narrowed `BookLibraryPlaybackCapability`
+    (`currentURL`, `state`, `play`, asset/state events) instead of
+    `PlaybackProviding` itself.
   - `DBObserver` / `PlaybackObserver` — forward book-provider and playback events to
     the grid view model.
   - Policy helpers: `BookGridUpdatePolicy`, `BookGridPlaybackRequestPolicy`,
-    `BookGridSelectionPolicy`, `BookGridPlayableChildrenLoader` (cached scan),
+    `BookGridSelectionPolicy`, `BookGridLoadingPolicy` (chapter → book mapping and
+    badge progress), `BookGridPlayableChildrenLoader` (cached scan),
     `BookTileColorPolicy`, `BookTileStateRefreshPolicy`, `BookTileLoadIdentity`.
   - Dependency containers: `BookDBViewDependencies` (main content) and
     `BookDBDependencies` (settings).
