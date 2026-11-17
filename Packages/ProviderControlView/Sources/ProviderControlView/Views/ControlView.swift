@@ -78,6 +78,7 @@ struct ControlView: View {
                         loadingArea
                             .frame(height: loadingHeight(for: geometry))
                             .frame(maxWidth: .infinity)
+                            .padding(.bottom, 10)
                     } else {
                         stateArea
                             .frame(height: stateHeight(for: geometry))
