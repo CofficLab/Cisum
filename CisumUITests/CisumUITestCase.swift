@@ -35,6 +35,15 @@ func skipOnVisionOS(_ reason: String) throws {
 class CisumUITestBase: XCTestCase {
     var app: XCUIApplication!
 
+    /// 无扩展名的展示标题。
+    ///
+    /// 曲库行与 hero 的标题都展示去掉扩展名的文件名，行匹配统一用
+    /// 无扩展名版本：`CONTAINS` 对新旧展示形态都能命中，fixture 名
+    /// （本就无扩展名）与 seed 名（带 `.wav`）同样成立。
+    static func displayTitle(of fileName: String) -> String {
+        (fileName as NSString).deletingPathExtension
+    }
+
     /// 启动参数。
     ///
     /// ## 默认隔离

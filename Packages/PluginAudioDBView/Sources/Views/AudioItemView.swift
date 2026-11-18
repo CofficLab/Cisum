@@ -66,10 +66,9 @@ extension AudioItemView {
 
                 // 文件信息部分
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(url.lastPathComponent)
+                    Text(url.deletingPathExtension().lastPathComponent)
                         .font(.headline)
                         .lineLimit(1)
-                        .accessibilityIdentifier("cisum.audio-library.item.title")
 
                     HStack {
                         AudioItemFileSizeLabel(
@@ -82,63 +81,69 @@ extension AudioItemView {
                 Spacer()
             }
         }
-        #if os(macOS)
-            .contextMenu {
-                Button(action: playAudio) {
-                    Label {
-                        Text("Play", bundle: .module)
-                    } icon: {
-                        Image(systemName: "play.fill")
-                    }
+        // visionOS 的 List 行不会作为 button 进入可访问性树（见
+        // CisumVisionOSUITests 的记录），Voice Control / 切换控制用户无法
+        // 激活行。显式合并子元素并声明按钮特征，让行始终可被辅助功能激活。
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("cisum.audio-library.item.title")
+        .accessibilityAddTraits(.isButton)
+        .contextMenu {
+            Button(action: playAudio) {
+                Label {
+                    Text("Play", bundle: .module)
+                } icon: {
+                    Image(systemName: "play.fill")
                 }
+            }
 
-                if AudioItemFileActionPolicy.canRevealInFinder(url) {
-                    Button {
-                        showInFinder()
-                    } label: {
-                        Label {
-                            Text("Show in Finder", bundle: .module)
-                        } icon: {
-                            Image(systemName: "finder")
-                        }
-                    }
-                }
-
+            #if os(macOS)
+            if AudioItemFileActionPolicy.canRevealInFinder(url) {
                 Button {
-                    exportToDownloads()
+                    showInFinder()
                 } label: {
                     Label {
-                        Text("Export to Downloads", bundle: .module)
+                        Text("Show in Finder", bundle: .module)
                     } icon: {
-                        Image(systemName: "arrow.down.doc")
-                    }
-                }
-
-                Divider()
-
-                if url.checkIsICloud(verbose: false) && url.isDownloaded {
-                    Button {
-                        showRemoveDownloadConfirmation = true
-                    } label: {
-                        Label {
-                            Text("Remove Download", bundle: .module)
-                        } icon: {
-                            Image(systemName: "arrow.down.circle")
-                        }
-                    }
-                }
-
-                Button(role: .destructive) {
-                    showDeleteConfirmation = true
-                } label: {
-                    Label {
-                        Text("Delete", bundle: .module)
-                    } icon: {
-                        Image(systemName: "trash")
+                        Image(systemName: "finder")
                     }
                 }
             }
-        #endif
+
+            Button {
+                exportToDownloads()
+            } label: {
+                Label {
+                    Text("Export to Downloads", bundle: .module)
+                } icon: {
+                    Image(systemName: "arrow.down.doc")
+                }
+            }
+            #endif
+
+            Divider()
+
+            if url.checkIsICloud(verbose: false) && url.isDownloaded {
+                Button {
+                    showRemoveDownloadConfirmation = true
+                } label: {
+                    Label {
+                        Text("Remove Download", bundle: .module)
+                    } icon: {
+                        Image(systemName: "arrow.down.circle")
+                    }
+                }
+            }
+
+            Button(role: .destructive) {
+                showDeleteConfirmation = true
+            } label: {
+                Label {
+                    Text("Delete", bundle: .module)
+                } icon: {
+                    Image(systemName: "trash")
+                }
+            }
+        }
             .confirmationDialog(
                 Text("Delete this file?", bundle: .module),
                 isPresented: $showDeleteConfirmation,

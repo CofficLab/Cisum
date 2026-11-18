@@ -33,6 +33,12 @@ final class MagicProgressBarTests: XCTestCase {
         XCTAssertEqual(MagicProgressBarPolicy.formattedTime(.nan), "0:00")
     }
 
+    func testFormattedTimeUsesHourMinuteSecondFormatBeyondOneHour() {
+        XCTAssertEqual(MagicProgressBarPolicy.formattedTime(3600), "1:00:00")
+        XCTAssertEqual(MagicProgressBarPolicy.formattedTime(3661), "1:01:01")
+        XCTAssertEqual(MagicProgressBarPolicy.formattedTime(7325), "2:02:05")
+    }
+
     @MainActor
     func testProgressBarBindingClampsAndReportsEffectiveSeekTime() {
         var currentTime: TimeInterval = 150

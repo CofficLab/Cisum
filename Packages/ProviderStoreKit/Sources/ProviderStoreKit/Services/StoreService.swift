@@ -5,6 +5,9 @@ import OSLog
 import ProviderStore
 import StoreKit
 import SwiftUI
+#if os(visionOS)
+    import UIKit
+#endif
 
 // MARK: - Typealias
 
@@ -186,7 +189,8 @@ public enum StoreService: SuperLog {
 
     // MARK: - Pay
 
-    /// 发起购买（按商品 ID）。
+#if !os(visionOS)
+    /// 发起购买（按商品 ID）。macOS / iOS 的购买面板无需场景承载。
     @discardableResult
     public static func purchase(_ product: ProductDTO) async throws -> Transaction? {
         let products = try await Product.products(for: [product.id])
@@ -200,50 +204,59 @@ public enum StoreService: SuperLog {
             os_log("\(self.t)🏬 Starting purchase")
         }
 
-        #if os(visionOS)
-            // visionOS 的 StoreKit 没有无场景的 `purchase(options:)`：购买面板
-            // 必须由一个 `UIScene` 承载，而「当前场景」只有 UI 层知道。
-            // 机制层（KitStoreKit）为此提供了 `purchase(productID:scene:)`，
-            // 但 Cisum 的购买入口目前没有把场景传进来。
-            //
-            // 这里明确抛错而不是静默返回 nil：静默失败会让用户点了购买按钮
-            // 却毫无反馈，比报错更难排查。
-            throw StoreError.purchaseUnsupportedOnPlatform
-        #else
-            let result = try await product.purchase()
+        let result = try await product.purchase()
+        return try await handlePurchaseResult(result)
+    }
+#else
+    /// 发起购买（visionOS）：StoreKit 的购买面板必须由一个 `UIScene` 承载，
+    /// 调用方传入承载购买按钮的当前场景，面板会在该场景的窗口内弹出。
+    @discardableResult
+    public static func purchase(_ product: ProductDTO, confirmIn scene: UIScene) async throws -> Transaction? {
+        let products = try await Product.products(for: [product.id])
+        guard let storekitProduct = products.first else { return nil }
 
-            switch result {
-            case let .success(verification):
-                if verbose {
-                    os_log("\(self.t)🧐 Purchase succeeded, verifying")
-                }
-                // Check whether the transaction is verified. If it isn't,
-                // this function rethrows the verification error.
-                let transaction = try checkVerified(verification)
+        if verbose {
+            os_log("\(self.t)🏬 Starting purchase")
+        }
 
-                if verbose {
-                    os_log("\(self.t)✅ Purchase verification succeeded")
-                }
+        let result = try await storekitProduct.purchase(confirmIn: scene)
+        return try await handlePurchaseResult(result)
+    }
+#endif
 
-                // Update StoreState.
-                await updateStoreStateAfterPurchase(transaction)
-
-                // Always finish a transaction.
-                await transaction.finish()
-
-                return transaction
-            case .userCancelled, .pending:
-                if verbose {
-                    os_log("\(self.t)Purchase was canceled or is pending")
-                }
-                return nil
-            default:
-                if verbose {
-                    os_log("\(self.t)Purchase result: \(String(describing: result))")
-                }
-                return nil
+    /// 验证交易、更新 StoreState 并 finish；取消/待定映射为 nil。
+    private static func handlePurchaseResult(_ result: Product.PurchaseResult) async throws -> Transaction? {
+        switch result {
+        case let .success(verification):
+            if verbose {
+                os_log("\(self.t)🧐 Purchase succeeded, verifying")
             }
-        #endif
+            // Check whether the transaction is verified. If it isn't,
+            // this function rethrows the verification error.
+            let transaction = try checkVerified(verification)
+
+            if verbose {
+                os_log("\(self.t)✅ Purchase verification succeeded")
+            }
+
+            // Update StoreState.
+            await updateStoreStateAfterPurchase(transaction)
+
+            // Always finish a transaction.
+            await transaction.finish()
+
+            return transaction
+        case .userCancelled, .pending:
+            if verbose {
+                os_log("\(self.t)Purchase was canceled or is pending")
+            }
+            return nil
+        default:
+            if verbose {
+                os_log("\(self.t)Purchase result: \(String(describing: result))")
+            }
+            return nil
+        }
     }
 
     /// 恢复购买。
@@ -443,7 +456,7 @@ struct SubscriptionStatusSnapshot: Equatable, Sendable {
 public enum StoreError: Error, LocalizedError {
     case failedVerification
     case canNotGetProducts
-    /// 当前平台不支持发起购买（如 visionOS 的购买面板必须绑定场景）。
+    /// 发起购买时未拿到承载购买面板的场景（visionOS）。
     case purchaseUnsupportedOnPlatform
 
     public var errorDescription: String? {

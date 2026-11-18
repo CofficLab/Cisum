@@ -71,7 +71,7 @@ final class CisumPlayerHeroAndLibraryUITests: CisumUITestBase {
         try ensureMusicScene()
 
         let track = app.buttons.matching(
-            NSPredicate(format: "label CONTAINS %@", seedAudioName)
+            NSPredicate(format: "label CONTAINS %@", Self.displayTitle(of: seedAudioName))
         ).firstMatch
         guard track.waitForExistence(timeout: 30) else {
             throw XCTSkip("seed 音频未出现在音乐仓库")
@@ -165,7 +165,7 @@ final class CisumPlayerHeroAndLibraryUITests: CisumUITestBase {
         try ensureMusicScene()
 
         let track = app.buttons.matching(
-            NSPredicate(format: "label CONTAINS %@", seedAudioName)
+            NSPredicate(format: "label CONTAINS %@", Self.displayTitle(of: seedAudioName))
         ).firstMatch
         guard track.waitForExistence(timeout: 30) else {
             throw XCTSkip("seed 音频未出现在音乐仓库")
@@ -182,7 +182,7 @@ final class CisumPlayerHeroAndLibraryUITests: CisumUITestBase {
         try ensureMusicScene()
 
         let track = app.buttons.matching(
-            NSPredicate(format: "label CONTAINS %@", seedAudioName)
+            NSPredicate(format: "label CONTAINS %@", Self.displayTitle(of: seedAudioName))
         ).firstMatch
         guard track.waitForExistence(timeout: 30) else {
             throw XCTSkip("seed 音频未出现在音乐仓库")

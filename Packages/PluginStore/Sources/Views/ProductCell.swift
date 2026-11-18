@@ -9,6 +9,9 @@ import SwiftUI
 import ProviderStoreKit
 import ProviderStore
 import ProviderStoreKit
+#if os(visionOS)
+    import UIKit
+#endif
 
 struct ProductCell: View, SuperLog {
     @LumiTheme private var appTheme
@@ -19,6 +22,10 @@ struct ProductCell: View, SuperLog {
     @State var btnHovered: Bool = false
     @State var status: Product.SubscriptionInfo.Status?
     @State var current: Product?
+    #if os(visionOS)
+    /// 承载本视图的场景：visionOS 的购买面板必须显式指定呈现场景。
+    @State private var hostingScene: UIScene?
+    #endif
 
     let product: ProductDTO
     let initiallyPurchased: Bool
@@ -105,6 +112,11 @@ struct ProductCell: View, SuperLog {
         .onChange(of: initiallyPurchased) { _, newValue in
             isPurchased = newValue
         }
+        #if os(visionOS)
+        .background {
+            HostingSceneCapture(scene: $hostingScene)
+        }
+        #endif
     }
 
     // MARK: Subviews
@@ -215,7 +227,14 @@ struct ProductCell: View, SuperLog {
                     os_log("\(self.t)🏬 Purchase button tapped")
                 }
 
+                #if os(visionOS)
+                guard let scene = hostingScene else {
+                    throw StoreError.purchaseUnsupportedOnPlatform
+                }
+                let result = try await StoreService.purchase(product, confirmIn: scene)
+                #else
                 let result = try await StoreService.purchase(product)
+                #endif
                 if result != nil {
                     withAnimation {
                         if Self.verbose {
@@ -240,3 +259,21 @@ struct ProductCell: View, SuperLog {
         }
     }
 }
+
+#if os(visionOS)
+/// 捕获承载本视图的 `UIScene`：visionOS 的 StoreKit 购买面板必须由场景呈现。
+private struct HostingSceneCapture: UIViewRepresentable {
+    @Binding var scene: UIScene?
+
+    func makeUIView(context: Context) -> UIView {
+        UIView()
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        let captured = uiView.window?.windowScene
+        DispatchQueue.main.async {
+            scene = captured
+        }
+    }
+}
+#endif

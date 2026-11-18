@@ -15,12 +15,14 @@ struct ControlButtonsView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let buttonSize = AppResponsivePlayerLayoutMetrics.shared.controlButtonSize(
+            let metrics = AppResponsivePlayerLayoutMetrics.shared
+            let buttonSize = Self.controlButtonSize(
                 width: geometry.size.width,
-                areaHeight: geometry.size.height
+                areaHeight: geometry.size.height,
+                metrics: metrics
             )
 
-            HStack(spacing: AppResponsivePlayerLayoutMetrics.shared.controlButtonSpacing) {
+            HStack(spacing: metrics.controlButtonSpacing) {
                 // 「⋯」：展开/收起音乐仓库视图。仓库为空时它自己带上引导气泡。
                 MoreButtonGuidanceView(
                     size: buttonSize,
@@ -67,6 +69,26 @@ struct ControlButtonsView: View {
     }
 
     private let bottomPadding = AppResponsivePlayerLayoutMetrics.shared.controlButtonBottomPadding
+
+    /// visionOS 的注视 / 眼动瞄准目标需要更大直径（HIG 建议 ≥60pt），
+    /// 桌面默认值在 visionOS 上渲染出来只有 36–44pt。预留行高一侧
+    /// （ProviderControlView.ControlView.buttonHeight）用同一数值放大，
+    /// 两处必须保持一致，按钮才不会被行高截断。
+    private static let visionOSButtonFloor: CGFloat = 60
+
+    private static func controlButtonSize(
+        width: CGFloat,
+        areaHeight: CGFloat,
+        metrics: AppResponsivePlayerLayoutMetrics
+    ) -> CGFloat {
+        let size = metrics.controlButtonSize(width: width, areaHeight: areaHeight)
+        #if os(visionOS)
+        let widthLimited = max(0, (width - metrics.controlButtonSpacing * 4) / 5)
+        return min(max(size, visionOSButtonFloor), widthLimited)
+        #else
+        return size
+        #endif
+    }
 
     private var playModeIconName: String {
         switch viewModel.playMode {

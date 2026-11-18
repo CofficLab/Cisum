@@ -28,7 +28,7 @@ final class CisumVisionOSUITests: CisumUITestBase {
     /// `button`；因此这里不能沿用 `app.buttons` 的查法，必须退到「任意元素、
     /// 标签或值包含文件名」——与基类 `element(containing:)` 的口径一致。
     private func seededTrack() -> XCUIElement {
-        element(containing: seededAudioName)
+        element(containing: Self.displayTitle(of: seededAudioName))
     }
 
     /// 启动后必须有可见窗口，且主内容场景（音乐仓库 / 有声书）已渲染。
