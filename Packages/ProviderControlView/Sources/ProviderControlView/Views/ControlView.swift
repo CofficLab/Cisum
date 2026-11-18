@@ -218,7 +218,18 @@ struct ControlView: View {
     }
 
     private func buttonHeight(for geometry: GeometryProxy) -> CGFloat {
-        AppResponsivePlayerLayoutMetrics.shared.controlButtonHeight(width: geometry.size.width, height: geometry.size.height)
+        let reserved = AppResponsivePlayerLayoutMetrics.shared.controlButtonHeight(
+            width: geometry.size.width,
+            height: geometry.size.height
+        )
+        #if os(visionOS)
+        // 与 PluginAudioControlButtons.ControlButtonsView / PluginBookControlButtons
+        // BookControlButtonsView 的按钮直径下限（60pt）保持一致：预留行高必须
+        // 覆盖「直径 + 底部留白」，否则按钮被行高截断。
+        return max(reserved, 60 + AppResponsivePlayerLayoutMetrics.shared.controlButtonBottomPadding)
+        #else
+        return reserved
+        #endif
     }
 
     private let progressContentHeight: CGFloat = 18

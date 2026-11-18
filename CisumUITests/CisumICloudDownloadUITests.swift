@@ -56,7 +56,7 @@ class CisumICloudTestBase: CisumUITestBase {
     }
 
     func seededTrack() -> XCUIElement {
-        app.buttons.matching(NSPredicate(format: "label CONTAINS %@", seededAudioName)).firstMatch
+        app.buttons.matching(NSPredicate(format: "label CONTAINS %@", Self.displayTitle(of: seededAudioName))).firstMatch
     }
 
     /// 确认 seed 曲目已入库（启动恢复播放的前置条件）。
@@ -203,7 +203,7 @@ final class CisumICloudLibraryUITests: CisumUITestBase {
         #endif
         try ensureMusicScene()
 
-        let track = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", seededAudioName)).firstMatch
+        let track = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", Self.displayTitle(of: seededAudioName))).firstMatch
         XCTAssertTrue(track.waitForExistence(timeout: 20), "seed 音频未出现在音乐仓库")
 
         let title = element(identifier: "cisum.audio-library.item.title")

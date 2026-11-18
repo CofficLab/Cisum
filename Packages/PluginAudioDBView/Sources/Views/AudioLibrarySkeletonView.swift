@@ -54,7 +54,7 @@ struct AudioLibrarySkeletonView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(appTheme.background.ignoresSafeArea())
+        .audioDBWindowBackground(appTheme.background)
         .onAppear {
             withAnimation(
                 .easeInOut(duration: 1.4)

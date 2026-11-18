@@ -83,7 +83,7 @@ public struct AudioDBView: View, SuperLog, SuperThread, SuperEvent {
             }
         }
         .frame(maxHeight: .infinity)
-        .background(appTheme.background.ignoresSafeArea())
+        .audioDBWindowBackground(appTheme.background)
         .fileImporter(
             isPresented: $isPresentingImporter,
             allowedContentTypes: [.audio],

@@ -65,6 +65,17 @@ struct BookControlButtonsView: View {
     private func buttonSize(for size: CGSize) -> CGFloat {
         let availableWidth = size.width - buttonSpacing * (buttonCount - 1)
         let availableHeight = size.height - bottomPadding
-        return max(0, min(buttonMaximumSize, availableWidth / buttonCount, availableHeight))
+        let widthLimited = max(0, availableWidth / buttonCount)
+        let diameter = max(0, min(buttonMaximumSize, widthLimited, availableHeight))
+        #if os(visionOS)
+        // 与音乐场景 ControlButtonsView 一致：visionOS 注视瞄准下限 60pt，
+        // 超出宽度预算时按宽度收缩，避免按钮溢出行宽。
+        return min(max(diameter, Self.visionOSButtonFloor), widthLimited)
+        #else
+        return diameter
+        #endif
     }
+
+    /// visionOS 注视 / 眼动瞄准目标的最小直径（HIG 建议 ≥60pt）。
+    private static let visionOSButtonFloor: CGFloat = 60
 }

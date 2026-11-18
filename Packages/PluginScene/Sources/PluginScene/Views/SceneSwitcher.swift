@@ -18,9 +18,17 @@ struct SceneSwitcher: View {
             Button {
                 isPresented.toggle()
             } label: {
-                Image(systemName: current.iconName)
+                HStack(spacing: 6) {
+                    Image(systemName: current.iconName)
+                    // 展开提示：只显示当前场景图标时，用户猜不出这是切换入口。
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
             }
             .accessibilityIdentifier("cisum.scene.switcher")
+            .accessibilityLabel(Text("Switch Scene", bundle: .module))
+            .accessibilityValue(Text(String(localized: String.LocalizationValue(current.displayName), bundle: .module)))
             .popover(isPresented: $isPresented) {
                 PostersView(viewModel: viewModel, dismissAction: { isPresented = false })
                     .frame(minWidth: 350)

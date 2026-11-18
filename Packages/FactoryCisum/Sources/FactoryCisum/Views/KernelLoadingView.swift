@@ -190,7 +190,7 @@ struct KernelLoadingView: View {
                 .font(.system(size: 24, weight: .semibold, design: .rounded))
                 .foregroundStyle(theme.textPrimary)
 
-            Text(stage.messageKey)
+            Text(stage.messageKey, bundle: .module)
                 .font(AppUI.Typography.caption1)
                 .foregroundStyle(theme.textSecondary)
                 .contentTransition(.opacity)

@@ -67,7 +67,7 @@ final class CisumAudioPlaybackUITests: CisumUITestBase {
         #if os(macOS)
         fixtureName
         #else
-        seededAudioName
+        Self.displayTitle(of: seededAudioName)
         #endif
     }
 
@@ -197,8 +197,8 @@ final class CisumAudioPlaybackUITests: CisumUITestBase {
         importFixtureViaFilePicker(fixtureURL: fixtureURL2)
         #else
         try ensureMusicScene()
-        let track1Name = seededAudioName
-        let track2Name = seededAudioName2
+        let track1Name = Self.displayTitle(of: seededAudioName)
+        let track2Name = Self.displayTitle(of: seededAudioName2)
         #endif
 
         _ = try startPlayback(trackName: track1Name)

@@ -88,8 +88,7 @@ struct AudioDBTips: View {
             }
         }
         .padding()
-        .background(appTheme.surface.opacity(0.85))
-        .background(appTheme.background.opacity(0.5))
+        .background(tipsChromeBackground)
         // 空状态铺满整个内容区，圆角会在窗口左右上角露出背景缺口，
         // 因此这里保持直角；阴影只用于衬托圆角卡片，一并去掉。
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -99,6 +98,22 @@ struct AudioDBTips: View {
                 dropZoneBorder
             }
         }
+    }
+
+    /// 提示区底色。
+    ///
+    /// visionOS 上不用实心主题底色，但也不能全透明：`AppEmptyState` 等组件
+    /// 用的是主题固定色文字（深色主题下是白字），直接坐在系统浅色玻璃上会
+    /// 失去对比度，因此铺一层半透明 surface 纱罩——白字有衬底，玻璃质感仍
+    /// 能透出来。其余平台沿用 surface + background 双层，维持原有的卡片层次。
+    @ViewBuilder
+    private var tipsChromeBackground: some View {
+        #if os(visionOS)
+        appTheme.surface.opacity(0.65)
+        #else
+        appTheme.surface.opacity(0.85)
+            .background(appTheme.background.opacity(0.5))
+        #endif
     }
 
     /// 拖放目标标记：虚线描边；拖拽悬停时高亮，提示"可以松手了"。

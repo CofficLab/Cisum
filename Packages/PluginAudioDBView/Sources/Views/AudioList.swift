@@ -261,7 +261,7 @@ struct AudioList: View, SuperLog {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(appTheme.background.ignoresSafeArea())
+        .audioDBWindowBackground(appTheme.background)
         .onAppear {
             viewModel.handleOnAppear()
         }
@@ -353,6 +353,6 @@ struct AudioList: View, SuperLog {
         .listStyle(.plain)
         .contentMargins(.horizontal, 0, for: .scrollContent)
         .scrollContentBackground(.hidden)
-        .background(appTheme.background.ignoresSafeArea())
+        .audioDBWindowBackground(appTheme.background)
     }
 }
