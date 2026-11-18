@@ -3,6 +3,7 @@ import ProviderToast
 import Foundation
 import ProviderAudioNavigation
 import ProviderPlayback
+import ProviderScene
 import Testing
 @testable import PluginAudioControlButtons
 
@@ -65,6 +66,7 @@ private final class PlaybackProbe: PlaybackControlCapability {
     var togglePlayModeCount = 0
     var playedURLs: [URL] = []
     var resetCount = 0
+    private var observers: [UUID: (PlaybackControlEvent) -> Void] = [:]
 
     func toggle() { toggleCount += 1 }
     func togglePlayMode() { togglePlayModeCount += 1 }
@@ -75,7 +77,12 @@ private final class PlaybackProbe: PlaybackControlCapability {
     func addObserver(
         _ callback: @escaping (PlaybackControlEvent) -> Void
     ) -> any PlaybackControlObserverHandle {
-        NoopControlObserverHandle()
+        observers[UUID()] = callback
+        return NoopControlObserverHandle()
+    }
+
+    func emit(_ event: PlaybackControlEvent) {
+        for callback in Array(observers.values) { callback(event) }
     }
 }
 
@@ -108,6 +115,27 @@ private final class ToastProbe: PlaybackControlToastCapability {
     func presentError(title: String, message: String, sourceWindowID: String?) {
         errors.append((title, message, sourceWindowID))
     }
+}
+
+@MainActor
+private final class EnvironmentProbe: PlaybackEnvironmentCapability {
+    var currentScene: AppScene?
+
+    init(currentScene: AppScene?) {
+        self.currentScene = currentScene
+    }
+
+    @discardableResult
+    func addObserver(
+        _ callback: @escaping (PlaybackEnvironmentEvent) -> Void
+    ) -> any PlaybackEnvironmentObserverHandle {
+        NoopEnvironmentObserverHandle()
+    }
+}
+
+@MainActor
+private final class NoopEnvironmentObserverHandle: PlaybackEnvironmentObserverHandle {
+    func cancel() {}
 }
 
 // MARK: - Adapter 转发
@@ -294,6 +322,69 @@ struct ControlButtonsViewModelTests {
         // 其它失败在有声书场景仍要提示，避免静默失败。
         viewModel.applyStateChanged(.failed(.invalidAsset))
         #expect(toast.errors.count == 1)
+    }
+
+    /// 回归：有声书章节播完时，引擎向所有观察者广播 nextRequested；
+    /// 音乐按钮组不在自己的场景，应静默忽略，不得弹「音乐场景未激活」错误。
+    @Test
+    func engineNextRequestOutsideMusicSceneIsIgnoredSilently() async throws {
+        let playback = PlaybackProbe()
+        let chapter = URL(fileURLWithPath: "/tmp/books/Novel/01.m4b")
+        playback.currentURL = chapter
+        let navigation = NavigationProbe()
+        navigation.nextResult = .success(URL(fileURLWithPath: "/tmp/music/next.mp3"))
+        let toast = ToastProbe()
+        let environment = EnvironmentProbe(currentScene: .audiobooks)
+
+        let viewModel = ControlButtonsViewModel(
+            playback: playback,
+            navigation: navigation,
+            toast: toast,
+            targetScene: .music
+        )
+        let observer = ControlButtonsObserver(
+            playback: playback,
+            environment: environment,
+            viewModel: viewModel
+        )
+        defer { observer.cancel() }
+
+        playback.emit(.nextRequested(chapter))
+
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(toast.errors.isEmpty)
+        #expect(playback.playedURLs.isEmpty)
+    }
+
+    /// 回归：previousRequested 广播同理，非音乐场景不得弹错也不得导航。
+    @Test
+    func enginePreviousRequestOutsideMusicSceneIsIgnoredSilently() async throws {
+        let playback = PlaybackProbe()
+        let chapter = URL(fileURLWithPath: "/tmp/books/Novel/02.m4b")
+        playback.currentURL = chapter
+        let navigation = NavigationProbe()
+        navigation.previousResult = .success(URL(fileURLWithPath: "/tmp/music/prev.mp3"))
+        let toast = ToastProbe()
+        let environment = EnvironmentProbe(currentScene: .audiobooks)
+
+        let viewModel = ControlButtonsViewModel(
+            playback: playback,
+            navigation: navigation,
+            toast: toast,
+            targetScene: .music
+        )
+        let observer = ControlButtonsObserver(
+            playback: playback,
+            environment: environment,
+            viewModel: viewModel
+        )
+        defer { observer.cancel() }
+
+        playback.emit(.previousRequested(chapter))
+
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(toast.errors.isEmpty)
+        #expect(playback.playedURLs.isEmpty)
     }
 
     @Test

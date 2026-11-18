@@ -212,10 +212,9 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
     }
 
     func handlePreviousRequested(_ asset: URL, ignoreSceneCheck: Bool = false) {
-        guard shouldActivateControl || ignoreSceneCheck else {
-            presentError(title: String(localized: "Cannot play previous", bundle: .module), message: String(localized: "The music scene is not active.", bundle: .module))
-            return
-        }
+        // 引擎的上一曲/下一曲请求会广播给所有场景的按钮组；
+        // 非本场景时静默忽略（与有声书侧一致），弹错会打扰其它场景的正常播放。
+        guard shouldActivateControl || ignoreSceneCheck else { return }
         guard let playback else {
             reportUnavailable(operation: "play previous")
             return
@@ -256,10 +255,7 @@ final class ControlButtonsViewModel: ObservableObject, SuperLog {
     }
 
     func handleNextRequested(_ asset: URL, ignoreSceneCheck: Bool = false) {
-        guard shouldActivateControl || ignoreSceneCheck else {
-            presentError(title: String(localized: "Cannot play next", bundle: .module), message: String(localized: "The music scene is not active.", bundle: .module))
-            return
-        }
+        guard shouldActivateControl || ignoreSceneCheck else { return }
         guard let playback else {
             reportUnavailable(operation: "play next")
             return
