@@ -1,5 +1,6 @@
 import ProviderDocsView
 import ProviderPlayback
+import ProviderScene
 import LumiUI
 import KernelCore
 import ProviderPlugin
@@ -31,6 +32,8 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private weak var kernel: KernelCoreContainer?
     nonisolated(unsafe) private var viewModel: PlaybackProgressViewModel?
     nonisolated(unsafe) private var observer: PlaybackProgressObserver?
+    /// 场景激活句柄：进度条只在本插件自己的音乐场景登记。
+    nonisolated(unsafe) private var sceneHandle: (any SceneProvidingObserverHandle)?
 
     /// 进度能力 Adapter。ViewModel 以 `weak` 持有，故入口必须显式强持有，
     /// 否则能力会随装配调用返回而释放。
@@ -54,24 +57,28 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
     public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         installState(kernel: kernel)
-        registerContribution(kernel: kernel)
+        installSceneActivation(kernel: kernel)
     }
 
     @MainActor
     public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         installState(kernel: kernel)
-        registerContribution(kernel: kernel)
+        installSceneActivation(kernel: kernel)
     }
 
     @MainActor
     public func onDisable(kernel: KernelCoreContainer) async throws {
+        sceneHandle?.cancel()
+        sceneHandle = nil
         teardownState()
     }
 
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        sceneHandle?.cancel()
+        sceneHandle = nil
         teardownState()
         self.kernel = nil
     }
@@ -85,6 +92,30 @@ public final class PlaybackProgressPlugin: AsyncSuperPlugin, SuperLog {
             PlaybackProgressView(viewModel: viewModel)
                 // .appDebugBadge("Progress Bar", alignment: .bottomLeading)
         )
+    }
+
+    /// 音乐场景才登记进度条贡献；其他场景交给该场景自己的进度插件。
+    @MainActor
+    private func installSceneActivation(kernel: KernelCoreContainer) {
+        guard let scene = kernel.resolveProvider((any SceneProviding).self) else { return }
+        applyScene(scene.currentScene, kernel: kernel)
+
+        guard sceneHandle == nil else { return }
+        sceneHandle = scene.addObserver { [weak self] event in
+            guard case let .selectionChanged(newScene) = event else { return }
+            guard let self, let kernel = self.kernel else { return }
+            self.applyScene(newScene, kernel: kernel)
+        }
+    }
+
+    @MainActor
+    private func applyScene(_ scene: AppScene?, kernel: KernelCoreContainer) {
+        guard let contribution = kernel.resolveProvider((any PluginContributionProviding).self) else { return }
+        guard scene == .music else {
+            contribution.remove(owner: id)
+            return
+        }
+        registerContribution(kernel: kernel)
     }
 
     @MainActor

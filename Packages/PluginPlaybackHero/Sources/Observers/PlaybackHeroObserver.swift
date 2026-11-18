@@ -84,6 +84,10 @@ final class PlaybackHeroObserver: SuperLog {
     ///
     /// 仓库为空时归空仓库引导管：引导占据顶部，Hero 与占位都不出现。
     private func publishHeroVisibility() {
+        // 只有音乐场景的封面归属本 Observer；其他场景（如有声书）由该场景
+        // 自己的封面插件写同一个布局信号，避免两边互相覆盖。
+        guard viewModel?.isMusicSceneActive == true else { return }
+
         guard let viewModel else {
             ControlHeroVisibility.shared.isVisible = true
             return

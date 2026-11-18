@@ -565,12 +565,11 @@ private final class BookControlPlaybackProbe: BookControlPlaybackCapability {
     var isLoading: Bool { state.isLoading }
     var playMode: PlaybackMode = .sequence
     var toggleCount = 0
-    var togglePlayModeCount = 0
     var resetCount = 0
     var playedURLs: [URL] = []
 
     func toggle() { toggleCount += 1 }
-    func togglePlayMode() { togglePlayModeCount += 1 }
+    func setPlayMode(_ mode: PlaybackMode) { playMode = mode }
     func play(_ url: URL, startTime: TimeInterval?) async {
         playedURLs.append(url)
         currentURL = url
@@ -607,14 +606,12 @@ struct BookControlViewModelTests {
     func initReflectsPlaybackState() {
         let playback = BookControlPlaybackProbe()
         playback.state = .playing
-        playback.playMode = .shuffle
         let viewModel = BookControlViewModel(
             targetScene: .audiobooks,
             playback: playback
         )
         viewModel.handleSceneChange(.audiobooks)
         #expect(viewModel.isPlaying)
-        #expect(viewModel.playMode == .shuffle)
         #expect(viewModel.shouldActivateControl)
     }
 

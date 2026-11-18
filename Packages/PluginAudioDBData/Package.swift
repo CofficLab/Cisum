@@ -17,16 +17,16 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.1.1"),
+        .package(url: "https://github.com/lumi-softworks/LumiKernel.git", from: "1.1.1"),
         .package(path: "../KitAppEvents"),
         .package(path: "../ProviderPlugin"),
         .package(name: "KitMagic", path: "../MagicKit"),
-        .package(url: "https://github.com/CofficLab/LumiUI", from: "1.17.1"),
+        .package(url: "https://github.com/lumi-softworks/LumiUI", from: "1.17.1"),
         .package(path: "../ProviderAudioLibrary"),
         .package(path: "../ProviderAudioNavigation"),
         .package(path: "../ProviderStorage"),
         .package(path: "../ProviderStoreKit"),
-        .package(url: "https://github.com/CofficLab/LumiProviders.git", from: "1.23.0"),
+        .package(url: "https://github.com/lumi-softworks/LumiProviders.git", from: "1.23.0"),
     ],
     targets: [
         .target(
