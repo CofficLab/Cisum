@@ -44,18 +44,20 @@
 | 17 | 行为 | Deletion of current asset resets playback | P1 | ✅ 已覆盖 | `ControlButtonsTests.swift` | `deletionOfCurrentAssetResetsPlayback` |
 | 18 | 行为 | Deletion of unrelated asset is ignored | P0 | ✅ 已覆盖 | `ControlButtonsTests.swift` | `deletionOfUnrelatedAssetIsIgnored` |
 | 19 | 状态 | 有声书 iCloud 失败不弹提示（归自己的横幅），其它失败仍提示 | P1 | ✅ 已覆盖 | `ControlButtonsTests.swift` | `iCloudFailureOutsideTargetScenePresentsNoError` |
+| 20 | 行为 | 非音乐场景收到引擎 nextRequested 广播时静默忽略（不弹「音乐场景未激活」、不导航） | P1 | ✅ 已覆盖 | `ControlButtonsTests.swift` | `engineNextRequestOutsideMusicSceneIsIgnoredSilently` |
+| 21 | 行为 | 非音乐场景收到引擎 previousRequested 广播时静默忽略（不弹错、不导航） | P1 | ✅ 已覆盖 | `ControlButtonsTests.swift` | `enginePreviousRequestOutsideMusicSceneIsIgnoredSilently` |
 
 ## 覆盖率统计
 
 - P0: 8 / 8 ✅
-- P1: 11 / 11 ✅
+- P1: 13 / 13 ✅
 - P2: 0 / 0
 
-**总计: 19 / 19**（本包 `Tests/` 中已声明的 `@Test` 全部登记）
+**总计: 21 / 21**（本表登记 `ControlButtonsTests.swift` 的全部 `@Test`；`AudioControlButtonsPluginLifecycleTests.swift` 9 条与 `RepositoryGuidanceTests.swift` 15 条为既有基线，尚未登记，整包实测 45 条）
 
 ## 测试文件
 
-- `ControlButtonsTests.swift` — 19 条用例
+- `ControlButtonsTests.swift` — 21 条用例
 
 ## 优先级说明
 
