@@ -5,8 +5,9 @@ contract and state from LumiProviders, while composing those contributions into
 Cisum's player-specific layout.
 
 `RootViewPlugin` registers the provider during Kernel boot and removes it
-during shutdown. FactoryCisum installs it before feature plugins so those
-plugins can contribute root overlays during their own startup.
+during shutdown. The host plugin factory (`CisumPluginFactory`) lists it before
+feature plugins so those plugins can contribute root overlays during their own
+startup.
 
 ## Source layout
 

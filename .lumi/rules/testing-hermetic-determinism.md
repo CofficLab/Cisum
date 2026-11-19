@@ -212,7 +212,8 @@ XCTAssertLessThan(Date().timeIntervalSince(start), budget, "覆写超时未生�
 
 `UITestIsolation.resetIsolatedRootIfNeeded()` 在 App 启动时**整个根目录删掉重建**。
 
-位置在 `FactoryCisum.createKernel`——内核创建后、任何插件 boot **之前**。
+位置在宿主清单的 `storage.dataRootDirectoryOverride` 闭包（`CisumManifest`）——
+装配引擎创建任何 Provider、任何插件 boot **之前**。
 这是唯一能保证「所有插件都看到干净环境」的位置。
 
 **为什么必须整体重建**：只删磁盘目录不够，**数据库里的行也必须一起清掉**

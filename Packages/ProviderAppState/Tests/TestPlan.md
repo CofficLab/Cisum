@@ -62,7 +62,7 @@ ProviderAppState 提供应用级状态管理服务,包括 Demo 模式、数据�
 - `setContentViewVisible(_ visible: Bool)` - 显式设置内容区显隐（落盘 + 立即生效）
 - `toggleContentView()` - 显式切换内容区显隐（目标态按**当前实际可见性**取反）
 
-> 实现位于 `FactoryCisum`（组合根，唯一同时知道落盘真源与根视图的地方）；
+> 实现位于宿主 `CisumApp`（组合根，唯一同时知道落盘真源与根视图的地方）；
 > 插件只依赖本契约，不依赖任何其他插件的实现包。
 
 ## 测试用例清单

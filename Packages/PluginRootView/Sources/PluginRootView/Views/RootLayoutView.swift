@@ -157,7 +157,7 @@ struct RootLayoutView: View {
     /// 实测均落在 x≈93）。
     ///
     /// 因此本插件只负责声明 placement；把 `titleVisibility` 修正回 `.visible`
-    /// 由 `FactoryCisum.MacToolbarPlacementBridge` 负责（窗口属性属于宿主职责）。
+    /// 由宿主侧窗口桥（LumiFactory `HostWindowBridges`）负责（窗口属性属于宿主职责）。
     ///
     /// ## 为什么 iOS 仍用 `.cancellationAction`
     ///

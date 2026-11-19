@@ -539,7 +539,7 @@
           "build-phase": { "build-phase": "frameworks" },
         }, {
           "package": "ProviderStorage",
-          "product-name": "ProviderStorage",
+          "product-name": "CisumProviderStorage",
           "build-phase": { "build-phase": "frameworks" },
         },
       ],
@@ -590,6 +590,10 @@
         "LD_RUNPATH_SEARCH_PATHS": [
           "$(inherited)",
           "@executable_path/Frameworks",
+        ],
+        "LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]": [
+          "$(inherited)",
+          "@executable_path/../Frameworks",
         ],
         "MACOSX_DEPLOYMENT_TARGET": "14.0",
         "MARKETING_VERSION": "4.4.17",
@@ -713,7 +717,7 @@
           "build-phase": { "build-phase": "frameworks" },
         }, {
           "package": "ProviderStorage",
-          "product-name": "ProviderStorage",
+          "product-name": "CisumProviderStorage",
           "build-phase": { "build-phase": "frameworks" },
         },
       ],
@@ -737,6 +741,7 @@
         "TEST_HOST[sdk=iphone*]": "$(BUILT_PRODUCTS_DIR)/Cisum.app/Cisum",
         "TEST_HOST[sdk=macosx*]": "$(BUILT_PRODUCTS_DIR)/Cisum.app/Contents/MacOS/Cisum",
         "TEST_HOST[sdk=xros*]": "$(BUILT_PRODUCTS_DIR)/Cisum.app/Cisum",
+        "TEST_HOST[sdk=xrsimulator*]": "$(BUILT_PRODUCTS_DIR)/Cisum.app/Cisum",
         "TEST_TARGET_NAME": "Cisum",
         "XROS_DEPLOYMENT_TARGET": "2.0",
       },

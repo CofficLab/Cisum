@@ -41,7 +41,7 @@ let package = Package(
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "ProviderAudioNavigation", package: "ProviderAudioNavigation"),
-                .product(name: "ProviderStorage", package: "ProviderStorage"),
+                .product(name: "CisumProviderStorage", package: "ProviderStorage"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderAppState", package: "ProviderAppState"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),

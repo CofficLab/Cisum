@@ -17,7 +17,7 @@ import Foundation
 ///   用户就会看到一个**点不动的按钮**，以及一个**每次冷启动都只剩空播放器**的界面。
 ///
 /// 本契约把显隐收敛成**一个可解析的服务**：插件只管调用，
-/// 落盘、投影与分歧处理由实现方（`FactoryCisum` 组装的协调器）统一负责。
+/// 落盘、投影与分歧处理由实现方（宿主 CisumApp 组装的协调器）统一负责。
 /// 契约放在 `Provider*` 包里，插件只依赖契约、不依赖对方的实现包。
 @MainActor
 public protocol ContentViewVisibilityProviding: AnyObject {

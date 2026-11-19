@@ -39,7 +39,7 @@ let package = Package(
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "ProviderStoreKit", package: "ProviderStoreKit"),
-                .product(name: "ProviderStorage", package: "ProviderStorage"),
+                .product(name: "CisumProviderStorage", package: "ProviderStorage"),
                 .product(name: "ProviderStore", package: "LumiProviders"),
                 .product(name: "ProviderToast", package: "LumiProviders"),
             ],

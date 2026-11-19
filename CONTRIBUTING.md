@@ -141,7 +141,7 @@ Cisum/
 The package graph must stay within four roles:
 
 ```text
-FactoryCisum
+CisumApp (HostManifest) + LumiFactory (shared assembly engine)
   ├── Plugin*  ── consumes ──> Provider*
   ├── Provider* ── uses ─────> Kit*
   └── Kit*
@@ -152,13 +152,14 @@ FactoryCisum
 | `Kit*` | Reusable foundations not owned by one feature | `MagicKit`, `KitAppEvents`, `KitEventObservation` |
 | `Provider*` | App-facing contracts, domain models, events, observer handles | `ProviderPlayback`, `ProviderStorage` |
 | `Plugin*` | One feature each; consumes others via Provider contracts | `PluginAudioDBView`, `PluginAudioCopy` |
-| `FactoryCisum` | The single composition root | `Packages/FactoryCisum` |
+| `CisumApp` + `LumiFactory` | The composition root: app-side manifest interpreted by the shared remote factory | `CisumApp/CisumManifest.swift` |
 
 Three rules are absolute:
 
 1. **Plugins never depend on each other.** Use a `Provider*` (for data and contracts)
    or `Kit*` (for pure utilities) package instead.
-2. **`FactoryCisum` is the only assembly layer.** Features are wired together there,
+2. **The manifest is the only assembly layer.** Features are wired together in
+   `CisumApp` (via `HostManifest` hooks interpreted by `LumiFactory`),
    never inside a plugin.
 3. **Providers stay pure.** A `Provider*` package declares protocols and data only —
    no SwiftData, SwiftUI, FileManager, or NotificationCenter plumbing.
@@ -261,7 +262,7 @@ Rules that matter in practice:
 | A contract, model, or event shared by features | `Provider*` package |
 | A reusable UI or pure utility | `Kit*` package |
 | Behavior belonging to one feature | `Plugin*` package |
-| App-only wiring | `FactoryCisum` |
+| App-only wiring | `CisumApp` (manifest hooks) |
 
 Avoid capability adapters that merely mirror an entire Provider protocol — that adds
 indirection without narrowing, which is the actual defect the pattern exists to prevent.
@@ -516,14 +517,14 @@ The project follows a strict commit message format:
 ### Scopes
 
 Use the package or component name: `PluginAudioDBView`, `ProviderPlayback`,
-`FactoryCisum`, `MagicKit`, `CisumUITests`.
+`CisumApp`, `MagicKit`, `CisumUITests`.
 
 ### Examples
 
 ```text
 feat(PluginAudioDBData): add capacity gate and sync fallback
 fix(MagicKit): harden JSON int parsing and markdown blank-line collapsing
-refactor(FactoryCisum): assemble the root view before it first appears
+refactor(CisumApp): assemble the root view before it first appears
 chore: update Package.resolved and add screen recorder plugin plan
 ```
 

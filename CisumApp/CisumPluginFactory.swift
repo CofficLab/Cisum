@@ -43,7 +43,7 @@ import PluginToast
 import PluginWelcome
 import ProviderRootView
 
-/// Cisum 的内置插件清单（原 `FactoryCisum.DefaultPluginFactory`）。
+/// Cisum 的内置插件清单。
 ///
 /// 对齐 Wakey：插件清单是宿主差异的一部分，由 App target 维护，
 /// 经 `HostManifest.makePlugins` 交给共享装配引擎。

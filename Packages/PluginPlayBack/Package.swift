@@ -42,7 +42,7 @@ let package = Package(
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderAudioLibrary", package: "ProviderAudioLibrary"),
                 .product(name: "ProviderStorage", package: "LumiProviders"),
-                .product(name: "ProviderStorage", package: "ProviderStorage"),
+                .product(name: "CisumProviderStorage", package: "ProviderStorage"),
             ],
             path: ".",
             exclude: ["README.md", "Tests"],

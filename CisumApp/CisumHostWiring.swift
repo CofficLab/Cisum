@@ -10,7 +10,7 @@ import SwiftUI
 
 /// 启动完成后的 App 域接线（`HostManifest.wireKernel` 钩子）。
 ///
-/// 原 `FactoryCisum.assembleMainView` 的写入部分 + 显隐协调 + 事件订阅。
+/// 插件贡献注入 + 显隐协调 + 事件订阅。
 /// 主视图本身是纯读取（`RootViewProviding.makeRootView()`），由装配引擎
 /// 在视图初始化期组装；这里只负责把插件贡献注入各区域 Provider。
 ///

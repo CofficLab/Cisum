@@ -10,7 +10,7 @@ let package = Package(
         .visionOS(.v2),
     ],
     products: [
-        .library(name: "ProviderStorage", targets: ["CisumProviderStorage"]),
+        .library(name: "CisumProviderStorage", targets: ["CisumProviderStorage"]),
     ],
     dependencies: [
         .package(path: "../KitEventObservation"),

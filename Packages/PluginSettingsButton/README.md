@@ -7,7 +7,7 @@ A small macOS toolbar plugin that adds a gear "Settings" button to the trailing 
 - **Core responsibility:** Surface a settings entry point in the toolbar that opens the same settings window as the menu-bar "Settings…" (⌘,) command.
 - **Key types:**
   - `SettingsButtonPlugin` — `@MainActor final class` conforming to `AsyncSuperPlugin, SuperLog`. `id = "SettingsButtonPlugin"`, `order = 9999`, icon `"gearshape"`, category `.system`, policy `.alwaysOn`.
-  - `SettingsButtonPluginInfo` — enum with `description`, `iconName = "gearshape"`, `toolbarItemId = "settings-button"`, and `settingsWindowID = "cisum.settings"` (mirrored from `FactoryCisum.AppBootstrap.settingsWindowID` to avoid a circular dependency).
+  - `SettingsButtonPluginInfo` — enum with `description`, `iconName = "gearshape"`, `toolbarItemId = "settings-button"`, and `settingsWindowID = "cisum.settings"` (mirrored from the host manifest's `settingsWindowID` to avoid a circular dependency).
   - `SettingsButtonView` — public SwiftUI button that calls `openWindow(id: "cisum.settings")`.
   - Views: `SettingsButtonPluginAboutView`, `SettingsButtonPluginManualView`.
 - **Plugin registration:** Registers as `SettingsButtonPlugin`. `onRegister` contributes About/Manual docs. `onBootAsync` contributes the toolbar button (macOS-only) via `PluginContributionProviding.addToolBarButtons`. `onShutdownAsync` removes the contribution.
