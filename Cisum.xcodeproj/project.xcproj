@@ -15,8 +15,215 @@
   },
   "packages": [
     {
+      "kind": "remote",
+      "repository": "https://github.com/lumi-softworks/LumiFactory.git",
+      "version": {
+        "up-to-next-major-version": "1.7.2",
+      },
+    }, {
+      "kind": "remote",
+      "repository": "https://github.com/lumi-softworks/LumiKernel.git",
+      "version": {
+        "up-to-next-major-version": "1.1.1",
+      },
+    }, {
+      "kind": "remote",
+      "repository": "https://github.com/lumi-softworks/LumiPluginAbout.git",
+      "version": {
+        "up-to-next-major-version": "3.0.0",
+      },
+    }, {
+      "kind": "remote",
+      "repository": "https://github.com/lumi-softworks/LumiPluginCacheManager.git",
+      "version": {
+        "up-to-next-major-version": "1.0.0",
+      },
+    }, {
+      "kind": "remote",
+      "repository": "https://github.com/lumi-softworks/LumiPluginPluginManager.git",
+      "version": {
+        "up-to-next-major-version": "1.7.1",
+      },
+    }, {
+      "kind": "remote",
+      "repository": "https://github.com/lumi-softworks/LumiPluginRootView.git",
+      "version": {
+        "up-to-next-major-version": "1.3.2",
+      },
+    }, {
+      "kind": "remote",
+      "repository": "https://github.com/lumi-softworks/LumiPluginToast.git",
+      "version": {
+        "up-to-next-major-version": "1.2.4",
+      },
+    }, {
+      "kind": "remote",
+      "repository": "https://github.com/lumi-softworks/LumiProviders.git",
+      "version": {
+        "up-to-next-major-version": "1.26.0",
+      },
+    }, {
+      "kind": "remote",
+      "repository": "https://github.com/lumi-softworks/LumiSettings.git",
+      "version": {
+        "up-to-next-major-version": "1.1.2",
+      },
+    }, {
+      "kind": "remote",
+      "repository": "https://github.com/lumi-softworks/LumiThemePack.git",
+      "version": {
+        "up-to-next-major-version": "1.0.13",
+      },
+    }, {
+      "kind": "remote",
+      "repository": "https://github.com/lumi-softworks/LumiUI.git",
+      "version": {
+        "up-to-next-major-version": "1.17.1",
+      },
+    }, {
       "kind": "local",
-      "path": "Packages/FactoryCisum",
+      "path": "Packages/KitEventObservation",
+    }, {
+      "kind": "local",
+      "path": "Packages/LumiPluginSettingView",
+    }, {
+      "kind": "local",
+      "path": "Packages/MagicKit",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginAudio",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginAudioControlButtons",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginAudioCopy",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginAudioDBData",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginAudioDBView",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginAudioDemo",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginAudioDownload",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginAudioLike",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginAudioPlayMode",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginAudioProgress",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginAudioScene",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginAudioSettings",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginAudioWidgetControl",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginBook",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginBookControlButtons",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginBookDBData",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginBookDBView",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginBookLike",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginBookLoading",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginBookProgress",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginBookScene",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginBookSettings",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginFileLog",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginLikeButton",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginOpenButton",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginPlayBack",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginPlaybackHero",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginPlaybackProgress",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginRepositoryGuide",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginReset",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginRootView",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginScene",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginSettingGeneral",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginSettingsButton",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginStorage",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginStore",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginWelcome",
+    }, {
+      "kind": "local",
+      "path": "Packages/ProviderAppState",
+    }, {
+      "kind": "local",
+      "path": "Packages/ProviderCloud",
+    }, {
+      "kind": "local",
+      "path": "Packages/ProviderCloudDownload",
+    }, {
+      "kind": "local",
+      "path": "Packages/ProviderControlView",
+    }, {
+      "kind": "local",
+      "path": "Packages/ProviderDevice",
+    }, {
+      "kind": "local",
+      "path": "Packages/ProviderPlugin",
+    }, {
+      "kind": "local",
+      "path": "Packages/ProviderScene",
+    }, {
+      "kind": "local",
+      "path": "Packages/ProviderStorage",
     },
   ],
   "files": [
@@ -44,6 +251,7 @@
     },
     { "path": "<PRODUCTS>/Cisum.app", "id": "0B53A6CC2F1C734B00169AF2", "type": "wrapper.application", "index": false },
     { "kind": "folder", "path": "CisumUITests", "target-membership": [ "CisumUITests" ] },
+    { "kind": "folder", "path": "CisumTests", "target-membership": [ "CisumTests" ] },
     {
       "kind": "group",
       "name": "Recovered References",
@@ -66,6 +274,7 @@
       ],
     },
     { "path": "<PRODUCTS>/CisumUITests.xctest", "id": "0B5168FD306747DF005718A1", "type": "wrapper.cfbundle", "index": false },
+    { "path": "<PRODUCTS>/CisumTests.xctest", "id": "0BC15E582F1D0A01005E5701", "type": "wrapper.cfbundle", "index": false },
   ],
   "targets": [
     {
@@ -81,12 +290,256 @@
       ],
       "package-product-members": [
         {
-          "package": "FactoryCisum",
-          "product-name": "FactoryCisum",
+          "package": "KitEventObservation",
+          "product-name": "KitEventObservation",
           "build-phase": { "build-phase": "frameworks" },
         }, {
-          "package": "FactoryCisum",
-          "product-name": "FactoryCisum",
+          "package": "LumiFactory",
+          "product-name": "LumiFactory",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiKernel",
+          "product-name": "KernelCore",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiPluginAbout",
+          "product-name": "PluginAbout",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiPluginCacheManager",
+          "product-name": "PluginCacheManager",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiPluginPluginManager",
+          "product-name": "PluginPluginManager",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiPluginRootView",
+          "product-name": "WorkbenchRootView",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiPluginSettingView",
+          "product-name": "PluginSettingView",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiPluginToast",
+          "product-name": "PluginToast",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiProviders",
+          "product-name": "ProviderContentView",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiProviders",
+          "product-name": "ProviderPluginManaging",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiProviders",
+          "product-name": "ProviderRootView",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiProviders",
+          "product-name": "ProviderStorage",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiProviders",
+          "product-name": "ProviderTheme",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiSettings",
+          "product-name": "ProviderSettingView",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiThemePack",
+          "product-name": "LumiThemePack",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiUI",
+          "product-name": "LumiUI",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "MagicKit",
+          "product-name": "MagicKit",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginAudio",
+          "product-name": "PluginAudio",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginAudioControlButtons",
+          "product-name": "PluginAudioControlButtons",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginAudioCopy",
+          "product-name": "PluginAudioCopy",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginAudioDBData",
+          "product-name": "PluginAudioDBData",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginAudioDBView",
+          "product-name": "PluginAudioDBView",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginAudioDemo",
+          "product-name": "PluginAudioDemo",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginAudioDownload",
+          "product-name": "PluginAudioDownload",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginAudioLike",
+          "product-name": "PluginAudioLike",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginAudioPlayMode",
+          "product-name": "PluginAudioPlayMode",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginAudioProgress",
+          "product-name": "PluginAudioProgress",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginAudioScene",
+          "product-name": "PluginAudioScene",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginAudioSettings",
+          "product-name": "PluginAudioSettings",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginAudioWidgetControl",
+          "product-name": "PluginAudioWidgetControl",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginBook",
+          "product-name": "PluginBook",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginBookControlButtons",
+          "product-name": "PluginBookControlButtons",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginBookDBData",
+          "product-name": "PluginBookDBData",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginBookDBView",
+          "product-name": "PluginBookDBView",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginBookLike",
+          "product-name": "PluginBookLike",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginBookLoading",
+          "product-name": "PluginBookLoading",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginBookProgress",
+          "product-name": "PluginBookProgress",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginBookScene",
+          "product-name": "PluginBookScene",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginBookSettings",
+          "product-name": "PluginBookSettings",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginFileLog",
+          "product-name": "PluginFileLog",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginLikeButton",
+          "product-name": "PluginLikeButton",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginOpenButton",
+          "product-name": "PluginOpenButton",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginPlayBack",
+          "product-name": "PluginPlayBack",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginPlaybackHero",
+          "product-name": "PluginPlaybackHero",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginPlaybackProgress",
+          "product-name": "PluginPlaybackProgress",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginRepositoryGuide",
+          "product-name": "PluginRepositoryGuide",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginReset",
+          "product-name": "PluginReset",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginRootView",
+          "product-name": "PluginRootView",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginScene",
+          "product-name": "PluginScene",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginSettingGeneral",
+          "product-name": "PluginSettingGeneral",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginSettingsButton",
+          "product-name": "PluginSettingsButton",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginStorage",
+          "product-name": "PluginStorage",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginStore",
+          "product-name": "PluginStore",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginWelcome",
+          "product-name": "PluginWelcome",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "ProviderAppState",
+          "product-name": "ProviderAppState",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "ProviderCloud",
+          "product-name": "ProviderCloud",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "ProviderCloudDownload",
+          "product-name": "ProviderCloudDownload",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "ProviderControlView",
+          "product-name": "ProviderControlView",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "ProviderDevice",
+          "product-name": "ProviderDevice",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "ProviderPlugin",
+          "product-name": "ProviderPlugin",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "ProviderScene",
+          "product-name": "ProviderScene",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "ProviderStorage",
+          "product-name": "ProviderStorage",
           "build-phase": { "build-phase": "frameworks" },
         },
       ],
@@ -192,6 +645,98 @@
         "SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY": "YES",
         "SWIFT_VERSION": "5.0",
         "TARGETED_DEVICE_FAMILY": "1,2,7",
+        "TEST_TARGET_NAME": "Cisum",
+        "XROS_DEPLOYMENT_TARGET": "2.0",
+      },
+    }, {
+      "name": "CisumTests",
+      "id": "0BC15E572F1D0A01005E5701",
+      "product": "CisumTests.xctest",
+      "product-type": "bundle.unit-test",
+      "test-host-target": "Cisum",
+      "dependencies": [
+        "Cisum",
+      ],
+      "build-phases": [
+        "compile-sources",
+        "frameworks",
+        "resources",
+      ],
+      "package-product-members": [
+        {
+          "package": "LumiFactory",
+          "product-name": "LumiFactory",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiKernel",
+          "product-name": "KernelCore",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiProviders",
+          "product-name": "ProviderContentView",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiProviders",
+          "product-name": "ProviderRootView",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiProviders",
+          "product-name": "ProviderTheme",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "LumiSettings",
+          "product-name": "ProviderSettingView",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "MagicKit",
+          "product-name": "MagicKit",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginRootView",
+          "product-name": "PluginRootView",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "ProviderAppState",
+          "product-name": "ProviderAppState",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "ProviderCloudDownload",
+          "product-name": "ProviderCloudDownload",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "ProviderControlView",
+          "product-name": "ProviderControlView",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "ProviderDevice",
+          "product-name": "ProviderDevice",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "ProviderStorage",
+          "product-name": "ProviderStorage",
+          "build-phase": { "build-phase": "frameworks" },
+        },
+      ],
+      "build-settings": {
+        "BUNDLE_LOADER": "$(TEST_HOST)",
+        "CODE_SIGN_STYLE": "Automatic",
+        "CURRENT_PROJECT_VERSION": "1",
+        "DEVELOPMENT_TEAM": "Y6HZ9JJYV6",
+        "ENABLE_APP_SANDBOX": "NO",
+        "GENERATE_INFOPLIST_FILE": "YES",
+        "IPHONEOS_DEPLOYMENT_TARGET": "17.0",
+        "MACOSX_DEPLOYMENT_TARGET": "14.0",
+        "MARKETING_VERSION": "1.0",
+        "PRODUCT_BUNDLE_IDENTIFIER": "com.yueyi.CisumTests",
+        "PRODUCT_NAME": "$(TARGET_NAME)",
+        "SDKROOT": "auto",
+        "SUPPORTED_PLATFORMS": "macosx iphonesimulator xrsimulator",
+        "SWIFT_ACTIVE_COMPILATION_CONDITIONS[config=Debug]": "DEBUG $(inherited)",
+        "SWIFT_VERSION": "6.0",
+        "TARGETED_DEVICE_FAMILY": "1,2,7",
+        "TEST_HOST[sdk=iphone*]": "$(BUILT_PRODUCTS_DIR)/Cisum.app/Cisum",
+        "TEST_HOST[sdk=macosx*]": "$(BUILT_PRODUCTS_DIR)/Cisum.app/Contents/MacOS/Cisum",
+        "TEST_HOST[sdk=xros*]": "$(BUILT_PRODUCTS_DIR)/Cisum.app/Cisum",
         "TEST_TARGET_NAME": "Cisum",
         "XROS_DEPLOYMENT_TARGET": "2.0",
       },

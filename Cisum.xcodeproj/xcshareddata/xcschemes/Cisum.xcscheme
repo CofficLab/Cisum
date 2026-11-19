@@ -41,6 +41,16 @@
             </BuildableReference>
          </TestableReference>
          <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "0BC15E572F1D0A01005E5701"
+               BuildableName = "CisumTests.xctest"
+               BlueprintName = "CisumTests"
+               ReferencedContainer = "container:Cisum.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
             skipped = "NO"
             parallelizable = "YES">
             <BuildableReference

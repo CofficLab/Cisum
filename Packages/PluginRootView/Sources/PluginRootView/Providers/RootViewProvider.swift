@@ -1,4 +1,5 @@
 import KernelCore
+import ProviderPlugin
 import ProviderRootView
 import SwiftUI
 
@@ -14,7 +15,13 @@ public final class RootViewProvider: DefaultRootViewProviding {
 
     public override func makeRootView() -> AnyView {
         guard let kernel else { return AnyView(EmptyView()) }
-        return AnyView(RootOverlayHostView(provider: self, kernel: kernel))
+        let host = AnyView(RootOverlayHostView(provider: self, kernel: kernel))
+        // 插件贡献的场景根包装在组装期应用（原 KernelRootView.wrap 的语义）：
+        // 共享装配引擎每次重新组装都会调用 makeRootView，包装随之重算。
+        if let wrapped = kernel.resolveProvider((any PluginProviding).self)?.wrapWithCurrentRoot(content: { host }) {
+            return wrapped
+        }
+        return host
     }
 
     /// 内容区显隐：区域隐藏与「内容区是否隐藏」必须保持同步。
