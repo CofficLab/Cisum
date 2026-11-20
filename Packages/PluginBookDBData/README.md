@@ -16,7 +16,7 @@ and no settings contributions.
 - **Key types/protocols:**
   - `BookDBDataPlugin` — `SuperPlugin` (synchronous lifecycle), singleton `shared`,
     `id = "BookDBDataPlugin"`, `order = 11`,
-    `iconName = "externaldrive.badge.timemachine"`, `policy = .alwaysOn`,
+    `iconName = "externaldrive.badge.timemachine"`, `policy = .enabledByDefault`,
     `category = .feature`, name "Audiobook Database Data".
   - `BookDatabaseProvider` — `BookDatabaseProviding`; lazily builds/caches
     `BookRepo`, computes `bookDisk` (`storageRoot/audios_book`), `isAvailable`,

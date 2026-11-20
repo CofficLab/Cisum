@@ -12,7 +12,7 @@ exposes a "Liked Books" settings pane listing all favorites.
 - **Key types/protocols:**
   - `BookLikePlugin` — `AsyncSuperPlugin`, `SuperLog`; singleton `shared`,
     `id = "BookLikePlugin"`, `order = 6`, `iconName = "heart"`,
-    `policy = .disabled`, `category = .feature`.
+    `policy = .enabledByDefault`, `category = .feature`.
   - `BookLikePluginInfo` — title "Book Favorites", description "Manage book favorite
     status", `iconName = "heart"`, `order = 6`.
   - `BookLikeViewModel` — `ObservableObject`; `@Published` `likedBooks`, `isLoading`;

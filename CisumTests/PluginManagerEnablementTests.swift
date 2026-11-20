@@ -6,22 +6,21 @@ import Testing
 
 /// 插件管理器插件在 Cisum 中的启用状态守卫。
 ///
-/// Cisum 的插件策略全是 `alwaysOn` / `disabled`，没有用户可配置的插件 ——
-/// 插件管理页在本宿主必然是一个永远为空的列表。因此 Cisum 把插件管理器
-/// 配成 `.disabled`：内核启动时彻底排除它（不注册、不启动、不展示），
-/// 设置侧边栏也就不会出现「插件管理」入口。
+/// Cisum 按模块开放启停：书库、视频库、欢迎页、仓库引导等外围模块是
+/// `enabledByDefault`，用户可在「插件管理」里关闭；音频核心、播放控制、
+/// 数据层与宿主基础设施保持 `alwaysOn` / `required`。
 ///
-/// 这个守卫固化该决策，防止迁移到共享远程包时不慎把策略改回 `.required`，
-/// 导致设置侧边栏多出一个点进去什么都没有的死路。
+/// 这个守卫固化该决策：插件管理器必须启用，并且至少存在可配置插件，
+/// 否则设置侧边栏要么缺少入口，要么入口点进去是空列表。
 @MainActor
 @Suite("插件管理器启用状态")
 struct PluginManagerEnablementTests {
     /// 插件管理器插件的唯一标识。
     private static let pluginManagerID = "com.coffic.cisum.plugin.plugin-manager"
 
-    /// 插件管理器在 Cisum 的插件目录里必须是 `.disabled` 策略。
-    @Test("插件管理器在 Cisum 是 disabled 策略")
-    func pluginManagerIsDisabled() {
+    /// 插件管理器在 Cisum 的插件目录里必须是 `.required` 策略。
+    @Test("插件管理器在 Cisum 是 required 策略")
+    func pluginManagerIsRequired() {
         let plugin = CisumPluginFactory.makePlugins()
             .first { $0.id == Self.pluginManagerID }
 
@@ -30,19 +29,24 @@ struct PluginManagerEnablementTests {
             "插件目录里应包含插件管理器（id：\(Self.pluginManagerID)）"
         )
         #expect(
-            plugin?.metadata.policy == .disabled,
-            "Cisum 没有用户可配置的插件，插件管理器必须是 .disabled 策略"
+            plugin?.metadata.policy == .required,
+            "插件管理器必须启用，否则用户没有管理插件的入口"
         )
     }
 
-    /// `.disabled` 的插件不会被内核启动，也就不会出现在设置侧边栏。
-    @Test("disabled 策略的插件不会被内核启动")
-    func disabledPluginIsNotStarted() async throws {
+    /// 插件目录里必须有用户可配置的插件，否则「插件管理」入口不会注册。
+    @Test("插件目录包含用户可配置插件")
+    func pluginCatalogHasConfigurablePlugins() {
+        let configurablePlugins = CisumPluginFactory.makePlugins()
+            .filter { $0.metadata.policy.isConfigurable }
+
+        #expect(!configurablePlugins.isEmpty)
+    }
+
+    /// `.required` 的插件管理器会被内核注册并启动。
+    @Test("required 策略的插件管理器会被内核启动")
+    func requiredPluginIsStarted() async throws {
         let kernel = KernelCoreContainer()
-        let plugin = try #require(
-            CisumPluginFactory.makePlugins().first { $0.id == Self.pluginManagerID }
-        )
-        #expect(plugin.metadata.policy == .disabled)
 
         // 内核在启动前按策略过滤：`.disabled` 的插件不注册、不启动。
         let activePlugins = CisumPluginFactory.makePlugins()
@@ -51,8 +55,8 @@ struct PluginManagerEnablementTests {
         try await kernel.startAsync(plugins: activePlugins)
 
         #expect(
-            !kernel.isPluginRegistered(id: Self.pluginManagerID),
-            "`.disabled` 的插件不应被注册"
+            kernel.isPluginRegistered(id: Self.pluginManagerID),
+            "启用策略的插件管理器应被内核注册"
         )
     }
 }

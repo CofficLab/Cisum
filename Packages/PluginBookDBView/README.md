@@ -16,7 +16,7 @@ container itself.
 - **Key types/protocols:**
   - `BookDBViewPlugin` — `AsyncSuperPlugin`, `SuperLog`; singleton `shared`,
     `id = "BookDBViewPlugin"`, `order = 12`, `iconName = "books.vertical"`,
-    `policy = .alwaysOn`, `category = .feature`.
+    `policy = .enabledByDefault`, `category = .feature`.
   - `BookDBViewPluginInfo` — `titleKey = "Audiobook Repository"`,
     `descriptionKey = "Audiobook database view"`, `iconName = "books.vertical"`.
   - `BookDBView` — public root view; hosts `BookGrid`/`BookList`, the `.fileImporter`

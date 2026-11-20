@@ -14,7 +14,7 @@ control area, but only while the app is in the audiobooks scene.
 - **Key types/protocols:**
   - `BookControlButtonsPlugin` — `AsyncSuperPlugin`, `SuperLog`; singleton
     `shared`, `id = "BookControlButtonsPlugin"`, `order = 8`,
-    `iconName = "playpause"`, `policy = .alwaysOn`, `category = .feature`.
+    `iconName = "playpause"`, `policy = .enabledByDefault`, `category = .feature`.
   - `BookControlButtonsView` — the four `AppCircularIconButton` row (ellipsis /
     previous / play-pause / next); sizes itself to the available geometry.
   - `BookControlViewModel` — `ObservableObject`; `@Published` `isPlaying`,

@@ -12,7 +12,7 @@ area — only while the audiobooks scene is active.
 - **Key types/protocols:**
   - `BookLoadingPlugin` — `AsyncSuperPlugin`, `SuperLog`; singleton `shared`,
     `id = "com.coffic.cisum.plugin.book-loading"`, `order = 9`,
-    `iconName = "icloud.and.arrow.down"`, `policy = .alwaysOn`.
+    `iconName = "icloud.and.arrow.down"`, `policy = .enabledByDefault`.
   - `BookLoadingPluginInfo` — title "Book Loading", description "Show iCloud
     loading progress and recovery for audiobooks", `order = 9`.
   - `BookLoadingPlaybackCapability` / `BookLoadingPlaybackCapabilityAdapter` —

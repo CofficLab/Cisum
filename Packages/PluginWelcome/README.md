@@ -6,7 +6,7 @@ The first-launch onboarding plugin. It shows a welcome/guide screen when the use
 
 - **Core responsibility:** Present the welcome flow only when no storage location is configured, bridge the selection UI to the kernel `StorageProviding` service, and apply the default selection when the guide is completed.
 - **Key types:**
-  - `WelcomePlugin` — `@MainActor final class` conforming to `AsyncSuperPlugin, SuperLog`. `id = "WelcomePlugin"`, `order = -100`, icon `"hand.wave"`, category `.feature`, policy `.disabled`.
+  - `WelcomePlugin` — `@MainActor final class` conforming to `AsyncSuperPlugin, SuperLog`. `id = "WelcomePlugin"`, `order = -100`, icon `"hand.wave"`, category `.feature`, policy `.enabledByDefault`.
   - `WelcomePluginInfo` — enum with `title = "Welcome"`, `description = "Welcome screen"`, `iconName = "hand.wave"`, `emoji = "👏"`, `order = -100`.
   - `WelcomePluginHost` — static handler registry (`@Sendable` closures) that decouples the welcome views from the kernel. `configure(...)` wires `hasStorageLocation`, `isICloudAvailable`, `currentStorageSelection`, and `updateStorageSelection`.
   - `WelcomeStorageSelection` — public enum `icloud`/`local`.

@@ -110,12 +110,12 @@ enum CisumPluginFactory {
             ),
             // 共享远程包 LumiPluginPluginManager，注入 Cisum 品牌 id。
             //
-            // policy: .disabled —— Cisum 的插件策略全是 alwaysOn / disabled，
-            // 没有用户可配置的插件；插件管理器在本宿主不启用，内核启动时
-            // 彻底排除它，设置侧边栏也就不会出现「插件管理」入口。
+            // 默认 `.required` 策略：书库、视频库、欢迎页、仓库引导等模块
+            // 已改为 `enabledByDefault`，设置侧边栏会出现「插件管理」入口；
+            // 入口可见性由插件管理器的默认策略
+            // `.onlyWhenConfigurablePluginsExist` 自动判断。
             PluginPluginManager(
-                id: "com.coffic.cisum.plugin.plugin-manager",
-                policy: .disabled
+                id: "com.coffic.cisum.plugin.plugin-manager"
             ),
             // 共享远程包 LumiPluginCacheManager：磁盘缓存管理设置入口。
             CacheManagerPlugin(id: "com.coffic.cisum.plugin.cache-manager"),

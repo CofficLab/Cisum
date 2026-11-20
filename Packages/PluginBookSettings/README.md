@@ -12,7 +12,7 @@ library size, file count, and (on macOS) an "Open in Finder" action.
 - **Key types/protocols:**
   - `BookSettingsPlugin` — `AsyncSuperPlugin`, `SuperLog`; singleton `shared`,
     `id = "BookSettingsPlugin"`, `order = 11`, `iconName = "gearshape"`,
-    `category = .system`, `policy = .disabled`.
+    `category = .system`, `policy = .enabledByDefault`.
   - `BookSettingsPluginInfo` — title "Audiobook Settings", description "Audiobook
     plugin settings", `iconName = "gearshape"`, `emoji = "🔊"`, `order = 11`.
   - `BookSettingsViewModel` — `ObservableObject`; `@Published` `refreshToken`, `disk`,

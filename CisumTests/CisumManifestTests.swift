@@ -97,4 +97,19 @@ struct CisumManifestTests {
 
         try await CisumKernelFixture.destroyKernel(kernel)
     }
+
+    /// 插件管理器入口在完整装配后出现在设置导航中。
+    ///
+    /// 入口由插件管理器在 `onReady` 按「存在可配置插件」自动注册；
+    /// 书库、视频库、欢迎页、仓库引导任一被误改回 `alwaysOn` 时，
+    /// 这里会随入口消失一起失败。
+    @Test
+    func kernelExposesPluginManagerSettingsNavigationItem() async throws {
+        let kernel = try await CisumKernelFixture.makeKernel()
+        let settings = try #require(kernel.resolveProvider((any SettingViewProviding).self))
+
+        #expect(settings.entries.contains { $0.id == "plugin-manager" })
+
+        try await CisumKernelFixture.destroyKernel(kernel)
+    }
 }

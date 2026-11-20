@@ -24,7 +24,7 @@ public final class BookDBDataPlugin: AsyncSuperPlugin {
         version: "1.0.0",
         category: .feature,
         stage: .stable,
-        policy: .alwaysOn,
+        policy: .enabledByDefault,
         permissions: []
     )
 
