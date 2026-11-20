@@ -37,6 +37,14 @@ final class VideoLibraryRepositoryCapability {
         try repository?.delete(url)
     }
 
+    func importVideos(from urls: [URL]) throws {
+        try repository?.importVideos(from: urls)
+    }
+
+    func requestDownload(for url: URL) {
+        repository?.requestDownload(for: url)
+    }
+
     @discardableResult
     func addObserver(
         _ callback: @escaping (VideoRepositoryEvent) -> Void

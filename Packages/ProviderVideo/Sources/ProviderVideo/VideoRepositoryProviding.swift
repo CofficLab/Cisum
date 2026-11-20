@@ -98,6 +98,14 @@ public protocol VideoRepositoryProviding: AnyObject {
     /// 删除视频文件。
     func delete(_ url: URL) throws
 
+    /// 把外部文件导入仓库（复制到仓库根目录）。
+    ///
+    /// 同名文件会自动追加序号，不会覆盖已有文件。
+    func importVideos(from urls: [URL]) throws
+
+    /// 请求下载 iCloud 上尚未下载的文件。
+    func requestDownload(for url: URL)
+
     @discardableResult
     func addObserver(_ callback: @escaping (VideoRepositoryEvent) -> Void) -> any VideoRepositoryObserverHandle
 }

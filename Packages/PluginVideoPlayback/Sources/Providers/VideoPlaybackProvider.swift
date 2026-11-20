@@ -16,12 +16,24 @@ public final class VideoPlaybackProvider: VideoPlaybackProviding {
     private var engine: VideoEngine
     private var observers: [VideoPlaybackObserver] = []
     private var didFallback = false
+    private let nowPlaying = VideoNowPlayingCoordinator()
 
     public init() {
         engine = Self.makePreferredEngine()
         engine.onEvent = { [weak self] event in
             self?.handle(event)
         }
+        nowPlaying.onPlay = { [weak self] in
+            self?.engine.play()
+        }
+        nowPlaying.onPause = { [weak self] in
+            self?.engine.pause()
+        }
+        nowPlaying.onSeek = { [weak self] offset in
+            guard let self else { return }
+            self.engine.seek(to: max(self.engine.currentTime + offset, 0))
+        }
+        nowPlaying.activateCommands()
     }
 
     public var state: VideoPlaybackState { engine.state }
@@ -47,7 +59,10 @@ public final class VideoPlaybackProvider: VideoPlaybackProviding {
         default: engine.play()
         }
     }
-    public func stop() { engine.stop() }
+    public func stop() {
+        engine.stop()
+        nowPlaying.clear()
+    }
     public func seek(toTime time: TimeInterval) { engine.seek(to: time) }
     public func setRate(_ rate: Float) { engine.setRate(rate) }
 
@@ -93,6 +108,22 @@ public final class VideoPlaybackProvider: VideoPlaybackProviding {
         for observer in observers {
             observer.invoke(event)
         }
+        updateNowPlaying(for: event)
+    }
+
+    /// 把播放状态同步到锁屏 / 控制中心。
+    private func updateNowPlaying(for event: VideoPlaybackEvent) {
+        guard let url = engine.currentURL else { return }
+        let title = url.deletingPathExtension().lastPathComponent
+        let isPlaying = engine.state == .playing
+        nowPlaying.setPlaying(isPlaying)
+        nowPlaying.update(
+            title: title,
+            duration: engine.duration,
+            currentTime: engine.currentTime,
+            rate: engine.rate,
+            isPlaying: isPlaying
+        )
     }
 
     private static func makePreferredEngine() -> VideoEngine {

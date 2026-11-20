@@ -339,6 +339,50 @@ public final class VideoRepositoryProvider: VideoRepositoryProviding {
         startScan()
     }
 
+    // MARK: - Import & download
+
+    /// 把外部视频文件复制进仓库。
+    ///
+    /// 同名文件自动追加 `-1`、`-2` 序号，不覆盖已有文件；导入完成后触发
+    /// 一次重新扫描。
+    public func importVideos(from urls: [URL]) throws {
+        guard let root = repositoryURL else { throw VideoRepositoryError.noRepository }
+
+        for source in urls {
+            let scoped = source.startAccessingSecurityScopedResource()
+            defer { if scoped { source.stopAccessingSecurityScopedResource() } }
+
+            guard fileManager.fileExists(atPath: source.path) else {
+                throw VideoRepositoryError.notFound
+            }
+
+            let target = uniqueDestination(for: source, in: root)
+            try fileManager.copyItem(at: source, to: target)
+        }
+
+        startScan()
+    }
+
+    /// 在仓库内为导入文件挑一个不冲突的目标路径。
+    private func uniqueDestination(for source: URL, in root: URL) -> URL {
+        let base = source.deletingPathExtension().lastPathComponent
+        let ext = source.pathExtension
+        var candidate = root.appendingPathComponent(source.lastPathComponent, isDirectory: false)
+        var index = 1
+        while fileManager.fileExists(atPath: candidate.path) {
+            let name = ext.isEmpty ? "\(base)-\(index)" : "\(base)-\(index).\(ext)"
+            candidate = root.appendingPathComponent(name, isDirectory: false)
+            index += 1
+        }
+        return candidate
+    }
+
+    /// 触发 iCloud 下载，并把条目状态切到「下载中」。
+    public func requestDownload(for url: URL) {
+        guard (try? FileManager.default.startDownloadingUbiquitousItem(at: url)) != nil else { return }
+        updateAvailability(.cloudDownloading, for: url)
+    }
+
     // MARK: - Observers
 
     @discardableResult
@@ -374,12 +418,14 @@ public enum VideoRepositoryError: LocalizedError {
     case invalidName
     case alreadyExists
     case notFound
+    case noRepository
 
     public var errorDescription: String? {
         switch self {
         case .invalidName: "The name is invalid"
         case .alreadyExists: "A file with the same name already exists"
         case .notFound: "The video file no longer exists"
+        case .noRepository: "The video repository is not available"
         }
     }
 }

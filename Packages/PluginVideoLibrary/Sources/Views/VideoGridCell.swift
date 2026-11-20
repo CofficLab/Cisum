@@ -2,47 +2,53 @@ import AVFoundation
 import ProviderVideo
 import SwiftUI
 
-/// 视频网格单元：缩略图 + 标题 + 时长/评分/标签标记。
+/// 视频网格单元：缩略图 + 标题 + 评分 / 标签 + 悬停操作条。
+///
+/// macOS 上悬停浮出操作条（播放 / 收藏 / 更多），iOS 没有悬停态，操作由
+/// 长按菜单与详情面板承担。
 struct VideoGridCell: View {
     let item: VideoItem
     let isCurrent: Bool
-    let onTap: () -> Void
+    let onPlay: () -> Void
+    let onFavorite: () -> Void
+    let onOpen: () -> Void
 
     @State private var thumbnail: PlatformImage?
+    #if os(macOS)
+    @State private var isHovering = false
+    #endif
 
     var body: some View {
-        Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 6) {
-                poster
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(item.title)
-                        .font(.caption)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-                    HStack(spacing: 4) {
-                        Text(item.subtitle)
+        VStack(alignment: .leading, spacing: 6) {
+            poster
+                .onTapGesture(perform: onPlay)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.title)
+                    .font(.caption)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                HStack(spacing: 4) {
+                    if !item.tags.isEmpty {
+                        Text(item.tags.prefix(2).joined(separator: " · "))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
-                        Spacer(minLength: 0)
-                        if item.isFavorite {
-                            Image(systemName: "star.fill")
-                                .font(.caption2)
-                                .foregroundStyle(.yellow)
-                        }
-                        if let rating = item.rating {
-                            HStack(spacing: 1) {
-                                Image(systemName: rating.symbolText)
-                                    .font(.caption2)
-                                Text("\(rating.value)")
-                                    .font(.caption2)
-                            }
-                            .foregroundStyle(.secondary)
-                        }
+                            .lineLimit(1)
+                    }
+                    Spacer(minLength: 0)
+                    if let rating = item.rating {
+                        Text(rating.symbolText)
+                            .font(.caption2)
+                            .foregroundStyle(.yellow)
+                    } else if item.isFavorite {
+                        Image(systemName: "star.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.yellow)
                     }
                 }
             }
+            .contentShape(Rectangle())
+            .onTapGesture(perform: onPlay)
         }
-        .buttonStyle(.plain)
         .task(id: item.url) { await loadThumbnail() }
     }
 
@@ -67,18 +73,45 @@ struct VideoGridCell: View {
                     badges
                 }
                 Spacer()
-                if let duration = item.duration, duration > 0 {
-                    Text(item.formattedDuration)
-                        .font(.caption2.monospacedDigit())
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 1)
-                        .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 3))
-                        .foregroundStyle(.white)
-                        .padding(4)
-                        .frame(maxWidth: .infinity, alignment: .bottomTrailing)
+                HStack(alignment: .bottom) {
+                    if item.isInProgress {
+                        Image(systemName: "play.circle.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.white)
+                            .padding(3)
+                            .background(.black.opacity(0.6), in: Circle())
+                    }
+                    Spacer()
+                    if let duration = item.duration, duration > 0 {
+                        Text(item.formattedDuration)
+                            .font(.caption2.monospacedDigit())
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 3))
+                            .foregroundStyle(.white)
+                    }
                 }
             }
             .padding(4)
+
+            if item.isInProgress {
+                VStack {
+                    Spacer()
+                    GeometryReader { proxy in
+                        ZStack(alignment: .leading) {
+                            Rectangle().fill(.black.opacity(0.5))
+                            Rectangle()
+                                .fill(Color.accentColor)
+                                .frame(width: proxy.size.width * item.progress.fraction)
+                        }
+                    }
+                    .frame(height: 3)
+                }
+            }
+
+            #if os(macOS)
+            hoverBar
+            #endif
         }
         .aspectRatio(16.0 / 9.0, contentMode: .fit)
         .overlay(
@@ -86,7 +119,47 @@ struct VideoGridCell: View {
                 .stroke(isCurrent ? Color.accentColor : Color.clear, lineWidth: 2)
         )
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        #if os(macOS)
+        .onHover { isHovering = $0 }
+        #endif
     }
+
+    #if os(macOS)
+    private var hoverBar: some View {
+        VStack {
+            Spacer()
+            HStack(spacing: 8) {
+                Button(action: onPlay) {
+                    Image(systemName: "play.fill")
+                }
+                .accessibilityLabel(String(localized: "Play", bundle: .module))
+
+                Button(action: onFavorite) {
+                    Image(systemName: item.isFavorite ? "star.fill" : "star")
+                }
+                .accessibilityLabel(String(localized: "Favorites", bundle: .module))
+
+                Button(action: onOpen) {
+                    Image(systemName: "ellipsis")
+                }
+                .accessibilityLabel(String(localized: "Edit Tags and Name", bundle: .module))
+            }
+            .controlSize(.small)
+            .buttonStyle(.borderless)
+            .padding(8)
+        }
+        .background(
+            LinearGradient(
+                colors: [.clear, .black.opacity(0.55)],
+                startPoint: .center,
+                endPoint: .bottom
+            )
+        )
+        .opacity(isHovering || isCurrent ? 1 : 0)
+        .animation(.easeOut(duration: 0.15), value: isHovering)
+        .animation(.easeOut(duration: 0.15), value: isCurrent)
+    }
+    #endif
 
     @ViewBuilder
     private var badges: some View {
@@ -104,7 +177,7 @@ struct VideoGridCell: View {
                     .padding(3)
                     .background(.black.opacity(0.6), in: Circle())
             case .cloudDownloading:
-                Image(systemName: "icloud.and.arrow.up")
+                Image(systemName: "icloud.and.arrow.down")
                     .font(.caption2)
                     .foregroundStyle(.white)
                     .padding(3)
