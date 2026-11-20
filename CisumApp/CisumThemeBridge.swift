@@ -3,7 +3,6 @@ import KernelCore
 import LumiThemePack
 import LumiUI
 import MagicKit
-import ProviderPlugin
 import ProviderSettingView
 import ProviderTheme
 import SwiftUI
@@ -88,7 +87,7 @@ enum CisumThemeBridge {
             kernel.resolveProvider((any SettingViewProviding).self)?.addEntries([
                 SettingEntryItem(
                     id: "appearance",
-                    title: String(localized: "Appearance", bundle: .module),
+                    title: String(localized: "Appearance"),
                     systemImage: "paintpalette",
                     order: 2
                 ) {

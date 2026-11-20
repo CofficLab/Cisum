@@ -1,14 +1,16 @@
+import CisumProviderStorage
 import Foundation
 import KernelCore
 import Testing
-@testable import FactoryCisum
+
+@testable import Cisum
 
 @Suite("插件 ID 兼容映射")
 struct PluginIDCompatibilityTests {
     /// 所有新 id 必须是反向 DNS 形式。
     @Test
     func allNewIDsUseReverseDNSForm() {
-        for (newID, _) in PluginIDCompatibility.legacyAliases {
+        for (newID, _) in CisumPluginIDCompatibility.legacyAliases {
             #expect(
                 newID.hasPrefix("com.coffic.cisum.plugin."),
                 "新 id 必须遵循反向 DNS 规范：\(newID)"
@@ -21,7 +23,7 @@ struct PluginIDCompatibilityTests {
     /// 旧 id 必须是改之前的类型名，不能与新 id 相同（否则映射无意义）。
     @Test
     func legacyIDsDifferFromNewIDs() {
-        for (newID, legacyID) in PluginIDCompatibility.legacyAliases {
+        for (newID, legacyID) in CisumPluginIDCompatibility.legacyAliases {
             #expect(newID != legacyID, "新旧 id 不应相同：\(newID)")
             #expect(!legacyID.isEmpty, "旧 id 不应为空：\(newID)")
         }
@@ -30,13 +32,13 @@ struct PluginIDCompatibilityTests {
     /// 别名表的键与值都不能重复——重复会导致某个插件的映射被覆盖。
     @Test
     func aliasTableHasNoDuplicates() {
-        let values = Array(PluginIDCompatibility.legacyAliases.values)
+        let values = Array(CisumPluginIDCompatibility.legacyAliases.values)
         #expect(
             Set(values).count == values.count,
             "同一个旧 id 不应映射到多个新 id（后者会覆盖前者，导致状态丢失）"
         )
         #expect(
-            Set(PluginIDCompatibility.legacyAliases.keys).count == PluginIDCompatibility.legacyAliases.count,
+            Set(CisumPluginIDCompatibility.legacyAliases.keys).count == CisumPluginIDCompatibility.legacyAliases.count,
             "新 id 不应重复"
         )
     }
@@ -44,7 +46,7 @@ struct PluginIDCompatibilityTests {
     /// 需要迁移磁盘目录的插件，其历史目录名不能与新 id 同名。
     @Test
     func legacyDirectoryNamesDifferFromNewID() {
-        for (newID, names) in PluginIDCompatibility.legacyDirectoryNames {
+        for (newID, names) in PluginDataDirectoryHistory.legacyDirectoryNames {
             for name in names {
                 #expect(name != newID, "历史目录名不应等于新 id：\(newID)")
                 #expect(!name.isEmpty, "历史目录名不应为空：\(newID)")
@@ -55,9 +57,9 @@ struct PluginIDCompatibilityTests {
     /// 目录名映射的键必须是启用状态别名表里的 id（两者指向同一批插件）。
     @Test
     func directoryMigrationCoversOnlyKnownPlugins() {
-        for newID in PluginIDCompatibility.legacyDirectoryNames.keys {
+        for newID in PluginDataDirectoryHistory.legacyDirectoryNames.keys {
             #expect(
-                PluginIDCompatibility.legacyAliases.keys.contains(newID),
+                CisumPluginIDCompatibility.legacyAliases.keys.contains(newID),
                 "需要迁移目录的插件 \(newID) 不在启用状态别名表中，两者应保持一致"
             )
         }
@@ -79,11 +81,11 @@ struct PluginIDCompatibilityTests {
         let kernel = KernelCoreContainer()
         let store = MemoryStateStore()
         kernel.stateStore = store
-        kernel.legacyPluginIDAliases = PluginIDCompatibility.legacyAliases
+        kernel.legacyPluginIDAliases = CisumPluginIDCompatibility.legacyAliases
 
         // 模拟旧版本：用户关掉了一个插件，状态以旧 id 为键落盘。
         let newID = "com.coffic.cisum.plugin.audio"
-        let legacyID = try #require(PluginIDCompatibility.legacyAliases[newID])
+        let legacyID = try #require(CisumPluginIDCompatibility.legacyAliases[newID])
         store.setEnabled(false, pluginID: legacyID)
 
         // 升级后：注册插件时，内核应回退到旧 id 读出「关闭」状态。
@@ -108,10 +110,10 @@ struct PluginIDCompatibilityTests {
         let kernel = KernelCoreContainer()
         let store = MemoryStateStore()
         kernel.stateStore = store
-        kernel.legacyPluginIDAliases = PluginIDCompatibility.legacyAliases
+        kernel.legacyPluginIDAliases = CisumPluginIDCompatibility.legacyAliases
 
         let newID = "com.coffic.cisum.plugin.audio"
-        let legacyID = try #require(PluginIDCompatibility.legacyAliases[newID])
+        let legacyID = try #require(CisumPluginIDCompatibility.legacyAliases[newID])
         // 默认关闭：这样 enablePlugin 才会真正走一遍「写入启用状态」的路径。
         try kernel.registerPlugin(ProbePlugin(id: newID, policy: .disabledByDefault))
         try await kernel.startAsync(plugins: [])
@@ -137,9 +139,9 @@ struct PluginIDCompatibilityTests {
 
         let kernel = KernelCoreContainer()
         kernel.stateStore = MemoryStateStore()
-        kernel.legacyPluginIDAliases = PluginIDCompatibility.legacyAliases
+        kernel.legacyPluginIDAliases = CisumPluginIDCompatibility.legacyAliases
 
-        let newID = try #require(PluginIDCompatibility.legacyAliases.keys.first)
+        let newID = try #require(CisumPluginIDCompatibility.legacyAliases.keys.first)
         // 策略默认关闭，且没有任何历史状态 → 应保持关闭。
         try kernel.registerPlugin(ProbePlugin(id: newID, policy: .disabledByDefault))
         #expect(

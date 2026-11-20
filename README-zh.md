@@ -28,7 +28,7 @@ Cisum 是一款基于插件的 SwiftUI 音频播放器。代码按职责拆分�
 Swift Package，分为四种角色：
 
 ```text
-FactoryCisum
+CisumApp（HostManifest）+ LumiFactory（共享装配引擎）
   ├── Plugin*  ── consumes ──> Provider*
   ├── Provider* ── uses ─────> Kit*
   └── Kit*
@@ -39,7 +39,7 @@ FactoryCisum
 | `Kit*` | 不属于单一功能的可复用基础设施（播放原语、UI 组件、事件观察） |
 | `Provider*` | 面向 App 的契约、领域模型、事件与观察句柄 |
 | `Plugin*` | 每个包实现一个功能，通过 Provider 契约消费其他功能 |
-| `FactoryCisum` | 唯一的组装层，负责装配各 Provider 与插件 |
+| `CisumApp` + `LumiFactory` | 组合根：App 声明 `HostManifest`（插件、存储、主题、接线），共享远程包 `LumiFactory` 负责解释装配 |
 
 插件之间不直接依赖——共享能力通过 `Provider*`（数据与契约）或 `Kit*`（纯工具）包流转。
 

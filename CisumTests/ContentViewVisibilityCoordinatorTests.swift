@@ -2,7 +2,8 @@ import Foundation
 import ProviderAppState
 import ProviderRootView
 import Testing
-@testable import FactoryCisum
+
+@testable import Cisum
 
 /// `ContentViewVisibilityCoordinator` 的回归。
 ///
@@ -196,13 +197,12 @@ struct ContentViewVisibilityCoordinatorTests {
     /// 污染开发机上的真实设置。
     @Test("内核装配后必须能解析到显隐服务，且与真源初始态一致")
     func kernelRegistersContentVisibilityService() async throws {
-        let kernel = try await CisumBuilder.createKernel()
+        let kernel = try await CisumKernelFixture.makeKernel()
         let service = try #require(kernel.resolveProvider((any ContentViewVisibilityProviding).self))
         let appState = try #require(kernel.resolveProvider((any AppStateProviding).self))
 
         #expect(service.isContentViewVisible == appState.isDBViewVisible)
 
-        try await kernel.stopAsync()
-        CisumBuilder.destroyKernel(kernel)
+        try await CisumKernelFixture.destroyKernel(kernel)
     }
 }

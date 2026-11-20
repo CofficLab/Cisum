@@ -15,7 +15,7 @@ import SwiftUI
 /// 播放插件：负责创建并持有 `MagicPlayMan` 播放引擎，将其作为
 /// `PlaybackProviding` 注入内核，并维护当前播放文件的磁盘持久化与恢复。
 ///
-/// 原先由 `FactoryCisum` 直接创建 `MagicPlayMan` 并 `registerPlayback`，
+/// 原先由宿主组合根直接创建 `MagicPlayMan` 并 `registerPlayback`，
 /// 现收拢到本插件的 `onBoot`：插件持有播放引擎生命周期，内核只看到
 /// `PlaybackProviding` 能力；具体播放引擎不会泄漏到视图层。
 ///

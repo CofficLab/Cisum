@@ -49,8 +49,8 @@ PluginRootView 通过插件生命周期装配 Cisum 的根视图：`RootViewPlug
 
 > 内容区**显隐协调**（落盘真源 ↔ 根视图投影、用户显式切换、内存态/落盘态分歧恢复）
 > 不在本包：它同时依赖 `AppStateProviding` 与 `RootViewProviding`，属于组合根职责，
-> 契约在 `ProviderAppState`、实现在 `FactoryCisum`，用例见
-> `Packages/FactoryCisum/Tests/ContentViewVisibilityCoordinatorTests.swift`。
+> 契约在 `ProviderAppState`、实现在宿主 `CisumApp`，用例见
+> `CisumTests/ContentViewVisibilityCoordinatorTests.swift`。
 
 ## 覆盖率统计
 

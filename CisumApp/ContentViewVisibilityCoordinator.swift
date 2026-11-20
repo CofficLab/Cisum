@@ -4,9 +4,9 @@ import ProviderRootView
 
 /// 内容区显隐的协调器（`ContentViewVisibilityProviding` 的实现）。
 ///
-/// 这里是**唯一**同时知道「落盘真源」与「根视图」的地方——按包的架构约定，
-/// 跨特性的装配属于组合根（`FactoryCisum`），而插件只通过 `Provider*` 契约
-/// 调用，不依赖任何其他插件的实现包。
+/// 这里是**唯一**同时知道「落盘真源」与「根视图」的地方——跨特性的装配
+/// 属于组合根（App target 的 `CisumHostWiring`），插件只通过 `Provider*`
+/// 契约调用，不依赖任何其他插件的实现包。
 ///
 /// 规则：
 /// 1. `AppStateProviding` 是显隐的唯一真源，且**只有用户显式操作才会写它**；
@@ -15,12 +15,12 @@ import ProviderRootView
 ///    桌面端「窗口太矮自动收起副栏」只改内存态，若按落盘值取反，
 ///    用户在矮窗口下点「更多」会得到「点了没反应」。
 @MainActor
-public final class ContentViewVisibilityCoordinator: ContentViewVisibilityProviding {
+final class ContentViewVisibilityCoordinator: ContentViewVisibilityProviding {
     private let appState: any AppStateProviding
     private let root: any RootViewProviding
     private var handle: (any AppStateProvidingObserverHandle)?
 
-    public init(appState: any AppStateProviding, root: any RootViewProviding) {
+    init(appState: any AppStateProviding, root: any RootViewProviding) {
         self.appState = appState
         self.root = root
     }
@@ -28,7 +28,7 @@ public final class ContentViewVisibilityCoordinator: ContentViewVisibilityProvid
     /// 启动同步：把落盘态灌入根视图，并订阅后续变更。
     ///
     /// 幂等：重复调用只会重设一次根视图状态并换掉订阅句柄。
-    public func start() {
+    func start() {
         root.setContentViewVisible(appState.isDBViewVisible)
         handle?.cancel()
         handle = appState.addObserver { [weak self] event in
@@ -38,14 +38,14 @@ public final class ContentViewVisibilityCoordinator: ContentViewVisibilityProvid
     }
 
     /// 停止同步（内核销毁时调用）。
-    public func stop() {
+    func stop() {
         handle?.cancel()
         handle = nil
     }
 
-    public var isContentViewVisible: Bool { root.isContentViewVisible }
+    var isContentViewVisible: Bool { root.isContentViewVisible }
 
-    public func setContentViewVisible(_ visible: Bool) {
+    func setContentViewVisible(_ visible: Bool) {
         // 先写真源：`setDBView` 落盘并广播，`start()` 的订阅者会把同样的值
         // 投影回根视图。
         appState.setDBView(visible)
@@ -56,9 +56,8 @@ public final class ContentViewVisibilityCoordinator: ContentViewVisibilityProvid
         root.setContentViewVisible(visible)
     }
 
-    public func toggleContentView() {
+    func toggleContentView() {
         let before = root.isContentViewVisible
         setContentViewVisible(!before)
-        let after = root.isContentViewVisible
     }
 }

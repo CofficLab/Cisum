@@ -1,39 +1,45 @@
-import FactoryCisum
+import LumiFactory
 import SwiftUI
 
-/// 宿主在编译期确定的内核组装配置。
+/// 应用入口：单个 target，平台差异由 `#if` 隔离（对齐 Wakey `App.swift`）。
 ///
-/// 插件清单由 `FactoryCisum` 的 `DefaultPluginFactory` 直接装配（对齐 Lumi，
-/// Factory 是唯一知道"应用由哪些插件组成"的地方），宿主不再注入插件列表。
-@MainActor
-enum CisumAppAssembly {
-    static let configuration = FactoryCisumConfiguration()
-}
-
-/// 应用入口：按平台选择对应的实现，宿主级初始化只在此处执行一次。
+/// - macOS: 共享 `HostMacScenes`（主窗口 + 设置窗口 + 命令）
+/// - iOS / iPadOS / visionOS: `WindowGroup` + `HostRootWindowView`
+///   （标准设置壳：NavigationStack + 设置 sheet）
 ///
-/// - macOS: `CisumMacApp`（`NSApplicationDelegateAdaptor` + 设置窗口 + 命令菜单）
-/// - iOS / iPadOS / visionOS: `CisumIOSApp`
-///
-/// 对齐 GameFactory/BookletMakerApp 的平台拆分：入口、macOS 场景、iOS 场景
-/// 各占一个文件，AppKit 等平台专属 API 由文件级 `#if` 隔离，避免跨平台编译
-/// 时相互污染。
-///
-/// visionOS 走 iOS 场景：它同样是 SwiftUI + UIKit 的窗口式应用，
-/// 主窗口与设置 sheet 的装配方式与 iOS 一致（见 `CisumIOSApp`）。
+/// 装配流水线、窗口壳与生命周期协调全部由 LumiFactory 解释
+/// `CisumManifest.manifest` 执行；本文件只负责把启动器接到 SwiftUI 入口。
 @main
 struct CisumApp: App {
+    // delegate adaptor 必须挂在 @main 根 App 上：SwiftUI 只为根 App 安装
+    // NSApplicationDelegateAdaptor。放在 body 里临时创建的嵌套结构上不会生效。
+    #if os(macOS)
+    @NSApplicationDelegateAdaptor private var appDelegate: HostAppDelegate
+    #endif
+
     init() {
         #if os(macOS)
-        UserDefaults.standard.set(true, forKey: "ApplePersistenceIgnoreState")
+        // 禁用窗口状态恢复必须在根 App.init 写入（恢复发生在 delegate 回调之前）。
+        HostAppDelegate.prepareForLaunch()
+        appDelegate.bootstrapper = CisumAssembly.bootstrapper
+        CisumMenuInstaller.shared.start()
         #endif
     }
 
     var body: some Scene {
         #if os(macOS)
-        CisumMacApp().body
+        HostMacScenes(bootstrapper: CisumAssembly.bootstrapper).body
         #else
-        CisumIOSApp().body
+        WindowGroup("Cisum", id: "cisum.main") {
+            HostRootWindowView(bootstrapper: CisumAssembly.bootstrapper)
+        }
         #endif
     }
+}
+
+/// 宿主级装配单例：App.init 可能被 SwiftUI 多次求值，启动器必须经单例创建，
+/// 保证视图持有的与注入 AppDelegate 的是同一个。
+@MainActor
+enum CisumAssembly {
+    static let bootstrapper = KernelBootstrapper(manifest: CisumManifest.manifest)
 }

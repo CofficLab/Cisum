@@ -2,7 +2,8 @@ import Foundation
 import MagicKit
 import ProviderTheme
 import Testing
-@testable import FactoryCisum
+
+@testable import Cisum
 
 /// Legacy 主题键迁移到新主题 Provider 的行为契约。
 ///

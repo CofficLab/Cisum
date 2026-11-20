@@ -28,7 +28,7 @@ Cisum is a plugin-based SwiftUI audio player. The codebase is split into indepen
 Swift packages under `Packages/`, grouped into four roles:
 
 ```text
-FactoryCisum
+CisumApp (HostManifest) + LumiFactory (shared assembly engine)
   ├── Plugin*  ── consumes ──> Provider*
   ├── Provider* ── uses ─────> Kit*
   └── Kit*
@@ -39,7 +39,7 @@ FactoryCisum
 | `Kit*` | Reusable foundations not owned by one feature (playback primitives, UI components, event observation) |
 | `Provider*` | App-facing contracts, domain models, events, observer handles |
 | `Plugin*` | One feature each; consumes other features through Provider contracts |
-| `FactoryCisum` | The single composition root that wires providers and plugins together |
+| `CisumApp` + `LumiFactory` | The composition root: the app declares a `HostManifest` (plugins, storage, theme, wiring); the shared remote `LumiFactory` package interprets it |
 
 Plugins never depend on each other directly — shared behavior travels through
 `Provider*` (data and contracts) or `Kit*` (pure utilities) packages.

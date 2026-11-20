@@ -34,7 +34,7 @@ let package = Package(
                 .product(name: "ProviderSettingView", package: "LumiSettings"),
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
-                .product(name: "ProviderStorage", package: "ProviderStorage"),
+                .product(name: "CisumProviderStorage", package: "ProviderStorage"),
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
             ],

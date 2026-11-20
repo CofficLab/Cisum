@@ -35,7 +35,7 @@ let package = Package(
                 .product(name: "KitAppEvents", package: "KitAppEvents"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderRootView", package: "LumiProviders"),
-                .product(name: "ProviderStorage", package: "ProviderStorage"),
+                .product(name: "CisumProviderStorage", package: "ProviderStorage"),
             ],
             path: ".",
             sources: ["Sources"],

@@ -1,7 +1,8 @@
 import Foundation
 import KernelCore
 import Testing
-@testable import FactoryCisum
+
+@testable import Cisum
 
 /// 插件管理器插件在 Cisum 中的启用状态守卫。
 ///
@@ -21,7 +22,7 @@ struct PluginManagerEnablementTests {
     /// 插件管理器在 Cisum 的插件目录里必须是 `.disabled` 策略。
     @Test("插件管理器在 Cisum 是 disabled 策略")
     func pluginManagerIsDisabled() {
-        let plugin = DefaultPluginFactory().makePlugins()
+        let plugin = CisumPluginFactory.makePlugins()
             .first { $0.id == Self.pluginManagerID }
 
         #expect(
@@ -39,12 +40,12 @@ struct PluginManagerEnablementTests {
     func disabledPluginIsNotStarted() async throws {
         let kernel = KernelCoreContainer()
         let plugin = try #require(
-            DefaultPluginFactory().makePlugins().first { $0.id == Self.pluginManagerID }
+            CisumPluginFactory.makePlugins().first { $0.id == Self.pluginManagerID }
         )
         #expect(plugin.metadata.policy == .disabled)
 
         // 内核在启动前按策略过滤：`.disabled` 的插件不注册、不启动。
-        let activePlugins = DefaultPluginFactory().makePlugins()
+        let activePlugins = CisumPluginFactory.makePlugins()
             .filter { $0.metadata.policy != .disabled }
 
         try await kernel.startAsync(plugins: activePlugins)

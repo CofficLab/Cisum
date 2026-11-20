@@ -1,7 +1,8 @@
 #if os(visionOS)
-import FactoryCisum
 import ProviderDevice
 import Testing
+
+@testable import Cisum
 
 /// `DeviceService` 在 visionOS 上的平台语义回归。
 ///

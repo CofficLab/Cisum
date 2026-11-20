@@ -1,7 +1,7 @@
-import LumiUI
-import PluginSettingView
 import KernelCore
+import PluginAbout
 import PluginAudio
+import PluginAudioControlButtons
 import PluginAudioCopy
 import PluginAudioDBData
 import PluginAudioDBView
@@ -15,58 +15,45 @@ import PluginAudioSettings
 import PluginAudioWidgetControl
 import PluginBook
 import PluginBookControlButtons
-import PluginBookDBView
 import PluginBookDBData
+import PluginBookDBView
 import PluginBookLike
 import PluginBookLoading
 import PluginBookProgress
 import PluginBookScene
 import PluginBookSettings
-import PluginAudioControlButtons
-import PluginAbout
 import PluginCacheManager
 import PluginFileLog
 import PluginLikeButton
 import PluginOpenButton
-import PluginToast
 import PluginPlayBack
 import PluginPlaybackHero
-import PluginPluginManager
 import PluginPlaybackProgress
+import PluginPluginManager
 import PluginRepositoryGuide
 import PluginReset
+import PluginRootView
 import PluginScene
 import PluginSettingGeneral
+import PluginSettingView
 import PluginSettingsButton
 import PluginStorage
 import PluginStore
+import PluginToast
 import PluginWelcome
 import ProviderRootView
 
-/// 产出各种插件的工厂协议（对齐 Lumi `FactoryLumi/PluginFactory.swift`）。
+/// Cisum 的内置插件清单。
 ///
-/// 集中管理插件的构造；`FactoryCisum.createKernel` 通过它产出插件并交给
-/// `BuiltinPluginManager` 启动。宿主可实现该协议覆盖插件列表。
+/// 对齐 Wakey：插件清单是宿主差异的一部分，由 App target 维护，
+/// 经 `HostManifest.makePlugins` 交给共享装配引擎。
 @MainActor
-public protocol PluginFactory {
-    /// 产出要启动的全部插件。
-    ///
-    /// 各插件在 `onBoot` 中解析内核已有 Provider 并注册自己的贡献
-    /// （如 SettingGeneralPlugin 注册「通用」入口、PluginPluginManager 注册
-    /// 「插件管理」入口）。
-    func makePlugins() -> [any SuperPlugin]
-}
-
-/// 默认插件工厂：直接装配 Cisum 的全部内置插件（对齐 Lumi
-/// `DefaultPluginFactory.makePlugins()` 的硬编码清单方式）。
-///
-/// 插件清单由 Factory 自身维护（不再经由宿主/Registry 注入），
-/// Factory 是唯一知道"应用由哪些插件组成"的地方。
-public struct DefaultPluginFactory: PluginFactory {
-    public init() {}
-
-    public func makePlugins() -> [any SuperPlugin] {
+enum CisumPluginFactory {
+    static func makePlugins() -> [any SuperPlugin] {
+        // 播放器根视图插件必须先于功能插件 boot：
+        // 覆盖层插件（Toast 等）在自己的 boot 阶段就要解析 RootViewProviding。
         var plugins: [any SuperPlugin] = [
+            RootViewPlugin(),
             AudioDBDataPlugin.shared,
             AudioDBViewPlugin.shared,
             AudioDemoPlugin.shared,
@@ -128,15 +115,12 @@ public struct DefaultPluginFactory: PluginFactory {
                 policy: .disabled
             ),
             // 共享远程包 LumiPluginCacheManager：磁盘缓存管理设置入口。
-            // 当前暂无消费方（图片/文件缓存尚未接入），仅随基础设施
-            // DiskCacheProviding 一并就位；有桶后此页会列出各插件缓存占用。
             CacheManagerPlugin(id: "com.coffic.cisum.plugin.cache-manager"),
             StoragePlugin.shared,
             StorePlugin.shared,
             SystemPlugin.shared,
             SettingGeneralPlugin.shared,
             // 共享远程包 LumiPluginAbout：设置界面的「关于」入口。
-            // 页面含 Coffic Lab 旗下产品（应用与网站）+ Cisum 自己的官网与法律链接。
             AboutPlugin(
                 id: "com.coffic.cisum.plugin.about",
                 configuration: AboutConfiguration(
@@ -153,28 +137,5 @@ public struct DefaultPluginFactory: PluginFactory {
         ] as [any SuperPlugin])
 
         return plugins
-    }
-}
-
-/// 按允许 ID 列表过滤的插件工厂（对齐 Lumi `SelectedPluginFactory`）。
-///
-/// 用于「只装配启用集合中的插件」的场景；运行期启停仍由内核的
-/// override 机制 + 贡献重建驱动。
-public struct SelectedPluginFactory: PluginFactory {
-    private let base: any PluginFactory
-    public let allowedPluginIDs: Set<String>
-
-    public init(allowedPluginIDs: Set<String>) {
-        self.allowedPluginIDs = allowedPluginIDs
-        self.base = DefaultPluginFactory()
-    }
-
-    public init(allowedPluginIDs: Set<String>, base: any PluginFactory) {
-        self.allowedPluginIDs = allowedPluginIDs
-        self.base = base
-    }
-
-    public func makePlugins() -> [any SuperPlugin] {
-        base.makePlugins().filter { allowedPluginIDs.contains($0.id) }
     }
 }

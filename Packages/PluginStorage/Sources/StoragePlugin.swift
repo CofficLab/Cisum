@@ -62,6 +62,9 @@ public final class StoragePlugin: AsyncSuperPlugin, SuperLog {
         // contract. This lets shared Lumi plugins resolve ProviderStorage
         // without creating a second data root.
         try kernel.registerProvider((any CisumProviderStorage.StorageProviding).self, provider)
+        // 共享装配引擎（LumiFactory）在装配期预注册了基线 StorageProviding；
+        // 这里替换为 Cisum 的存储位置感知实现（与 RootViewPlugin 同一模式）。
+        kernel.unregisterProvider((any ProviderStorage.StorageProviding).self)
         try kernel.registerProvider((any ProviderStorage.StorageProviding).self, provider)
 
         // UI 测试需要在启动时钉死存储位置（重置 / 指定 local / 指定 iCloud）。

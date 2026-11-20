@@ -1,50 +1,20 @@
-import ProviderTheme
-import ProviderStorage
-import KernelCore
-import Foundation
-import SwiftUI
-
 #if os(macOS)
 import AppKit
-#endif
-
-/// Cisum 应用命令装配（对齐 Lumi `FactoryLumi/AppCommands.swift`）。
-///
-/// 菜单栏命令的装配集中在 Factory 包内完成；宿主 App 只需
-/// `.commands { FactoryCisum.makeCommands() }`，不需要关心命令从哪来。
-public struct CisumAppCommands: Commands {
-    @Environment(\.openWindow) private var openWindow
-
-    public init() {
-        #if os(macOS)
-        Task { @MainActor in
-            CisumMenuInstaller.shared.start()
-        }
-        #endif
-    }
-
-    public var body: some Commands {
-        // 菜单栏「设置…」入口（⌘,）——对齐 Lumi 的设置窗口入口。
-        CommandGroup(replacing: .appSettings) {
-            Button("Settings…") {
-                openWindow(id: AppBootstrap.settingsWindowID)
-            }
-            .keyboardShortcut(",", modifiers: .command)
-        }
-    }
-}
-
-#if os(macOS)
+import KernelCore
+import ProviderStorage
+import ProviderTheme
+import SwiftUI
 
 /// Installs Cisum's dynamic top-level menus into the AppKit menu bar.
 ///
 /// SwiftUI creates and can replace its `NSMenu` tree after the command scene
-/// is evaluated. The installer therefore waits for the main kernel and keeps
-/// the menu items synchronized with the current theme service. This mirrors
-/// Lumi's runtime menu bridge while keeping the Cisum command surface local
-/// to its Factory package.
+/// is evaluated. The installer therefore waits for the bootstrapper's kernel
+/// and keeps the menu items synchronized with the current theme service.
+///
+/// ⌘, 设置入口与插件命令由 LumiFactory 的 `HostCommands` 提供；
+/// 这里只装 Cisum 特有的 DEBUG 目录菜单与主题菜单。
 @MainActor
-private final class CisumMenuInstaller {
+final class CisumMenuInstaller {
     static let shared = CisumMenuInstaller()
 
     private var pollingTask: Task<Void, Never>?
@@ -71,7 +41,7 @@ private final class CisumMenuInstaller {
 
     private func synchronizeIfPossible() {
         guard let mainMenu = NSApplication.shared.mainMenu,
-              let kernel = FactoryCisum.mainKernel else { return }
+              let kernel = CisumAssembly.bootstrapper.kernel else { return }
 
         if installedMainMenu !== mainMenu {
             installedMainMenu = mainMenu
@@ -229,7 +199,7 @@ private final class CisumMenuInstaller {
     }
 
     private func menuString(_ key: String) -> String {
-        String(localized: .init(key), bundle: .module)
+        String(localized: .init(key))
     }
 }
 
@@ -272,5 +242,4 @@ private final class CisumMenuActionTarget: NSObject {
         action()
     }
 }
-
 #endif

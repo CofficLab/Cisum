@@ -8,7 +8,7 @@ import Foundation
 ///
 /// 白名单之外的目录主题不会进入 `ThemeProviding.themes`，
 /// 「外观」设置页与主题菜单随之只展示该子集。
-public enum CisumThemeSelection {
+enum CisumThemeSelection {
     /// 目录主题 id 白名单。
     ///
     /// - `lumi`：森林墨，默认主题，与 App 图标同色系。
@@ -18,7 +18,7 @@ public enum CisumThemeSelection {
     ///
     /// 另有 ProviderTheme 的三个基础外观（跟随系统 / 固定暗色 / 固定亮色）
     /// 由 `DefaultThemeProviding` 内置注册，无需在此列出。
-    public static let catalogueIDs: [String] = [
+    static let catalogueIDs: [String] = [
         "lumi",
         "midnight",
         "river",

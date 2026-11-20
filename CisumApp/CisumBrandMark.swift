@@ -1,5 +1,17 @@
 import SwiftUI
 
+/// 加载页品牌叠加层：从环境读明暗外观适配卷盘配色。
+///
+/// 经 `HostManifest.makeLoadingBrandOverlay` 交给 LumiFactory，
+/// 渲染在通用进度环之上（纯读取，不持有时间状态）。
+struct CisumLoadingBrandMark: View {
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        CisumBrandMark(size: 104, scheme: colorScheme)
+    }
+}
+
 /// Cisum 品牌标记：胶片卷盘。
 ///
 /// 与 AppIcon 的造型一致（象牙白卷盘 + 金色压边 + 深棕盘面 + 五个绿色片孔

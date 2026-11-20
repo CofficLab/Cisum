@@ -12,8 +12,8 @@ public enum SettingsButtonPluginInfo {
     /// `IOSNavigationBarProviding`），共用一个 id 会在撤回时误伤另一端。
     public static let navigationBarItemId = "settings-button.navigation-bar"
 
-    /// 设置窗口 ID，与 `FactoryCisum.AppBootstrap.settingsWindowID` 保持一致。
+    /// 设置窗口 ID，与宿主清单（`CisumManifest` 的 `settingsWindowID`）保持一致。
     ///
-    /// 插件包不能反向依赖 FactoryCisum（避免循环依赖），故在此保留同一常量。
+    /// 插件包不能反向依赖宿主 App（避免循环依赖），故在此保留同一常量。
     public static let settingsWindowID = "cisum.settings"
 }

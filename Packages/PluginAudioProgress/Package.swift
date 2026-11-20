@@ -44,7 +44,7 @@ let package = Package(
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderPlayback", package: "ProviderPlayback"),
-                .product(name: "ProviderStorage", package: "ProviderStorage"),
+                .product(name: "CisumProviderStorage", package: "ProviderStorage"),
             ],
             path: ".",
             sources: ["Sources"],

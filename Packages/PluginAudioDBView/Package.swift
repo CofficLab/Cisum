@@ -50,7 +50,7 @@ let package = Package(
                 .product(name: "ProviderScene", package: "ProviderScene"),
                 .product(name: "ProviderStoreKit", package: "ProviderStoreKit"),
                 .product(name: "ProviderStore", package: "LumiProviders"),
-                .product(name: "ProviderStorage", package: "ProviderStorage"),
+                .product(name: "CisumProviderStorage", package: "ProviderStorage"),
                 .product(name: "ProviderAppState", package: "ProviderAppState"),
                 .product(name: "ProviderToast", package: "LumiProviders"),
             ],

@@ -33,7 +33,7 @@ let package = Package(
             name: "PluginAudioLike",
             dependencies: [
                 .product(name: "ProviderAudioLike", package: "ProviderAudioLike"),
-                .product(name: "ProviderStorage", package: "ProviderStorage"),
+                .product(name: "CisumProviderStorage", package: "ProviderStorage"),
                 .product(name: "MagicKit", package: "KitMagic"),
                 .product(name: "LumiUI", package: "LumiUI"),
                 .product(name: "ProviderSettingView", package: "LumiSettings"),

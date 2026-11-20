@@ -12,11 +12,11 @@ import MagicKit
 ///
 /// 包装 `MagicApp` 的设备/平台信息，并提供屏幕尺寸（macOS 取主屏幕，iOS 取主 UIScreen）。
 @MainActor
-public final class DeviceService: ObservableObject, DeviceProviding {
-    public var isMac: Bool { MagicApp.isDesktop }
-    public var isIOS: Bool { MagicApp.isiOS }
+final class DeviceService: ObservableObject, DeviceProviding {
+    var isMac: Bool { MagicApp.isDesktop }
+    var isIOS: Bool { MagicApp.isiOS }
 
-    public var isPad: Bool {
+    var isPad: Bool {
         #if os(iOS)
             return UIDevice.current.userInterfaceIdiom == .pad
         #else
@@ -26,13 +26,13 @@ public final class DeviceService: ObservableObject, DeviceProviding {
         #endif
     }
 
-    public var deviceModel: String { MagicApp.getDeviceModel() }
-    public var systemVersion: String { MagicApp.getSystemVersion() }
+    var deviceModel: String { MagicApp.getDeviceModel() }
+    var systemVersion: String { MagicApp.getSystemVersion() }
 
-    public var screenWidth: CGFloat { primaryScreenSize.width }
-    public var screenHeight: CGFloat { primaryScreenSize.height }
+    var screenWidth: CGFloat { primaryScreenSize.width }
+    var screenHeight: CGFloat { primaryScreenSize.height }
 
-    public init() {}
+    init() {}
 
     private var primaryScreenSize: CGSize {
         #if os(macOS)

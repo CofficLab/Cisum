@@ -9,19 +9,19 @@ import MagicKit
 /// 包装 `MagicApp.isICloudAvailable()` 并监听系统 `CKAccountChanged` 通知，
 /// 对应旧版 `CloudVM` 暴露的面。
 @MainActor
-public final class CloudService: ObservableObject, CloudProviding {
-    @Published public private(set) var isICloudAvailable: Bool = MagicApp.isICloudAvailable()
-    @Published public private(set) var isSignedIn: Bool?
+final class CloudService: ObservableObject, CloudProviding {
+    @Published private(set) var isICloudAvailable: Bool = MagicApp.isICloudAvailable()
+    @Published private(set) var isSignedIn: Bool?
 
-    public var accountStatusDescription: String {
+    var accountStatusDescription: String {
         guard let isSignedIn else { return "Unknown" }
         return isSignedIn ? "Signed In" : "Not Signed In"
     }
 
-    private var observer: NSObjectProtocol?
+    nonisolated(unsafe) private var observer: NSObjectProtocol?
     private let eventObservers = EventObserverStore<CloudProvidingEvent>()
 
-    public init() {
+    init() {
         refresh()
         observer = NotificationCenter.default.addObserver(
             forName: NSNotification.Name.CKAccountChanged,
@@ -44,7 +44,7 @@ public final class CloudService: ObservableObject, CloudProviding {
     }
 
     @discardableResult
-    public func addObserver(
+    func addObserver(
         _ callback: @escaping (CloudProvidingEvent) -> Void
     ) -> any CloudProvidingObserverHandle {
         eventObservers.add(callback)
