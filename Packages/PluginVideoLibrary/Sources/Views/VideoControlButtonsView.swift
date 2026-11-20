@@ -55,6 +55,7 @@ struct VideoControlButtonsView: View {
                     isActive: viewModel.rate != 1,
                     action: viewModel.cycleRate
                 )
+                .accessibilityValue(rateTitle(viewModel.rate))
                 .disabled(!viewModel.playback.hasAsset)
             }
             .padding(.bottom, metrics.controlButtonBottomPadding)
@@ -66,5 +67,9 @@ struct VideoControlButtonsView: View {
 
     private var isPlaying: Bool {
         viewModel.playbackState == .playing
+    }
+
+    private func rateTitle(_ rate: Float) -> String {
+        rate == rate.rounded() ? "\(Int(rate))×" : "\(rate)×"
     }
 }

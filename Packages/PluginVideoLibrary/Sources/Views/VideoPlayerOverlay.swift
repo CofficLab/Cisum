@@ -1,17 +1,11 @@
+import LumiUI
 import ProviderVideo
 import SwiftUI
 
-/// 沉浸式播放器：画面 + 进度条 + 控制按钮 + 播放队列。
-///
-/// macOS 以覆盖层形式出现在视频库页面之上，iOS 以全屏 sheet 呈现；队列
-/// 在 macOS 是右侧抽屉，在 iOS 是底部 sheet。
+/// 沉浸式播放器：macOS 覆盖根布局，iOS 使用全屏 sheet。
 struct VideoPlayerOverlay: View {
     @ObservedObject var viewModel: VideoLibraryViewModel
     let onClose: () -> Void
-
-    @State private var isScrubbing = false
-    @State private var scrubValue: Double = 0
-    @State private var isControlsVisible = true
 
     var body: some View {
         ZStack {
@@ -24,192 +18,125 @@ struct VideoPlayerOverlay: View {
 
             topBar
 
+            #if !os(iOS)
             if viewModel.isQueuePresented {
                 queue
             }
+            #endif
         }
         .accessibilityIdentifier("cisum.video.player")
+        #if os(iOS)
+        .sheet(isPresented: $viewModel.isQueuePresented) {
+            iosQueue
+        }
+        #else
+        .onExitCommand(perform: onClose)
+        #endif
     }
-
-    // MARK: - Player
 
     private var playerArea: some View {
         ZStack {
             if viewModel.playback.hasAsset {
                 viewModel.playback.makePlayerView()
             } else {
-                VStack(spacing: 8) {
-                    Image(systemName: "play.rectangle")
-                        .font(.system(size: 36))
-                        .foregroundStyle(.white.opacity(0.6))
-                    Text(String(localized: "Select a video to start playing", bundle: .module))
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.6))
-                }
+                Image(systemName: "play.rectangle")
+                    .font(.system(size: 36))
+                    .foregroundStyle(.white.opacity(0.6))
             }
+
+            VideoPlaybackStatusView(state: viewModel.playbackState, isImmersive: true)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var topBar: some View {
-        VStack {
-            HStack(spacing: 12) {
-                if let item = viewModel.currentItem {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(item.title)
-                            .font(.headline)
-                            .foregroundStyle(.white)
-                        Text(item.relativePath)
-                            .font(.caption)
-                            .foregroundStyle(.white.opacity(0.7))
-                            .lineLimit(1)
-                    }
-                }
-                Spacer()
-                Button {
-                    viewModel.isQueuePresented.toggle()
-                } label: {
-                    Image(systemName: "list.bullet")
-                }
-                .foregroundStyle(.white)
-                .accessibilityLabel(String(localized: "Queue", bundle: .module))
-
-                Button(action: onClose) {
-                    Image(systemName: "xmark")
-                }
-                .foregroundStyle(.white)
-                .accessibilityLabel(String(localized: "Close", bundle: .module))
+        HStack(spacing: 12) {
+            if let item = viewModel.currentItem {
+                Text(item.title)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(
-                LinearGradient(colors: [.black.opacity(0.7), .clear], startPoint: .top, endPoint: .bottom)
-            )
             Spacer()
-        }
-    }
-
-    // MARK: - Controls
-
-    private var controls: some View {
-        VStack(spacing: 6) {
-            Slider(
-                value: Binding(
-                    get: { isScrubbing ? scrubValue : viewModel.progress },
-                    set: { scrubValue = $0 }
-                ),
-                in: 0...1,
-                onEditingChanged: { editing in
-                    isScrubbing = editing
-                    if !editing {
-                        viewModel.seek(to: viewModel.duration * scrubValue)
-                    }
-                }
-            )
-            .tint(.white)
-            .disabled(viewModel.duration <= 0)
-
-            HStack {
-                Text(timeText(viewModel.currentTime))
-                Spacer()
-                Text(timeText(viewModel.duration))
+            Button {
+                viewModel.isQueuePresented.toggle()
+            } label: {
+                Image(systemName: "list.bullet")
             }
-            .font(.caption.monospacedDigit())
-            .foregroundStyle(.white.opacity(0.75))
-
-            HStack(spacing: 16) {
-                Button {
-                    viewModel.playNeighbor(offset: -1)
-                } label: {
-                    Image(systemName: "backward.end.fill")
-                }
-                .accessibilityLabel(String(localized: "Previous", bundle: .module))
-
-                Button {
-                    viewModel.togglePlayback()
-                } label: {
-                    Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                        .font(.title2)
-                }
-                .accessibilityLabel(isPlaying ? String(localized: "Pause", bundle: .module) : String(localized: "Play", bundle: .module))
-
-                Button {
-                    viewModel.playNeighbor(offset: 1)
-                } label: {
-                    Image(systemName: "forward.end.fill")
-                }
-                .accessibilityLabel(String(localized: "Next", bundle: .module))
-
-                Menu {
-                    ForEach(VideoLibraryViewModel.rateOptions, id: \.self) { rate in
-                        Button {
-                            viewModel.setRate(rate)
-                        } label: {
-                            if abs(Double(viewModel.rate) - Double(rate)) < 0.01 {
-                                Label(rateTitle(rate), systemImage: "checkmark")
-                            } else {
-                                Text(rateTitle(rate))
-                            }
-                        }
-                    }
-                } label: {
-                    Text(rateTitle(viewModel.rate))
-                        .font(.caption.monospacedDigit())
-                }
-                .accessibilityLabel(String(localized: "Playback Speed", bundle: .module))
-
-                if let item = viewModel.currentItem {
-                    Button {
-                        viewModel.toggleFavorite(item)
-                    } label: {
-                        Image(systemName: item.isFavorite ? "star.fill" : "star")
-                    }
-                    .accessibilityLabel(String(localized: "Favorites", bundle: .module))
-                }
-
-                Spacer()
-            }
-            .font(.title3)
             .foregroundStyle(.white)
-            .buttonStyle(.borderless)
+            .accessibilityLabel(String(localized: "Queue", bundle: .module))
+
+            Button(action: onClose) {
+                Image(systemName: "xmark")
+            }
+            .foregroundStyle(.white)
+            .accessibilityLabel(String(localized: "Close", bundle: .module))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(
-            LinearGradient(colors: [.clear, .black.opacity(0.8)], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [.black.opacity(0.7), .clear], startPoint: .top, endPoint: .bottom)
         )
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    }
+
+    private var controls: some View {
+        VStack(spacing: 10) {
+            VideoProgressView(viewModel: viewModel, isImmersive: true)
+
+            HStack(spacing: 18) {
+                AppCircularIconButton(
+                    systemImage: "backward.end.fill",
+                    accessibilityLabel: "Previous",
+                    tint: .white,
+                    size: 48,
+                    action: { viewModel.playNeighbor(offset: -1) }
+                )
+                .disabled(!viewModel.playback.hasAsset)
+                AppCircularIconButton(
+                    systemImage: isPlaying ? "pause.fill" : "play.fill",
+                    accessibilityLabel: isPlaying ? "Pause" : "Play",
+                    tint: .white,
+                    size: 56,
+                    isActive: isPlaying,
+                    action: viewModel.togglePlayback
+                )
+                .disabled(!viewModel.playback.hasAsset || viewModel.playbackState == .loading)
+                AppCircularIconButton(
+                    systemImage: "forward.end.fill",
+                    accessibilityLabel: "Next",
+                    tint: .white,
+                    size: 48,
+                    action: { viewModel.playNeighbor(offset: 1) }
+                )
+                .disabled(!viewModel.playback.hasAsset)
+                AppCircularIconButton(
+                    systemImage: "speedometer",
+                    accessibilityLabel: "Playback Speed",
+                    tint: .white,
+                    size: 48,
+                    isActive: viewModel.rate != 1,
+                    action: viewModel.cycleRate
+                )
+                .accessibilityValue(rateTitle(viewModel.rate))
+                .disabled(!viewModel.playback.hasAsset)
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(.black.opacity(0.85))
     }
 
     private var isPlaying: Bool {
         viewModel.playbackState == .playing
     }
 
-    // MARK: - Queue
-
+    #if !os(iOS)
     private var queue: some View {
-        Group {
-            #if os(iOS)
-            VStack {
-                Spacer()
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(String(localized: "Up Next", bundle: .module))
-                        .font(.headline)
-                    ScrollView {
-                        LazyVStack(spacing: 6) {
-                            ForEach(viewModel.playbackQueue) { item in
-                                queueRow(item)
-                            }
-                        }
-                    }
-                }
-                .frame(maxHeight: 320)
-                .padding(16)
-                .background(Color.black.opacity(0.92))
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-            }
-            .background(Color.black.opacity(0.4))
-            #else
-            VStack {
+        HStack {
+            Spacer()
+            VStack(spacing: 0) {
                 HStack {
                     Text(String(localized: "Up Next", bundle: .module))
                         .font(.headline)
@@ -221,9 +148,9 @@ struct VideoPlayerOverlay: View {
                         Image(systemName: "xmark")
                     }
                     .foregroundStyle(.white)
+                    .accessibilityLabel(String(localized: "Close", bundle: .module))
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
+                .padding(14)
 
                 ScrollView {
                     LazyVStack(spacing: 6) {
@@ -236,49 +163,69 @@ struct VideoPlayerOverlay: View {
                 }
             }
             .frame(width: 300)
-            .background(Color.black.opacity(0.92))
-            .transition(.move(edge: .trailing))
-            #endif
+            .background(Color.black.opacity(0.94))
         }
+        .background(Color.black.opacity(0.35))
+        .transition(.move(edge: .trailing))
     }
+    #endif
+
+    #if os(iOS)
+    private var iosQueue: some View {
+        NavigationStack {
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(viewModel.playbackQueue) { item in
+                        queueRow(item)
+                    }
+                }
+                .padding()
+            }
+            .navigationTitle(String(localized: "Up Next", bundle: .module))
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(String(localized: "Done", bundle: .module)) {
+                        viewModel.isQueuePresented = false
+                    }
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
+        .presentationDetents([.medium, .large])
+    }
+    #endif
 
     private func queueRow(_ item: VideoItem) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: "film")
-                .font(.caption)
-                .frame(width: 64, height: 36)
-                .background(Color.secondary.opacity(0.2))
-                .clipShape(RoundedRectangle(cornerRadius: 5))
-            VStack(alignment: .leading, spacing: 1) {
-                Text(item.title)
+        Button {
+            viewModel.play(item)
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: item.availability == .available ? "film" : "icloud")
                     .font(.caption)
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                Text(item.formattedDuration)
-                    .font(.caption2)
-                    .foregroundStyle(.white.opacity(0.6))
+                    .frame(width: 64, height: 36)
+                    .background(Color.secondary.opacity(0.2))
+                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(item.title)
+                        .font(.caption)
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                    Text(item.formattedDuration)
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.6))
+                }
+                Spacer()
+                if viewModel.currentItem?.url == item.url {
+                    Image(systemName: "waveform")
+                        .foregroundStyle(Color.accentColor)
+                }
             }
-            Spacer()
+            .contentShape(Rectangle())
         }
-        .contentShape(Rectangle())
-        .onTapGesture { viewModel.play(item) }
+        .buttonStyle(.plain)
     }
-
-    // MARK: - Helpers
 
     private func rateTitle(_ rate: Float) -> String {
         rate == rate.rounded() ? "\(Int(rate))×" : "\(rate)×"
-    }
-
-    private func timeText(_ value: TimeInterval) -> String {
-        guard value.isFinite, value > 0 else { return "0:00" }
-        let total = Int(value.rounded())
-        let hours = total / 3600
-        let minutes = (total % 3600) / 60
-        let seconds = total % 60
-        if hours > 0 {
-            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
-        }
-        return String(format: "%d:%02d", minutes, seconds)
     }
 }

@@ -3,6 +3,7 @@ import SwiftUI
 /// 视频进度条：位置 / 时长 + 可拖动的进度滑杆。
 struct VideoProgressView: View {
     @ObservedObject var viewModel: VideoLibraryViewModel
+    var isImmersive = false
     @State private var isScrubbing = false
     @State private var scrubValue: Double = 0
 
@@ -21,6 +22,7 @@ struct VideoProgressView: View {
                     }
                 }
             )
+            .tint(isImmersive ? .white : nil)
             .disabled(viewModel.duration <= 0)
 
             HStack {
@@ -29,7 +31,7 @@ struct VideoProgressView: View {
                 Text(timeText(viewModel.duration))
             }
             .font(.caption.monospacedDigit())
-            .foregroundStyle(.secondary)
+            .foregroundStyle(isImmersive ? Color.white.opacity(0.75) : Color.secondary)
         }
         .accessibilityIdentifier("cisum.video.progress")
     }

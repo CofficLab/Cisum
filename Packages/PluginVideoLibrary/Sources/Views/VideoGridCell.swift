@@ -27,24 +27,10 @@ struct VideoGridCell: View {
                     .font(.caption)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
-                HStack(spacing: 4) {
-                    if !item.tags.isEmpty {
-                        Text(item.tags.prefix(2).joined(separator: " · "))
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                    Spacer(minLength: 0)
-                    if let rating = item.rating {
-                        Text(rating.symbolText)
-                            .font(.caption2)
-                            .foregroundStyle(.yellow)
-                    } else if item.isFavorite {
-                        Image(systemName: "star.fill")
-                            .font(.caption2)
-                            .foregroundStyle(.yellow)
-                    }
-                }
+                Text(item.tags.first ?? " ")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
             .contentShape(Rectangle())
             .onTapGesture(perform: onPlay)
@@ -130,9 +116,14 @@ struct VideoGridCell: View {
             Spacer()
             HStack(spacing: 8) {
                 Button(action: onPlay) {
-                    Image(systemName: "play.fill")
+                    Image(systemName: item.availability == .cloudNotDownloaded ? "icloud.and.arrow.down" : "play.fill")
                 }
-                .accessibilityLabel(String(localized: "Play", bundle: .module))
+                .accessibilityLabel(
+                    item.availability == .cloudNotDownloaded
+                        ? String(localized: "Download", bundle: .module)
+                        : String(localized: "Play", bundle: .module)
+                )
+                .disabled(item.availability != .available && item.availability != .cloudNotDownloaded)
 
                 Button(action: onFavorite) {
                     Image(systemName: item.isFavorite ? "star.fill" : "star")
@@ -177,9 +168,9 @@ struct VideoGridCell: View {
                     .padding(3)
                     .background(.black.opacity(0.6), in: Circle())
             case .cloudDownloading:
-                Image(systemName: "icloud.and.arrow.down")
-                    .font(.caption2)
-                    .foregroundStyle(.white)
+                ProgressView()
+                    .controlSize(.mini)
+                    .tint(.white)
                     .padding(3)
                     .background(.black.opacity(0.6), in: Circle())
             case .unavailable:

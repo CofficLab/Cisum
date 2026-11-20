@@ -7,6 +7,7 @@ import ProviderAppState
 import ProviderControlView
 import ProviderDocsView
 import ProviderPlugin
+import ProviderRootView
 import ProviderScene
 import ProviderVideo
 import SwiftUI
@@ -46,6 +47,7 @@ public final class VideoLibraryPlugin: AsyncSuperPlugin, SuperLog {
     nonisolated(unsafe) private var repositoryCapability: VideoLibraryRepositoryCapability?
     nonisolated(unsafe) private var playbackCapability: VideoLibraryPlaybackCapability?
     nonisolated(unsafe) private var viewModelCancellable: AnyCancellable?
+    nonisolated(unsafe) private var rootOverlayInstalled = false
     /// 场景激活句柄：视频场景才登记控制区贡献。
     nonisolated(unsafe) private var sceneHandle: (any SceneProvidingObserverHandle)?
 
@@ -73,6 +75,7 @@ public final class VideoLibraryPlugin: AsyncSuperPlugin, SuperLog {
         self.kernel = kernel
         installState(kernel: kernel)
         installSceneActivation(kernel: kernel)
+        installRootOverlay(kernel: kernel)
     }
 
     @MainActor
@@ -92,6 +95,8 @@ public final class VideoLibraryPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         kernel.resolveProvider((any PluginContributionProviding).self)?.remove(owner: id)
+        kernel.resolveProvider((any RootViewProviding).self)?.removeOverlays(ids: ["\(id).player"])
+        rootOverlayInstalled = false
         sceneHandle?.cancel()
         sceneHandle = nil
         teardownState()
@@ -138,12 +143,33 @@ public final class VideoLibraryPlugin: AsyncSuperPlugin, SuperLog {
 
     // MARK: - Scene activation
 
+    @MainActor
+    private func installRootOverlay(kernel: KernelCoreContainer) {
+        #if os(macOS)
+        guard !rootOverlayInstalled, let root = kernel.resolveProvider((any RootViewProviding).self) else { return }
+        root.addOverlays([
+            RootOverlayItem(id: "\(id).player", order: 8_000) { [weak self] content in
+                content.overlay {
+                    if let viewModel = self?.viewModel, viewModel.isPlayerPresented {
+                        VideoPlayerOverlay(viewModel: viewModel) {
+                            viewModel.dismissPlayer()
+                        }
+                        .transition(.opacity)
+                    }
+                }
+            },
+        ])
+        rootOverlayInstalled = true
+        #endif
+    }
+
     private var currentScene: AppScene? {
         kernel?.resolveProvider((any SceneProviding).self)?.currentScene
     }
 
     @MainActor
-    private func installSceneActivation(kernel: KernelCoreContainer) {        guard let scene = kernel.resolveProvider((any SceneProviding).self) else { return }
+    private func installSceneActivation(kernel: KernelCoreContainer) {
+        guard let scene = kernel.resolveProvider((any SceneProviding).self) else { return }
         applyScene(scene.currentScene)
 
         guard sceneHandle == nil else { return }
@@ -159,7 +185,10 @@ public final class VideoLibraryPlugin: AsyncSuperPlugin, SuperLog {
         // `remove(owner:)` 会连同标签页一起撤回，因此撤回后必须重新登记标签页。
         contribution.remove(owner: id)
         registerTabView(contribution: contribution)
-        guard scene == .videos else { return }
+        guard scene == .videos else {
+            viewModel?.dismissPlayer()
+            return
+        }
         if let view = addHeroView() {
             contribution.addHeroView(ownerPluginID: id, view)
         }
@@ -220,6 +249,7 @@ public final class VideoLibraryPlugin: AsyncSuperPlugin, SuperLog {
 
     @MainActor
     private func teardownState() {
+        viewModel?.dismissPlayer()
         viewModelCancellable?.cancel()
         viewModelCancellable = nil
         viewModel?.unbind()

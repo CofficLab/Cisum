@@ -66,6 +66,7 @@ final class VideoLibraryViewModel: ObservableObject {
             self?.handlePlaybackEvent(event)
         }
         reload()
+        syncPlaybackState()
     }
 
     /// 解除绑定。
@@ -203,10 +204,27 @@ final class VideoLibraryViewModel: ObservableObject {
 
     // MARK: - Playback
 
-    /// 播放某个视频；有进度时从上次位置继续。
+    /// 播放本地可用的视频；有进度时从上次位置继续，保留内嵌播放。
     func play(_ item: VideoItem) {
-        playback.play(item.url, startTime: item.resumePosition)
+        switch item.availability {
+        case .available:
+            playback.play(item.url, startTime: item.resumePosition)
+        case .cloudNotDownloaded:
+            requestDownload(item)
+        case .cloudDownloading, .unavailable(_):
+            return
+        }
+    }
+
+    /// 用户显式展开沉浸播放器；选中条目本身不强制切换呈现方式。
+    func presentPlayer() {
+        guard playback.hasAsset else { return }
         isPlayerPresented = true
+    }
+
+    func dismissPlayer() {
+        isPlayerPresented = false
+        isQueuePresented = false
     }
 
     /// 切换播放 / 暂停。

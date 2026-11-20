@@ -32,6 +32,7 @@ let package = Package(
                 .product(name: "ProviderControlView", package: "ProviderControlView"),
                 .product(name: "ProviderAppState", package: "ProviderAppState"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
+                .product(name: "ProviderRootView", package: "LumiProviders"),
                 .product(name: "LumiUI", package: "LumiUI"),
                 .product(name: "MagicKit", package: "KitMagic"),
                 "ProviderScene",

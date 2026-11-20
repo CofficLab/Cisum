@@ -23,6 +23,10 @@ struct VideoLibraryView: View {
         #if os(iOS)
         .navigationTitle(String(localized: "Video Library", bundle: .module))
         .navigationBarTitleDisplayMode(.inline)
+        .searchable(
+            text: $viewModel.searchText,
+            prompt: String(localized: "Search", bundle: .module)
+        )
         #endif
         .fileImporter(
             isPresented: $isImporterPresented,
@@ -124,8 +128,10 @@ struct VideoLibraryView: View {
 
     private var filterBar: some View {
         HStack(spacing: 8) {
+            #if !os(iOS)
             AppSearchBar(text: $viewModel.searchText, placeholder: "Search")
                 .accessibilityIdentifier("cisum.video.search")
+            #endif
 
             Menu {
                 ForEach(VideoLibraryScope.allCases, id: \.self) { scope in
@@ -176,6 +182,10 @@ struct VideoLibraryView: View {
                 Image(systemName: "arrow.up.arrow.down.circle")
             }
             .accessibilityLabel(String(localized: String.LocalizationValue(viewModel.sortOrder.title), bundle: .module))
+
+            #if os(iOS)
+            Spacer(minLength: 8)
+            #endif
 
             Picker("", selection: $viewModel.displayMode) {
                 ForEach(VideoLibraryDisplayMode.allCases, id: \.self) { mode in
@@ -301,6 +311,7 @@ struct VideoLibraryView: View {
         } label: {
             Label(String(localized: "Play", bundle: .module), systemImage: "play.fill")
         }
+        .disabled(item.availability != .available)
 
         Button {
             viewModel.toggleFavorite(item)
@@ -352,7 +363,7 @@ struct VideoLibraryView: View {
     }
 }
 
-/// 播放器的呈现方式：macOS 用层叠覆盖，iOS 用全屏 sheet。
+/// iOS 使用系统全屏呈现；macOS 由插件在根布局登记 Overlay。
 private struct VideoPlayerPresentation: ViewModifier {
     @ObservedObject var viewModel: VideoLibraryViewModel
 
@@ -360,18 +371,11 @@ private struct VideoPlayerPresentation: ViewModifier {
         #if os(iOS)
         content.fullScreenCover(isPresented: $viewModel.isPlayerPresented) {
             VideoPlayerOverlay(viewModel: viewModel) {
-                viewModel.isPlayerPresented = false
+                viewModel.dismissPlayer()
             }
         }
         #else
-        content.overlay {
-            if viewModel.isPlayerPresented {
-                VideoPlayerOverlay(viewModel: viewModel) {
-                    viewModel.isPlayerPresented = false
-                }
-                .transition(.opacity)
-            }
-        }
+        content
         #endif
     }
 }

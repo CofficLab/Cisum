@@ -14,6 +14,13 @@ struct VideoPlayerLayoutPolicyTests {
         #expect(VideoPlayerLayoutPolicy.isHeroVisible(repositoryURL: repository, itemCount: 1))
     }
 
+    @Test("沉浸播放期间不创建第二个内嵌播放器视图")
+    func singlePlayerView() {
+        #expect(!VideoPlayerLayoutPolicy.shouldRenderEmbeddedPlayer(hasAsset: false, isPlayerPresented: false))
+        #expect(VideoPlayerLayoutPolicy.shouldRenderEmbeddedPlayer(hasAsset: true, isPlayerPresented: false))
+        #expect(!VideoPlayerLayoutPolicy.shouldRenderEmbeddedPlayer(hasAsset: true, isPlayerPresented: true))
+    }
+
     @Test("播放画面在可用空间内保持 16:9")
     func playerSize() {
         #expect(VideoPlayerLayoutPolicy.playerSize(in: CGSize(width: 320, height: 320)) == CGSize(width: 320, height: 180))

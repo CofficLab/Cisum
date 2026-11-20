@@ -47,8 +47,12 @@ struct VideoLibraryViewModelTests {
         var rate: Float = 1
         var hasAsset = false
         var playedURLs: [URL] = []
+        var playedStartTimes: [TimeInterval?] = []
 
-        func play(_ url: URL, startTime: TimeInterval?) { playedURLs.append(url) }
+        func play(_ url: URL, startTime: TimeInterval?) {
+            playedURLs.append(url)
+            playedStartTimes.append(startTime)
+        }
         func pause() {}
         func toggle() {}
         func stop() {}
@@ -198,7 +202,7 @@ struct VideoLibraryViewModelTests {
         #expect(viewModel.filteredItems.count == 2)
     }
 
-    @Test("播放时从上次位置继续并展开播放器")
+    @Test("播放时从上次位置继续且保留内嵌播放")
     func playbackResumes() {
         let provider = FakeRepositoryProvider()
         let item = makeItem(
@@ -212,7 +216,36 @@ struct VideoLibraryViewModelTests {
 
         viewModel.play(item)
         #expect(playback.playedURLs == [item.url])
+        #expect(playback.playedStartTimes.count == 1)
+        #expect(playback.playedStartTimes[0] == 90)
+        #expect(!viewModel.isPlayerPresented)
+
+        playback.hasAsset = true
+        viewModel.presentPlayer()
         #expect(viewModel.isPlayerPresented)
+
+        viewModel.dismissPlayer()
+        #expect(!viewModel.isPlayerPresented)
+    }
+
+    @Test("未下载或不可用的视频不得直接交给播放引擎")
+    func unavailablePlaybackIsGuarded() {
+        let provider = FakeRepositoryProvider()
+        let cloud = makeItem(name: "cloud", availability: .cloudNotDownloaded)
+        let downloading = makeItem(name: "downloading", availability: .cloudDownloading)
+        let unavailable = makeItem(name: "unavailable", availability: .unavailable("Missing"))
+        provider.items = [cloud, downloading, unavailable]
+
+        let playback = FakePlaybackProvider()
+        let viewModel = makeViewModel(provider: provider, playback: playback)
+
+        viewModel.play(cloud)
+        viewModel.play(downloading)
+        viewModel.play(unavailable)
+
+        #expect(playback.playedURLs.isEmpty)
+        #expect(provider.requestedDownloads == [cloud.url])
+        #expect(!viewModel.isPlayerPresented)
     }
 
     @Test("摘要统计与当前筛选结果口径一致")
