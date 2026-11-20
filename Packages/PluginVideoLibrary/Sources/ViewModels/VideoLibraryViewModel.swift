@@ -195,9 +195,9 @@ final class VideoLibraryViewModel: ObservableObject {
         repository.storageLocationTitle
     }
 
-    /// 仓库内的视频总大小文案。
+    /// 当前筛选结果的视频总大小文案，与摘要中的条目数量保持同一口径。
     var totalSizeTitle: String {
-        let total = items.reduce(Int64(0)) { $0 + $1.size }
+        let total = filteredItems.reduce(Int64(0)) { $0 + $1.size }
         return ByteCountFormatter.string(fromByteCount: total, countStyle: .file)
     }
 

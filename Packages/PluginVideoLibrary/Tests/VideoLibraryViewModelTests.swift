@@ -215,6 +215,22 @@ struct VideoLibraryViewModelTests {
         #expect(viewModel.isPlayerPresented)
     }
 
+    @Test("摘要统计与当前筛选结果口径一致")
+    func summaryMatchesFilteredItems() {
+        let provider = FakeRepositoryProvider()
+        provider.items = [
+            makeItem(name: "alpha", tags: ["news"]),
+            makeItem(name: "beta"),
+        ]
+
+        let viewModel = makeViewModel(provider: provider)
+        #expect(viewModel.totalSizeTitle == ByteCountFormatter.string(fromByteCount: 2048, countStyle: .file))
+
+        viewModel.selectedTag = "news"
+        #expect(viewModel.filteredItems.map(\.title) == ["alpha"])
+        #expect(viewModel.totalSizeTitle == ByteCountFormatter.string(fromByteCount: 1024, countStyle: .file))
+    }
+
     @Test("导入与 iCloud 下载转发到仓库")
     func importAndDownload() {
         let provider = FakeRepositoryProvider()

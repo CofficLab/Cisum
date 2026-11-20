@@ -3,11 +3,7 @@ import ProviderVideo
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// 视频库列表：仓库信息栏 + 筛选栏 + 内容区（网格 / 列表）。
-///
-/// 平台差异：
-/// - macOS：顶部信息栏常驻，悬停海报浮出操作条，右键菜单保留全部操作。
-/// - iOS：走导航栏标题 + 下拉刷新，导入使用系统文件选择器，操作走长按菜单。
+/// 视频库：摘要与仓库操作、单行搜索筛选、单一网格或列表内容区。
 struct VideoLibraryView: View {
     @ObservedObject private var viewModel: VideoLibraryViewModel
     @State private var isImporterPresented = false
@@ -26,7 +22,7 @@ struct VideoLibraryView: View {
         .accessibilityIdentifier("cisum.video.library")
         #if os(iOS)
         .navigationTitle(String(localized: "Video Library", bundle: .module))
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         #endif
         .fileImporter(
             isPresented: $isImporterPresented,
@@ -62,39 +58,39 @@ struct VideoLibraryView: View {
     // MARK: - Header
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 10) {
-                Image(systemName: "externaldrive.badge.timachine")
-                    .foregroundStyle(.secondary)
-                Text(String(localized: "Video Library", bundle: .module))
-                    .font(.headline)
-                    .lineLimit(1)
-                Spacer()
-                if viewModel.repositoryState.isWorking {
-                    ProgressView()
-                        .controlSize(.small)
-                }
+        HStack(spacing: 10) {
+            Label {
+                Text(summaryTitle)
+            } icon: {
+                Image(systemName: viewModel.storageLocationTitle == "iCloud" ? "icloud" : "internaldrive")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+
+            if viewModel.repositoryState.isWorking {
+                ProgressView()
+                    .controlSize(.small)
             }
 
-            locationRow
+            Spacer(minLength: 8)
 
-            HStack(spacing: 8) {
-                Button {
-                    isImporterPresented = true
-                } label: {
-                    Label(String(localized: "Import Videos", bundle: .module), systemImage: "square.and.arrow.down")
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .disabled(viewModel.repositoryURL == nil)
+            Button {
+                isImporterPresented = true
+            } label: {
+                Image(systemName: "square.and.arrow.down")
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel(String(localized: "Import Videos", bundle: .module))
+            .help(String(localized: "Import Videos", bundle: .module))
+            .disabled(viewModel.repositoryURL == nil)
 
+            Menu {
                 Button {
                     viewModel.refresh()
                 } label: {
                     Label(String(localized: "Refresh", bundle: .module), systemImage: "arrow.clockwise")
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
                 .disabled(viewModel.repositoryURL == nil)
 
                 #if os(macOS)
@@ -104,180 +100,140 @@ struct VideoLibraryView: View {
                     } label: {
                         Label(String(localized: "Show in Finder", bundle: .module), systemImage: "folder")
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
                 }
                 #endif
-
-                Spacer()
-
-                Text(summaryTitle)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            } label: {
+                Image(systemName: "ellipsis.circle")
             }
+            .menuStyle(.borderlessButton)
+            .accessibilityLabel(String(localized: "More", bundle: .module))
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-    }
-
-    private var locationRow: some View {
-        HStack(spacing: 6) {
-            if !viewModel.storageLocationTitle.isEmpty {
-                Label {
-                    Text(viewModel.storageLocationTitle)
-                } icon: {
-                    Image(systemName: viewModel.storageLocationTitle == "iCloud" ? "icloud" : "internaldrive")
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            }
-            if let url = viewModel.repositoryURL {
-                Text(url.path)
-                    .font(.caption2)
-                    .foregroundStyle(Color.secondary.opacity(0.7))
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .textSelection(.enabled)
-            }
-        }
+        .padding(.vertical, 8)
     }
 
     private var summaryTitle: String {
-        let count = viewModel.filteredItems.count
-        let size = viewModel.totalSizeTitle
-        return String(
+        String(
             format: String(localized: "%lld videos · %@", bundle: .module),
-            Int64(count),
-            size
+            Int64(viewModel.filteredItems.count),
+            viewModel.totalSizeTitle
         )
     }
 
     // MARK: - Filters
 
     private var filterBar: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                TextField(String(localized: "Search", bundle: .module), text: $viewModel.searchText)
-                    .textFieldStyle(.roundedBorder)
-                    .accessibilityIdentifier("cisum.video.search")
+        HStack(spacing: 8) {
+            AppSearchBar(text: $viewModel.searchText, placeholder: "Search")
+                .accessibilityIdentifier("cisum.video.search")
 
+            Menu {
+                ForEach(VideoLibraryScope.allCases, id: \.self) { scope in
+                    Button {
+                        viewModel.scope = scope
+                    } label: {
+                        Label {
+                            Text("\(String(localized: String.LocalizationValue(scope.title), bundle: .module)) \(viewModel.count(for: scope))")
+                        } icon: {
+                            Image(systemName: viewModel.scope == scope ? "checkmark" : scope.systemImage)
+                        }
+                    }
+                }
+
+                if !viewModel.allTags.isEmpty {
+                    Divider()
+                    ForEach(viewModel.allTags, id: \.self) { tag in
+                        Button {
+                            viewModel.selectedTag = viewModel.selectedTag == tag ? nil : tag
+                        } label: {
+                            Label(tag, systemImage: viewModel.selectedTag == tag ? "checkmark" : "tag")
+                        }
+                    }
+                }
+
+                if viewModel.hasActiveFilters {
+                    Divider()
+                    Button(String(localized: "Clear Filters", bundle: .module)) {
+                        viewModel.clearFilters()
+                    }
+                }
+            } label: {
+                Image(systemName: viewModel.hasActiveFilters ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+            }
+            .accessibilityLabel(String(localized: String.LocalizationValue(viewModel.scope.title), bundle: .module))
+            .accessibilityIdentifier("cisum.video.filters")
+
+            Menu {
                 Picker("", selection: $viewModel.sortOrder) {
                     ForEach(VideoSortOrder.allCases, id: \.self) { order in
-                        Text(String(localized: String.LocalizationValue(order.title), bundle: .module))
+                        Label(String(localized: String.LocalizationValue(order.title), bundle: .module), systemImage: order.systemImage)
                             .tag(order)
                     }
                 }
                 .labelsHidden()
-                .pickerStyle(.menu)
-                .fixedSize()
+                .pickerStyle(.inline)
+            } label: {
+                Image(systemName: "arrow.up.arrow.down.circle")
+            }
+            .accessibilityLabel(String(localized: String.LocalizationValue(viewModel.sortOrder.title), bundle: .module))
 
-                Picker("", selection: $viewModel.displayMode) {
-                    ForEach(VideoLibraryDisplayMode.allCases, id: \.self) { mode in
-                        Image(systemName: mode.systemImage).tag(mode)
-                    }
+            Picker("", selection: $viewModel.displayMode) {
+                ForEach(VideoLibraryDisplayMode.allCases, id: \.self) { mode in
+                    Image(systemName: mode.systemImage).tag(mode)
                 }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-                .fixedSize()
-                .accessibilityIdentifier("cisum.video.displaymode")
             }
-            .controlSize(.small)
-
-            scopeChips
-
-            if !viewModel.allTags.isEmpty {
-                tagChips
-            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .fixedSize()
+            .accessibilityIdentifier("cisum.video.displaymode")
         }
+        .controlSize(.small)
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-    }
-
-    private var scopeChips: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                ForEach(VideoLibraryScope.allCases, id: \.self) { scope in
-                    filterChip(
-                        title: "\(String(localized: String.LocalizationValue(scope.title), bundle: .module)) \(viewModel.count(for: scope))",
-                        isSelected: viewModel.scope == scope,
-                        action: { viewModel.scope = scope }
-                    )
-                }
-                if viewModel.hasActiveFilters {
-                    filterChip(
-                        title: String(localized: "Clear Filters", bundle: .module),
-                        isSelected: false,
-                        action: { viewModel.clearFilters() }
-                    )
-                }
-            }
-            .padding(.vertical, 2)
-        }
-    }
-
-    private var tagChips: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                ForEach(viewModel.allTags, id: \.self) { tag in
-                    filterChip(
-                        title: tag,
-                        isSelected: viewModel.selectedTag == tag,
-                        action: {
-                            viewModel.selectedTag = viewModel.selectedTag == tag ? nil : tag
-                        }
-                    )
-                }
-            }
-            .padding(.vertical, 2)
-        }
-    }
-
-    private func filterChip(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.caption)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(
-                    Capsule().fill(isSelected ? Color.accentColor.opacity(0.18) : Color.secondary.opacity(0.12))
-                )
-        }
-        .buttonStyle(.plain)
+        .padding(.bottom, 8)
     }
 
     // MARK: - Content
 
     @ViewBuilder
     private var content: some View {
-        if viewModel.repositoryURL == nil {
+        if case .unavailable(let reason) = viewModel.repositoryState {
+            VideoLibraryEmptyState(
+                icon: "externaldrive.badge.exclamationmark",
+                title: String(localized: "Repository Unavailable", bundle: .module),
+                message: reason,
+                actionTitle: String(localized: "Refresh", bundle: .module),
+                action: { viewModel.refresh() }
+            )
+        } else if viewModel.repositoryState.isWorking && viewModel.items.isEmpty {
+            VStack(spacing: 12) {
+                ProgressView()
+                Text(String(localized: String.LocalizationValue(viewModel.repositoryState.title), bundle: .module))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .accessibilityIdentifier("cisum.video.loading")
+        } else if viewModel.repositoryURL == nil {
             VideoLibraryEmptyState(
                 icon: "internaldrive",
                 title: String(localized: "No Repository", bundle: .module),
-                message: String(localized: "Choose the storage location in Settings. Cisum creates the video repository inside it.", bundle: .module),
-                primaryTitle: nil,
-                primaryAction: nil,
-                secondaryTitle: nil,
-                secondaryAction: nil
+                message: String(localized: "Choose the storage location in Settings. Cisum creates the video repository inside it.", bundle: .module)
             )
         } else if viewModel.items.isEmpty {
             VideoLibraryEmptyState(
                 icon: "film",
                 title: String(localized: "No videos found", bundle: .module),
                 message: String(localized: "This folder has no supported video files yet.", bundle: .module),
-                primaryTitle: String(localized: "Import Videos", bundle: .module),
-                primaryAction: { isImporterPresented = true },
-                secondaryTitle: String(localized: "Refresh", bundle: .module),
-                secondaryAction: { viewModel.refresh() }
+                actionTitle: String(localized: "Import Videos", bundle: .module),
+                action: { isImporterPresented = true }
             )
         } else if viewModel.filteredItems.isEmpty {
             VideoLibraryEmptyState(
                 icon: "line.3.horizontal.decrease.circle",
                 title: String(localized: "No matching videos", bundle: .module),
                 message: String(localized: "Try another search or clear the filters.", bundle: .module),
-                primaryTitle: String(localized: "Clear Filters", bundle: .module),
-                primaryAction: { viewModel.clearFilters() },
-                secondaryTitle: nil,
-                secondaryAction: nil
+                actionTitle: String(localized: "Clear Filters", bundle: .module),
+                action: { viewModel.clearFilters() }
             )
         } else {
             libraryContent
@@ -286,11 +242,7 @@ struct VideoLibraryView: View {
 
     private var libraryContent: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 20) {
-                if viewModel.scope == .all, !viewModel.continueWatchingItems.isEmpty {
-                    continueWatchingSection
-                }
-
+            Group {
                 if viewModel.displayMode == .grid {
                     grid
                 } else {
@@ -304,32 +256,6 @@ struct VideoLibraryView: View {
             viewModel.refresh()
         }
         #endif
-    }
-
-    private var continueWatchingSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(String(localized: "Continue Watching", bundle: .module))
-                    .font(.subheadline.weight(.semibold))
-                Spacer()
-            }
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(viewModel.continueWatchingItems) { item in
-                        VideoGridCell(
-                            item: item,
-                            isCurrent: viewModel.currentItem?.url == item.url,
-                            onPlay: { viewModel.play(item) },
-                            onFavorite: { viewModel.toggleFavorite(item) },
-                            onOpen: { viewModel.editingItem = item }
-                        )
-                        .frame(width: 220)
-                        .contextMenu { itemMenu(for: item) }
-                    }
-                }
-                .padding(.vertical, 2)
-            }
-        }
     }
 
     private var grid: some View {
