@@ -139,7 +139,7 @@ struct ControlView: View {
     /// 载入插槽激活时进度行同样收掉——横幅已经占用了「状态 + 进度」的
     /// 整块空间，不能再叠一条时间轴。
     private var showsProgressSection: Bool {
-        progressView != nil && !observedGuideSlot.isActive && !showsLoadingSection
+        progressView != nil && heroVisibility.isProgressVisible && !observedGuideSlot.isActive && !showsLoadingSection
     }
 
     /// 载入插槽是否替代状态行与进度行。

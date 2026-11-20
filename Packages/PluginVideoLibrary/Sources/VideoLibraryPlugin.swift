@@ -1,7 +1,10 @@
+import Combine
 import LumiUI
 import MagicKit
 import OSLog
 import KernelCore
+import ProviderAppState
+import ProviderControlView
 import ProviderDocsView
 import ProviderPlugin
 import ProviderScene
@@ -42,6 +45,7 @@ public final class VideoLibraryPlugin: AsyncSuperPlugin, SuperLog {
     /// 本插件消费的能力 Adapter。视图模型持有它们，故插件必须强持有 Adapter 本身。
     nonisolated(unsafe) private var repositoryCapability: VideoLibraryRepositoryCapability?
     nonisolated(unsafe) private var playbackCapability: VideoLibraryPlaybackCapability?
+    nonisolated(unsafe) private var viewModelCancellable: AnyCancellable?
     /// 场景激活句柄：视频场景才登记控制区贡献。
     nonisolated(unsafe) private var sceneHandle: (any SceneProvidingObserverHandle)?
 
@@ -119,7 +123,9 @@ public final class VideoLibraryPlugin: AsyncSuperPlugin, SuperLog {
     public func addControlButtonsView() -> AnyView? {
         installState(kernel: kernel)
         guard let viewModel else { return nil }
-        return AnyView(VideoControlButtonsView(viewModel: viewModel))
+        return AnyView(VideoControlButtonsView(viewModel: viewModel) { [weak self] in
+            self?.kernel?.resolveProvider((any ContentViewVisibilityProviding).self)?.toggleContentView()
+        })
     }
 
     /// 播放进度条。
@@ -163,6 +169,22 @@ public final class VideoLibraryPlugin: AsyncSuperPlugin, SuperLog {
         if let view = addProgressView() {
             contribution.addProgressView(ownerPluginID: id, view)
         }
+        publishHeroVisibility()
+    }
+
+    private func publishHeroVisibility() {
+        guard currentScene == .videos else { return }
+        guard let viewModel else {
+            ControlHeroVisibility.shared.isVisible = false
+            ControlHeroVisibility.shared.isProgressVisible = false
+            return
+        }
+        let isVisible = VideoPlayerLayoutPolicy.isHeroVisible(
+            repositoryURL: viewModel.repositoryURL,
+            itemCount: viewModel.items.count
+        )
+        ControlHeroVisibility.shared.isVisible = isVisible
+        ControlHeroVisibility.shared.isProgressVisible = isVisible
     }
 
     private func registerTabView(contribution: any PluginContributionProviding) {
@@ -191,13 +213,22 @@ public final class VideoLibraryPlugin: AsyncSuperPlugin, SuperLog {
         let model = VideoLibraryViewModel(repository: repository, playback: playback)
         model.bind()
         viewModel = model
+        viewModelCancellable = model.objectWillChange
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.publishHeroVisibility() }
     }
 
     @MainActor
     private func teardownState() {
+        viewModelCancellable?.cancel()
+        viewModelCancellable = nil
         viewModel?.unbind()
         viewModel = nil
         repositoryCapability = nil
         playbackCapability = nil
+        if currentScene == .videos {
+            ControlHeroVisibility.shared.isVisible = false
+            ControlHeroVisibility.shared.isProgressVisible = false
+        }
     }
 }

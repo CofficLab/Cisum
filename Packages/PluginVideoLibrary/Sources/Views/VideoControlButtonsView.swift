@@ -1,65 +1,70 @@
+import LumiUI
 import ProviderVideo
 import SwiftUI
 
-/// 视频播放控制按钮：上一个 / 播放暂停 / 下一个 / 倍速 / 收藏。
 struct VideoControlButtonsView: View {
     @ObservedObject var viewModel: VideoLibraryViewModel
+    let toggleDBView: @MainActor () -> Void
+
+    init(viewModel: VideoLibraryViewModel, toggleDBView: @escaping @MainActor () -> Void) {
+        self.viewModel = viewModel
+        self.toggleDBView = toggleDBView
+    }
 
     var body: some View {
-        HStack(spacing: 16) {
-            Button {
-                viewModel.playNeighbor(offset: -1)
-            } label: {
-                Image(systemName: "backward.end.fill")
-            }
-            .accessibilityLabel(String(localized: "Previous", bundle: .module))
+        GeometryReader { geometry in
+            let metrics = AppResponsivePlayerLayoutMetrics.shared
+            let buttonSize = metrics.controlButtonSize(
+                width: geometry.size.width,
+                areaHeight: geometry.size.height
+            )
 
-            Button {
-                viewModel.togglePlayback()
-            } label: {
-                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                    .font(.title2)
+            HStack(spacing: metrics.controlButtonSpacing) {
+                AppCircularIconButton(
+                    systemImage: "ellipsis",
+                    accessibilityLabel: "More",
+                    size: buttonSize,
+                    action: toggleDBView
+                )
+                AppCircularIconButton(
+                    systemImage: "backward.end.fill",
+                    accessibilityLabel: "Previous",
+                    size: buttonSize,
+                    action: { viewModel.playNeighbor(offset: -1) }
+                )
+                .disabled(!viewModel.playback.hasAsset)
+                AppCircularIconButton(
+                    systemImage: isPlaying ? "pause.fill" : "play.fill",
+                    accessibilityLabel: isPlaying ? "Pause" : "Play",
+                    size: buttonSize,
+                    isActive: isPlaying,
+                    action: viewModel.togglePlayback
+                )
+                .disabled(!viewModel.playback.hasAsset || viewModel.playbackState == .loading)
+                AppCircularIconButton(
+                    systemImage: "forward.end.fill",
+                    accessibilityLabel: "Next",
+                    size: buttonSize,
+                    action: { viewModel.playNeighbor(offset: 1) }
+                )
+                .disabled(!viewModel.playback.hasAsset)
+                AppCircularIconButton(
+                    systemImage: "speedometer",
+                    accessibilityLabel: "Playback Speed",
+                    size: buttonSize,
+                    isActive: viewModel.rate != 1,
+                    action: viewModel.cycleRate
+                )
+                .disabled(!viewModel.playback.hasAsset)
             }
-            .accessibilityLabel(isPlaying ? String(localized: "Pause", bundle: .module) : String(localized: "Play", bundle: .module))
-
-            Button {
-                viewModel.playNeighbor(offset: 1)
-            } label: {
-                Image(systemName: "forward.end.fill")
-            }
-            .accessibilityLabel(String(localized: "Next", bundle: .module))
-
-            Button {
-                viewModel.cycleRate()
-            } label: {
-                Text(rateText)
-                    .font(.caption.monospacedDigit())
-                    .frame(minWidth: 38)
-            }
-            .accessibilityLabel(String(localized: "Playback Speed", bundle: .module))
-
-            if let item = viewModel.currentItem {
-                Button {
-                    viewModel.toggleFavorite(item)
-                } label: {
-                    Image(systemName: item.isFavorite ? "star.fill" : "star")
-                }
-                .accessibilityLabel(String(localized: "Favorites", bundle: .module))
-            }
+            .padding(.bottom, metrics.controlButtonBottomPadding)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .buttonStyle(.borderless)
+        .buttonStyle(.plain)
         .accessibilityIdentifier("cisum.video.controls")
     }
 
     private var isPlaying: Bool {
-        switch viewModel.playbackState {
-        case .playing: return true
-        default: return false
-        }
-    }
-
-    private var rateText: String {
-        let rate = viewModel.rate
-        return rate == rate.rounded() ? "\(Int(rate))×" : "\(rate)×"
+        viewModel.playbackState == .playing
     }
 }

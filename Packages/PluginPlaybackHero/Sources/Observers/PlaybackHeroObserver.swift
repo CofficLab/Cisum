@@ -88,6 +88,7 @@ final class PlaybackHeroObserver: SuperLog {
         // 自己的封面插件写同一个布局信号，避免两边互相覆盖。
         guard viewModel?.isMusicSceneActive == true else { return }
 
+        ControlHeroVisibility.shared.isProgressVisible = true
         guard let viewModel else {
             ControlHeroVisibility.shared.isVisible = true
             return
