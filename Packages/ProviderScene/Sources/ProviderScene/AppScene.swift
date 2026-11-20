@@ -15,6 +15,8 @@ public enum AppScene: String, CaseIterable, Sendable, Codable, Identifiable {
     case music = "Music Library"
     /// 有声书场景。
     case audiobooks = "Audiobooks"
+    /// 视频库场景。
+    case videos = "Video Library"
 
     public var id: String { rawValue }
 
@@ -23,6 +25,7 @@ public enum AppScene: String, CaseIterable, Sendable, Codable, Identifiable {
         switch self {
         case .music: "music"
         case .audiobooks: "audiobooks"
+        case .videos: "videos"
         }
     }
 
@@ -34,6 +37,7 @@ public enum AppScene: String, CaseIterable, Sendable, Codable, Identifiable {
         switch self {
         case .music: "music.note.list"
         case .audiobooks: "book.closed"
+        case .videos: "film.stack"
         }
     }
 
@@ -42,6 +46,7 @@ public enum AppScene: String, CaseIterable, Sendable, Codable, Identifiable {
         switch self {
         case .music: 0
         case .audiobooks: 1
+        case .videos: 2
         }
     }
 }

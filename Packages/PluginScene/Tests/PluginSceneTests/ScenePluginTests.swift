@@ -50,8 +50,8 @@ struct ScenePluginTests {
 
         try await kernel.startAsync(plugins: [plugin])
 
-        // 场景为内置固定枚举：音乐库 + 有声书
-        #expect(kernel.resolveProvider((any SceneProviding).self)?.scenes == [.music, .audiobooks])
+        // 场景为内置固定枚举：音乐库 + 有声书 + 视频库
+        #expect(kernel.resolveProvider((any SceneProviding).self)?.scenes == [.music, .audiobooks, .videos])
         // 场景切换器仍然被添加到工具栏；视图层面在 scenes.count == 1 时不渲染内容
         #expect(pluginProvider.getToolBarButtons().map(\.id) == ["scene-switcher"])
         #expect(plugin.selectionViewModel?.currentScene == .music)
@@ -93,7 +93,7 @@ struct ScenePluginTests {
 
         // 场景为内置固定枚举：音乐库 + 有声书
         #expect(service.scenes == AppScene.allCases)
-        #expect(service.scenes == [.music, .audiobooks])
+        #expect(service.scenes == [.music, .audiobooks, .videos])
     }
 
     private func makePluginDataDirectory() throws -> URL {

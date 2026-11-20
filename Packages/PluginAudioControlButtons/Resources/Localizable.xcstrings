@@ -1432,6 +1432,7 @@
       }
     },
     "The music scene is not active." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

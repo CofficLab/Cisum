@@ -83,6 +83,12 @@
             "value" : "Cisum"
           }
         },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cisum"
+          }
+        },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
@@ -90,12 +96,6 @@
           }
         },
         "zh-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cisum"
-          }
-        },
-        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cisum"
@@ -137,40 +137,6 @@
         }
       }
     },
-    "DEBUG" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DEBUG"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "调试"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "調試"
-          }
-        },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "調試"
-          }
-        },
-        "zh-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "除錯"
-          }
-        }
-      }
-    },
     "Database directory does not exist" : {
       "localizations" : {
         "en" : {
@@ -201,6 +167,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "資料庫目錄不存在"
+          }
+        }
+      }
+    },
+    "DEBUG" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DEBUG"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调试"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "調試"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "調試"
+          }
+        },
+        "zh-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "除錯"
           }
         }
       }
@@ -287,6 +287,12 @@
             "value" : "跳到上一首曲目。"
           }
         },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跳到上一首曲目。"
+          }
+        },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
@@ -294,12 +300,6 @@
           }
         },
         "zh-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "跳到上一首曲目。"
-          }
-        },
-        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "跳到上一首曲目。"
@@ -321,6 +321,12 @@
             "value" : "下一首曲目"
           }
         },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一首曲目"
+          }
+        },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
@@ -328,12 +334,6 @@
           }
         },
         "zh-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下一首曲目"
-          }
-        },
-        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "下一首曲目"
@@ -525,6 +525,12 @@
             "value" : "播放/暂停"
           }
         },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放/暫停"
+          }
+        },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
@@ -532,12 +538,6 @@
           }
         },
         "zh-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "播放/暫停"
-          }
-        },
-        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放/暫停"
@@ -559,6 +559,12 @@
             "value" : "上一首曲目"
           }
         },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上一首曲目"
+          }
+        },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
@@ -570,16 +576,11 @@
             "state" : "translated",
             "value" : "上一首曲目"
           }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "上一首曲目"
-          }
         }
       }
     },
     "Settings" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -593,6 +594,12 @@
             "value" : "设置"
           }
         },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定"
+          }
+        },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
@@ -600,12 +607,6 @@
           }
         },
         "zh-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "設定"
-          }
-        },
-        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "設定"
@@ -627,6 +628,12 @@
             "value" : "跳到下一首曲目。"
           }
         },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跳到下一首曲目。"
+          }
+        },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
@@ -634,12 +641,6 @@
           }
         },
         "zh-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "跳到下一首曲目。"
-          }
-        },
-        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "跳到下一首曲目。"
@@ -695,6 +696,12 @@
             "value" : "切换播放状态。"
           }
         },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換播放狀態。"
+          }
+        },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
@@ -702,12 +709,6 @@
           }
         },
         "zh-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "切換播放狀態。"
-          }
-        },
-        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "切換播放狀態。"

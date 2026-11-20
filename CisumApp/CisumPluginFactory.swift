@@ -40,6 +40,9 @@ import PluginSettingsButton
 import PluginStorage
 import PluginStore
 import PluginToast
+import PluginVideoLibrary
+import PluginVideoPlayback
+import PluginVideoRepository
 import PluginWelcome
 import ProviderRootView
 
@@ -134,6 +137,14 @@ enum CisumPluginFactory {
             PlaybackProgressPlugin.shared,
             RepositoryGuidePlugin.shared,
             WelcomePlugin.shared,
+        ] as [any SuperPlugin])
+
+        // 视频库场景：仓库（数据层）→ 播放（引擎层）→ 视频库 UI。
+        // 顺序保证视频库插件 ready 时，两个 Provider 插件已经注册好能力。
+        plugins.append(contentsOf: [
+            PluginVideoRepository.shared,
+            PluginVideoPlayback.shared,
+            VideoLibraryPlugin.shared,
         ] as [any SuperPlugin])
 
         return plugins

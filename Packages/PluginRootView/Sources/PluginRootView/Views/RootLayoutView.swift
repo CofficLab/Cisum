@@ -214,6 +214,20 @@ struct RootLayoutView: View {
                     endRadius: 520
                 )
             }
+        case .videos:
+            ZStack {
+                LinearGradient(
+                    colors: [accents.secondary.opacity(0.20), accents.primary.opacity(0.08), Color.clear],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                RadialGradient(
+                    colors: [accents.secondary.opacity(0.14), Color.clear],
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: 520
+                )
+            }
         case nil:
             Color.clear
         }
