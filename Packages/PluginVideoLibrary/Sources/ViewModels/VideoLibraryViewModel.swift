@@ -59,11 +59,15 @@ final class VideoLibraryViewModel: ObservableObject {
     func bind() {
         repositoryObserver?.cancel()
         repositoryObserver = repository.addObserver { [weak self] _ in
-            self?.reload()
+            Task { @MainActor in
+                self?.reload()
+            }
         }
         playbackObserver?.cancel()
         playbackObserver = playback.addObserver { [weak self] event in
-            self?.handlePlaybackEvent(event)
+            Task { @MainActor in
+                self?.handlePlaybackEvent(event)
+            }
         }
         reload()
         syncPlaybackState()

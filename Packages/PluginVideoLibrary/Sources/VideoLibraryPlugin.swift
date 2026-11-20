@@ -82,6 +82,7 @@ public final class VideoLibraryPlugin: AsyncSuperPlugin, SuperLog {
     public func onEnable(kernel: KernelCoreContainer) async throws {
         self.kernel = kernel
         installState(kernel: kernel)
+        installRootOverlay(kernel: kernel)
         installSceneActivation(kernel: kernel)
     }
 
@@ -89,6 +90,8 @@ public final class VideoLibraryPlugin: AsyncSuperPlugin, SuperLog {
     public func onDisable(kernel: KernelCoreContainer) async throws {
         sceneHandle?.cancel()
         sceneHandle = nil
+        kernel.resolveProvider((any RootViewProviding).self)?.removeOverlays(ids: ["\(id).player"])
+        rootOverlayInstalled = false
         teardownState()
     }
 
@@ -146,16 +149,13 @@ public final class VideoLibraryPlugin: AsyncSuperPlugin, SuperLog {
     @MainActor
     private func installRootOverlay(kernel: KernelCoreContainer) {
         #if os(macOS)
-        guard !rootOverlayInstalled, let root = kernel.resolveProvider((any RootViewProviding).self) else { return }
+        guard !rootOverlayInstalled,
+              let root = kernel.resolveProvider((any RootViewProviding).self),
+              let viewModel else { return }
         root.addOverlays([
-            RootOverlayItem(id: "\(id).player", order: 8_000) { [weak self] content in
+            RootOverlayItem(id: "\(id).player", order: 8_000) { content in
                 content.overlay {
-                    if let viewModel = self?.viewModel, viewModel.isPlayerPresented {
-                        VideoPlayerOverlay(viewModel: viewModel) {
-                            viewModel.dismissPlayer()
-                        }
-                        .transition(.opacity)
-                    }
+                    VideoPlayerRootOverlay(viewModel: viewModel)
                 }
             },
         ])
@@ -214,6 +214,7 @@ public final class VideoLibraryPlugin: AsyncSuperPlugin, SuperLog {
         )
         ControlHeroVisibility.shared.isVisible = isVisible
         ControlHeroVisibility.shared.isProgressVisible = isVisible
+            && VideoPlayerLayoutPolicy.isProgressVisible(hasAsset: viewModel.playback.hasAsset)
     }
 
     private func registerTabView(contribution: any PluginContributionProviding) {
@@ -243,8 +244,11 @@ public final class VideoLibraryPlugin: AsyncSuperPlugin, SuperLog {
         model.bind()
         viewModel = model
         viewModelCancellable = model.objectWillChange
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in self?.publishHeroVisibility() }
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    self?.publishHeroVisibility()
+                }
+            }
     }
 
     @MainActor

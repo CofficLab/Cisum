@@ -4,6 +4,9 @@ import Combine
 import Foundation
 import ProviderVideo
 import SwiftUI
+#if !os(macOS)
+import UIKit
+#endif
 
 /// 基于系统 `AVPlayer` 的播放引擎。
 ///
@@ -125,7 +128,7 @@ final class AVPlayerVideoEngine: NSObject, VideoEngine {
     }
 
     func makeView() -> AnyView {
-        AnyView(VideoPlayer(player: player))
+        AnyView(SystemVideoPlayerView(player: player))
     }
 
     // MARK: - Time observer
@@ -151,3 +154,44 @@ final class AVPlayerVideoEngine: NSObject, VideoEngine {
         onEvent?(event)
     }
 }
+
+#if os(macOS)
+private struct SystemVideoPlayerView: NSViewRepresentable {
+    let player: AVPlayer
+
+    func makeNSView(context: Context) -> AVPlayerView {
+        let view = AVPlayerView()
+        view.controlsStyle = .none
+        view.videoGravity = .resizeAspect
+        view.player = player
+        return view
+    }
+
+    func updateNSView(_ view: AVPlayerView, context: Context) {
+        view.player = player
+    }
+}
+#else
+private struct SystemVideoPlayerView: UIViewRepresentable {
+    let player: AVPlayer
+
+    func makeUIView(context: Context) -> SystemPlayerLayerView {
+        let view = SystemPlayerLayerView()
+        view.playerLayer.player = player
+        view.playerLayer.videoGravity = .resizeAspect
+        return view
+    }
+
+    func updateUIView(_ view: SystemPlayerLayerView, context: Context) {
+        view.playerLayer.player = player
+    }
+}
+
+private final class SystemPlayerLayerView: UIView {
+    override static var layerClass: AnyClass { AVPlayerLayer.self }
+
+    var playerLayer: AVPlayerLayer {
+        layer as! AVPlayerLayer
+    }
+}
+#endif

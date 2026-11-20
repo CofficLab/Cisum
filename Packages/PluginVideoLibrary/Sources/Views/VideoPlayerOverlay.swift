@@ -2,6 +2,19 @@ import LumiUI
 import ProviderVideo
 import SwiftUI
 
+struct VideoPlayerRootOverlay: View {
+    @ObservedObject var viewModel: VideoLibraryViewModel
+
+    var body: some View {
+        if viewModel.isPlayerPresented {
+            VideoPlayerOverlay(viewModel: viewModel) {
+                viewModel.dismissPlayer()
+            }
+            .transition(.opacity)
+        }
+    }
+}
+
 /// 沉浸式播放器：macOS 覆盖根布局，iOS 使用全屏 sheet。
 struct VideoPlayerOverlay: View {
     @ObservedObject var viewModel: VideoLibraryViewModel
@@ -24,6 +37,7 @@ struct VideoPlayerOverlay: View {
             }
             #endif
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cisum.video.player")
         #if os(iOS)
         .sheet(isPresented: $viewModel.isQueuePresented) {
@@ -62,15 +76,24 @@ struct VideoPlayerOverlay: View {
                 viewModel.isQueuePresented.toggle()
             } label: {
                 Image(systemName: "list.bullet")
+                    #if os(iOS)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+                    #endif
             }
             .foregroundStyle(.white)
             .accessibilityLabel(String(localized: "Queue", bundle: .module))
 
             Button(action: onClose) {
                 Image(systemName: "xmark")
+                    #if os(iOS)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+                    #endif
             }
             .foregroundStyle(.white)
             .accessibilityLabel(String(localized: "Close", bundle: .module))
+            .accessibilityIdentifier("cisum.video.close")
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

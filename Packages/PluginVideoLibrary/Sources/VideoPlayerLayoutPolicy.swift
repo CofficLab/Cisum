@@ -6,6 +6,10 @@ enum VideoPlayerLayoutPolicy {
         repositoryURL != nil && itemCount > 0
     }
 
+    static func isProgressVisible(hasAsset: Bool) -> Bool {
+        hasAsset
+    }
+
     static func shouldRenderEmbeddedPlayer(hasAsset: Bool, isPlayerPresented: Bool) -> Bool {
         hasAsset && !isPlayerPresented
     }

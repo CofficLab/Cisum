@@ -14,6 +14,12 @@ struct VideoPlayerLayoutPolicyTests {
         #expect(VideoPlayerLayoutPolicy.isHeroVisible(repositoryURL: repository, itemCount: 1))
     }
 
+    @Test("只有已加载媒体时才呈现播放进度")
+    func progressVisibility() {
+        #expect(!VideoPlayerLayoutPolicy.isProgressVisible(hasAsset: false))
+        #expect(VideoPlayerLayoutPolicy.isProgressVisible(hasAsset: true))
+    }
+
     @Test("沉浸播放期间不创建第二个内嵌播放器视图")
     func singlePlayerView() {
         #expect(!VideoPlayerLayoutPolicy.shouldRenderEmbeddedPlayer(hasAsset: false, isPlayerPresented: false))

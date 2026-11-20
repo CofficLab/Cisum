@@ -202,6 +202,26 @@ struct VideoLibraryViewModelTests {
         #expect(viewModel.filteredItems.count == 2)
     }
 
+    @Test("绑定时同步已有播放快照")
+    func bindSynchronizesPlaybackSnapshot() {
+        let provider = FakeRepositoryProvider()
+        let playback = FakePlaybackProvider()
+        playback.state = .failed("Decoder unavailable")
+        playback.currentTime = 12
+        playback.duration = 120
+        playback.progress = 0.1
+        playback.rate = 1.5
+        playback.hasAsset = true
+
+        let viewModel = makeViewModel(provider: provider, playback: playback)
+
+        #expect(viewModel.playbackState == .failed("Decoder unavailable"))
+        #expect(viewModel.currentTime == 12)
+        #expect(viewModel.duration == 120)
+        #expect(viewModel.progress == 0.1)
+        #expect(viewModel.rate == 1.5)
+    }
+
     @Test("播放时从上次位置继续且保留内嵌播放")
     func playbackResumes() {
         let provider = FakeRepositoryProvider()

@@ -3,6 +3,39 @@ import ProviderVideo
 import SwiftUI
 import UniformTypeIdentifiers
 
+enum VideoLibraryContentState: Equatable {
+    case unavailable(String)
+    case loading
+    case noRepository
+    case emptyRepository
+    case noMatches
+    case library
+
+    static func resolve(
+        repositoryState: VideoRepositoryState,
+        repositoryURL: URL?,
+        itemCount: Int,
+        filteredItemCount: Int
+    ) -> Self {
+        if case .unavailable(let reason) = repositoryState {
+            return .unavailable(reason)
+        }
+        if repositoryState.isWorking && itemCount == 0 {
+            return .loading
+        }
+        if repositoryURL == nil {
+            return .noRepository
+        }
+        if itemCount == 0 {
+            return .emptyRepository
+        }
+        if filteredItemCount == 0 {
+            return .noMatches
+        }
+        return .library
+    }
+}
+
 /// 视频库：摘要与仓库操作、单行搜索筛选、单一网格或列表内容区。
 struct VideoLibraryView: View {
     @ObservedObject private var viewModel: VideoLibraryViewModel
@@ -19,6 +52,7 @@ struct VideoLibraryView: View {
             Divider()
             content
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cisum.video.library")
         #if os(iOS)
         .navigationTitle(String(localized: "Video Library", bundle: .module))
@@ -83,9 +117,14 @@ struct VideoLibraryView: View {
                 isImporterPresented = true
             } label: {
                 Image(systemName: "square.and.arrow.down")
+                    #if os(iOS)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+                    #endif
             }
             .buttonStyle(.borderless)
             .accessibilityLabel(String(localized: "Import Videos", bundle: .module))
+            .accessibilityIdentifier("cisum.video.import")
             .help(String(localized: "Import Videos", bundle: .module))
             .disabled(viewModel.repositoryURL == nil)
 
@@ -108,9 +147,14 @@ struct VideoLibraryView: View {
                 #endif
             } label: {
                 Image(systemName: "ellipsis.circle")
+                    #if os(iOS)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+                    #endif
             }
             .menuStyle(.borderlessButton)
             .accessibilityLabel(String(localized: "More", bundle: .module))
+            .accessibilityIdentifier("cisum.video.more")
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -144,6 +188,7 @@ struct VideoLibraryView: View {
                             Image(systemName: viewModel.scope == scope ? "checkmark" : scope.systemImage)
                         }
                     }
+                    .accessibilityIdentifier("cisum.video.scope.\(scope.rawValue)")
                 }
 
                 if !viewModel.allTags.isEmpty {
@@ -165,6 +210,10 @@ struct VideoLibraryView: View {
                 }
             } label: {
                 Image(systemName: viewModel.hasActiveFilters ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                    #if os(iOS)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+                    #endif
             }
             .accessibilityLabel(String(localized: String.LocalizationValue(viewModel.scope.title), bundle: .module))
             .accessibilityIdentifier("cisum.video.filters")
@@ -180,8 +229,13 @@ struct VideoLibraryView: View {
                 .pickerStyle(.inline)
             } label: {
                 Image(systemName: "arrow.up.arrow.down.circle")
+                    #if os(iOS)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+                    #endif
             }
             .accessibilityLabel(String(localized: String.LocalizationValue(viewModel.sortOrder.title), bundle: .module))
+            .accessibilityIdentifier("cisum.video.sort")
 
             #if os(iOS)
             Spacer(minLength: 8)
@@ -189,7 +243,11 @@ struct VideoLibraryView: View {
 
             Picker("", selection: $viewModel.displayMode) {
                 ForEach(VideoLibraryDisplayMode.allCases, id: \.self) { mode in
-                    Image(systemName: mode.systemImage).tag(mode)
+                    Image(systemName: mode.systemImage)
+                        #if os(iOS)
+                        .frame(width: 44, height: 44)
+                        #endif
+                        .tag(mode)
                 }
             }
             .labelsHidden()
@@ -206,7 +264,15 @@ struct VideoLibraryView: View {
 
     @ViewBuilder
     private var content: some View {
-        if case .unavailable(let reason) = viewModel.repositoryState {
+        let state = VideoLibraryContentState.resolve(
+            repositoryState: viewModel.repositoryState,
+            repositoryURL: viewModel.repositoryURL,
+            itemCount: viewModel.items.count,
+            filteredItemCount: viewModel.filteredItems.count
+        )
+
+        switch state {
+        case .unavailable(let reason):
             VideoLibraryEmptyState(
                 icon: "externaldrive.badge.exclamationmark",
                 title: String(localized: "Repository Unavailable", bundle: .module),
@@ -214,7 +280,7 @@ struct VideoLibraryView: View {
                 actionTitle: String(localized: "Refresh", bundle: .module),
                 action: { viewModel.refresh() }
             )
-        } else if viewModel.repositoryState.isWorking && viewModel.items.isEmpty {
+        case .loading:
             VStack(spacing: 12) {
                 ProgressView()
                 Text(String(localized: String.LocalizationValue(viewModel.repositoryState.title), bundle: .module))
@@ -223,13 +289,13 @@ struct VideoLibraryView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .accessibilityIdentifier("cisum.video.loading")
-        } else if viewModel.repositoryURL == nil {
+        case .noRepository:
             VideoLibraryEmptyState(
                 icon: "internaldrive",
                 title: String(localized: "No Repository", bundle: .module),
                 message: String(localized: "Choose the storage location in Settings. Cisum creates the video repository inside it.", bundle: .module)
             )
-        } else if viewModel.items.isEmpty {
+        case .emptyRepository:
             VideoLibraryEmptyState(
                 icon: "film",
                 title: String(localized: "No videos found", bundle: .module),
@@ -237,7 +303,7 @@ struct VideoLibraryView: View {
                 actionTitle: String(localized: "Import Videos", bundle: .module),
                 action: { isImporterPresented = true }
             )
-        } else if viewModel.filteredItems.isEmpty {
+        case .noMatches:
             VideoLibraryEmptyState(
                 icon: "line.3.horizontal.decrease.circle",
                 title: String(localized: "No matching videos", bundle: .module),
@@ -245,7 +311,8 @@ struct VideoLibraryView: View {
                 actionTitle: String(localized: "Clear Filters", bundle: .module),
                 action: { viewModel.clearFilters() }
             )
-        } else {
+            .accessibilityIdentifier("cisum.video.no-matches")
+        case .library:
             libraryContent
         }
     }

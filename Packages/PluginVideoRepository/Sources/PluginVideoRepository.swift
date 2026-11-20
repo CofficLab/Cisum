@@ -48,6 +48,7 @@ public final class PluginVideoRepository: AsyncSuperPlugin {
     public func onReadyAsync(kernel: KernelCoreContainer) async throws {
         try installProvider(kernel: kernel)
         provider?.reloadRepository()
+        await seedUITestVideoIfRequested()
     }
 
     @MainActor
@@ -66,6 +67,22 @@ public final class PluginVideoRepository: AsyncSuperPlugin {
     public func onShutdownAsync(kernel: KernelCoreContainer) async throws {
         removeProvider(from: kernel)
         self.kernel = nil
+    }
+
+    @MainActor
+    private func seedUITestVideoIfRequested() async {
+        #if DEBUG
+        let names = UITestVideoSeed.requestedFileNames()
+        guard !names.isEmpty, let provider, let repositoryURL = provider.repositoryURL else { return }
+        do {
+            for name in names {
+                try await UITestVideoSeed.makeVideo(at: repositoryURL.appendingPathComponent(name))
+            }
+            provider.refresh()
+        } catch {
+            VideoRepositoryProvider.logger.error("UI test video seed failed: \(error.localizedDescription)")
+        }
+        #endif
     }
 
     @MainActor

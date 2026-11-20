@@ -37,6 +37,7 @@ struct VideoListRow: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
         .contentShape(Rectangle())
+        .accessibilityIdentifier("cisum.video.item.\(item.url.lastPathComponent)")
         .onTapGesture(perform: onPlay)
         .contextMenu {
             Button {

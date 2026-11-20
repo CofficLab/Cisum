@@ -47,6 +47,10 @@ struct VideoPlayerHeroView: View {
                             .foregroundStyle(.white)
                             .padding(7)
                             .background(.black.opacity(0.55), in: Circle())
+                            #if os(iOS)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                            #endif
                     }
                     .buttonStyle(.plain)
                     .padding(8)
@@ -56,6 +60,7 @@ struct VideoPlayerHeroView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cisum.video.hero")
     }
 
@@ -97,6 +102,7 @@ struct VideoPlaybackStatusView: View {
             .foregroundStyle(isImmersive ? Color.white : Color.secondary)
             .padding(12)
             .background(.black.opacity(isImmersive ? 0.45 : 0.25), in: RoundedRectangle(cornerRadius: 10))
+            .accessibilityIdentifier("cisum.video.playback-loading")
         case .failed(let reason):
             VStack(spacing: 8) {
                 Image(systemName: "exclamationmark.triangle")

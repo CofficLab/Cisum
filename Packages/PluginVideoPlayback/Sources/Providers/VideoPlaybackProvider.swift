@@ -127,6 +127,11 @@ public final class VideoPlaybackProvider: VideoPlaybackProviding {
     }
 
     private static func makePreferredEngine() -> VideoEngine {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--cisum-ui-testing") {
+            return AVPlayerVideoEngine()
+        }
+        #endif
         #if os(macOS)
         return MPVVideoEngine()
         #elseif os(iOS)

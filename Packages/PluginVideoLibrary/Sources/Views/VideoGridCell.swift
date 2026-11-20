@@ -35,6 +35,7 @@ struct VideoGridCell: View {
             .contentShape(Rectangle())
             .onTapGesture(perform: onPlay)
         }
+        .accessibilityIdentifier("cisum.video.item.\(item.url.lastPathComponent)")
         .task(id: item.url) { await loadThumbnail() }
     }
 

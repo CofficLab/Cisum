@@ -67,10 +67,10 @@ struct ControlView: View {
                         // 空仓库引导：占据顶部主要区域，把播放控件压到底部。
                         guideArea
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else if heroView != nil {
+                    } else if heroView != nil, isHeroVisible {
                         heroArea(for: geometry)
                             .frame(maxWidth: .infinity)
-                            .frame(height: isHeroVisible ? heroHeight(for: geometry) : 0, alignment: .top)
+                            .frame(height: heroHeight(for: geometry), alignment: .top)
                             .animation(.easeInOut(duration: 0.2), value: isHeroVisible)
                     }
 

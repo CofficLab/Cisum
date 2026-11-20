@@ -1,4 +1,5 @@
 import Foundation
+import MagicKit
 import ProviderScene
 import Testing
 @testable import PluginScene
@@ -16,9 +17,17 @@ import Testing
 @Suite("场景 Provider 的订阅重放")
 @MainActor
 struct SceneProviderObserverReplayTests {
+    private func makeProvider() -> SceneProvider {
+        let suiteName = "SceneProviderObserverReplayTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        return SceneProvider(preferences: PreferenceStore(
+            defaults: defaults,
+            cloud: InMemoryCloudKeyValueStore()
+        ))
+    }
     @Test("尚无场景时订阅不派发事件")
     func noReplayWhenSceneIsNil() {
-        let provider = SceneProvider()
+        let provider = makeProvider()
 
         var received: [AppScene?] = []
         let handle = provider.addObserver { event in
@@ -33,7 +42,7 @@ struct SceneProviderObserverReplayTests {
 
     @Test("已有场景时订阅立即收到当前场景")
     func replaysCurrentSceneOnSubscribe() {
-        let provider = SceneProvider()
+        let provider = makeProvider()
         provider.restoreCurrentScene()
         #expect(provider.currentScene == .music)
 
@@ -51,7 +60,7 @@ struct SceneProviderObserverReplayTests {
 
     @Test("订阅后发生场景切换仍会派发事件")
     func stillReceivesLaterChanges() {
-        let provider = SceneProvider()
+        let provider = makeProvider()
         provider.restoreCurrentScene()
 
         var received: [AppScene?] = []
@@ -72,7 +81,7 @@ struct SceneProviderObserverReplayTests {
     @Test("订阅晚于场景恢复时也能拿到正确场景")
     func lateSubscriberGetsRestoredScene() {
         // 复现真实缺陷：场景先恢复，订阅后发生。
-        let provider = SceneProvider()
+        let provider = makeProvider()
         provider.restoreCurrentScene()
 
         // 消费方此刻才建立能力并订阅。
@@ -89,7 +98,7 @@ struct SceneProviderObserverReplayTests {
 
     @Test("取消订阅后不再收到事件")
     func cancelStopsDelivery() {
-        let provider = SceneProvider()
+        let provider = makeProvider()
         provider.restoreCurrentScene()
 
         var count = 0
