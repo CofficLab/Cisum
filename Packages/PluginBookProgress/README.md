@@ -13,7 +13,7 @@ and clears saved state when a book is deleted.
 - **Key types/protocols:**
   - `BookProgressPlugin` — `AsyncSuperPlugin`, `SuperLog`; singleton `shared`,
     `id = "BookProgressPlugin"`, `order = 5`, `iconName = "book.closed"`,
-    `policy = .disabled`, `category = .feature`.
+    `policy = .enabledByDefault`, `category = .feature`.
   - `BookProgressPluginInfo` — title "Book Progress", description "Save and restore
     book playback progress", `iconName = "book.closed"`, `order = 5`.
   - `BookProgressViewModel` — `ObservableObject`; `shouldActivateProgress`;

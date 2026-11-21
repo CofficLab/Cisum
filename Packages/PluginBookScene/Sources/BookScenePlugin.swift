@@ -26,7 +26,7 @@ public final class BookScenePlugin: AsyncSuperPlugin, SuperLog {
         version: "1.0.0",
         category: .core,
         stage: .stable,
-        policy: .alwaysOn,
+        policy: .enabledByDefault,
         permissions: []
     )
 

@@ -1,5 +1,6 @@
 import KernelCore
 import LumiUI
+import ProviderControlView
 import ProviderAudioLibrary
 import ProviderPlayback
 import ProviderPlugin
@@ -13,6 +14,7 @@ private let cisumDebugLogger = Logger(subsystem: "com.coffic.cisum", category: "
 struct RootLayoutView: View {
     @ObservedObject var provider: RootViewProvider
     @ObservedObject private var themeRegistry = LumiUIThemeRegistry.shared
+    @ObservedObject private var heroVisibility = ControlHeroVisibility.shared
     @StateObject private var viewModel: RootLayoutViewModel
     @State private var isDetailVisible: Bool
     @State private var rememberedHeight: CGFloat = 0
@@ -51,7 +53,7 @@ struct RootLayoutView: View {
                 VStack(spacing: 0) {
                     controlArea
                         .frame(height: isDetailVisible
-                            ? (viewModel.isPlaybackHeroPresenting
+                            ? (heroVisibility.isVisible
                                 ? AppResponsivePlayerLayoutMetrics.shared.controlMinimumHeight
                                 : AppResponsivePlayerLayoutMetrics.shared.emptyControlHeight)
                             : geometry.size.height)
@@ -210,6 +212,20 @@ struct RootLayoutView: View {
                 RadialGradient(
                     colors: [accents.tertiary.opacity(0.14), Color.clear],
                     center: .topLeading,
+                    startRadius: 0,
+                    endRadius: 520
+                )
+            }
+        case .videos:
+            ZStack {
+                LinearGradient(
+                    colors: [accents.secondary.opacity(0.20), accents.primary.opacity(0.08), Color.clear],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                RadialGradient(
+                    colors: [accents.secondary.opacity(0.14), Color.clear],
+                    center: .center,
                     startRadius: 0,
                     endRadius: 520
                 )

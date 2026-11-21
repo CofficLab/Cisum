@@ -12,8 +12,10 @@ public final class ControlHeroVisibility: ObservableObject {
     public static let shared = ControlHeroVisibility()
 
     @Published public var isVisible: Bool
+    @Published public var isProgressVisible: Bool
 
-    public init(isVisible: Bool = true) {
+    public init(isVisible: Bool = true, isProgressVisible: Bool = true) {
         self.isVisible = isVisible
+        self.isProgressVisible = isProgressVisible
     }
 }

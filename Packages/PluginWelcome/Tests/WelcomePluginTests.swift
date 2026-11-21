@@ -7,8 +7,8 @@ import Testing
     #expect(WelcomePluginInfo.order == -100)
 }
 
-@Test @MainActor func welcomeSetupIsAlwaysEnabledAsRequiredFirstRunInfrastructure() {
-    #expect(WelcomePlugin.shared.metadata.policy == .alwaysOn)
+@Test @MainActor func welcomeSetupIsEnabledByDefaultAndUserConfigurable() {
+    #expect(WelcomePlugin.shared.metadata.policy == .enabledByDefault)
 }
 
 @Test func storageSelectionDefaultsToICloudWhenAvailable() {

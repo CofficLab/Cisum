@@ -127,6 +127,8 @@ private struct PostersView: View {
             String(localized: "Browse and play the music library", bundle: .module)
         case .audiobooks:
             String(localized: "Browse and play the audiobooks", bundle: .module)
+        case .videos:
+            String(localized: "Browse and play the videos in your library", bundle: .module)
         }
     }
 }

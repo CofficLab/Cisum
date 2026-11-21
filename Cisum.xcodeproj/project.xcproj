@@ -91,6 +91,9 @@
       "path": "Packages/MagicKit",
     }, {
       "kind": "local",
+      "path": "Packages/MPVKit",
+    }, {
+      "kind": "local",
       "path": "Packages/PluginAudio",
     }, {
       "kind": "local",
@@ -199,6 +202,15 @@
       "path": "Packages/PluginStore",
     }, {
       "kind": "local",
+      "path": "Packages/PluginVideoLibrary",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginVideoPlayback",
+    }, {
+      "kind": "local",
+      "path": "Packages/PluginVideoRepository",
+    }, {
+      "kind": "local",
       "path": "Packages/PluginWelcome",
     }, {
       "kind": "local",
@@ -224,6 +236,9 @@
     }, {
       "kind": "local",
       "path": "Packages/ProviderStorage",
+    }, {
+      "kind": "local",
+      "path": "Packages/ProviderVideo",
     },
   ],
   "files": [
@@ -287,6 +302,22 @@
         "compile-sources",
         "frameworks",
         "resources",
+        {
+          "kind": "script",
+          "name": "Embed Vendored MPV Dylibs",
+          "log-environment-variables": true,
+          "run-on-every-build": true,
+          "shell": "/bin/zsh",
+          "script": [
+            "set -euo pipefail",
+            "",
+            "if [[ \"${PLATFORM_NAME:-}\" != \"macosx\" ]]; then",
+            "  exit 0",
+            "fi",
+            "",
+            "\"/bin/bash\" \"${SRCROOT}/scripts/copy-vendored-macos-dylibs.sh\"",
+          ],
+        },
       ],
       "package-product-members": [
         {
@@ -360,6 +391,10 @@
         }, {
           "package": "MagicKit",
           "product-name": "MagicKit",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "MPVKit",
+          "product-name": "CisumMPVKit",
           "build-phase": { "build-phase": "frameworks" },
         }, {
           "package": "PluginAudio",
@@ -506,6 +541,18 @@
           "product-name": "PluginStore",
           "build-phase": { "build-phase": "frameworks" },
         }, {
+          "package": "PluginVideoLibrary",
+          "product-name": "PluginVideoLibrary",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginVideoPlayback",
+          "product-name": "PluginVideoPlayback",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "PluginVideoRepository",
+          "product-name": "PluginVideoRepository",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
           "package": "PluginWelcome",
           "product-name": "PluginWelcome",
           "build-phase": { "build-phase": "frameworks" },
@@ -541,6 +588,10 @@
           "package": "ProviderStorage",
           "product-name": "CisumProviderStorage",
           "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "ProviderVideo",
+          "product-name": "ProviderVideo",
+          "build-phase": { "build-phase": "frameworks" },
         },
       ],
       "build-settings": {
@@ -574,6 +625,7 @@
         "ENABLE_RESOURCE_ACCESS_PRINTING": "NO",
         "ENABLE_RESOURCE_ACCESS_USB": "NO",
         "ENABLE_USER_SCRIPT_SANDBOXING": "NO",
+        "EXCLUDED_ARCHS[sdk=macosx*]": "x86_64",
         "GENERATE_INFOPLIST_FILE": "YES",
         "INFOPLIST_FILE[config=Debug]": "CisumApp/Cisum-Info-Debug.plist",
         "INFOPLIST_FILE[config=Debug][sdk=macosx*]": "CisumApp/Cisum-Info-macOS-Debug.plist",
@@ -595,7 +647,7 @@
           "$(inherited)",
           "@executable_path/../Frameworks",
         ],
-        "MACOSX_DEPLOYMENT_TARGET": "14.0",
+        "MACOSX_DEPLOYMENT_TARGET": "15.0",
         "MARKETING_VERSION": "4.4.17",
         "PRODUCT_BUNDLE_IDENTIFIER[config=Debug]": "com.yueyi.cisum.debug",
         "PRODUCT_BUNDLE_IDENTIFIER[config=Release]": "com.yueyi.cisum",
@@ -636,7 +688,7 @@
         "GENERATE_INFOPLIST_FILE": "YES",
         "IPHONEOS_DEPLOYMENT_TARGET": "17.0",
         "LOCALIZATION_PREFERS_STRING_CATALOGS": "YES",
-        "MACOSX_DEPLOYMENT_TARGET": "14.0",
+        "MACOSX_DEPLOYMENT_TARGET": "15.0",
         "MARKETING_VERSION": "1.0",
         "PRODUCT_BUNDLE_IDENTIFIER": "com.yueyi.CisumUITests",
         "PRODUCT_NAME": "$(TARGET_NAME)",
@@ -729,7 +781,7 @@
         "ENABLE_APP_SANDBOX": "NO",
         "GENERATE_INFOPLIST_FILE": "YES",
         "IPHONEOS_DEPLOYMENT_TARGET": "17.0",
-        "MACOSX_DEPLOYMENT_TARGET": "14.0",
+        "MACOSX_DEPLOYMENT_TARGET": "15.0",
         "MARKETING_VERSION": "1.0",
         "PRODUCT_BUNDLE_IDENTIFIER": "com.yueyi.CisumTests",
         "PRODUCT_NAME": "$(TARGET_NAME)",
@@ -803,7 +855,7 @@
     "GCC_WARN_UNUSED_FUNCTION": "YES",
     "GCC_WARN_UNUSED_VARIABLE": "YES",
     "IPHONEOS_DEPLOYMENT_TARGET": "17.1",
-    "MACOSX_DEPLOYMENT_TARGET": "13.3",
+    "MACOSX_DEPLOYMENT_TARGET": "15.0",
     "MTL_ENABLE_DEBUG_INFO[config=Debug]": "INCLUDE_SOURCE",
     "MTL_ENABLE_DEBUG_INFO[config=Release]": "NO",
     "MTL_FAST_MATH": "YES",

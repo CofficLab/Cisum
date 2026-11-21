@@ -1,4 +1,5 @@
 import Foundation
+import MagicKit
 import Testing
 @testable import PluginScene
 
@@ -9,6 +10,12 @@ import Testing
 /// 走的是另一条路径。因此 UI 测试需要一个开关，把本次启动固定在首个场景。
 @MainActor
 struct UITestSceneResetTests {
+    private func makePreferences(directory: URL) -> PreferenceStore {
+        let suiteName = directory.lastPathComponent
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        return PreferenceStore(defaults: defaults, cloud: InMemoryCloudKeyValueStore())
+    }
 
     /// 磁盘上持久化了「有声书」时，带开关的启动必须回到首个场景（音乐库）。
     @Test("带开关时忽略磁盘上持久化的场景")
@@ -21,10 +28,36 @@ struct UITestSceneResetTests {
         let persisted = tempDir.appendingPathComponent("current-scene.json")
         try Data(#"{"sceneName":"Audiobooks","pluginID":null}"#.utf8).write(to: persisted)
 
-        let provider = SceneProvider(pluginDataDirectory: tempDir)
+        let provider = SceneProvider(
+            pluginDataDirectory: tempDir,
+            preferences: makePreferences(directory: tempDir)
+        )
         provider.resetPersistedSceneForUITestingIfNeeded()
 
         #expect(provider.currentScene == .music, "带开关时必须回到首个场景（音乐库）")
+    }
+
+    @Test("UI 测试可直接启动到视频场景")
+    func requestedVideoSceneOverridesPersistedScene() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("PluginSceneVideo-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let persisted = tempDir.appendingPathComponent("current-scene.json")
+        try Data(#"{"sceneName":"Audiobooks","pluginID":null}"#.utf8).write(to: persisted)
+
+        let provider = SceneProvider(
+            pluginDataDirectory: tempDir,
+            preferences: makePreferences(directory: tempDir)
+        )
+        let applied = provider.applyRequestedSceneForUITestingIfNeeded(arguments: [
+            "--cisum-ui-testing",
+            "--cisum-ui-testing-scene=videos",
+        ])
+
+        #expect(applied)
+        #expect(provider.currentScene == .videos)
     }
 
     /// 不带开关时，磁盘上持久化的场景照常恢复。
@@ -38,7 +71,10 @@ struct UITestSceneResetTests {
         let persisted = tempDir.appendingPathComponent("current-scene.json")
         try Data(#"{"sceneName":"Audiobooks","pluginID":null}"#.utf8).write(to: persisted)
 
-        let provider = SceneProvider(pluginDataDirectory: tempDir)
+        let provider = SceneProvider(
+            pluginDataDirectory: tempDir,
+            preferences: makePreferences(directory: tempDir)
+        )
         provider.restoreCurrentScene()
 
         #expect(provider.currentScene == .audiobooks, "不带开关时必须照常恢复磁盘上的场景")

@@ -24,7 +24,7 @@ public final class BookSettingsPlugin: AsyncSuperPlugin, SuperLog {
         version: "1.0.0",
         category: .system,
         stage: .stable,
-        policy: .alwaysOn,
+        policy: .enabledByDefault,
         permissions: []
     )
 

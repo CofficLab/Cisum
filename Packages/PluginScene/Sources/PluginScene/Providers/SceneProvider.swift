@@ -100,6 +100,10 @@ public final class SceneProvider: ObservableObject, SceneProviding {
             return
         }
 
+        if applyRequestedSceneForUITestingIfNeeded() {
+            return
+        }
+
         // UI 测试专用：忽略磁盘上持久化的场景，让本次启动固定从首个场景
         // （音乐库）开始。
         //
@@ -119,6 +123,26 @@ public final class SceneProvider: ObservableObject, SceneProviding {
 
         updateCurrentScene(first)
         try? persistScene(first)
+    }
+
+    @discardableResult
+    func applyRequestedSceneForUITestingIfNeeded(
+        arguments: [String] = ProcessInfo.processInfo.arguments
+    ) -> Bool {
+        #if DEBUG
+        let prefix = "--cisum-ui-testing-scene="
+        guard arguments.contains("--cisum-ui-testing"),
+              let argument = arguments.first(where: { $0.hasPrefix(prefix) }) else { return false }
+        let requested = String(argument.dropFirst(prefix.count))
+        guard let scene = scenes.first(where: {
+            $0.accessibilityID == requested || $0.rawValue == requested
+        }) else { return false }
+        updateCurrentScene(scene)
+        try? persistScene(scene)
+        return true
+        #else
+        return false
+        #endif
     }
 
     /// 忽略磁盘上持久化的场景，回到首个场景（音乐库）。

@@ -12,7 +12,7 @@ switch the app into the built-in `.audiobooks` scene.
 - **Key types/protocols:**
   - `BookScenePlugin` — `AsyncSuperPlugin`, `SuperLog`; singleton `shared`,
     `id = "BookScenePlugin"`, `order = 0`, `iconName = "book.closed"`,
-    `category = .core`, `policy = .disabled`.
+    `category = .core`, `policy = .enabledByDefault`.
   - `BookScenePluginInfo` — title "Audiobook Scene", description "Provides audiobook
     scene", `iconName = "book.closed"`, `order = 0`.
   - `BookScenePluginPosterView` — wires the enter action to

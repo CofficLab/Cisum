@@ -8,23 +8,22 @@ import XCTest
 ///
 /// ## 关于「插件管理」入口
 ///
-/// `PluginPluginManager` 的插件策略是 `.disabled`：内核在启动时**彻底排除**
-/// 这类插件（不注册、不启动、不展示），因此它**不会**出现在设置侧边栏。
-/// 本文件据此只断言**当前确实存在**的四个入口：
-/// 通用 / 外观 / 存储设置 / 商店。
-///
-/// 若将来插件管理被启用（策略改为 `.alwaysOn` / `.enabledByDefault`），
-/// 应同步在本文件补上对应断言。
+/// `PluginPluginManager` 采用默认的 `.required` 策略；书库、视频库、欢迎页、
+/// 仓库引导等模块是用户可配置插件，因此「插件管理」入口会出现在设置侧边栏。
+/// 本文件据此断言**当前确实存在**的五个入口：
+/// 通用 / 外观 / 插件管理 / 存储设置 / 商店。
 final class CisumSettingsNavigationUITests: CisumUITestBase {
     /// 设置侧边栏当前应当存在的入口（按 `order` 升序）。
     ///
     /// - 通用：order 1（`SettingGeneralPlugin`）
     /// - 外观：order 2（`CisumThemeBridge`）
+    /// - 插件管理：order 3（`PluginPluginManager`）
     /// - 存储设置：`StoragePlugin`
     /// - 商店：order 80（`StorePlugin`）
     private static let expectedEntries: [(labels: [String], id: String)] = [
         (["General", "通用"], "general"),
         (["Appearance", "外观"], "appearance"),
+        (["Plugin Manager", "插件管理"], "plugin-manager"),
         (["Storage Settings", "存储设置", "音乐仓库"], "storage"),
         (["Store", "商店"], "store"),
     ]
@@ -51,7 +50,7 @@ final class CisumSettingsNavigationUITests: CisumUITestBase {
 
     // MARK: - 入口完整性
 
-    /// 设置侧边栏必须包含全部四个入口。
+    /// 设置侧边栏必须包含全部五个入口。
     ///
     /// 少一个入口就意味着对应的功能在设置里彻底找不到。
     func testSidebarContainsAllExpectedEntries() throws {
@@ -66,18 +65,17 @@ final class CisumSettingsNavigationUITests: CisumUITestBase {
         }
     }
 
-    /// 侧边栏不应出现已被策略排除的入口（如「插件管理」）。
+    /// 侧边栏必须暴露「插件管理」入口。
     ///
-    /// `PluginPluginManager` 的策略是 `.disabled`：内核启动时彻底排除这类插件，
-    /// 它不会被注册，设置侧边栏也就不会有它的入口。
-    /// 若这里出现了，说明策略被改动，插件管理页的可达性假设需要重新评估。
-    func testSidebarDoesNotExposeDisabledPluginManagerEntry() throws {
+    /// `PluginPluginManager` 已启用，且插件目录里存在用户可配置插件；
+    /// 入口一旦消失，用户就失去了启停功能模块的唯一路径。
+    func testSidebarExposesPluginManagerEntry() throws {
         try openSettingsSidebar()
 
         let pluginManager = sidebarButton(labels: ["Plugin Manager", "插件管理"])
-        XCTAssertFalse(
-            pluginManager.exists,
-            "「插件管理」入口出现在设置侧边栏，但该插件策略为 .disabled（不应被注册）"
+        XCTAssertTrue(
+            pluginManager.waitForExistence(timeout: 10),
+            "「插件管理」入口未出现在设置侧边栏"
         )
     }
 

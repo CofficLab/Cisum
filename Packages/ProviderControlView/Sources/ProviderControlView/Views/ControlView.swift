@@ -67,10 +67,10 @@ struct ControlView: View {
                         // 空仓库引导：占据顶部主要区域，把播放控件压到底部。
                         guideArea
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else if heroView != nil {
+                    } else if heroView != nil, isHeroVisible {
                         heroArea(for: geometry)
                             .frame(maxWidth: .infinity)
-                            .frame(height: isHeroVisible ? heroHeight(for: geometry) : 0, alignment: .top)
+                            .frame(height: heroHeight(for: geometry), alignment: .top)
                             .animation(.easeInOut(duration: 0.2), value: isHeroVisible)
                     }
 
@@ -139,7 +139,7 @@ struct ControlView: View {
     /// 载入插槽激活时进度行同样收掉——横幅已经占用了「状态 + 进度」的
     /// 整块空间，不能再叠一条时间轴。
     private var showsProgressSection: Bool {
-        progressView != nil && !observedGuideSlot.isActive && !showsLoadingSection
+        progressView != nil && heroVisibility.isProgressVisible && !observedGuideSlot.isActive && !showsLoadingSection
     }
 
     /// 载入插槽是否替代状态行与进度行。

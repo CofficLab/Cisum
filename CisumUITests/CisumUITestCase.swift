@@ -241,6 +241,13 @@ class CisumUITestBase: XCTestCase {
         app.descendants(matching: .any).matching(identifier: identifier).firstMatch
     }
 
+    func attachScreenshot(named name: String) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
     func element(anyLabelOf labels: [String]) -> XCUIElement {
         app.descendants(matching: .any)
             .matching(NSPredicate(format: "label IN %@ OR value IN %@", labels, labels))
@@ -310,10 +317,16 @@ class CisumUITestBase: XCTestCase {
 
     func switchScene(to labels: [String]) {
         #if os(macOS)
-        let sceneID = labels.contains(where: { ["Music Library", "音乐仓库"].contains($0) })
-            ? "music"
-            : "audiobooks"
-        let targetScene = element(identifier: "cisum.scene.\(sceneID)")
+        let sceneID: String
+        if labels.contains(where: { ["Music Library", "音乐仓库"].contains($0) }) {
+            sceneID = "music"
+        } else if labels.contains(where: { ["Video Library", "视频库"].contains($0) }) {
+            sceneID = "videos"
+        } else {
+            sceneID = "audiobooks"
+        }
+        let targetID = sceneID == "videos" ? "cisum.video.library" : "cisum.scene.\(sceneID)"
+        let targetScene = element(identifier: targetID)
         if targetScene.waitForExistence(timeout: 1) { return }
 
         let switcher = element(identifier: "cisum.scene.switcher")
@@ -356,6 +369,16 @@ class CisumUITestBase: XCTestCase {
         #else
         if !element(identifier: "cisum.scene.audiobooks").exists {
             throw XCTSkip("iOS 上无法通过 UI 切换场景，且当前不在有声书场景")
+        }
+        #endif
+    }
+
+    func ensureVideoScene() throws {
+        #if os(macOS)
+        switchScene(to: ["Video Library", "视频库"])
+        #else
+        if !element(identifier: "cisum.video.library").exists {
+            throw XCTSkip("iOS 需用 --cisum-ui-testing-scene=videos 直接启动到视频场景")
         }
         #endif
     }

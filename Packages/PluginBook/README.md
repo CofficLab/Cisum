@@ -16,7 +16,7 @@ provider directly.
   into the kernel and exposes them through `BookDatabaseProviding`.
 - **Key types/protocols:**
   - `BookPlugin` — `AsyncSuperPlugin`, `SuperLog`; singleton `shared`,
-    `id = "BookPlugin"`, `order = 1`, `policy = .disabled`, `category = .feature`.
+    `id = "BookPlugin"`, `order = 1`, `policy = .enabledByDefault`, `category = .feature`.
   - `BookRootViewModel` — `ObservableObject`; `@Published` `error`, `isLoading`,
     `storageLocationDidChangeNotice`; `reloadContainer()`,
     `handleStorageLocationChanged()`. Uses a generation counter so stale async

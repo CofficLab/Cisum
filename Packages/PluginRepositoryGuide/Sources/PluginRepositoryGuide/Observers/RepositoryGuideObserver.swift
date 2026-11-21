@@ -72,6 +72,9 @@ final class RepositoryGuideObserver: SuperLog {
             bookLibrary.isRepositoryEmpty
         case .music, .none:
             musicLibrary.isRepositoryEmpty
+        case .videos:
+            // 视频库自带空态引导，仓库引导不参与。
+            false
         }
     }
 

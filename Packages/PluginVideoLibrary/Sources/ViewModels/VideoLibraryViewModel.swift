@@ -1,0 +1,371 @@
+import Combine
+import Foundation
+import ProviderVideo
+
+/// 视频库列表的视图模型。
+///
+/// 负责：仓库条目的本地副本、筛选与排序（范围 / 标签 / 搜索 / 排序）、
+/// 播放队列与条目操作（播放、收藏、评分、标签、重命名、删除、导入）。
+@MainActor
+final class VideoLibraryViewModel: ObservableObject {
+    /// 仓库中的全部条目。
+    @Published private(set) var items: [VideoItem] = []
+    /// 仓库状态。
+    @Published private(set) var repositoryState: VideoRepositoryState = .idle
+    /// 搜索关键字。
+    @Published var searchText = ""
+    /// 当前内容范围。
+    @Published var scope: VideoLibraryScope = .all
+    /// 选中的标签（`nil` 表示不筛选）。
+    @Published var selectedTag: String?
+    /// 排序方式。
+    @Published var sortOrder: VideoSortOrder = .recentAdded
+    /// 展示方式（网格 / 列表）。
+    @Published var displayMode: VideoLibraryDisplayMode = .grid
+    /// 当前展开的详情条目。
+    @Published var editingItem: VideoItem?
+    /// 是否展示沉浸式播放器。
+    @Published var isPlayerPresented = false
+    /// 是否展示播放队列。
+    @Published var isQueuePresented = false
+    /// 当前播放状态。
+    @Published private(set) var playbackState: VideoPlaybackState = .idle
+    /// 当前播放位置。
+    @Published private(set) var currentTime: TimeInterval = 0
+    /// 当前媒体时长。
+    @Published private(set) var duration: TimeInterval = 0
+    /// 当前播放进度（0...1）。
+    @Published private(set) var progress: Double = 0
+    /// 当前倍速。
+    @Published private(set) var rate: Float = 1
+    /// 最近一次操作失败的原因。
+    @Published var errorMessage: String?
+
+    private let repository: VideoLibraryRepositoryCapability
+    let playback: VideoLibraryPlaybackCapability
+    private var repositoryObserver: (any VideoRepositoryObserverHandle)?
+    private var playbackObserver: (any VideoPlaybackObserverHandle)?
+    private var lastPersistedAt: Date?
+
+    /// 进度落盘的最小间隔（秒）。
+    private static let progressPersistInterval: TimeInterval = 5
+
+    init(repository: VideoLibraryRepositoryCapability, playback: VideoLibraryPlaybackCapability) {
+        self.repository = repository
+        self.playback = playback
+    }
+
+    /// 绑定仓库与播放事件。
+    func bind() {
+        repositoryObserver?.cancel()
+        repositoryObserver = repository.addObserver { [weak self] _ in
+            Task { @MainActor in
+                self?.reload()
+            }
+        }
+        playbackObserver?.cancel()
+        playbackObserver = playback.addObserver { [weak self] event in
+            Task { @MainActor in
+                self?.handlePlaybackEvent(event)
+            }
+        }
+        reload()
+        syncPlaybackState()
+    }
+
+    /// 解除绑定。
+    func unbind() {
+        repositoryObserver?.cancel()
+        repositoryObserver = nil
+        playbackObserver?.cancel()
+        playbackObserver = nil
+    }
+
+    /// 从仓库重新读取条目。
+    func reload() {
+        items = repository.items
+        repositoryState = repository.state
+    }
+
+    // MARK: - Filtering
+
+    /// 全部标签（去重、按字典序）。
+    var allTags: [String] {
+        var seen = Set<String>()
+        var result: [String] = []
+        for item in items {
+            for tag in item.tags where !seen.contains(tag) {
+                seen.insert(tag)
+                result.append(tag)
+            }
+        }
+        return result.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+    }
+
+    /// 处于「未看完」状态的条目（按最后播放时间倒序）。
+    var continueWatchingItems: [VideoItem] {
+        items
+            .filter(\.isInProgress)
+            .sorted {
+                ($0.progress.lastPlayedAt ?? .distantPast) > ($1.progress.lastPlayedAt ?? .distantPast)
+            }
+    }
+
+    /// 最近添加的条目（按文件修改时间倒序）。
+    var recentlyAddedItems: [VideoItem] {
+        items.sorted {
+            ($0.modifiedAt ?? .distantPast) > ($1.modifiedAt ?? .distantPast)
+        }
+    }
+
+    /// 各内容范围的条目数量（用于筛选胶囊上的计数）。
+    func count(for scope: VideoLibraryScope) -> Int {
+        switch scope {
+        case .all: items.count
+        case .favorites: items.count { $0.isFavorite }
+        case .continueWatching: continueWatchingItems.count
+        case .undownloaded: items.count { $0.availability == .cloudNotDownloaded }
+        }
+    }
+
+    /// 筛选后的条目（已排序）。
+    var filteredItems: [VideoItem] {
+        let keyword = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let matched = items.filter { item in
+            switch scope {
+            case .all: break
+            case .favorites: if !item.isFavorite { return false }
+            case .continueWatching: if !item.isInProgress { return false }
+            case .undownloaded: if item.availability != .cloudNotDownloaded { return false }
+            }
+            if let selectedTag, !item.tags.contains(selectedTag) { return false }
+            guard !keyword.isEmpty else { return true }
+            return item.title.localizedCaseInsensitiveContains(keyword)
+                || item.relativePath.localizedCaseInsensitiveContains(keyword)
+                || item.tags.contains { $0.localizedCaseInsensitiveContains(keyword) }
+        }
+        return sorted(matched)
+    }
+
+    /// 按当前排序方式排序。
+    private func sorted(_ list: [VideoItem]) -> [VideoItem] {
+        switch sortOrder {
+        case .recentAdded:
+            return list.sorted {
+                ($0.modifiedAt ?? .distantPast) > ($1.modifiedAt ?? .distantPast)
+            }
+        case .name:
+            return list.sorted {
+                $0.title.localizedStandardCompare($1.title) == .orderedAscending
+            }
+        case .duration:
+            return list.sorted { ($0.duration ?? 0) > ($1.duration ?? 0) }
+        case .rating:
+            return list.sorted {
+                ($0.rating?.value ?? 0) > ($1.rating?.value ?? 0)
+            }
+        case .lastPlayed:
+            return list.sorted {
+                ($0.progress.lastPlayedAt ?? .distantPast) > ($1.progress.lastPlayedAt ?? .distantPast)
+            }
+        }
+    }
+
+    /// 当前是否有生效的筛选条件。
+    var hasActiveFilters: Bool {
+        scope != .all || selectedTag != nil
+            || !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    /// 清除全部筛选条件。
+    func clearFilters() {
+        scope = .all
+        selectedTag = nil
+        searchText = ""
+    }
+
+    /// 当前正在播放的条目。
+    var currentItem: VideoItem? {
+        guard let url = playback.currentURL else { return nil }
+        return items.first { $0.url == url }
+    }
+
+    /// 当前仓库根目录。
+    var repositoryURL: URL? {
+        repository.repositoryURL
+    }
+
+    /// 存储位置标题（`iCloud` / `Local`）；未配置时为空。
+    var storageLocationTitle: String {
+        repository.storageLocationTitle
+    }
+
+    /// 当前筛选结果的视频总大小文案，与摘要中的条目数量保持同一口径。
+    var totalSizeTitle: String {
+        let total = filteredItems.reduce(Int64(0)) { $0 + $1.size }
+        return ByteCountFormatter.string(fromByteCount: total, countStyle: .file)
+    }
+
+    // MARK: - Playback
+
+    /// 播放本地可用的视频；有进度时从上次位置继续，保留内嵌播放。
+    func play(_ item: VideoItem) {
+        switch item.availability {
+        case .available:
+            playback.play(item.url, startTime: item.resumePosition)
+        case .cloudNotDownloaded:
+            requestDownload(item)
+        case .cloudDownloading, .unavailable(_):
+            return
+        }
+    }
+
+    /// 用户显式展开沉浸播放器；选中条目本身不强制切换呈现方式。
+    func presentPlayer() {
+        guard playback.hasAsset else { return }
+        isPlayerPresented = true
+    }
+
+    func dismissPlayer() {
+        isPlayerPresented = false
+        isQueuePresented = false
+    }
+
+    /// 切换播放 / 暂停。
+    func togglePlayback() {
+        playback.toggle()
+    }
+
+    /// 播放队列中的下一个 / 上一个。
+    func playNeighbor(offset: Int) {
+        let list = playbackQueue
+        guard !list.isEmpty else { return }
+        guard let current = playback.currentURL,
+              let index = list.firstIndex(where: { $0.url == current }) else {
+            play(list[0])
+            return
+        }
+        let next = (index + offset + list.count) % list.count
+        play(list[next])
+    }
+
+    /// 播放队列（当前筛选结果）。
+    var playbackQueue: [VideoItem] {
+        filteredItems
+    }
+
+    /// 跳转到指定位置。
+    func seek(to time: TimeInterval) {
+        playback.seek(to: time)
+    }
+
+    /// 设置倍速。
+    func setRate(_ rate: Float) {
+        playback.setRate(rate)
+    }
+
+    /// 可选倍速档位。
+    static let rateOptions: [Float] = [0.5, 1, 1.25, 1.5, 2, 3]
+
+    /// 按档位循环切换倍速。
+    func cycleRate() {
+        let rates = Self.rateOptions
+        let current = playback.rate
+        let next = rates.first { $0 > current + 0.01 } ?? rates[0]
+        playback.setRate(next)
+    }
+
+    // MARK: - Item actions
+
+    func toggleFavorite(_ item: VideoItem) {
+        repository.setFavorite(!item.isFavorite, for: item.url)
+    }
+
+    func setRating(_ rating: Int?, for item: VideoItem) {
+        repository.setRating(rating, for: item.url)
+    }
+
+    func setTags(_ tags: [String], for item: VideoItem) {
+        repository.setTags(tags, for: item.url)
+    }
+
+    func rename(_ item: VideoItem, to newName: String) throws {
+        try repository.rename(item.url, to: newName)
+    }
+
+    func delete(_ item: VideoItem) throws {
+        try repository.delete(item.url)
+    }
+
+    /// 请求从 iCloud 下载尚未下载的文件。
+    func requestDownload(_ item: VideoItem) {
+        repository.requestDownload(for: item.url)
+    }
+
+    // MARK: - Repository actions
+
+    func refresh() { repository.refresh() }
+
+    /// 导入外部视频文件。
+    func importVideos(from urls: [URL]) {
+        do {
+            try repository.importVideos(from: urls)
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    // MARK: - Private
+
+    private func handlePlaybackEvent(_ event: VideoPlaybackEvent) {
+        syncPlaybackState()
+        switch event {
+        case .timeChanged:
+            persistProgress(force: false)
+        case .assetChanged:
+            persistProgress(force: true)
+        case .stateChanged(let state):
+            switch state {
+            case .paused, .finished, .failed:
+                persistProgress(force: true)
+            case .idle, .loading, .playing:
+                break
+            }
+        case .rateChanged, .didFinish:
+            persistProgress(force: true)
+        }
+    }
+
+    /// 把底层播放状态同步到视图模型。
+    private func syncPlaybackState() {
+        playbackState = playback.state
+        currentTime = playback.currentTime
+        duration = playback.duration
+        progress = playback.progress
+        rate = playback.rate
+    }
+
+    /// 写入播放进度。
+    ///
+    /// 进度事件每 0.5 秒一次，直接落盘会频繁重写元数据文件；因此按间隔
+    /// 节流，暂停/停止/切源等关键节点则立即落盘。
+    private func persistProgress(force: Bool) {
+        guard let url = playback.currentURL else { return }
+        let now = Date()
+        if !force, let last = lastPersistedAt, now.timeIntervalSince(last) < Self.progressPersistInterval {
+            return
+        }
+        lastPersistedAt = now
+
+        let existing = items.first { $0.url == url }?.progress
+        let playCount = existing?.playCount ?? 0
+        let progress = VideoPlaybackProgress(
+            position: playback.currentTime,
+            duration: playback.duration,
+            playCount: playCount,
+            lastPlayedAt: now
+        )
+        repository.updateProgress(progress, for: url)
+    }
+}

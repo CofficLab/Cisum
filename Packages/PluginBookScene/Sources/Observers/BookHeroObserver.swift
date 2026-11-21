@@ -54,6 +54,7 @@ final class BookHeroObserver {
     /// 只在本插件自己的有声书场景写布局信号；其他场景由该场景的封面插件负责。
     private func publishVisibility() {
         guard currentScene == .audiobooks else { return }
+        ControlHeroVisibility.shared.isProgressVisible = true
         guard let viewModel else {
             ControlHeroVisibility.shared.isVisible = true
             return
