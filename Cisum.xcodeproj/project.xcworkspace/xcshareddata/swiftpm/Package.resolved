@@ -96,8 +96,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/lumi-softworks/LumiPluginCacheManager.git",
       "state" : {
-        "revision" : "804813e2e329447d2c2f5a2cd54fa66a69ae9c5b",
-        "version" : "1.0.0"
+        "revision" : "f6d862f5619ec6ff5e20988214c2b90c8ab7a71d",
+        "version" : "1.2.0"
       }
     },
     {
