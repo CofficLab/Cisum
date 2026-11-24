@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows:
+      - "Bump"
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+env:
+  TAG: ${{ github.sha }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  release:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: 获取最新 tag
+        id: get_tag
+        run: |
+          tag=$(git describe --tags --abbrev=0)
+          echo "TAG=$tag" >> $GITHUB_ENV
+
+          # 输出到 Summary
+          echo "## 🏷️ 版本标签信息" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag**: \`$tag\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: \`${{ github.event.workflow_run.head_branch }}\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Generate Changelog
+        run: |
+          CURRENT_TAG=${{ env.TAG }}
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${CURRENT_TAG}^ 2>/dev/null || echo "")
+          if [ -z "$PREVIOUS_TAG" ]; then
+            NOTES="## Release $CURRENT_TAG\n\nInitial release"
+          else
+            NOTES="## Release $CURRENT_TAG\n\n### Changes since $PREVIOUS_TAG\n"
+            CHANGELOG=$(git log ${PREVIOUS_TAG}..${CURRENT_TAG} --no-merges --pretty=format:'%s' | sort | uniq | sed 's/^/- /')
+            NOTES="$NOTES\n$CHANGELOG"
+          fi
+          echo -e "$NOTES" > changelog.md
+          echo "### 📋 Release Notes" >> $GITHUB_STEP_SUMMARY
+          echo -e "$NOTES" >> $GITHUB_STEP_SUMMARY
+
+      - name: 发布 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          body_path: changelog.md
