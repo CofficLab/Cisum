@@ -1,5 +1,5 @@
 {
-  "originHash" : "cd1c4cfcd61d6e58563aae83fa14255e7f72a5997e2aec62019b130de7f2aef3",
+  "originHash" : "82ed66537bc33a4716ac843a40b12a6ee01dc15549394cc0093f9f04cf0e6cb4",
   "pins" : [
     {
       "identity" : "id3tageditor",
@@ -96,8 +96,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/lumi-softworks/LumiPluginCacheManager.git",
       "state" : {
-        "revision" : "804813e2e329447d2c2f5a2cd54fa66a69ae9c5b",
-        "version" : "1.0.0"
+        "revision" : "fc39d96f257ec13a7f38e580a4d19d61a0c8c8c1",
+        "version" : "1.5.0"
       }
     },
     {

@@ -36,7 +36,7 @@
       "kind": "remote",
       "repository": "https://github.com/lumi-softworks/LumiPluginCacheManager.git",
       "version": {
-        "up-to-next-major-version": "1.0.0",
+        "up-to-next-major-version": "1.5.0",
       },
     }, {
       "kind": "remote",
@@ -389,12 +389,12 @@
           "product-name": "LumiUI",
           "build-phase": { "build-phase": "frameworks" },
         }, {
-          "package": "MagicKit",
-          "product-name": "MagicKit",
-          "build-phase": { "build-phase": "frameworks" },
-        }, {
           "package": "MPVKit",
           "product-name": "CisumMPVKit",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "MagicKit",
+          "product-name": "MagicKit",
           "build-phase": { "build-phase": "frameworks" },
         }, {
           "package": "PluginAudio",

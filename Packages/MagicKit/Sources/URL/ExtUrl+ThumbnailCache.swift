@@ -42,10 +42,11 @@ public final class ThumbnailCache: SuperLog, @unchecked Sendable {
         memoryCache.countLimit = Config.maxMemoryCount
         memoryCache.totalCostLimit = Config.maxMemorySize
         
-        // 创建磁盘缓存目录
-        let cacheDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-        diskCacheURL = cacheDirectory.appendingPathComponent("ThumbnailCache", isDirectory: true)
-        try? FileManager.default.createDirectory(at: diskCacheURL, withIntermediateDirectories: true)
+        // 缩略图是「删了能重建」的加速数据：落到 App 级 DiskCache 桶，
+        // 由缓存管理插件统一统计占用与清理。
+        diskCacheURL = AppDiskCache.objectsDirectory(
+            bucketID: "\(MagicApp.getBundleIdentifier()).cache.thumbnails"
+        )
         
         // 定期检查并清理过期缓存
         startCacheCleanupTimer()
@@ -169,6 +170,11 @@ public final class ThumbnailCache: SuperLog, @unchecked Sendable {
         }
         
         do {
+            // 桶目录可能已被缓存管理插件清空，写入前确保存在。
+            try FileManager.default.createDirectory(
+                at: diskCacheURL,
+                withIntermediateDirectories: true
+            )
             try data.write(to: diskURL)
             if verbose { os_log("\(self.t) Successfully saved cache for: \(url.shortPath())") }
         } catch {

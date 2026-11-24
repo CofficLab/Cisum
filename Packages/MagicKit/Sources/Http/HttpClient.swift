@@ -345,14 +345,10 @@ private final class FileCacheStore {
 
     /// 计算并确保缓存目录存在
     static func cacheDirectoryURL() -> URL {
-        let fm = FileManager.default
-        let base = fm.urls(for: .cachesDirectory, in: .userDomainMask).first
-            ?? fm.temporaryDirectory
-        let dir = base.appendingPathComponent("HttpClientCache", isDirectory: true)
-        if !fm.fileExists(atPath: dir.path) {
-            try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
-        }
-        return dir
+        // 缓存可重建，落到 App 级 DiskCache 桶，交给缓存管理插件统一治理。
+        AppDiskCache.objectsDirectory(
+            bucketID: "\(MagicApp.getBundleIdentifier()).cache.http"
+        )
     }
     
     func read(url: URL, headers: [String:String], maxAge: TimeInterval) throws -> Data? {
@@ -372,6 +368,8 @@ private final class FileCacheStore {
     
     func write(url: URL, headers: [String:String], data: Data) throws {
         let path = fileURL(url: url, headers: headers)
+        // 桶目录可能已被缓存管理插件清空，写入前确保存在。
+        try fm.createDirectory(at: directory, withIntermediateDirectories: true)
         try data.write(to: path, options: .atomic)
     }
     

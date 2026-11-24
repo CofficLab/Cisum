@@ -23,6 +23,7 @@ enum CisumHostWiring {
     private static var visibilityCoordinators: [ObjectIdentifier: ContentViewVisibilityCoordinator] = [:]
 
     static func wire(_ kernel: KernelCoreContainer) {
+        CisumLegacyDiskCache.removeLegacyDirectories()
         injectViews(in: kernel)
 
         // 内容区显隐由协调器统一：AppState 是唯一真源（只有用户显式操作

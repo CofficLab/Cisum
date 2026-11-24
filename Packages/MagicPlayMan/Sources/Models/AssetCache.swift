@@ -10,14 +10,16 @@ public class AssetCache {
     private let fileManager = FileManager.default
     
     /// 创建资源缓存管理器
-    /// - Parameter directory: 自定义缓存目录。如果为 nil，则使用系统默认缓存目录下的 MagicPlayMan 文件夹
+    /// - Parameter directory: 自定义缓存目录。如果为 nil，则使用 App 级
+    ///   DiskCache 桶（由缓存管理插件统一统计与清理）。
     init(directory: URL? = nil) throws {
         if let customDirectory = directory {
             cacheDirectory = customDirectory
         } else {
-            let cacheDir = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first
-                ?? fileManager.temporaryDirectory
-            cacheDirectory = cacheDir.appendingPathComponent("MagicPlayMan", isDirectory: true)
+            // 播放缓存是「删了能重新下载」的加速数据，落到 DiskCache 桶。
+            cacheDirectory = AppDiskCache.objectsDirectory(
+                bucketID: "\(MagicApp.getBundleIdentifier()).cache.media"
+            )
         }
         
         try Self.prepareCacheDirectory(cacheDirectory, fileManager: fileManager)
@@ -41,11 +43,14 @@ public class AssetCache {
     
     /// 缓存数据
     func cache(_ data: Data, for url: URL) throws {
+        // 桶目录可能已被缓存管理插件清空，写入前确保存在。
+        try fileManager.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
         try data.write(to: cacheFileURL(for: url))
     }
     
     /// 清理所有缓存
     func clear() throws {
+        guard fileManager.fileExists(atPath: cacheDirectory.path) else { return }
         let contents = try fileManager.contentsOfDirectory(at: cacheDirectory, includingPropertiesForKeys: nil)
         for url in contents {
             try fileManager.removeItem(at: url)
@@ -54,6 +59,7 @@ public class AssetCache {
     
     /// 获取缓存大小（字节）
     func size() throws -> UInt64 {
+        guard fileManager.fileExists(atPath: cacheDirectory.path) else { return 0 }
         let contents = try fileManager.contentsOfDirectory(at: cacheDirectory, includingPropertiesForKeys: [.fileSizeKey])
         return try contents.reduce(0) { total, url in
             let attributes = try fileManager.attributesOfItem(atPath: url.path)

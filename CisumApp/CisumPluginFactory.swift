@@ -118,7 +118,12 @@ enum CisumPluginFactory {
                 id: "com.coffic.cisum.plugin.plugin-manager"
             ),
             // 共享远程包 LumiPluginCacheManager：磁盘缓存管理设置入口。
-            CacheManagerPlugin(id: "com.coffic.cisum.plugin.cache-manager"),
+            // 缩略图 / HTTP / 播放器缓存已统一写入 DiskCache 桶
+            // （见 MagicKit `AppDiskCache`），与插件桶一起出现在用量明细里。
+            CacheManagerPlugin(
+                id: "com.coffic.cisum.plugin.cache-manager",
+                displayNameResolver: CisumCacheBucketNames.displayName(for:)
+            ),
             StoragePlugin.shared,
             StorePlugin.shared,
             SystemPlugin.shared,
