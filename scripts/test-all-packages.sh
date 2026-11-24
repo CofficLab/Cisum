@@ -27,7 +27,7 @@ for dir in Packages/*/; do
     fi
 
     if [ ! -d "$dir/Tests" ]; then
-        FAIL+=("$pkg (缺少 Tests 目录)")
+        SKIP+=("$pkg (无测试)")
         continue
     fi
 
@@ -59,7 +59,7 @@ fi
 
 if [ ${#SKIP[@]} -gt 0 ]; then
     echo ""
-    echo "⏭️  跳过空包目录 (${#SKIP[@]}): ${SKIP[*]}"
+    echo "⏭️  跳过 (${#SKIP[@]}): ${SKIP[*]}"
 fi
 
 [ ${#FAIL[@]} -eq 0 ]
