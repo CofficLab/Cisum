@@ -1,0 +1,83 @@
+name: Bump
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+env:
+  tag: ${{ github.event.head_commit.id }}
+  PROJECT: Cisum.xcodeproj
+
+jobs:
+  verify:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: 验证各 Swift 包测试
+        run: ./scripts/test-all-packages.sh
+
+  bump:
+    needs: verify
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      - name: Calculate Next Version
+        id: version
+        run: |
+          chmod +x .github/scripts/bump-version.sh
+          chmod +x .github/scripts/calculate-version.sh
+
+          # 获取当前版本
+          LAST_TAG=$(git describe --tags --match "v*" --abbrev=0 2>/dev/null || echo "v0.0.0")
+          LAST_TAG="${LAST_TAG#v}"
+
+          # 计算新版本
+          NEW_VERSION=$(.github/scripts/calculate-version.sh)
+          echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
+          echo "prev_version=$LAST_TAG" >> $GITHUB_ENV
+          echo "New Version: $NEW_VERSION"
+
+      - name: Update Xcode Project Version
+        run: |
+          sed -i '' "s/\"MARKETING_VERSION\": \"[^\"]*\"/\"MARKETING_VERSION\": \"${{ env.new_version }}\"/" ${{ env.PROJECT }}/project.xcproj
+
+      - name: 更新构建号
+        run: |
+          CURRENT_BUILD=$(grep -m1 '"CURRENT_PROJECT_VERSION"' ${{ env.PROJECT }}/project.xcproj | sed 's/.*: *"\([0-9]*\)".*/\1/' | xargs)
+          sed -i '' "s/\"CURRENT_PROJECT_VERSION\": \"[0-9]*\"/\"CURRENT_PROJECT_VERSION\": \"$((CURRENT_BUILD + 1))\"/" ${{ env.PROJECT }}/project.xcproj
+
+      - name: 生成标签
+        run: |
+          echo "tag=v${{ env.new_version }}" >> $GITHUB_ENV
+
+      - name: 打标签并推送到仓库
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "ci: bump to ${{ env.new_version }}"
+          commit_user_name: GitHub Action
+          tagging_message: ${{ env.tag }}
+          push_options: "--tags"
+          branch: ${{ github.ref_name }}
+
+      - name: 输出最终摘要
+        if: always()
+        run: |
+          NEW_B_VER=$(grep -m1 '"CURRENT_PROJECT_VERSION"' ${{ env.PROJECT }}/project.xcproj | sed 's/.*: *"\([0-9]*\)".*/\1/' | xargs)
+
+          echo "## ✅ 版本 Bump 完成" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| 项目 | 详情 |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+          echo "| **版本变化** | \`${{ env.prev_version }}\` → \`${{ env.new_version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **构建号** | \`$NEW_B_VER\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Git 标签** | \`${{ env.tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **分支** | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
