@@ -28,14 +28,17 @@ private final class SceneProviderStub: @preconcurrency SceneProviding {
 struct SceneProvidingTests {
     @Test
     func appScenesKeepStablePersistenceAndPresentationValues() throws {
-        #expect(AppScene.allCases.map(\.rawValue) == ["Music Library", "Audiobooks"])
-        #expect(AppScene.allCases.map(\.id) == ["Music Library", "Audiobooks"])
+        #expect(AppScene.allCases.map(\.rawValue) == ["Music Library", "Audiobooks", "Video Library"])
+        #expect(AppScene.allCases.map(\.id) == ["Music Library", "Audiobooks", "Video Library"])
         #expect(AppScene.music.displayName == "Music Library")
         #expect(AppScene.audiobooks.displayName == "Audiobooks")
+        #expect(AppScene.videos.displayName == "Video Library")
         #expect(AppScene.music.iconName == "music.note.list")
         #expect(AppScene.audiobooks.iconName == "book.closed")
+        #expect(AppScene.videos.iconName == "film.stack")
         #expect(AppScene.music.order == 0)
         #expect(AppScene.audiobooks.order == 1)
+        #expect(AppScene.videos.order == 2)
 
         for scene in AppScene.allCases {
             let data = try JSONEncoder().encode(scene)
@@ -45,12 +48,12 @@ struct SceneProvidingTests {
 
     @Test
     func accessibilityIdentifiersRemainStableAndUnique() {
-        #expect(AppScene.allCases.map(\.accessibilityID) == ["music", "audiobooks"])
+        #expect(AppScene.allCases.map(\.accessibilityID) == ["music", "audiobooks", "videos"])
         #expect(Set(AppScene.allCases.map(\.accessibilityID)).count == AppScene.allCases.count)
-        #expect(AppScene.allCases.sorted { $0.order < $1.order } == [.music, .audiobooks])
+        #expect(AppScene.allCases.sorted { $0.order < $1.order } == [.music, .audiobooks, .videos])
     }
 
-    @Test(arguments: [("\"Music Library\"", AppScene.music), ("\"Audiobooks\"", AppScene.audiobooks)])
+    @Test(arguments: [("\"Music Library\"", AppScene.music), ("\"Audiobooks\"", AppScene.audiobooks), ("\"Video Library\"", AppScene.videos)])
     func legacyJSONDecodesWithoutMigration(json: String, expected: AppScene) throws {
         #expect(try JSONDecoder().decode(AppScene.self, from: Data(json.utf8)) == expected)
         #expect(try JSONEncoder().encode(expected) == Data(json.utf8))
