@@ -43,7 +43,8 @@ struct VideoPlayerOverlay: View {
         .sheet(isPresented: $viewModel.isQueuePresented) {
             iosQueue
         }
-        #else
+        #elseif os(macOS)
+        // visionOS 无键盘退出命令；关闭走顶栏按钮。
         .onExitCommand(perform: onClose)
         #endif
     }

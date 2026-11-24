@@ -1,13 +1,13 @@
 {
-  "originHash" : "60cdfcbce33f1a1440ab4cc593e1f3111f7df71f0db580ff9a3c47473680b671",
+  "originHash" : "6d8063ca7ebe7498aa9d63d2407bd4f3c297498c7d96c2444122ccc7abe466e5",
   "pins" : [
     {
       "identity" : "id3tageditor",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/chicio/ID3TagEditor",
       "state" : {
-        "revision" : "e08dd0118d4418900ac3b8f621a6b3d24ae5416f",
-        "version" : "5.5.0"
+        "revision" : "bdbe1210b3f98938248612adbf20193a3690b469",
+        "version" : "5.6.0"
       }
     },
     {
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/lumi-softworks/LumiUI",
       "state" : {
-        "revision" : "c5f9d55551151154290a67b65b1d69f95ea3c1cc",
-        "version" : "1.18.1"
+        "revision" : "6e187bcc2d36c5f98f2c498e79e49562ed351191",
+        "version" : "1.19.3"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/weichsel/ZIPFoundation.git",
       "state" : {
-        "revision" : "22787ffb59de99e5dc1fbfe80b19c97a904ad48d",
-        "version" : "0.9.20"
+        "revision" : "e7048f0569f0ba37df26f8357f560b9d25e9a284",
+        "version" : "0.9.21"
       }
     }
   ],
