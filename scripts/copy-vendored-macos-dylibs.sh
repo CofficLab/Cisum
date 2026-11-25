@@ -48,6 +48,16 @@ else
   exit 1
 fi
 
+# hardened runtime 下 LuaJIT 生成的机器码会被 AMFI 杀进程，随包版本必须关闭 JIT，
+# 由 scripts/build-luajit-nojit.sh 生成。
+for luajit in "${FRAMEWORKS_DIR}"/libluajit-*.dylib; do
+  if strings -a "${luajit}" | grep -q 'sizemcode'; then
+    echo "error: $(basename "${luajit}") was built with JIT enabled and will be killed by the hardened runtime" >&2
+    echo "error: rebuild it via scripts/build-luajit-nojit.sh" >&2
+    exit 1
+  fi
+done
+
 if [[ -n "${APP_MIN_OS}" ]] && command -v vtool >/dev/null 2>&1; then
   for dylib in "${FRAMEWORKS_DIR}"/*.dylib; do
     dylib_min_os="$(vtool -show-build "${dylib}" | awk '/platform MACOS/{in_macos=1} in_macos && /minos/{print $2; exit}')"
