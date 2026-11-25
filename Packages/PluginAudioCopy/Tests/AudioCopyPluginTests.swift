@@ -367,6 +367,7 @@ import UniformTypeIdentifiers
     #expect(!CopyWorker.shouldKeepCompletedCopy(isTaskStillQueued: false))
 }
 
+@MainActor
 @Test func copyDBSeesTasksDeletedFromSeparateContext() async throws {
     let schema = Schema([CopyTask.self])
     let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
@@ -461,6 +462,7 @@ private final class TestNotificationValue<Value>: @unchecked Sendable {
     #expect((await db.allCopyTaskDTOs()).first?.error == "missing source")
 }
 
+@MainActor
 @Test func copyDBDeleteByBookmarksAndById() async throws {
     let schema = Schema([CopyTask.self])
     let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
