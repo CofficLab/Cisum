@@ -31,15 +31,6 @@ actor CopyDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
         onUpdated = callback
     }
 
-    func hasChanges() -> Bool {
-        context.hasChanges
-    }
-
-    func insertCopyTask(_ task: CopyTask) {
-        context.insert(task)
-        try? context.save()
-    }
-
     func addCopyTasks(tasks: [(bookmark: Data, filename: String)], folder: URL) {
         for taskInfo in tasks {
             newCopyTask(bookmark: taskInfo.bookmark, destination: folder, originalFilename: taskInfo.filename)
@@ -89,37 +80,13 @@ actor CopyDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
         }
     }
 
-    nonisolated func delete(_ task: CopyTask) {
-        // os_log("\(Logger.isMain)🗑️ 删除复制任务 \(task.title)")
-        let context = ModelContext(modelContainer)
-        guard let t = context.model(for: task.id) as? CopyTask else {
-            return os_log("\(self.t)🗑️ 删除时数据库找不到 \(task.title)")
-        }
-
-        do {
-            context.delete(t)
-            try context.save()
-        } catch let e {
-            os_log(.error, "\(e.localizedDescription)")
-        }
-    }
-
-    func allCopyTasks() -> [CopyTask] {
-        let descriptor = FetchDescriptor<CopyTask>()
-        do {
-            return try context.fetch(descriptor)
-        } catch let e {
-            os_log(.error, "\(e.localizedDescription)")
-        }
-
-        return []
-    }
-
-    /// 同步获取所有复制任务（供 UI 使用）
-    /// - Parameter container: ModelContainer 实例
-    /// - Returns: CopyTask 数组
+    /// 同步获取所有复制任务（供 UI 使用）。
+    ///
+    /// 必须走 `mainContext`：UI 会长期持有返回的模型，临时 `ModelContext`
+    /// 出栈即销毁，之后再访问这些模型就是野指针。
+    @MainActor
     static func getAllTasks(from container: ModelContainer) -> [CopyTask] {
-        let context = ModelContext(container)
+        let context = container.mainContext
         let descriptor = FetchDescriptor<CopyTask>()
         do {
             return try context.fetch(descriptor)
@@ -129,18 +96,15 @@ actor CopyDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
         }
     }
 
-    /// 同步删除指定的任务（供 UI 使用）
-    /// - Parameters:
-    ///   - tasks: 要删除的任务数组
-    ///   - container: ModelContainer 实例
+    /// 同步删除指定的任务（供 UI 使用）。
+    ///
+    /// 入参模型由 `getAllTasks` 从 `mainContext` 取出，只能在主线程上操作；
+    /// 另起上下文再去读它们的 `id` 属于跨上下文访问。
+    @MainActor
     static func deleteTasks(_ tasks: [CopyTask], from container: ModelContainer) throws {
-        let context = ModelContext(container)
+        let context = container.mainContext
         for taskToDelete in tasks {
-            guard let task = context.model(for: taskToDelete.id) as? CopyTask else {
-                os_log(.error, "Failed to find task for deletion: \(taskToDelete.originalFilename)")
-                continue
-            }
-            context.delete(task)
+            context.delete(taskToDelete)
         }
 
         if context.hasChanges {
@@ -177,16 +141,6 @@ actor CopyDB: ModelActor, ObservableObject, SuperLog, SuperEvent, SuperThread {
         } catch {
             os_log(.error, "Failed to check copy task existence: \(error.localizedDescription)")
             return false
-        }
-    }
-
-    func setTaskRunning(_ task: CopyTask) {
-        task.isRunning = true
-        task.error = ""
-        do {
-            try context.save()
-        } catch let e {
-            os_log(.error, "\(e.localizedDescription)")
         }
     }
 
