@@ -36,32 +36,55 @@ enum VideoLibraryContentState: Equatable {
     }
 }
 
-/// 视频库：摘要与仓库操作、单行搜索筛选、单一网格或列表内容区。
+/// 检查器发起「删除」确认的通道：确认框挂在库根视图上，列与面板两种形态共用。
+struct VideoPendingDeletionKey: EnvironmentKey {
+    static let defaultValue: Binding<VideoItem?>? = nil
+}
+
+extension EnvironmentValues {
+    var videoPendingDeletion: Binding<VideoItem?>? {
+        get { self[VideoPendingDeletionKey.self] }
+        set { self[VideoPendingDeletionKey.self] = newValue }
+    }
+}
+
+/// 视频库：资料库优先的布局。宽窗口为「侧栏 / 内容 / 检查器」三栏，
+/// 变窄时检查器与侧栏依次收成面板，iOS 始终单栏。
 struct VideoLibraryView: View {
     @ObservedObject private var viewModel: VideoLibraryViewModel
+    /// 视图出现后的回调（macOS 用于在窗口就绪后应用场景窗口尺寸）。
+    private let onAppear: @MainActor () -> Void
     @State private var isImporterPresented = false
+    @State private var isSidebarPresented = false
+    @State private var pendingDeletion: VideoItem?
 
-    init(viewModel: VideoLibraryViewModel) {
+    init(viewModel: VideoLibraryViewModel, onAppear: @escaping @MainActor () -> Void = {}) {
         self.viewModel = viewModel
+        self.onAppear = onAppear
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            filterBar
-            Divider()
-            content
+        GeometryReader { proxy in
+            let layout = VideoLibraryLayoutPolicy.layout(forWidth: proxy.size.width)
+            ZStack(alignment: .leading) {
+                rootLayout(for: layout)
+                if !VideoLibraryLayoutPolicy.showsSidebar(layout), isSidebarPresented {
+                    compactSidebar
+                }
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height)
+            .sheet(isPresented: inspectorPresented(for: layout)) {
+                if let item = viewModel.selectedItem {
+                    VideoInspectorView(item: item, viewModel: viewModel, presentation: .sheet)
+                        .frame(width: 340, height: 560)
+                }
+            }
         }
+        .animation(.easeInOut(duration: 0.18), value: isSidebarPresented)
+        .onAppear(perform: onAppear)
+        .modifier(VideoPlayerPresentation(viewModel: viewModel))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cisum.video.library")
-        #if os(iOS)
-        .navigationTitle(String(localized: "Video Library", bundle: .module))
-        .navigationBarTitleDisplayMode(.inline)
-        .searchable(
-            text: $viewModel.searchText,
-            prompt: String(localized: "Search", bundle: .module)
-        )
-        #endif
         .fileImporter(
             isPresented: $isImporterPresented,
             allowedContentTypes: VideoFileSupport.importContentTypes,
@@ -71,11 +94,31 @@ struct VideoLibraryView: View {
                 viewModel.importVideos(from: urls)
             }
         }
-        .sheet(item: Binding(
-            get: { viewModel.editingItem },
-            set: { viewModel.editingItem = $0 }
-        )) { item in
+        .sheet(item: $viewModel.editingItem) { item in
             VideoItemDetailSheet(item: item, viewModel: viewModel)
+        }
+        .confirmationDialog(
+            String(
+                format: String(localized: "Delete “%@”?", bundle: .module),
+                pendingDeletion?.title ?? ""
+            ),
+            isPresented: Binding(
+                get: { pendingDeletion != nil },
+                set: { if !$0 { pendingDeletion = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button(String(localized: "Delete", bundle: .module), role: .destructive) {
+                if let item = pendingDeletion {
+                    try? viewModel.delete(item)
+                }
+                pendingDeletion = nil
+            }
+            Button(String(localized: "Cancel", bundle: .module), role: .cancel) {
+                pendingDeletion = nil
+            }
+        } message: {
+            Text(String(localized: "The file is moved to the Trash.", bundle: .module))
         }
         .alert(
             String(localized: "Import Failed", bundle: .module),
@@ -90,174 +133,74 @@ struct VideoLibraryView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
-        .modifier(VideoPlayerPresentation(viewModel: viewModel))
+        .environment(\.videoPendingDeletion, $pendingDeletion)
     }
 
-    // MARK: - Header
+    // MARK: - Layout
 
-    private var header: some View {
-        HStack(spacing: 10) {
-            Label {
-                Text(summaryTitle)
-            } icon: {
-                Image(systemName: viewModel.storageLocationTitle == "iCloud" ? "icloud" : "internaldrive")
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
-
-            if viewModel.repositoryState.isWorking {
-                ProgressView()
-                    .controlSize(.small)
-            }
-
-            Spacer(minLength: 8)
-
-            Button {
-                isImporterPresented = true
-            } label: {
-                Image(systemName: "square.and.arrow.down")
-                    #if os(iOS)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-                    #endif
-            }
-            .buttonStyle(.borderless)
-            .accessibilityLabel(String(localized: "Import Videos", bundle: .module))
-            .accessibilityIdentifier("cisum.video.import")
-            .help(String(localized: "Import Videos", bundle: .module))
-            .disabled(viewModel.repositoryURL == nil)
-
-            Menu {
-                Button {
-                    viewModel.refresh()
-                } label: {
-                    Label(String(localized: "Refresh", bundle: .module), systemImage: "arrow.clockwise")
-                }
-                .disabled(viewModel.repositoryURL == nil)
-
-                #if os(macOS)
-                if let url = viewModel.repositoryURL {
-                    Button {
-                        NSWorkspace.shared.activateFileViewerSelecting([url])
-                    } label: {
-                        Label(String(localized: "Show in Finder", bundle: .module), systemImage: "folder")
-                    }
-                }
-                #endif
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    #if os(iOS)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-                    #endif
-            }
-            .menuStyle(.borderlessButton)
-            .accessibilityLabel(String(localized: "More", bundle: .module))
-            .accessibilityIdentifier("cisum.video.more")
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-    }
-
-    private var summaryTitle: String {
-        String(
-            format: String(localized: "%lld videos · %@", bundle: .module),
-            Int64(viewModel.filteredItems.count),
-            viewModel.totalSizeTitle
+    /// 检查器以面板呈现：无检查器列的布局（侧栏也收成面板）时选中即弹出。
+    private func inspectorPresented(for layout: VideoLibraryLayout) -> Binding<Bool> {
+        Binding(
+            get: {
+                !VideoLibraryLayoutPolicy.showsInspectorColumn(layout) && viewModel.selectedItem != nil
+            },
+            set: { if !$0 { viewModel.clearSelection() } }
         )
     }
 
-    // MARK: - Filters
-
-    private var filterBar: some View {
-        HStack(spacing: 8) {
-            #if !os(iOS)
-            AppSearchBar(text: $viewModel.searchText, placeholder: "Search")
-                .accessibilityIdentifier("cisum.video.search")
-            #endif
-
-            Menu {
-                ForEach(VideoLibraryScope.allCases, id: \.self) { scope in
-                    Button {
-                        viewModel.scope = scope
-                    } label: {
-                        Label {
-                            Text("\(String(localized: String.LocalizationValue(scope.title), bundle: .module)) \(viewModel.count(for: scope))")
-                        } icon: {
-                            Image(systemName: viewModel.scope == scope ? "checkmark" : scope.systemImage)
-                        }
-                    }
-                    .accessibilityIdentifier("cisum.video.scope.\(scope.rawValue)")
-                }
-
-                if !viewModel.allTags.isEmpty {
+    @ViewBuilder
+    private func rootLayout(for layout: VideoLibraryLayout) -> some View {
+        switch layout {
+        case .wide:
+            HStack(spacing: 0) {
+                VideoSidebarView(viewModel: viewModel)
+                    .frame(width: VideoLibraryLayoutPolicy.sidebarWidth)
+                Divider()
+                mainColumn(layout: layout)
+                if let item = viewModel.selectedItem {
                     Divider()
-                    ForEach(viewModel.allTags, id: \.self) { tag in
-                        Button {
-                            viewModel.selectedTag = viewModel.selectedTag == tag ? nil : tag
-                        } label: {
-                            Label(tag, systemImage: viewModel.selectedTag == tag ? "checkmark" : "tag")
-                        }
-                    }
-                }
-
-                if viewModel.hasActiveFilters {
-                    Divider()
-                    Button(String(localized: "Clear Filters", bundle: .module)) {
-                        viewModel.clearFilters()
-                    }
-                }
-            } label: {
-                Image(systemName: viewModel.hasActiveFilters ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                    #if os(iOS)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-                    #endif
-            }
-            .accessibilityLabel(String(localized: String.LocalizationValue(viewModel.scope.title), bundle: .module))
-            .accessibilityIdentifier("cisum.video.filters")
-
-            Menu {
-                Picker("", selection: $viewModel.sortOrder) {
-                    ForEach(VideoSortOrder.allCases, id: \.self) { order in
-                        Label(String(localized: String.LocalizationValue(order.title), bundle: .module), systemImage: order.systemImage)
-                            .tag(order)
-                    }
-                }
-                .labelsHidden()
-                .pickerStyle(.inline)
-            } label: {
-                Image(systemName: "arrow.up.arrow.down.circle")
-                    #if os(iOS)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-                    #endif
-            }
-            .accessibilityLabel(String(localized: String.LocalizationValue(viewModel.sortOrder.title), bundle: .module))
-            .accessibilityIdentifier("cisum.video.sort")
-
-            #if os(iOS)
-            Spacer(minLength: 8)
-            #endif
-
-            Picker("", selection: $viewModel.displayMode) {
-                ForEach(VideoLibraryDisplayMode.allCases, id: \.self) { mode in
-                    Image(systemName: mode.systemImage)
-                        #if os(iOS)
-                        .frame(width: 44, height: 44)
-                        #endif
-                        .tag(mode)
+                    VideoInspectorView(item: item, viewModel: viewModel, presentation: .column)
+                        .frame(width: VideoLibraryLayoutPolicy.inspectorWidth)
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
                 }
             }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-            .fixedSize()
-            .accessibilityIdentifier("cisum.video.displaymode")
+            .animation(.easeInOut(duration: 0.18), value: viewModel.selectedItem?.url)
+        case .medium, .compact:
+            mainColumn(layout: layout)
         }
-        .controlSize(.small)
-        .padding(.horizontal, 12)
-        .padding(.bottom, 8)
+    }
+
+    private func mainColumn(layout: VideoLibraryLayout) -> some View {
+        VStack(spacing: 0) {
+            VideoLibraryHeaderView(
+                viewModel: viewModel,
+                layout: layout,
+                onToggleSidebar: { isSidebarPresented.toggle() },
+                onImport: { isImporterPresented = true }
+            )
+            Divider()
+            content
+        }
+        .overlay(alignment: .bottomTrailing) {
+            if viewModel.playback.hasAsset, !viewModel.isPlayerPresented {
+                VideoMiniPlayerView(viewModel: viewModel)
+                    .padding(12)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: viewModel.isPlayerPresented)
+    }
+
+    private var compactSidebar: some View {
+        ZStack(alignment: .leading) {
+            Color.black.opacity(0.25)
+                .ignoresSafeArea()
+                .onTapGesture { isSidebarPresented = false }
+            VideoSidebarView(viewModel: viewModel)
+                .frame(width: 260)
+                .background(.regularMaterial)
+                .transition(.move(edge: .leading))
+        }
     }
 
     // MARK: - Content
@@ -313,134 +256,29 @@ struct VideoLibraryView: View {
             )
             .accessibilityIdentifier("cisum.video.no-matches")
         case .library:
-            libraryContent
-        }
-    }
-
-    private var libraryContent: some View {
-        ScrollView {
-            Group {
-                if viewModel.displayMode == .grid {
-                    grid
-                } else {
-                    list
-                }
-            }
-            .padding(12)
-        }
-        #if os(iOS)
-        .refreshable {
-            viewModel.refresh()
-        }
-        #endif
-    }
-
-    private var grid: some View {
-        LazyVGrid(
-            columns: [GridItem(.adaptive(minimum: 150, maximum: 240), spacing: 12)],
-            spacing: 12
-        ) {
-            ForEach(viewModel.filteredItems) { item in
-                VideoGridCell(
-                    item: item,
-                    isCurrent: viewModel.currentItem?.url == item.url,
-                    onPlay: { viewModel.play(item) },
-                    onFavorite: { viewModel.toggleFavorite(item) },
-                    onOpen: { viewModel.editingItem = item }
-                )
-                .contextMenu { itemMenu(for: item) }
-            }
-        }
-    }
-
-    private var list: some View {
-        VStack(spacing: 0) {
-            ForEach(viewModel.filteredItems) { item in
-                VideoListRow(
-                    item: item,
-                    isCurrent: viewModel.currentItem?.url == item.url,
-                    onPlay: { viewModel.play(item) },
-                    onOpen: { viewModel.editingItem = item }
-                )
-                .contextMenu { itemMenu(for: item) }
-                Divider()
-            }
-        }
-        .background(Color.secondary.opacity(0.06))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-    }
-
-    /// 条目的右键 / 长按菜单。
-    @ViewBuilder
-    private func itemMenu(for item: VideoItem) -> some View {
-        Button {
-            viewModel.play(item)
-        } label: {
-            Label(String(localized: "Play", bundle: .module), systemImage: "play.fill")
-        }
-        .disabled(item.availability != .available)
-
-        Button {
-            viewModel.toggleFavorite(item)
-        } label: {
-            Label(
-                item.isFavorite
-                    ? String(localized: "Remove from Favorites", bundle: .module)
-                    : String(localized: "Add to Favorites", bundle: .module),
-                systemImage: item.isFavorite ? "star.slash" : "star"
-            )
-        }
-
-        Menu {
-            ForEach(1...5, id: \.self) { value in
-                Button {
-                    viewModel.setRating(value, for: item)
-                } label: {
-                    Label("\(value)", systemImage: item.rating?.value == value ? "star.fill" : "star")
-                }
-            }
-            Button {
-                viewModel.setRating(nil, for: item)
-            } label: {
-                Label(String(localized: "Clear Rating", bundle: .module), systemImage: "xmark.circle")
-            }
-        } label: {
-            Label(String(localized: "Rating", bundle: .module), systemImage: "star")
-        }
-
-        Button {
-            viewModel.editingItem = item
-        } label: {
-            Label(String(localized: "Edit Tags and Name", bundle: .module), systemImage: "pencil")
-        }
-
-        if item.availability == .cloudNotDownloaded {
-            Button {
-                viewModel.requestDownload(item)
-            } label: {
-                Label(String(localized: "Download", bundle: .module), systemImage: "icloud.and.arrow.down")
-            }
-        }
-
-        Button(role: .destructive) {
-            try? viewModel.delete(item)
-        } label: {
-            Label(String(localized: "Delete", bundle: .module), systemImage: "trash")
+            VideoLibraryContentView(viewModel: viewModel)
         }
     }
 }
 
-/// iOS 使用系统全屏呈现；macOS 由插件在根布局登记 Overlay。
+/// iOS / visionOS 用系统全屏呈现播放器；macOS 由插件在根布局登记覆盖层。
 private struct VideoPlayerPresentation: ViewModifier {
     @ObservedObject var viewModel: VideoLibraryViewModel
 
     func body(content: Content) -> some View {
-        #if os(iOS)
-        content.fullScreenCover(isPresented: $viewModel.isPlayerPresented) {
-            VideoPlayerOverlay(viewModel: viewModel) {
-                viewModel.dismissPlayer()
+        #if os(iOS) || os(visionOS)
+        content
+            .navigationTitle(String(localized: "Video Library", bundle: .module))
+            .navigationBarTitleDisplayMode(.inline)
+            .searchable(
+                text: $viewModel.searchText,
+                prompt: String(localized: "Search", bundle: .module)
+            )
+            .fullScreenCover(isPresented: $viewModel.isPlayerPresented) {
+                VideoPlayerOverlay(viewModel: viewModel) {
+                    viewModel.dismissPlayer()
+                }
             }
-        }
         #else
         content
         #endif

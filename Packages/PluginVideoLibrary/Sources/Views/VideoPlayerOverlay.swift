@@ -15,22 +15,30 @@ struct VideoPlayerRootOverlay: View {
     }
 }
 
-/// 沉浸式播放器：macOS 覆盖根布局，iOS 使用全屏 sheet。
+/// 沉浸式播放器：macOS 覆盖根布局，iOS / visionOS 使用全屏呈现。
+///
+/// 画面上只有两层：视频与悬浮控件。播放中鼠标静止一段时间后控件自动隐藏，
+/// 移动鼠标即重新出现；macOS 另支持空格播放暂停、左右方向键快退快进、Esc 退出。
 struct VideoPlayerOverlay: View {
     @ObservedObject var viewModel: VideoLibraryViewModel
     let onClose: () -> Void
+    @State private var isChromeHidden = false
+    @State private var autoHideTask: Task<Void, Never>?
+    #if os(macOS)
+    @FocusState private var isPlayerFocused: Bool
+    #endif
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
+            playerArea
 
-            VStack(spacing: 0) {
-                playerArea
-                controls
-            }
+            // 视频视图自己不处理鼠标，这层透明层负责「点击画面」的语义。
+            Color.white.opacity(0.001)
+                .contentShape(Rectangle())
+                .onTapGesture(perform: handleSurfaceTap)
 
-            topBar
-
+            chrome
             #if !os(iOS)
             if viewModel.isQueuePresented {
                 queue
@@ -39,13 +47,42 @@ struct VideoPlayerOverlay: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cisum.video.player")
+        .onAppear(perform: scheduleAutoHide)
+        .onChange(of: viewModel.isPlaying) { _, playing in
+            if playing {
+                scheduleAutoHide()
+            } else {
+                showChrome()
+            }
+        }
+        .onDisappear {
+            autoHideTask?.cancel()
+        }
         #if os(iOS)
         .sheet(isPresented: $viewModel.isQueuePresented) {
             iosQueue
         }
         #elseif os(macOS)
-        // visionOS 无键盘退出命令；关闭走顶栏按钮。
-        .onExitCommand(perform: onClose)
+        .focusable()
+        .focusEffectDisabled()
+        .focused($isPlayerFocused)
+        .onAppear { isPlayerFocused = true }
+        .onKeyPress(.space) {
+            viewModel.togglePlayback()
+            return .handled
+        }
+        .onKeyPress(.leftArrow) {
+            viewModel.seekRelative(-10)
+            return .handled
+        }
+        .onKeyPress(.rightArrow) {
+            viewModel.seekRelative(10)
+            return .handled
+        }
+        .onKeyPress(.escape) {
+            onClose()
+            return .handled
+        }
         #endif
     }
 
@@ -64,6 +101,55 @@ struct VideoPlayerOverlay: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    private var chrome: some View {
+        VStack(spacing: 0) {
+            topBar
+            Spacer(minLength: 0)
+            controls
+        }
+        .opacity(isChromeHidden ? 0 : 1)
+        .allowsHitTesting(!isChromeHidden)
+        .animation(.easeOut(duration: 0.18), value: isChromeHidden)
+        #if os(macOS)
+        .onContinuousHover { phase in
+            switch phase {
+            case .active:
+                scheduleAutoHide()
+            case .ended:
+                isChromeHidden = viewModel.isPlaying
+            }
+        }
+        .onChange(of: isChromeHidden) { _, hidden in
+            if hidden { NSCursor.setHiddenUntilMouseMoves(true) }
+        }
+        #endif
+    }
+
+    private func handleSurfaceTap() {
+        if isChromeHidden {
+            scheduleAutoHide()
+        } else {
+            viewModel.togglePlayback()
+        }
+    }
+
+    private func scheduleAutoHide() {
+        #if os(macOS)
+        autoHideTask?.cancel()
+        isChromeHidden = false
+        autoHideTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2.5))
+            guard !Task.isCancelled, viewModel.isPlaying else { return }
+            isChromeHidden = true
+        }
+        #endif
+    }
+
+    private func showChrome() {
+        autoHideTask?.cancel()
+        isChromeHidden = false
+    }
+
     private var topBar: some View {
         HStack(spacing: 12) {
             if let item = viewModel.currentItem {
@@ -73,6 +159,7 @@ struct VideoPlayerOverlay: View {
                     .lineLimit(1)
             }
             Spacer()
+            rateMenu
             Button {
                 viewModel.isQueuePresented.toggle()
             } label: {
@@ -82,8 +169,10 @@ struct VideoPlayerOverlay: View {
                     .contentShape(Rectangle())
                     #endif
             }
+            .buttonStyle(.plain)
             .foregroundStyle(.white)
             .accessibilityLabel(String(localized: "Queue", bundle: .module))
+            .accessibilityIdentifier("cisum.video.queue")
 
             Button(action: onClose) {
                 Image(systemName: "xmark")
@@ -92,6 +181,7 @@ struct VideoPlayerOverlay: View {
                     .contentShape(Rectangle())
                     #endif
             }
+            .buttonStyle(.plain)
             .foregroundStyle(.white)
             .accessibilityLabel(String(localized: "Close", bundle: .module))
             .accessibilityIdentifier("cisum.video.close")
@@ -105,10 +195,20 @@ struct VideoPlayerOverlay: View {
     }
 
     private var controls: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
             VideoProgressView(viewModel: viewModel, isImmersive: true)
 
-            HStack(spacing: 18) {
+            HStack(spacing: 16) {
+                Spacer(minLength: 0)
+                AppCircularIconButton(
+                    systemImage: "gobackward.10",
+                    accessibilityLabel: "Skip Back 10 Seconds",
+                    tint: .white,
+                    size: 44,
+                    action: { viewModel.seekRelative(-10) }
+                )
+                .accessibilityIdentifier("cisum.video.skipBack")
+                .disabled(!viewModel.playback.hasAsset)
                 AppCircularIconButton(
                     systemImage: "backward.end.fill",
                     accessibilityLabel: "Previous",
@@ -118,13 +218,14 @@ struct VideoPlayerOverlay: View {
                 )
                 .disabled(!viewModel.playback.hasAsset)
                 AppCircularIconButton(
-                    systemImage: isPlaying ? "pause.fill" : "play.fill",
-                    accessibilityLabel: isPlaying ? "Pause" : "Play",
+                    systemImage: viewModel.isPlaying ? "pause.fill" : "play.fill",
+                    accessibilityLabel: viewModel.isPlaying ? "Pause" : "Play",
                     tint: .white,
-                    size: 56,
-                    isActive: isPlaying,
+                    size: 60,
+                    isActive: viewModel.isPlaying,
                     action: viewModel.togglePlayback
                 )
+                .accessibilityIdentifier("cisum.video.playpause")
                 .disabled(!viewModel.playback.hasAsset || viewModel.playbackState == .loading)
                 AppCircularIconButton(
                     systemImage: "forward.end.fill",
@@ -135,26 +236,59 @@ struct VideoPlayerOverlay: View {
                 )
                 .disabled(!viewModel.playback.hasAsset)
                 AppCircularIconButton(
-                    systemImage: "speedometer",
-                    accessibilityLabel: "Playback Speed",
+                    systemImage: "goforward.10",
+                    accessibilityLabel: "Skip Forward 10 Seconds",
                     tint: .white,
-                    size: 48,
-                    isActive: viewModel.rate != 1,
-                    action: viewModel.cycleRate
+                    size: 44,
+                    action: { viewModel.seekRelative(10) }
                 )
-                .accessibilityValue(rateTitle(viewModel.rate))
+                .accessibilityIdentifier("cisum.video.skipForward")
                 .disabled(!viewModel.playback.hasAsset)
+                Spacer(minLength: 0)
             }
-            .frame(maxWidth: .infinity)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(.black.opacity(0.85))
+        .padding(.horizontal, 24)
+        .padding(.bottom, 20)
+        .background(
+            LinearGradient(colors: [.clear, .black.opacity(0.85)], startPoint: .top, endPoint: .bottom)
+        )
     }
 
-    private var isPlaying: Bool {
-        viewModel.playbackState == .playing
+    private var rateMenu: some View {
+        Menu {
+            ForEach(VideoLibraryViewModel.rateOptions, id: \.self) { option in
+                Button {
+                    viewModel.setRate(option)
+                } label: {
+                    if abs(viewModel.rate - option) < 0.01 {
+                        Label(rateTitle(option), systemImage: "checkmark")
+                    } else {
+                        Text(rateTitle(option))
+                    }
+                }
+            }
+        } label: {
+            Text(rateTitle(viewModel.rate))
+                .font(.callout.monospacedDigit().weight(.medium))
+                #if os(iOS)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+                #else
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(.white.opacity(0.15), in: Capsule())
+                #endif
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .foregroundStyle(.white)
+        .accessibilityLabel(String(localized: "Playback Speed", bundle: .module))
+        .accessibilityIdentifier("cisum.video.rate")
+        .disabled(!viewModel.playback.hasAsset)
     }
+
+    // MARK: - Queue
 
     #if !os(iOS)
     private var queue: some View {
@@ -171,6 +305,7 @@ struct VideoPlayerOverlay: View {
                     } label: {
                         Image(systemName: "xmark")
                     }
+                    .buttonStyle(.plain)
                     .foregroundStyle(.white)
                     .accessibilityLabel(String(localized: "Close", bundle: .module))
                 }
@@ -191,6 +326,7 @@ struct VideoPlayerOverlay: View {
         }
         .background(Color.black.opacity(0.35))
         .transition(.move(edge: .trailing))
+        .accessibilityIdentifier("cisum.video.queuePanel")
     }
     #endif
 
@@ -251,5 +387,42 @@ struct VideoPlayerOverlay: View {
 
     private func rateTitle(_ rate: Float) -> String {
         rate == rate.rounded() ? "\(Int(rate))×" : "\(rate)×"
+    }
+}
+
+/// 播放状态提示（缓冲 / 失败），沉浸播放器与列表共用。
+struct VideoPlaybackStatusView: View {
+    let state: VideoPlaybackState
+    var isImmersive = false
+
+    var body: some View {
+        switch state {
+        case .loading:
+            VStack(spacing: 10) {
+                ProgressView()
+                    .controlSize(.large)
+                if isImmersive {
+                    Text(String(localized: "Loading…", bundle: .module))
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+            }
+            .accessibilityIdentifier("cisum.video.status.loading")
+        case .failed(let message):
+            VStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.largeTitle)
+                Text(message)
+                    .font(.callout)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 320)
+            }
+            .foregroundStyle(isImmersive ? Color.white : Color.primary)
+            .padding(16)
+            .background(.black.opacity(isImmersive ? 0.55 : 0.0001), in: RoundedRectangle(cornerRadius: 10))
+            .accessibilityIdentifier("cisum.video.status.failed")
+        case .idle, .playing, .paused, .finished:
+            EmptyView()
+        }
     }
 }

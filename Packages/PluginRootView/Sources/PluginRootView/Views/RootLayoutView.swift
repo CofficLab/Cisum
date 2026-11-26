@@ -51,20 +51,25 @@ struct RootLayoutView: View {
                     .animation(.easeInOut(duration: 0.4), value: currentScene)
 
                 VStack(spacing: 0) {
-                    controlArea
-                        .frame(height: isDetailVisible
-                            ? (heroVisibility.isVisible
-                                ? AppResponsivePlayerLayoutMetrics.shared.controlMinimumHeight
-                                : AppResponsivePlayerLayoutMetrics.shared.emptyControlHeight)
-                            : geometry.size.height)
-
-                    if isDetailVisible {
+                    if isContentImmersive {
                         contentArea
-                            .frame(minHeight: AppResponsivePlayerLayoutMetrics.shared.contentMinimumHeight, maxHeight: .infinity)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                    }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        controlArea
+                            .frame(height: isDetailVisible
+                                ? (heroVisibility.isVisible
+                                    ? AppResponsivePlayerLayoutMetrics.shared.controlMinimumHeight
+                                    : AppResponsivePlayerLayoutMetrics.shared.emptyControlHeight)
+                                : geometry.size.height)
 
-                    statusArea
+                        if isDetailVisible {
+                            contentArea
+                                .frame(minHeight: AppResponsivePlayerLayoutMetrics.shared.contentMinimumHeight, maxHeight: .infinity)
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
+
+                        statusArea
+                    }
                 }
                 .frame(width: layoutWidth(for: geometry), height: layoutHeight(for: geometry))
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -127,6 +132,12 @@ struct RootLayoutView: View {
     }
 
     // MARK: - Scene Tint Overlay
+
+    /// 场景隐藏了播放器头部（如视频库自带完整布局）：内容区铺满整个根视图，
+    /// 播放器那套「展开 / 收起内容区」的窗口联动不参与。
+    private var isContentImmersive: Bool {
+        provider.isContentHeaderViewHidden
+    }
 
     /// 工具栏按钮组的落位。
     ///
@@ -268,6 +279,7 @@ struct RootLayoutView: View {
     }
 
     private func handleOnAppear() {
+        guard !isContentImmersive else { return }
         rememberedHeight = windowHeight()
         isDetailVisible = provider.isContentViewVisible
         if isDetailVisible, rememberedHeight > 0,
@@ -278,6 +290,7 @@ struct RootLayoutView: View {
     }
 
     private func handleContentViewVisibilityChange(_ visible: Bool, geometry: GeometryProxy) {
+        guard !isContentImmersive else { return }
         withAnimation { isDetailVisible = visible }
 
         if !visible, abs(geometry.size.height - rememberedHeight) > 0.5, rememberedHeight > 0 {
@@ -290,6 +303,7 @@ struct RootLayoutView: View {
     }
 
     private func handleGeometryChange(_ newHeight: CGFloat) {
+        guard !isContentImmersive else { return }
         if !autoResizing { rememberedHeight = windowHeight() }
         autoResizing = false
         if RootContentVisibility.shouldHideContentView(

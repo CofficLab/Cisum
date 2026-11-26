@@ -12,6 +12,8 @@ public enum VideoLibraryScope: String, CaseIterable, Sendable {
     case continueWatching
     /// 只看尚未下载到本地的 iCloud 文件。
     case undownloaded
+    /// 只看最近加入仓库的视频。
+    case recentlyAdded
 
     /// 展示标题。
     public var title: String {
@@ -20,6 +22,7 @@ public enum VideoLibraryScope: String, CaseIterable, Sendable {
         case .favorites: "Favorites"
         case .continueWatching: "Continue Watching"
         case .undownloaded: "Not Downloaded"
+        case .recentlyAdded: "Recently Added"
         }
     }
 
@@ -30,6 +33,7 @@ public enum VideoLibraryScope: String, CaseIterable, Sendable {
         case .favorites: "star"
         case .continueWatching: "play.circle"
         case .undownloaded: "icloud.and.arrow.down"
+        case .recentlyAdded: "clock"
         }
     }
 }
@@ -98,6 +102,11 @@ public extension VideoItem {
     /// 是否处于「未看完」状态（有进度但没看完）。
     var isInProgress: Bool {
         progress.position > 5 && !progress.isCompleted && progress.fraction < 0.95
+    }
+
+    /// 所在文件夹（相对仓库根目录，以 `/` 分隔）；位于根目录时为空字符串。
+    var folderPath: String {
+        relativePath.split(separator: "/").dropLast().joined(separator: "/")
     }
 
     /// 恢复播放的起始位置（秒）；不需要恢复时为 `nil`。

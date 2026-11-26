@@ -16,10 +16,11 @@ struct VideoLibraryViewModelTests {
         var storageLocationTitle = "iCloud"
         var importedURLs: [URL] = []
         var requestedDownloads: [URL] = []
+        var tagUpdates: [(url: URL, tags: [String])] = []
 
         func refresh() {}
         func updateAvailability(_ availability: VideoAvailability, for url: URL) {}
-        func setTags(_ tags: [String], for url: URL) {}
+        func setTags(_ tags: [String], for url: URL) { tagUpdates.append((url, tags)) }
         func setRating(_ rating: Int?, for url: URL) {}
         func setFavorite(_ isFavorite: Bool, for url: URL) {}
         func updateProgress(_ progress: VideoPlaybackProgress, for url: URL) {}
@@ -48,6 +49,7 @@ struct VideoLibraryViewModelTests {
         var hasAsset = false
         var playedURLs: [URL] = []
         var playedStartTimes: [TimeInterval?] = []
+        var onSeek: ((TimeInterval) -> Void)?
 
         func play(_ url: URL, startTime: TimeInterval?) {
             playedURLs.append(url)
@@ -56,7 +58,7 @@ struct VideoLibraryViewModelTests {
         func pause() {}
         func toggle() {}
         func stop() {}
-        func seek(toTime time: TimeInterval) {}
+        func seek(toTime time: TimeInterval) { onSeek?(time) }
         func setRate(_ rate: Float) {}
         func makePlayerView() -> AnyView { AnyView(EmptyView()) }
         @discardableResult
@@ -222,7 +224,7 @@ struct VideoLibraryViewModelTests {
         #expect(viewModel.rate == 1.5)
     }
 
-    @Test("播放时从上次位置继续且保留内嵌播放")
+    @Test("播放时进入沉浸播放器，并从上次位置继续")
     func playbackResumes() {
         let provider = FakeRepositoryProvider()
         let item = makeItem(
@@ -238,14 +240,153 @@ struct VideoLibraryViewModelTests {
         #expect(playback.playedURLs == [item.url])
         #expect(playback.playedStartTimes.count == 1)
         #expect(playback.playedStartTimes[0] == 90)
+        #expect(viewModel.isPlayerPresented)
+        #expect(viewModel.selectedItem?.url == item.url)
+
+        viewModel.dismissPlayer()
         #expect(!viewModel.isPlayerPresented)
 
         playback.hasAsset = true
         viewModel.presentPlayer()
         #expect(viewModel.isPlayerPresented)
+    }
 
-        viewModel.dismissPlayer()
-        #expect(!viewModel.isPlayerPresented)
+    @Test("从头播放不带上次进度")
+    func playFromBeginningIgnoresProgress() {
+        let provider = FakeRepositoryProvider()
+        let item = makeItem(
+            name: "wip",
+            progress: VideoPlaybackProgress(position: 90, duration: 600)
+        )
+        provider.items = [item]
+
+        let playback = FakePlaybackProvider()
+        let viewModel = makeViewModel(provider: provider, playback: playback)
+
+        viewModel.playFromBeginning(item)
+        #expect(playback.playedStartTimes == [nil])
+        #expect(viewModel.isPlayerPresented)
+    }
+
+    @Test("相对快进快退被限制在时长范围内")
+    func relativeSeekClampsToDuration() {
+        let playback = FakePlaybackProvider()
+        playback.currentTime = 30
+        playback.duration = 100
+        let viewModel = makeViewModel(provider: FakeRepositoryProvider(), playback: playback)
+
+        var sought: [TimeInterval] = []
+        playback.onSeek = { sought.append($0) }
+        viewModel.seekRelative(10)
+        viewModel.seekRelative(-100)
+        viewModel.seekRelative(500)
+
+        #expect(sought == [40, 0, 100])
+    }
+
+    @Test("侧栏列出根目录与各级文件夹，文件夹筛选包含子文件夹")
+    func folderNavigation() {
+        let provider = FakeRepositoryProvider()
+        let root = makeItem(name: "root")
+        let nested = VideoItem(
+            url: URL(fileURLWithPath: "/tmp/videos/trips/2024/beach.mp4"),
+            relativePath: "trips/2024/beach.mp4",
+            title: "beach",
+            size: 1024,
+            modifiedAt: nil,
+            duration: 60
+        )
+        let direct = VideoItem(
+            url: URL(fileURLWithPath: "/tmp/videos/trips/city.mp4"),
+            relativePath: "trips/city.mp4",
+            title: "city",
+            size: 1024,
+            modifiedAt: nil,
+            duration: 60
+        )
+        provider.items = [nested, root, direct]
+        let viewModel = makeViewModel(provider: provider)
+
+        #expect(viewModel.folders.map(\.path) == ["", "trips", "trips/2024"])
+        #expect(viewModel.folders.map(\.depth) == [0, 1, 2])
+        #expect(viewModel.folders[0].isRoot)
+
+        let trips = viewModel.folders[1]
+        viewModel.select(folder: trips)
+        #expect(viewModel.filteredItems.map(\.title) == ["beach", "city"])
+        #expect(viewModel.navigationTitle == "trips")
+        #expect(viewModel.hasActiveFilters)
+
+        viewModel.select(folder: trips)
+        #expect(viewModel.selectedFolder == nil)
+        #expect(viewModel.filteredItems.count == 3)
+
+        viewModel.select(folder: trips)
+        viewModel.select(.favorites)
+        #expect(viewModel.selectedFolder == nil)
+    }
+
+    @Test("最近添加只统计窗口内的条目")
+    func recentlyAddedScope() {
+        let provider = FakeRepositoryProvider()
+        let now = Date()
+        let fresh = makeItem(name: "fresh", modifiedAt: now.addingTimeInterval(-VideoLibraryViewModel.recentlyAddedWindow + 60))
+        let stale = makeItem(name: "stale", modifiedAt: now.addingTimeInterval(-VideoLibraryViewModel.recentlyAddedWindow - 60))
+        let undated = makeItem(name: "undated")
+        provider.items = [fresh, stale, undated]
+
+        #expect(VideoLibraryViewModel.isRecentlyAdded(fresh, now: now))
+        #expect(!VideoLibraryViewModel.isRecentlyAdded(stale, now: now))
+        #expect(!VideoLibraryViewModel.isRecentlyAdded(undated, now: now))
+
+        let viewModel = makeViewModel(provider: provider)
+        viewModel.select(.recentlyAdded)
+        #expect(viewModel.filteredItems.map(\.title) == ["fresh"])
+        #expect(viewModel.count(for: .recentlyAdded) == 1)
+    }
+
+    @Test("检查器选中条目后随仓库刷新同步，删除后清空")
+    func selectionFollowsRepository() {
+        let provider = FakeRepositoryProvider()
+        var item = makeItem(name: "clip", tags: ["a"])
+        provider.items = [item]
+        let viewModel = makeViewModel(provider: provider)
+
+        viewModel.select(item)
+        #expect(viewModel.selectedItem == item)
+
+        item = makeItem(name: "clip", tags: ["a", "b"])
+        provider.items = [item]
+        viewModel.reload()
+        #expect(viewModel.selectedItem?.tags == ["a", "b"])
+
+        viewModel.addTag("b", to: item)
+        viewModel.removeTag("a", to: item)
+        #expect(provider.tagUpdates.count == 1)
+        #expect(provider.tagUpdates.first?.tags == ["b"])
+
+        try? viewModel.rename(item, to: "clip-2")
+        provider.items = []
+        viewModel.reload()
+        #expect(viewModel.selectedItem == nil, "仓库尚未反映出重命名时不保留过期条目")
+
+        provider.items = [VideoItem(
+            url: URL(fileURLWithPath: "/tmp/videos/clip-2.mp4"),
+            relativePath: "clip-2.mp4",
+            title: "clip-2",
+            size: 1024,
+            modifiedAt: nil,
+            duration: 60
+        )]
+        viewModel.reload()
+        #expect(viewModel.selectedItem?.title == "clip-2", "仓库反映出重命名后检查器跟随新文件")
+
+        viewModel.clearSelection()
+        viewModel.reload()
+        #expect(viewModel.selectedItem == nil)
+
+        try? viewModel.delete(item)
+        #expect(viewModel.selectedItem == nil)
     }
 
     @Test("未下载或不可用的视频不得直接交给播放引擎")

@@ -18,8 +18,6 @@ let package = Package(
         .package(url: "https://github.com/lumi-softworks/LumiUI", from: "1.17.1"),
         .package(name: "KitMagic", path: "../MagicKit"),
         .package(path: "../ProviderPlugin"),
-        .package(path: "../ProviderControlView"),
-        .package(path: "../ProviderAppState"),
         .package(path: "../ProviderScene"),
         .package(path: "../ProviderVideo"),
     ],
@@ -29,8 +27,6 @@ let package = Package(
             dependencies: [
                 .product(name: "KernelCore", package: "LumiKernel"),
                 .product(name: "ProviderPlugin", package: "ProviderPlugin"),
-                .product(name: "ProviderControlView", package: "ProviderControlView"),
-                .product(name: "ProviderAppState", package: "ProviderAppState"),
                 .product(name: "ProviderDocsView", package: "LumiProviders"),
                 .product(name: "ProviderRootView", package: "LumiProviders"),
                 .product(name: "LumiUI", package: "LumiUI"),
